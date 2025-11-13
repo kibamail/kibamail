@@ -18,6 +18,12 @@ import {
   tagResponseSchema,
   tagListResponseSchema,
 } from "@/app/api/v1/tags/schema";
+import {
+  createTopicSchema,
+  updateTopicSchema,
+  topicResponseSchema,
+  topicListResponseSchema,
+} from "@/app/api/v1/topics/schema";
 
 const standardErrorSchema = z.object({
   error: z.string(),
@@ -543,6 +549,241 @@ const document = createDocument({
           },
           "404": {
             description: "Not Found - Tag does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/topics": {
+      get: {
+        summary: "List Topics",
+        description: "Retrieve a paginated list of topics using cursor-based pagination",
+        tags: ["Topics"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "limit",
+            in: "query",
+            description: "Number of topics to return (default: 20, max: 100)",
+            required: false,
+            schema: {
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20,
+            },
+          },
+          {
+            name: "after",
+            in: "query",
+            description: "Cursor for pagination - ID of the last topic from the previous page",
+            required: false,
+            schema: {
+              type: "string",
+            },
+          },
+          {
+            name: "before",
+            in: "query",
+            description: "Cursor for reverse pagination - ID of the first topic from the next page",
+            required: false,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "List of topics",
+            content: {
+              "application/json": { schema: topicListResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+      post: {
+        summary: "Create Topic",
+        description: "Create a new topic in the workspace",
+        tags: ["Topics"],
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: createTopicSchema },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Topic created successfully",
+            content: {
+              "application/json": { schema: topicResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Invalid input",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "409": {
+            description: "Conflict - Topic with this slug already exists",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/topics/{topicId}": {
+      get: {
+        summary: "Get Topic",
+        description: "Retrieve a specific topic by ID",
+        tags: ["Topics"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "topicId",
+            in: "path",
+            description: "Topic ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Topic details",
+            content: {
+              "application/json": { schema: topicResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Topic does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+      put: {
+        summary: "Update Topic",
+        description: "Update an existing topic",
+        tags: ["Topics"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "topicId",
+            in: "path",
+            description: "Topic ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateTopicSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Topic updated successfully",
+            content: {
+              "application/json": { schema: topicResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Invalid input",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Topic does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "409": {
+            description: "Conflict - Topic with this slug already exists",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: "Delete Topic",
+        description: "Delete a specific topic",
+        tags: ["Topics"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "topicId",
+            in: "path",
+            description: "Topic ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Topic deleted successfully",
+            content: {
+              "application/json": { schema: topicResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Topic does not exist",
             content: {
               "application/json": { schema: standardErrorSchema },
             },

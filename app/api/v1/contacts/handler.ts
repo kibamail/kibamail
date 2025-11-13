@@ -15,14 +15,12 @@ import {
   responseCreated,
   responseOk,
   responseNotFound,
-  responseConflict,
 } from "@/lib/api/responses";
 import { createContactSchema, updateContactSchema } from "./schema";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
-import { BadRequestError } from "@/lib/api/errors";
 
 /**
  * POST /api/v1/contacts
@@ -38,14 +36,7 @@ export async function createContact(apiKey: ApiKey, request: NextRequest) {
   const contact = await prisma.contact.create({
     data: {
       workspaceId,
-      email: data.email,
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phone: data.phone,
-      country: data.country,
-      timezone: data.timezone,
-      city: data.city,
-      status: data.status,
+      ...data,
     },
   });
 
@@ -173,14 +164,7 @@ export async function updateContact(
       workspaceId,
     },
     data: {
-      ...(data.email && { email: data.email }),
-      ...(data.firstName !== undefined && { firstName: data.firstName }),
-      ...(data.lastName !== undefined && { lastName: data.lastName }),
-      ...(data.phone !== undefined && { phone: data.phone }),
-      ...(data.country !== undefined && { country: data.country }),
-      ...(data.timezone !== undefined && { timezone: data.timezone }),
-      ...(data.city !== undefined && { city: data.city }),
-      ...(data.status && { status: data.status }),
+      ...data,
     },
   });
 

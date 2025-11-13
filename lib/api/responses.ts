@@ -22,7 +22,7 @@
 import { NextResponse } from "next/server";
 import type { ZodError } from "zod";
 
-export type ApiObjectType = "api_key" | "api_key_list" | "contact" | "contact_list" | "tag" | "tag_list";
+export type ApiObjectType = "api_key" | "api_key_list" | "contact" | "contact_list" | "tag" | "tag_list" | "topic" | "topic_list";
 
 /**
  * Standard API response structure (for external API v1)

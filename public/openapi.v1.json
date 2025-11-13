@@ -185,9 +185,6 @@
                           "id": {
                             "type": "string"
                           },
-                          "workspaceId": {
-                            "type": "string"
-                          },
                           "email": {
                             "type": "string"
                           },
@@ -260,17 +257,10 @@
                               "COMPLAINED",
                               "ARCHIVED"
                             ]
-                          },
-                          "createdAt": {
-                            "type": "string"
-                          },
-                          "updatedAt": {
-                            "type": "string"
                           }
                         },
                         "required": [
                           "id",
-                          "workspaceId",
                           "email",
                           "firstName",
                           "lastName",
@@ -278,9 +268,7 @@
                           "country",
                           "timezone",
                           "city",
-                          "status",
-                          "createdAt",
-                          "updatedAt"
+                          "status"
                         ],
                         "additionalProperties": false
                       }
@@ -442,9 +430,6 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "email": {
                       "type": "string"
                     },
@@ -517,18 +502,11 @@
                         "COMPLAINED",
                         "ARCHIVED"
                       ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "email",
                     "firstName",
                     "lastName",
@@ -536,9 +514,7 @@
                     "country",
                     "timezone",
                     "city",
-                    "status",
-                    "createdAt",
-                    "updatedAt"
+                    "status"
                   ],
                   "additionalProperties": false
                 }
@@ -674,9 +650,6 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "email": {
                       "type": "string"
                     },
@@ -749,18 +722,11 @@
                         "COMPLAINED",
                         "ARCHIVED"
                       ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "email",
                     "firstName",
                     "lastName",
@@ -768,9 +734,7 @@
                     "country",
                     "timezone",
                     "city",
-                    "status",
-                    "createdAt",
-                    "updatedAt"
+                    "status"
                   ],
                   "additionalProperties": false
                 }
@@ -949,9 +913,6 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "email": {
                       "type": "string"
                     },
@@ -1024,18 +985,11 @@
                         "COMPLAINED",
                         "ARCHIVED"
                       ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "email",
                     "firstName",
                     "lastName",
@@ -1043,9 +997,7 @@
                     "country",
                     "timezone",
                     "city",
-                    "status",
-                    "createdAt",
-                    "updatedAt"
+                    "status"
                   ],
                   "additionalProperties": false
                 }
@@ -1276,29 +1228,17 @@
                           "id": {
                             "type": "string"
                           },
-                          "workspaceId": {
-                            "type": "string"
-                          },
                           "name": {
                             "type": "string"
                           },
                           "color": {
                             "type": "string"
-                          },
-                          "createdAt": {
-                            "type": "string"
-                          },
-                          "updatedAt": {
-                            "type": "string"
                           }
                         },
                         "required": [
                           "id",
-                          "workspaceId",
                           "name",
-                          "color",
-                          "createdAt",
-                          "updatedAt"
+                          "color"
                         ],
                         "additionalProperties": false
                       }
@@ -1386,30 +1326,18 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "name": {
                       "type": "string"
                     },
                     "color": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "name",
-                    "color",
-                    "createdAt",
-                    "updatedAt"
+                    "color"
                   ],
                   "additionalProperties": false
                 }
@@ -1545,30 +1473,18 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "name": {
                       "type": "string"
                     },
                     "color": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "name",
-                    "color",
-                    "createdAt",
-                    "updatedAt"
+                    "color"
                   ],
                   "additionalProperties": false
                 }
@@ -1673,30 +1589,18 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "name": {
                       "type": "string"
                     },
                     "color": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "name",
-                    "color",
-                    "createdAt",
-                    "updatedAt"
+                    "color"
                   ],
                   "additionalProperties": false
                 }
@@ -1849,30 +1753,18 @@
                     "id": {
                       "type": "string"
                     },
-                    "workspaceId": {
-                      "type": "string"
-                    },
                     "name": {
                       "type": "string"
                     },
                     "color": {
-                      "type": "string"
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "type",
                     "id",
-                    "workspaceId",
                     "name",
-                    "color",
-                    "createdAt",
-                    "updatedAt"
+                    "color"
                   ],
                   "additionalProperties": false
                 }
@@ -1900,6 +1792,820 @@
           },
           "404": {
             "description": "Not Found - Tag does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/topics": {
+      "get": {
+        "summary": "List Topics",
+        "description": "Retrieve a paginated list of topics using cursor-based pagination",
+        "tags": [
+          "Topics"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of topics to return (default: 20, max: 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Cursor for pagination - ID of the last topic from the previous page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Cursor for reverse pagination - ID of the first topic from the next page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of topics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "topic_list"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "visibility": {
+                            "type": "string",
+                            "enum": [
+                              "PUBLIC",
+                              "PRIVATE"
+                            ]
+                          },
+                          "isPrimary": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "slug",
+                          "visibility",
+                          "isPrimary"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "hasMore",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Topic",
+        "description": "Create a new topic in the workspace",
+        "tags": [
+          "Topics"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[a-z0-9-]+$"
+                  },
+                  "visibility": {
+                    "default": "PUBLIC",
+                    "type": "string",
+                    "enum": [
+                      "PUBLIC",
+                      "PRIVATE"
+                    ]
+                  },
+                  "isPrimary": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "name",
+                  "slug"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Topic created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "topic"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "PRIVATE"
+                      ]
+                    },
+                    "isPrimary": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id",
+                    "name",
+                    "description",
+                    "slug",
+                    "visibility",
+                    "isPrimary"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Topic with this slug already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Invalid field values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/topics/{topicId}": {
+      "get": {
+        "summary": "Get Topic",
+        "description": "Retrieve a specific topic by ID",
+        "tags": [
+          "Topics"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "topicId",
+            "in": "path",
+            "description": "Topic ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topic details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "topic"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "PRIVATE"
+                      ]
+                    },
+                    "isPrimary": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id",
+                    "name",
+                    "description",
+                    "slug",
+                    "visibility",
+                    "isPrimary"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Topic does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Topic",
+        "description": "Update an existing topic",
+        "tags": [
+          "Topics"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "topicId",
+            "in": "path",
+            "description": "Topic ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^[a-z0-9-]+$"
+                  },
+                  "visibility": {
+                    "type": "string",
+                    "enum": [
+                      "PUBLIC",
+                      "PRIVATE"
+                    ]
+                  },
+                  "isPrimary": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Topic updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "topic"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "PRIVATE"
+                      ]
+                    },
+                    "isPrimary": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id",
+                    "name",
+                    "description",
+                    "slug",
+                    "visibility",
+                    "isPrimary"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Topic does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Topic with this slug already exists",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Invalid field values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Topic",
+        "description": "Delete a specific topic",
+        "tags": [
+          "Topics"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "topicId",
+            "in": "path",
+            "description": "Topic ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Topic deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "topic"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "slug": {
+                      "type": "string"
+                    },
+                    "visibility": {
+                      "type": "string",
+                      "enum": [
+                        "PUBLIC",
+                        "PRIVATE"
+                      ]
+                    },
+                    "isPrimary": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "id",
+                    "name",
+                    "description",
+                    "slug",
+                    "visibility",
+                    "isPrimary"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Topic does not exist",
             "content": {
               "application/json": {
                 "schema": {

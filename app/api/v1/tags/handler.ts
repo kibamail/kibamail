@@ -7,7 +7,6 @@
  */
 
 import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 import type { ApiKey } from "@prisma/client";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
@@ -99,7 +98,8 @@ export async function listTags(apiKey: ApiKey, request: NextRequest) {
     hasMore,
     "tag_list"
   );
-  return NextResponse.json(paginatedResponse, { status: 200 });
+
+  return responseOk(paginatedResponse);
 }
 
 /**

@@ -214,6 +214,9 @@ model Topic {
   /// Whether this is a primary topic for the workspace
   isPrimary Boolean @default(false)
 
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt DateTime? @map("deleted_at")
+
   /// When the topic was created
   createdAt DateTime @default(now())
 
@@ -227,8 +230,11 @@ model Topic {
   suppressions SuppressionList[]
 
   /// Unique constraint on slug per workspace
+  /// NOTE: This will be replaced with a partial index in migration
+  /// to allow slug reuse after soft delete (WHERE deleted_at IS NULL)
   @@unique([workspaceId, slug])
   @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
   @@index([visibility])
   @@index([isPrimary])
   @@map("topics")
@@ -303,6 +309,9 @@ model Tag {
   /// Tag color for UI display (hex color code)
   color String @default("#3B82F6")
 
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt DateTime? @map("deleted_at")
+
   /// When the tag was created
   createdAt DateTime @default(now())
 
@@ -313,8 +322,11 @@ model Tag {
   contacts ContactTag[]
 
   /// Unique constraint on name per workspace
+  /// NOTE: This will be replaced with a partial index in migration
+  /// to allow name reuse after soft delete (WHERE deleted_at IS NULL)
   @@unique([workspaceId, name])
   @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
   @@map("tags")
 }
 
@@ -378,6 +390,9 @@ model Segment {
   /// @example {"and": [{"field": "status", "operator": "equals", "value": "subscribed"}]}
   conditions Json?
 
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt DateTime? @map("deleted_at")
+
   /// When the segment was created
   createdAt DateTime @default(now())
 
@@ -388,6 +403,7 @@ model Segment {
   contacts ContactSegment[]
 
   @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
   @@index([type])
   @@map("segments")
 }
