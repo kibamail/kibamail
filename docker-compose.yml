@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:18-alpine
-    container_name: starterkit-postgres
+    container_name: control-plane-kibaship-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
@@ -18,11 +18,11 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: starterkit-rabbitmq
+    container_name: control-plane-kibaship-rabbitmq
     ports:
       - "5672:5672" # AMQP
       - "15672:15672" # Management UI
@@ -34,10 +34,10 @@ services:
       timeout: 1s
       retries: 30
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   logto:
-    container_name: starterkit-logto
+    container_name: control-plane-kibaship-logto
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,11 +52,11 @@ services:
       - ENDPOINT
       - ADMIN_ENDPOINT
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   outpost-api:
     image: hookdeck/outpost:v0.7.0
-    container_name: starterkit-outpost-api
+    container_name: control-plane-kibaship-outpost-api
     env_file: .env.local
     depends_on:
       redis:
@@ -81,11 +81,11 @@ services:
     ports:
       - "3333:3333"
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   outpost-delivery:
     image: hookdeck/outpost:v0.7.0
-    container_name: starterkit-outpost-delivery
+    container_name: control-plane-kibaship-outpost-delivery
     env_file: .env.local
     depends_on:
       redis:
@@ -108,11 +108,11 @@ services:
       REDIS_PASSWORD: "${OUTPOST_REDIS_PASSWORD}"
       REDIS_DATABASE: "${OUTPOST_REDIS_DATABASE}"
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   outpost-log:
     image: hookdeck/outpost:v0.7.0
-    container_name: starterkit-outpost-log
+    container_name: control-plane-kibaship-outpost-log
     env_file: .env.local
     depends_on:
       redis:
@@ -135,11 +135,11 @@ services:
       REDIS_PASSWORD: "${OUTPOST_REDIS_PASSWORD}"
       REDIS_DATABASE: "${OUTPOST_REDIS_DATABASE}"
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   redis:
     image: redis:7.4-alpine
-    container_name: starterkit-redis
+    container_name: control-plane-kibaship-redis
     restart: always
     env_file: .env.local
     ports:
@@ -151,25 +151,25 @@ services:
     volumes:
       - ./data/redis:/data
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
 
   garage:
     image: dxflrs/garage:v1.1.0
-    container_name: starterkit-garage
+    container_name: control-plane-kibaship-garage
     restart: unless-stopped
     environment:
       - RUST_LOG=garage=info
     ports:
-      - "3900:3900"  # S3 API
-      - "3901:3901"  # RPC (inter-node communication)
-      - "3902:3902"  # S3 Web hosting
-      - "3903:3903"  # Admin API & Metrics
+      - "3900:3900" # S3 API
+      - "3901:3901" # RPC (inter-node communication)
+      - "3902:3902" # S3 Web hosting
+      - "3903:3903" # Admin API & Metrics
     volumes:
       - ./garage/config/garage.toml:/etc/garage.toml:ro
       - ./garage/meta:/var/lib/garage/meta
       - ./garage/data:/var/lib/garage/data
     networks:
-      - starterkit-network
+      - control-plane-kibaship-network
     healthcheck:
       test: ["CMD", "garage", "status"]
       interval: 30s
@@ -182,5 +182,5 @@ volumes:
     driver: local
 
 networks:
-  starterkit-network:
+  control-plane-kibaship-network:
     driver: bridge

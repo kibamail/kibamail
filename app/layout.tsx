@@ -5,7 +5,7 @@ import "./globals.css";
 const manrope = Manrope();
 
 export const metadata: Metadata = {
-  title: "starterkit.kibamail.com",
+  title: "control-plane.kibaship.com",
   description:
     "Starterkit for building applications for the kibamail organisation.",
 };

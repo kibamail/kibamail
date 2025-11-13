@@ -1,9 +1,9 @@
 {
-  "name": "starterkit.kibamail.com",
+  "name": "control-plane.kibaship.com",
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 18090",
+    "dev": "next dev -p 18092",
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
@@ -12,7 +12,9 @@
     "rbac:sync:dry": "bun run scripts/rbac-sync.ts --dry-run",
     "rbac:sync:force": "bun run scripts/rbac-sync.ts --force",
     "webhooks:sdk:sync": "openapi-typescript https://raw.githubusercontent.com/hookdeck/outpost/refs/tags/v0.8.0/docs/apis/openapi.yaml -o ./webhooks/client/schema.ts",
-    "seed": "bun run scripts/seed.ts"
+    "seed": "bun run scripts/seed.ts",
+    "tidb:init": "bun run scripts/init-tidb-schema.ts",
+    "tidb:insert": "bun run scripts/tidb-multi-insert.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.929.0",
@@ -28,6 +30,7 @@
     "dotenv": "^17.2.3",
     "iconoir-react": "^7.11.0",
     "ioredis": "^5.8.2",
+    "mysql2": "^3.15.3",
     "next": "16.0.1",
     "openapi-fetch": "^0.15.0",
     "openapi-typescript": "^7.10.1",
@@ -42,6 +45,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@faker-js/faker": "^10.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/bun": "^1.3.2",
     "@types/node": "^20",

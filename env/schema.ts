@@ -162,21 +162,18 @@ export const env = createEnv({
     /**
      * Database Connection URL
      *
-     * PostgreSQL connection string used to connect to your database.
+     * MySQL connection string used to connect to your database.
      * Must be a valid connection URL with protocol, credentials, host, and database name.
      *
      * Format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]
      *
-     * @example "postgresql://user:password@localhost:5432/mydb"
-     * @see https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNSTRING
+     * @example "mysql://user:password@localhost:5432/mydb"
      */
     DATABASE_URL: z
-      .string()
       .url("DATABASE_URL must be a valid URL")
       .refine(
-        (url) =>
-          url.startsWith("postgresql://") || url.startsWith("postgres://"),
-        "DATABASE_URL must be a PostgreSQL connection string",
+        (url) => url.startsWith("mysql://"),
+        "DATABASE_URL must be a Mysql connection string"
       ),
 
     // ============================================================================
@@ -352,7 +349,7 @@ export const env = createEnv({
       .preprocess(
         (val) =>
           val ?? (process.env.NODE_ENV === "production" ? "true" : "false"),
-        z.string().transform((val) => val === "true"),
+        z.string().transform((val) => val === "true")
       )
       .describe("Whether to only send cookies over HTTPS"),
 
@@ -450,7 +447,7 @@ export const env = createEnv({
       .string()
       .transform((val) => parseInt(val, 10))
       .pipe(z.number().int().min(1).max(65535))
-      .default("6379")
+      .default(6379)
       .describe("Redis server port"),
 
     /**
@@ -489,7 +486,7 @@ export const env = createEnv({
       .string()
       .transform((val) => parseInt(val, 10))
       .pipe(z.number().int().min(0).max(15))
-      .default("0")
+      .default(0)
       .describe("Redis database number"),
 
     // ============================================================================

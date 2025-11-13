@@ -13,4 +13,4 @@ process.env.NODE_ENV = "development";
 process.env.DISABLE_PRISMA_LOGS = "true";
 
 // Load .env.local file first
-dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({ path: path.resolve(process.cwd(), ".env.test") });
