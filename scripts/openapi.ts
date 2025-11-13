@@ -24,6 +24,12 @@ import {
   topicResponseSchema,
   topicListResponseSchema,
 } from "@/app/api/v1/topics/schema";
+import {
+  createSegmentSchema,
+  updateSegmentSchema,
+  segmentResponseSchema,
+  segmentListResponseSchema,
+} from "@/app/api/v1/segments/schema";
 
 const standardErrorSchema = z.object({
   error: z.string(),
@@ -784,6 +790,229 @@ const document = createDocument({
           },
           "404": {
             description: "Not Found - Topic does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/segments": {
+      get: {
+        summary: "List Segments",
+        description: "Retrieve a paginated list of segments using cursor-based pagination",
+        tags: ["Segments"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "limit",
+            in: "query",
+            description: "Number of segments to return (default: 20, max: 100)",
+            required: false,
+            schema: {
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20,
+            },
+          },
+          {
+            name: "after",
+            in: "query",
+            description: "Cursor for pagination - ID of the last segment from the previous page",
+            required: false,
+            schema: {
+              type: "string",
+            },
+          },
+          {
+            name: "before",
+            in: "query",
+            description: "Cursor for reverse pagination - ID of the first segment from the next page",
+            required: false,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "List of segments",
+            content: {
+              "application/json": { schema: segmentListResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+      post: {
+        summary: "Create Segment",
+        description: "Create a new segment in the workspace with MongoDB-style conditions",
+        tags: ["Segments"],
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: createSegmentSchema },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Segment created successfully",
+            content: {
+              "application/json": { schema: segmentResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Invalid input",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values or conditions",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/segments/{segmentId}": {
+      get: {
+        summary: "Get Segment",
+        description: "Retrieve a specific segment by ID",
+        tags: ["Segments"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "segmentId",
+            in: "path",
+            description: "Segment ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Segment details",
+            content: {
+              "application/json": { schema: segmentResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Segment does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+      put: {
+        summary: "Update Segment",
+        description: "Update an existing segment",
+        tags: ["Segments"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "segmentId",
+            in: "path",
+            description: "Segment ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateSegmentSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Segment updated successfully",
+            content: {
+              "application/json": { schema: segmentResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Invalid input",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Segment does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values or conditions",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: "Delete Segment",
+        description: "Delete a specific segment",
+        tags: ["Segments"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "segmentId",
+            in: "path",
+            description: "Segment ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Segment deleted successfully",
+            content: {
+              "application/json": { schema: segmentResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Segment does not exist",
             content: {
               "application/json": { schema: standardErrorSchema },
             },
