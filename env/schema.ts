@@ -213,8 +213,8 @@ export const env = createEnv({
     LOGTO_ENDPOINT: z
       .url("LOGTO_ENDPOINT must be a valid URL")
       .refine((url) => {
-        // Allow http in development
-        if (process.env.NODE_ENV === "development") {
+        // Allow http in development and test
+        if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
           return true;
         }
         // Require https in production
@@ -288,8 +288,8 @@ export const env = createEnv({
     LOGTO_BASE_URL: z
       .url("LOGTO_BASE_URL must be a valid URL")
       .refine((url) => {
-        // Allow http://localhost in development
-        if (process.env.NODE_ENV === "development") {
+        // Allow http://localhost in development and test
+        if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
           return true;
         }
         // Require https in production

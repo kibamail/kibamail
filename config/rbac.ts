@@ -202,6 +202,66 @@ export const PERMISSIONS: PermissionDefinition[] = [
   },
 
   // ============================================================================
+  // CONTACT MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:contacts",
+    description: "View contacts and their details",
+  },
+  {
+    name: "manage:contacts",
+    description: "Full contact management (create, update, delete contacts)",
+  },
+
+  // ============================================================================
+  // TAGS MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:tags",
+    description: "View tags and their details",
+  },
+  {
+    name: "manage:tags",
+    description: "Full tag management (create, update, delete tags)",
+  },
+
+  // ============================================================================
+  // TOPICS MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:topics",
+    description: "View topics and their details",
+  },
+  {
+    name: "manage:topics",
+    description: "Full topic management (create, update, delete topics)",
+  },
+
+  // ============================================================================
+  // SEGMENTS MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:segments",
+    description: "View segments and their details",
+  },
+  {
+    name: "manage:segments",
+    description: "Full segment management (create, update, delete segments)",
+  },
+
+  // ============================================================================
+  // SUPPRESSION LIST MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:suppression-list",
+    description: "View suppression list entries",
+  },
+  {
+    name: "manage:suppression-list",
+    description: "Full suppression list management (add, update, remove entries)",
+  },
+
+  // ============================================================================
   // WEBHOOKS
   // ============================================================================
   {
@@ -249,6 +309,21 @@ export const ROLES: Role[] = [
       "manage:api-keys",
       "read:webhooks",
       "manage:webhooks",
+      // Contact Management - Full Access
+      "read:contacts",
+      "manage:contacts",
+      // Tags Management - Full Access
+      "read:tags",
+      "manage:tags",
+      // Topics Management - Full Access
+      "read:topics",
+      "manage:topics",
+      // Segments Management - Full Access
+      "read:segments",
+      "manage:segments",
+      // Suppression List - Full Access
+      "read:suppression-list",
+      "manage:suppression-list",
     ],
   },
 
@@ -272,6 +347,21 @@ export const ROLES: Role[] = [
       "manage:api-keys",
       "read:webhooks",
       "manage:webhooks",
+      // Contact Management - Full Access
+      "read:contacts",
+      "manage:contacts",
+      // Tags Management - Full Access
+      "read:tags",
+      "manage:tags",
+      // Topics Management - Full Access
+      "read:topics",
+      "manage:topics",
+      // Segments Management - Full Access
+      "read:segments",
+      "manage:segments",
+      // Suppression List - Full Access
+      "read:suppression-list",
+      "manage:suppression-list",
     ],
   },
 
@@ -284,7 +374,16 @@ export const ROLES: Role[] = [
     description:
       "Basic access to view workspace information and members. Can invite new members but cannot manage existing members or settings.",
     type: "User",
-    permissions: ["read:workspace", "read:members"],
+    permissions: [
+      "read:workspace",
+      "read:members",
+      // Contact Management - Read Only
+      "read:contacts",
+      "read:tags",
+      "read:topics",
+      "read:segments",
+      "read:suppression-list",
+    ],
   },
 ];
 
@@ -364,7 +463,22 @@ export type Permission =
   | "read:api-keys"
   | "manage:api-keys"
   | "read:webhooks"
-  | "manage:webhooks";
+  | "manage:webhooks"
+  // Contact Management
+  | "read:contacts"
+  | "manage:contacts"
+  // Tags Management
+  | "read:tags"
+  | "manage:tags"
+  // Topics Management
+  | "read:topics"
+  | "manage:topics"
+  // Segments Management
+  | "read:segments"
+  | "manage:segments"
+  // Suppression List Management
+  | "read:suppression-list"
+  | "manage:suppression-list";
 
 /**
  * Type: Role name

@@ -5,11 +5,13 @@
 This document explains how to implement **dynamic custom properties** for a multi-tenant email marketing platform using a **slot-based architecture** with TiDB regular columns and Prisma ORM. This approach achieves **95-99% faster queries** compared to traditional JSON property filtering.
 
 **Performance Impact:**
+
 - JSON filtering: 690ms → 15ms (**98% faster**)
 - Multi-field filters: 471ms → 20ms (**96% faster**)
 - Complex segments: 1,200ms → 25ms (**98% faster**)
 
 **Architecture Benefits:**
+
 - ✅ **Simple schema** - Regular columns, no JSON complexity
 - ✅ **Maximum performance** - All slots fully indexed
 - ✅ **Type-safe** - Full Prisma support
@@ -23,6 +25,7 @@ This document explains how to implement **dynamic custom properties** for a mult
 ### The Problem
 
 Traditional approach with dynamic JSON:
+
 ```sql
 -- ❌ SLOW: Full table scan (690ms for 1.6M records)
 SELECT * FROM contacts
@@ -31,6 +34,7 @@ WHERE JSON_EXTRACT(properties, '$.age') > 30
 ```
 
 **Why it's slow:**
+
 - Cannot index arbitrary JSON paths
 - Full table scan on every query
 - JSON extraction overhead
@@ -48,6 +52,7 @@ WHERE num_0 > 30      -- age mapped to num_0
 ```
 
 **How it works:**
+
 1. **Fixed slots**: Pre-defined columns (num_0, num_1, str_0, str_1, etc.)
 2. **Mapping table**: Maps user fields → slots (e.g., `age → num_0`)
 3. **Direct writes**: Insert directly into slot columns (no JSON)
@@ -55,6 +60,7 @@ WHERE num_0 > 30      -- age mapped to num_0
 5. **Application layer**: Translates between user field names and slots
 
 **Example mapping:**
+
 ```typescript
 // Tenant's field mappings
 {
@@ -64,7 +70,7 @@ WHERE num_0 > 30      -- age mapped to num_0
 }
 
 // Insert becomes:
-INSERT INTO contacts (tenant_id, email, num_0, num_1, str_0)
+INSERT INTO contacts (workspace_id, email, num_0, num_1, str_0)
 VALUES ('tenant_123', 'john@example.com', 30, 85, 'Acme Corp');
 ```
 
@@ -77,7 +83,7 @@ VALUES ('tenant_123', 'john@example.com', 30, 85, 'Acme Corp');
 ```sql
 CREATE TABLE contacts (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  tenant_id VARCHAR(100) NOT NULL,
+  workspace_id VARCHAR(100) NOT NULL,
 
   -- Standard fields (all tenants have these)
   email VARCHAR(255) NOT NULL,
@@ -192,99 +198,99 @@ CREATE TABLE contacts (
   PRIMARY KEY (id),
 
   -- Core indexes
-  INDEX idx_tenant (tenant_id),
+  INDEX idx_tenant (workspace_id),
   INDEX idx_email (email),
   INDEX idx_subscribed (subscribed),
   INDEX idx_created_at (created_at),
 
-  -- Numeric slot indexes (composite with tenant_id)
-  INDEX idx_tenant_num_0 (tenant_id, num_0),
-  INDEX idx_tenant_num_1 (tenant_id, num_1),
-  INDEX idx_tenant_num_2 (tenant_id, num_2),
-  INDEX idx_tenant_num_3 (tenant_id, num_3),
-  INDEX idx_tenant_num_4 (tenant_id, num_4),
-  INDEX idx_tenant_num_5 (tenant_id, num_5),
-  INDEX idx_tenant_num_6 (tenant_id, num_6),
-  INDEX idx_tenant_num_7 (tenant_id, num_7),
-  INDEX idx_tenant_num_8 (tenant_id, num_8),
-  INDEX idx_tenant_num_9 (tenant_id, num_9),
-  INDEX idx_tenant_num_10 (tenant_id, num_10),
-  INDEX idx_tenant_num_11 (tenant_id, num_11),
-  INDEX idx_tenant_num_12 (tenant_id, num_12),
-  INDEX idx_tenant_num_13 (tenant_id, num_13),
-  INDEX idx_tenant_num_14 (tenant_id, num_14),
-  INDEX idx_tenant_num_15 (tenant_id, num_15),
-  INDEX idx_tenant_num_16 (tenant_id, num_16),
-  INDEX idx_tenant_num_17 (tenant_id, num_17),
-  INDEX idx_tenant_num_18 (tenant_id, num_18),
-  INDEX idx_tenant_num_19 (tenant_id, num_19),
-  INDEX idx_tenant_num_20 (tenant_id, num_20),
-  INDEX idx_tenant_num_21 (tenant_id, num_21),
-  INDEX idx_tenant_num_22 (tenant_id, num_22),
-  INDEX idx_tenant_num_23 (tenant_id, num_23),
-  INDEX idx_tenant_num_24 (tenant_id, num_24),
+  -- Numeric slot indexes (composite with workspace_id)
+  INDEX idx_tenant_num_0 (workspace_id, num_0),
+  INDEX idx_tenant_num_1 (workspace_id, num_1),
+  INDEX idx_tenant_num_2 (workspace_id, num_2),
+  INDEX idx_tenant_num_3 (workspace_id, num_3),
+  INDEX idx_tenant_num_4 (workspace_id, num_4),
+  INDEX idx_tenant_num_5 (workspace_id, num_5),
+  INDEX idx_tenant_num_6 (workspace_id, num_6),
+  INDEX idx_tenant_num_7 (workspace_id, num_7),
+  INDEX idx_tenant_num_8 (workspace_id, num_8),
+  INDEX idx_tenant_num_9 (workspace_id, num_9),
+  INDEX idx_tenant_num_10 (workspace_id, num_10),
+  INDEX idx_tenant_num_11 (workspace_id, num_11),
+  INDEX idx_tenant_num_12 (workspace_id, num_12),
+  INDEX idx_tenant_num_13 (workspace_id, num_13),
+  INDEX idx_tenant_num_14 (workspace_id, num_14),
+  INDEX idx_tenant_num_15 (workspace_id, num_15),
+  INDEX idx_tenant_num_16 (workspace_id, num_16),
+  INDEX idx_tenant_num_17 (workspace_id, num_17),
+  INDEX idx_tenant_num_18 (workspace_id, num_18),
+  INDEX idx_tenant_num_19 (workspace_id, num_19),
+  INDEX idx_tenant_num_20 (workspace_id, num_20),
+  INDEX idx_tenant_num_21 (workspace_id, num_21),
+  INDEX idx_tenant_num_22 (workspace_id, num_22),
+  INDEX idx_tenant_num_23 (workspace_id, num_23),
+  INDEX idx_tenant_num_24 (workspace_id, num_24),
 
-  -- String slot indexes (composite with tenant_id)
-  INDEX idx_tenant_str_0 (tenant_id, str_0(100)),
-  INDEX idx_tenant_str_1 (tenant_id, str_1(100)),
-  INDEX idx_tenant_str_2 (tenant_id, str_2(100)),
-  INDEX idx_tenant_str_3 (tenant_id, str_3(100)),
-  INDEX idx_tenant_str_4 (tenant_id, str_4(100)),
-  INDEX idx_tenant_str_5 (tenant_id, str_5(100)),
-  INDEX idx_tenant_str_6 (tenant_id, str_6(100)),
-  INDEX idx_tenant_str_7 (tenant_id, str_7(100)),
-  INDEX idx_tenant_str_8 (tenant_id, str_8(100)),
-  INDEX idx_tenant_str_9 (tenant_id, str_9(100)),
-  INDEX idx_tenant_str_10 (tenant_id, str_10(100)),
-  INDEX idx_tenant_str_11 (tenant_id, str_11(100)),
-  INDEX idx_tenant_str_12 (tenant_id, str_12(100)),
-  INDEX idx_tenant_str_13 (tenant_id, str_13(100)),
-  INDEX idx_tenant_str_14 (tenant_id, str_14(100)),
-  INDEX idx_tenant_str_15 (tenant_id, str_15(100)),
-  INDEX idx_tenant_str_16 (tenant_id, str_16(100)),
-  INDEX idx_tenant_str_17 (tenant_id, str_17(100)),
-  INDEX idx_tenant_str_18 (tenant_id, str_18(100)),
-  INDEX idx_tenant_str_19 (tenant_id, str_19(100)),
-  INDEX idx_tenant_str_20 (tenant_id, str_20(100)),
-  INDEX idx_tenant_str_21 (tenant_id, str_21(100)),
-  INDEX idx_tenant_str_22 (tenant_id, str_22(100)),
-  INDEX idx_tenant_str_23 (tenant_id, str_23(100)),
-  INDEX idx_tenant_str_24 (tenant_id, str_24(100)),
+  -- String slot indexes (composite with workspace_id)
+  INDEX idx_tenant_str_0 (workspace_id, str_0(100)),
+  INDEX idx_tenant_str_1 (workspace_id, str_1(100)),
+  INDEX idx_tenant_str_2 (workspace_id, str_2(100)),
+  INDEX idx_tenant_str_3 (workspace_id, str_3(100)),
+  INDEX idx_tenant_str_4 (workspace_id, str_4(100)),
+  INDEX idx_tenant_str_5 (workspace_id, str_5(100)),
+  INDEX idx_tenant_str_6 (workspace_id, str_6(100)),
+  INDEX idx_tenant_str_7 (workspace_id, str_7(100)),
+  INDEX idx_tenant_str_8 (workspace_id, str_8(100)),
+  INDEX idx_tenant_str_9 (workspace_id, str_9(100)),
+  INDEX idx_tenant_str_10 (workspace_id, str_10(100)),
+  INDEX idx_tenant_str_11 (workspace_id, str_11(100)),
+  INDEX idx_tenant_str_12 (workspace_id, str_12(100)),
+  INDEX idx_tenant_str_13 (workspace_id, str_13(100)),
+  INDEX idx_tenant_str_14 (workspace_id, str_14(100)),
+  INDEX idx_tenant_str_15 (workspace_id, str_15(100)),
+  INDEX idx_tenant_str_16 (workspace_id, str_16(100)),
+  INDEX idx_tenant_str_17 (workspace_id, str_17(100)),
+  INDEX idx_tenant_str_18 (workspace_id, str_18(100)),
+  INDEX idx_tenant_str_19 (workspace_id, str_19(100)),
+  INDEX idx_tenant_str_20 (workspace_id, str_20(100)),
+  INDEX idx_tenant_str_21 (workspace_id, str_21(100)),
+  INDEX idx_tenant_str_22 (workspace_id, str_22(100)),
+  INDEX idx_tenant_str_23 (workspace_id, str_23(100)),
+  INDEX idx_tenant_str_24 (workspace_id, str_24(100)),
 
-  -- Date slot indexes (composite with tenant_id)
-  INDEX idx_tenant_date_0 (tenant_id, date_0),
-  INDEX idx_tenant_date_1 (tenant_id, date_1),
-  INDEX idx_tenant_date_2 (tenant_id, date_2),
-  INDEX idx_tenant_date_3 (tenant_id, date_3),
-  INDEX idx_tenant_date_4 (tenant_id, date_4),
-  INDEX idx_tenant_date_5 (tenant_id, date_5),
-  INDEX idx_tenant_date_6 (tenant_id, date_6),
-  INDEX idx_tenant_date_7 (tenant_id, date_7),
-  INDEX idx_tenant_date_8 (tenant_id, date_8),
-  INDEX idx_tenant_date_9 (tenant_id, date_9),
-  INDEX idx_tenant_date_10 (tenant_id, date_10),
-  INDEX idx_tenant_date_11 (tenant_id, date_11),
-  INDEX idx_tenant_date_12 (tenant_id, date_12),
-  INDEX idx_tenant_date_13 (tenant_id, date_13),
-  INDEX idx_tenant_date_14 (tenant_id, date_14),
-  INDEX idx_tenant_date_15 (tenant_id, date_15),
-  INDEX idx_tenant_date_16 (tenant_id, date_16),
-  INDEX idx_tenant_date_17 (tenant_id, date_17),
-  INDEX idx_tenant_date_18 (tenant_id, date_18),
-  INDEX idx_tenant_date_19 (tenant_id, date_19),
-  INDEX idx_tenant_date_20 (tenant_id, date_20),
+  -- Date slot indexes (composite with workspace_id)
+  INDEX idx_tenant_date_0 (workspace_id, date_0),
+  INDEX idx_tenant_date_1 (workspace_id, date_1),
+  INDEX idx_tenant_date_2 (workspace_id, date_2),
+  INDEX idx_tenant_date_3 (workspace_id, date_3),
+  INDEX idx_tenant_date_4 (workspace_id, date_4),
+  INDEX idx_tenant_date_5 (workspace_id, date_5),
+  INDEX idx_tenant_date_6 (workspace_id, date_6),
+  INDEX idx_tenant_date_7 (workspace_id, date_7),
+  INDEX idx_tenant_date_8 (workspace_id, date_8),
+  INDEX idx_tenant_date_9 (workspace_id, date_9),
+  INDEX idx_tenant_date_10 (workspace_id, date_10),
+  INDEX idx_tenant_date_11 (workspace_id, date_11),
+  INDEX idx_tenant_date_12 (workspace_id, date_12),
+  INDEX idx_tenant_date_13 (workspace_id, date_13),
+  INDEX idx_tenant_date_14 (workspace_id, date_14),
+  INDEX idx_tenant_date_15 (workspace_id, date_15),
+  INDEX idx_tenant_date_16 (workspace_id, date_16),
+  INDEX idx_tenant_date_17 (workspace_id, date_17),
+  INDEX idx_tenant_date_18 (workspace_id, date_18),
+  INDEX idx_tenant_date_19 (workspace_id, date_19),
+  INDEX idx_tenant_date_20 (workspace_id, date_20),
 
-  -- Boolean slot indexes (composite with tenant_id)
-  INDEX idx_tenant_bool_0 (tenant_id, bool_0),
-  INDEX idx_tenant_bool_1 (tenant_id, bool_1),
-  INDEX idx_tenant_bool_2 (tenant_id, bool_2),
-  INDEX idx_tenant_bool_3 (tenant_id, bool_3),
-  INDEX idx_tenant_bool_4 (tenant_id, bool_4),
-  INDEX idx_tenant_bool_5 (tenant_id, bool_5),
-  INDEX idx_tenant_bool_6 (tenant_id, bool_6),
-  INDEX idx_tenant_bool_7 (tenant_id, bool_7),
-  INDEX idx_tenant_bool_8 (tenant_id, bool_8),
-  INDEX idx_tenant_bool_9 (tenant_id, bool_9),
+  -- Boolean slot indexes (composite with workspace_id)
+  INDEX idx_tenant_bool_0 (workspace_id, bool_0),
+  INDEX idx_tenant_bool_1 (workspace_id, bool_1),
+  INDEX idx_tenant_bool_2 (workspace_id, bool_2),
+  INDEX idx_tenant_bool_3 (workspace_id, bool_3),
+  INDEX idx_tenant_bool_4 (workspace_id, bool_4),
+  INDEX idx_tenant_bool_5 (workspace_id, bool_5),
+  INDEX idx_tenant_bool_6 (workspace_id, bool_6),
+  INDEX idx_tenant_bool_7 (workspace_id, bool_7),
+  INDEX idx_tenant_bool_8 (workspace_id, bool_8),
+  INDEX idx_tenant_bool_9 (workspace_id, bool_9),
 
   -- Single column indexes for cross-tenant analytics
   INDEX idx_num_0 (num_0),
@@ -302,8 +308,8 @@ CREATE TABLE contacts (
   -- Common query pattern indexes
   INDEX idx_subscribed_num_0 (subscribed, num_0),
   INDEX idx_subscribed_num_1 (subscribed, num_1),
-  INDEX idx_tenant_subscribed_num_0 (tenant_id, subscribed, num_0),
-  INDEX idx_tenant_subscribed_num_1 (tenant_id, subscribed, num_1)
+  INDEX idx_tenant_subscribed_num_0 (workspace_id, subscribed, num_0),
+  INDEX idx_tenant_subscribed_num_1 (workspace_id, subscribed, num_1)
 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin
 PARTITION BY HASH (id) PARTITIONS 16;
@@ -314,7 +320,7 @@ PARTITION BY HASH (id) PARTITIONS 16;
 ```sql
 CREATE TABLE tenant_field_mappings (
   id BIGINT NOT NULL AUTO_INCREMENT,
-  tenant_id VARCHAR(100) NOT NULL,
+  workspace_id VARCHAR(100) NOT NULL,
 
   -- Field identification
   field_name VARCHAR(100) NOT NULL,           -- User-facing name: 'age', 'company'
@@ -344,24 +350,24 @@ CREATE TABLE tenant_field_mappings (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
   PRIMARY KEY (id),
-  UNIQUE KEY uniq_tenant_field (tenant_id, field_name),
-  UNIQUE KEY uniq_tenant_slot (tenant_id, slot_name),
-  INDEX idx_tenant (tenant_id),
+  UNIQUE KEY uniq_tenant_field (workspace_id, field_name),
+  UNIQUE KEY uniq_tenant_slot (workspace_id, slot_name),
+  INDEX idx_tenant (workspace_id),
   INDEX idx_slot (slot_name),
   INDEX idx_type (field_type),
-  INDEX idx_tenant_type (tenant_id, field_type)
+  INDEX idx_tenant_type (workspace_id, field_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 ```
 
 ### 3. Slot Capacity Summary
 
-| Slot Type | Count | Use Case |
-|-----------|-------|----------|
-| **num_0 to num_24** | 25 | Numbers, scores, ages, revenue, counts |
-| **str_0 to str_24** | 25 | Names, titles, companies, URLs, tags |
-| **date_0 to date_20** | 21 | Dates, timestamps, anniversaries |
-| **bool_0 to bool_9** | 10 | Flags, preferences, status indicators |
-| **Total** | **81 slots** | Supports 81 custom fields per tenant |
+| Slot Type             | Count        | Use Case                               |
+| --------------------- | ------------ | -------------------------------------- |
+| **num_0 to num_24**   | 25           | Numbers, scores, ages, revenue, counts |
+| **str_0 to str_24**   | 25           | Names, titles, companies, URLs, tags   |
+| **date_0 to date_20** | 21           | Dates, timestamps, anniversaries       |
+| **bool_0 to bool_9**  | 10           | Flags, preferences, status indicators  |
+| **Total**             | **81 slots** | Supports 81 custom fields per tenant   |
 
 ---
 
@@ -388,7 +394,7 @@ datasource db {
 
 model Contact {
   id        BigInt   @id @default(autoincrement())
-  tenantId  String   @map("tenant_id") @db.VarChar(100)
+  tenantId  String   @map("workspace_id") @db.VarChar(100)
 
   // Standard fields
   email       String    @db.VarChar(255)
@@ -560,7 +566,7 @@ model Contact {
 
 model TenantFieldMapping {
   id        BigInt   @id @default(autoincrement())
-  tenantId  String   @map("tenant_id") @db.VarChar(100)
+  tenantId  String   @map("workspace_id") @db.VarChar(100)
 
   // Field identification
   fieldName        String  @map("field_name") @db.VarChar(100)
@@ -610,7 +616,7 @@ enum FieldType {
 model Event {
   id        BigInt   @id @default(autoincrement())
   contactId BigInt   @map("contact_id")
-  tenantId  String   @map("tenant_id") @db.VarChar(100)
+  tenantId  String   @map("workspace_id") @db.VarChar(100)
 
   eventType      String   @map("event_type") @db.VarChar(50)
   eventCategory  String   @map("event_category") @db.VarChar(30)
@@ -624,7 +630,7 @@ model Event {
   contact Contact @relation(fields: [contactId], references: [id])
 
   @@index([contactId], map: "idx_contact_id")
-  @@index([tenantId], map: "idx_tenant_id")
+  @@index([tenantId], map: "idx_workspace_id")
   @@index([eventType], map: "idx_event_type")
   @@index([eventTimestamp], map: "idx_event_timestamp")
   @@index([contactId, eventTimestamp], map: "idx_contact_event_time")
@@ -648,6 +654,7 @@ npx prisma migrate dev --name add_contact_property_slots
 Prisma will generate the migration automatically. The schema is straightforward - just regular columns with indexes!
 
 **Estimated migration time** for existing data:
+
 - Empty table: ~1 second
 - 1M contacts: ~30 seconds
 - 10M contacts: ~5 minutes
@@ -661,7 +668,7 @@ Prisma will generate the migration automatically. The schema is straightforward 
 ```typescript
 // lib/field-mapping/field-mapping-manager.ts
 
-import { PrismaClient, FieldType } from '@prisma/client';
+import { PrismaClient, FieldType } from "@prisma/client";
 
 export interface FieldMapping {
   fieldName: string;
@@ -677,9 +684,9 @@ export interface FieldMapping {
 export class FieldMappingManager {
   // Total available slots
   private readonly SLOT_LIMITS = {
-    number: 25,  // num_0 to num_24
-    string: 25,  // str_0 to str_24
-    date: 21,    // date_0 to date_20
+    number: 25, // num_0 to num_24
+    string: 25, // str_0 to str_24
+    date: 21, // date_0 to date_20
     boolean: 10, // bool_0 to bool_9
   };
 
@@ -726,7 +733,7 @@ export class FieldMappingManager {
     const usedSlots = await this.prisma.tenantFieldMapping.findMany({
       where: { tenantId, fieldType },
       select: { slotIndex: true },
-      orderBy: { slotIndex: 'asc' },
+      orderBy: { slotIndex: "asc" },
     });
 
     const usedIndexes = new Set(usedSlots.map((s) => s.slotIndex));
@@ -749,7 +756,15 @@ export class FieldMappingManager {
     }
 
     // Build slot name
-    const slotName = `${fieldType === 'number' ? 'num' : fieldType === 'string' ? 'str' : fieldType === 'date' ? 'date' : 'bool'}_${availableIndex}`;
+    const slotName = `${
+      fieldType === "number"
+        ? "num"
+        : fieldType === "string"
+        ? "str"
+        : fieldType === "date"
+        ? "date"
+        : "bool"
+    }_${availableIndex}`;
 
     // Create mapping
     const mapping = await this.prisma.tenantFieldMapping.create({
@@ -784,7 +799,7 @@ export class FieldMappingManager {
   async getMappings(tenantId: string): Promise<FieldMapping[]> {
     const mappings = await this.prisma.tenantFieldMapping.findMany({
       where: { tenantId },
-      orderBy: [{ fieldType: 'asc' }, { slotIndex: 'asc' }],
+      orderBy: [{ fieldType: "asc" }, { slotIndex: "asc" }],
     });
 
     return mappings.map((m) => ({
@@ -853,26 +868,26 @@ export class FieldMappingManager {
     boolean: { used: number; total: number };
   }> {
     const mappings = await this.prisma.tenantFieldMapping.groupBy({
-      by: ['fieldType'],
+      by: ["fieldType"],
       where: { tenantId },
       _count: true,
     });
 
     return {
       number: {
-        used: mappings.find((m) => m.fieldType === 'number')?._count || 0,
+        used: mappings.find((m) => m.fieldType === "number")?._count || 0,
         total: this.SLOT_LIMITS.number,
       },
       string: {
-        used: mappings.find((m) => m.fieldType === 'string')?._count || 0,
+        used: mappings.find((m) => m.fieldType === "string")?._count || 0,
         total: this.SLOT_LIMITS.string,
       },
       date: {
-        used: mappings.find((m) => m.fieldType === 'date')?._count || 0,
+        used: mappings.find((m) => m.fieldType === "date")?._count || 0,
         total: this.SLOT_LIMITS.date,
       },
       boolean: {
-        used: mappings.find((m) => m.fieldType === 'boolean')?._count || 0,
+        used: mappings.find((m) => m.fieldType === "boolean")?._count || 0,
         total: this.SLOT_LIMITS.boolean,
       },
     };
@@ -885,52 +900,55 @@ export class FieldMappingManager {
 ```typescript
 // lib/contacts/contact-query-builder.ts
 
-import { PrismaClient, Prisma } from '@prisma/client';
-import { FieldMappingManager, FieldMapping } from '../field-mapping/field-mapping-manager';
+import { PrismaClient, Prisma } from "@prisma/client";
+import {
+  FieldMappingManager,
+  FieldMapping,
+} from "../field-mapping/field-mapping-manager";
 
 export type FilterOperator =
-  | 'eq'    // equals
-  | 'neq'   // not equals
-  | 'gt'    // greater than
-  | 'gte'   // greater than or equal
-  | 'lt'    // less than
-  | 'lte'   // less than or equal
-  | 'in'    // in array
-  | 'nin'   // not in array
-  | 'contains'   // string contains
-  | 'startsWith' // string starts with
-  | 'endsWith'   // string ends with
-  | 'between';   // between two values
+  | "eq" // equals
+  | "neq" // not equals
+  | "gt" // greater than
+  | "gte" // greater than or equal
+  | "lt" // less than
+  | "lte" // less than or equal
+  | "in" // in array
+  | "nin" // not in array
+  | "contains" // string contains
+  | "startsWith" // string starts with
+  | "endsWith" // string ends with
+  | "between"; // between two values
 
 export interface FilterCondition {
-  field: string;          // User-facing field name (e.g., 'age', 'company')
+  field: string; // User-facing field name (e.g., 'age', 'company')
   operator: FilterOperator;
   value: any;
-  value2?: any;          // For 'between' operator
+  value2?: any; // For 'between' operator
 }
 
 export interface ContactQueryOptions {
   filters?: FilterCondition[];
   orderBy?: {
-    field: string;       // Can be standard field or custom field
-    direction: 'asc' | 'desc';
+    field: string; // Can be standard field or custom field
+    direction: "asc" | "desc";
   }[];
   limit?: number;
   offset?: number;
-  cursor?: bigint;       // For cursor-based pagination
+  cursor?: bigint; // For cursor-based pagination
 }
 
 export class ContactQueryBuilder {
   private mappings: Map<string, FieldMapping> = new Map();
   private standardFields = new Set([
-    'id',
-    'email',
-    'firstName',
-    'lastName',
-    'fullName',
-    'subscribed',
-    'createdAt',
-    'updatedAt',
+    "id",
+    "email",
+    "firstName",
+    "lastName",
+    "fullName",
+    "subscribed",
+    "createdAt",
+    "updatedAt",
   ]);
 
   constructor(
@@ -951,7 +969,9 @@ export class ContactQueryBuilder {
   /**
    * Build Prisma where clause from filters
    */
-  private buildWhereClause(filters: FilterCondition[]): Prisma.ContactWhereInput {
+  private buildWhereClause(
+    filters: FilterCondition[]
+  ): Prisma.ContactWhereInput {
     const where: Prisma.ContactWhereInput = {
       tenantId: this.tenantId,
     };
@@ -1003,29 +1023,29 @@ export class ContactQueryBuilder {
     const { field, operator, value, value2 } = filter;
 
     switch (operator) {
-      case 'eq':
+      case "eq":
         return { [field]: value };
-      case 'neq':
+      case "neq":
         return { [field]: { not: value } };
-      case 'gt':
+      case "gt":
         return { [field]: { gt: value } };
-      case 'gte':
+      case "gte":
         return { [field]: { gte: value } };
-      case 'lt':
+      case "lt":
         return { [field]: { lt: value } };
-      case 'lte':
+      case "lte":
         return { [field]: { lte: value } };
-      case 'in':
+      case "in":
         return { [field]: { in: value } };
-      case 'nin':
+      case "nin":
         return { [field]: { notIn: value } };
-      case 'contains':
+      case "contains":
         return { [field]: { contains: value } };
-      case 'startsWith':
+      case "startsWith":
         return { [field]: { startsWith: value } };
-      case 'endsWith':
+      case "endsWith":
         return { [field]: { endsWith: value } };
-      case 'between':
+      case "between":
         return { [field]: { gte: value, lte: value2 } };
       default:
         throw new Error(`Unsupported operator: ${operator}`);
@@ -1041,47 +1061,50 @@ export class ContactQueryBuilder {
   ): Prisma.ContactWhereInput {
     const { operator, value, value2 } = filter;
     // Convert slot_name to Prisma field name (num_0 -> num0)
-    const slotField = mapping.slotName.replace('_', '');
+    const slotField = mapping.slotName.replace("_", "");
 
     // Convert value to appropriate type
-    const convertedValue = this.convertValueToSlotType(value, mapping.fieldType);
+    const convertedValue = this.convertValueToSlotType(
+      value,
+      mapping.fieldType
+    );
     const convertedValue2 = value2
       ? this.convertValueToSlotType(value2, mapping.fieldType)
       : undefined;
 
     switch (operator) {
-      case 'eq':
+      case "eq":
         return { [slotField]: convertedValue };
-      case 'neq':
+      case "neq":
         return { [slotField]: { not: convertedValue } };
-      case 'gt':
+      case "gt":
         return { [slotField]: { gt: convertedValue } };
-      case 'gte':
+      case "gte":
         return { [slotField]: { gte: convertedValue } };
-      case 'lt':
+      case "lt":
         return { [slotField]: { lt: convertedValue } };
-      case 'lte':
+      case "lte":
         return { [slotField]: { lte: convertedValue } };
-      case 'in':
+      case "in":
         return { [slotField]: { in: convertedValue } };
-      case 'nin':
+      case "nin":
         return { [slotField]: { notIn: convertedValue } };
-      case 'contains':
-        if (mapping.fieldType !== 'string') {
+      case "contains":
+        if (mapping.fieldType !== "string") {
           throw new Error(`Contains operator only works on string fields`);
         }
         return { [slotField]: { contains: convertedValue } };
-      case 'startsWith':
-        if (mapping.fieldType !== 'string') {
+      case "startsWith":
+        if (mapping.fieldType !== "string") {
           throw new Error(`StartsWith operator only works on string fields`);
         }
         return { [slotField]: { startsWith: convertedValue } };
-      case 'endsWith':
-        if (mapping.fieldType !== 'string') {
+      case "endsWith":
+        if (mapping.fieldType !== "string") {
           throw new Error(`EndsWith operator only works on string fields`);
         }
         return { [slotField]: { endsWith: convertedValue } };
-      case 'between':
+      case "between":
         return {
           [slotField]: { gte: convertedValue, lte: convertedValue2 },
         };
@@ -1097,17 +1120,17 @@ export class ContactQueryBuilder {
     if (value === null || value === undefined) return null;
 
     switch (fieldType) {
-      case 'number':
+      case "number":
         return Array.isArray(value)
           ? value.map((v) => new Prisma.Decimal(v))
           : new Prisma.Decimal(value);
-      case 'date':
+      case "date":
         return Array.isArray(value)
           ? value.map((v) => new Date(v))
           : new Date(value);
-      case 'boolean':
+      case "boolean":
         return Boolean(value);
-      case 'string':
+      case "string":
         return String(value);
       default:
         return value;
@@ -1118,7 +1141,7 @@ export class ContactQueryBuilder {
    * Build order by clause
    */
   private buildOrderByClause(
-    orderBy?: ContactQueryOptions['orderBy']
+    orderBy?: ContactQueryOptions["orderBy"]
   ): Prisma.ContactOrderByWithRelationInput[] | undefined {
     if (!orderBy || orderBy.length === 0) return undefined;
 
@@ -1134,7 +1157,7 @@ export class ContactQueryBuilder {
         throw new Error(`Unknown field for ordering: ${order.field}`);
       }
 
-      const slotField = mapping.slotName.replace('_', '');
+      const slotField = mapping.slotName.replace("_", "");
       return { [slotField]: order.direction };
     });
   }
@@ -1197,7 +1220,7 @@ export class ContactQueryBuilder {
 
     // Map slot values back to user-facing field names
     for (const [fieldName, mapping] of this.mappings.entries()) {
-      const slotField = mapping.slotName.replace('_', '');
+      const slotField = mapping.slotName.replace("_", "");
       const value = contact[slotField];
 
       if (value !== null && value !== undefined) {
@@ -1215,9 +1238,9 @@ export class ContactQueryBuilder {
 ```typescript
 // lib/contacts/contact-service.ts
 
-import { PrismaClient } from '@prisma/client';
-import { FieldMappingManager } from '../field-mapping/field-mapping-manager';
-import { ContactQueryBuilder, FilterCondition } from './contact-query-builder';
+import { PrismaClient } from "@prisma/client";
+import { FieldMappingManager } from "../field-mapping/field-mapping-manager";
+import { ContactQueryBuilder, FilterCondition } from "./contact-query-builder";
 
 export interface CreateContactInput {
   tenantId: string;
@@ -1247,7 +1270,8 @@ export class ContactService {
    * Create a contact with custom fields
    */
   async createContact(input: CreateContactInput) {
-    const { tenantId, email, firstName, lastName, subscribed, customFields } = input;
+    const { tenantId, email, firstName, lastName, subscribed, customFields } =
+      input;
 
     // Build slot data object
     const slotData: Record<string, any> = {};
@@ -1264,7 +1288,7 @@ export class ContactService {
         );
 
         // Store in slot column (convert slot_name to Prisma field name)
-        const slotFieldName = mapping.slotName.replace('_', '');
+        const slotFieldName = mapping.slotName.replace("_", "");
         slotData[slotFieldName] = value;
       }
     }
@@ -1300,7 +1324,8 @@ export class ContactService {
     if (input.email !== undefined) updateData.email = input.email;
     if (input.firstName !== undefined) updateData.firstName = input.firstName;
     if (input.lastName !== undefined) updateData.lastName = input.lastName;
-    if (input.subscribed !== undefined) updateData.subscribed = input.subscribed;
+    if (input.subscribed !== undefined)
+      updateData.subscribed = input.subscribed;
 
     // Handle custom fields
     if (input.customFields) {
@@ -1321,7 +1346,7 @@ export class ContactService {
           );
         }
 
-        const slotFieldName = mapping.slotName.replace('_', '');
+        const slotFieldName = mapping.slotName.replace("_", "");
         updateData[slotFieldName] = value;
       }
     }
@@ -1339,7 +1364,7 @@ export class ContactService {
     tenantId: string,
     filters: FilterCondition[],
     options?: {
-      orderBy?: Array<{ field: string; direction: 'asc' | 'desc' }>;
+      orderBy?: Array<{ field: string; direction: "asc" | "desc" }>;
       limit?: number;
       cursor?: bigint;
     }
@@ -1387,16 +1412,16 @@ export class ContactService {
   /**
    * Infer field type from value
    */
-  private inferFieldType(value: any): 'number' | 'string' | 'date' | 'boolean' {
-    if (typeof value === 'boolean') return 'boolean';
-    if (typeof value === 'number') return 'number';
-    if (value instanceof Date) return 'date';
-    if (typeof value === 'string') {
+  private inferFieldType(value: any): "number" | "string" | "date" | "boolean" {
+    if (typeof value === "boolean") return "boolean";
+    if (typeof value === "number") return "number";
+    if (value instanceof Date) return "date";
+    if (typeof value === "string") {
       // Try to parse as date
-      if (!isNaN(Date.parse(value))) return 'date';
-      return 'string';
+      if (!isNaN(Date.parse(value))) return "date";
+      return "string";
     }
-    return 'string'; // Default
+    return "string"; // Default
   }
 }
 ```
@@ -1408,9 +1433,9 @@ export class ContactService {
 ### Example 1: Creating Fields and Contacts
 
 ```typescript
-import { PrismaClient } from '@prisma/client';
-import { ContactService } from './lib/contacts/contact-service';
-import { FieldMappingManager } from './lib/field-mapping/field-mapping-manager';
+import { PrismaClient } from "@prisma/client";
+import { ContactService } from "./lib/contacts/contact-service";
+import { FieldMappingManager } from "./lib/field-mapping/field-mapping-manager";
 
 const prisma = new PrismaClient();
 const contactService = new ContactService(prisma);
@@ -1419,47 +1444,52 @@ const fieldManager = new FieldMappingManager(prisma);
 // 1. Create field mappings (one-time setup per tenant)
 async function setupCustomFields(tenantId: string) {
   // Create mappings for common email marketing fields
-  await fieldManager.assignSlot(tenantId, 'age', 'Contact Age', 'number');
-  await fieldManager.assignSlot(tenantId, 'lead_score', 'Lead Score', 'number');
-  await fieldManager.assignSlot(tenantId, 'company', 'Company Name', 'string');
-  await fieldManager.assignSlot(tenantId, 'job_title', 'Job Title', 'string');
-  await fieldManager.assignSlot(tenantId, 'signup_date', 'Signup Date', 'date');
-  await fieldManager.assignSlot(tenantId, 'is_qualified', 'Is Qualified Lead', 'boolean');
+  await fieldManager.assignSlot(tenantId, "age", "Contact Age", "number");
+  await fieldManager.assignSlot(tenantId, "lead_score", "Lead Score", "number");
+  await fieldManager.assignSlot(tenantId, "company", "Company Name", "string");
+  await fieldManager.assignSlot(tenantId, "job_title", "Job Title", "string");
+  await fieldManager.assignSlot(tenantId, "signup_date", "Signup Date", "date");
+  await fieldManager.assignSlot(
+    tenantId,
+    "is_qualified",
+    "Is Qualified Lead",
+    "boolean"
+  );
 }
 
 // 2. Create a contact with custom fields
 async function createContact() {
   const contact = await contactService.createContact({
-    tenantId: 'tenant_123',
-    email: 'john@example.com',
-    firstName: 'John',
-    lastName: 'Doe',
+    tenantId: "tenant_123",
+    email: "john@example.com",
+    firstName: "John",
+    lastName: "Doe",
     subscribed: true,
     customFields: {
       age: 35,
       lead_score: 85,
-      company: 'Acme Corp',
-      job_title: 'Marketing Director',
-      signup_date: new Date('2024-01-15'),
+      company: "Acme Corp",
+      job_title: "Marketing Director",
+      signup_date: new Date("2024-01-15"),
       is_qualified: true,
     },
   });
 
-  console.log('Created contact:', contact);
+  console.log("Created contact:", contact);
 }
 
 // 3. Query contacts with filters (FAST!)
 async function queryContacts() {
   // Query: Find qualified leads with high score
   const qualifiedLeads = await contactService.queryContacts(
-    'tenant_123',
+    "tenant_123",
     [
-      { field: 'lead_score', operator: 'gte', value: 80 },
-      { field: 'is_qualified', operator: 'eq', value: true },
-      { field: 'age', operator: 'between', value: 25, value2: 50 },
+      { field: "lead_score", operator: "gte", value: 80 },
+      { field: "is_qualified", operator: "eq", value: true },
+      { field: "age", operator: "between", value: 25, value2: 50 },
     ],
     {
-      orderBy: [{ field: 'lead_score', direction: 'desc' }],
+      orderBy: [{ field: "lead_score", direction: "desc" }],
       limit: 100,
     }
   );
@@ -1467,7 +1497,7 @@ async function queryContacts() {
   console.log(`Found ${qualifiedLeads.length} qualified leads`);
 
   // Generated SQL uses indexes directly:
-  // WHERE tenant_id = 'tenant_123'
+  // WHERE workspace_id = 'tenant_123'
   //   AND num_1 >= 80      -- lead_score uses num_1
   //   AND bool_0 = true    -- is_qualified uses bool_0
   //   AND num_0 >= 25 AND num_0 <= 50  -- age uses num_0
@@ -1478,8 +1508,8 @@ async function queryContacts() {
 
 // 4. Check slot usage
 async function checkSlotUsage() {
-  const usage = await fieldManager.getSlotUsage('tenant_123');
-  console.log('Slot usage:', usage);
+  const usage = await fieldManager.getSlotUsage("tenant_123");
+  console.log("Slot usage:", usage);
   // Output: { number: { used: 2, total: 25 }, string: { used: 2, total: 25 }, ... }
 }
 ```
@@ -1489,16 +1519,20 @@ async function checkSlotUsage() {
 ```typescript
 // Find high-value leads for email campaign
 const highValueLeads = await contactService.queryContacts(
-  'tenant_123',
+  "tenant_123",
   [
-    { field: 'subscribed', operator: 'eq', value: true },
-    { field: 'lead_score', operator: 'gte', value: 75 },
-    { field: 'is_qualified', operator: 'eq', value: true },
-    { field: 'age', operator: 'between', value: 25, value2: 55 },
-    { field: 'company', operator: 'in', value: ['Google', 'Apple', 'Microsoft'] },
+    { field: "subscribed", operator: "eq", value: true },
+    { field: "lead_score", operator: "gte", value: 75 },
+    { field: "is_qualified", operator: "eq", value: true },
+    { field: "age", operator: "between", value: 25, value2: 55 },
+    {
+      field: "company",
+      operator: "in",
+      value: ["Google", "Apple", "Microsoft"],
+    },
   ],
   {
-    orderBy: [{ field: 'lead_score', direction: 'desc' }],
+    orderBy: [{ field: "lead_score", direction: "desc" }],
     limit: 10000,
   }
 );
@@ -1511,11 +1545,13 @@ const highValueLeads = await contactService.queryContacts(
 ## 🎯 Key Benefits Summary
 
 ### Performance Gains
+
 - **JSON queries**: 690ms → 15ms (98% faster)
 - **Complex segments**: 471ms → 20ms (96% faster)
 - **Multi-field filters**: 1,200ms → 25ms (98% faster)
 
 ### Architecture Benefits
+
 - **Simplicity**: Regular columns, no JSON complexity
 - **Scalability**: Unlimited tenants, same schema
 - **No migrations**: Add fields without DDL changes
@@ -1523,6 +1559,7 @@ const highValueLeads = await contactService.queryContacts(
 - **Debuggable**: Easy to understand in database tools
 
 ### Why This Approach Wins
+
 1. ✅ **Simpler than generated columns** - No JSON duplication
 2. ✅ **Faster writes** - Direct column inserts
 3. ✅ **Same query speed** - All slots indexed

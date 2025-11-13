@@ -46,7 +46,7 @@ import { revalidatePath } from "next/cache";
 import type { NextRequest, NextResponse } from "next/server";
 import { NextResponse as NextResp } from "next/server";
 import { ZodError } from "zod";
-import { ApiError, UnauthorizedError } from "@/lib/api/errors";
+import { ApiError, UnauthorizedError, ConflictError, NotFoundError } from "@/lib/api/errors";
 import {
   responseUnauthorized,
   responseValidationFailed,
@@ -224,6 +224,27 @@ export async function withErrorHandling(
       return responseValidationFailed(error as ZodError);
     }
 
+    // Handle Prisma errors
+    if (error && typeof error === "object" && "code" in error) {
+      const prismaError = error as { code: string; message: string };
+
+      // Unique constraint violation
+      if (prismaError.code === "P2002") {
+        return NextResp.json(
+          { error: "A record with this information already exists" },
+          { status: 409 }
+        );
+      }
+
+      // Record not found
+      if (prismaError.code === "P2025") {
+        return NextResp.json(
+          { error: "Record not found" },
+          { status: 404 }
+        );
+      }
+    }
+
     return NextResp.json(
       {
         error:
@@ -332,8 +353,9 @@ export async function withApiSession(
 
   // Check required scopes if specified
   if (requiredScopes && requiredScopes.length > 0) {
+    const scopes = Array.isArray(apiKey.scopes) ? apiKey.scopes : [];
     const missingScopes = requiredScopes.filter(
-      (scope) => !apiKey.scopes.includes(scope),
+      (scope) => !scopes.includes(scope),
     );
 
     if (missingScopes.length > 0) {

@@ -22,6 +22,7 @@
  */
 
 import type { NextRequest } from "next/server";
+import type { ApiObjectType } from "./responses";
 
 /**
  * Standard pagination parameters
@@ -71,6 +72,30 @@ export const DEFAULT_LIMIT = 20;
 export const MAX_LIMIT = 100;
 
 /**
+ * Cursor-based pagination parameters
+ */
+export interface CursorPaginationParams {
+  /** Number of items per page */
+  limit: number;
+  /** Cursor for next page (ID to start after) */
+  after?: string;
+  /** Cursor for previous page (ID to start before) */
+  before?: string;
+}
+
+/**
+ * Cursor-based pagination response structure
+ */
+export interface CursorPaginatedResponse<T> {
+  /** Resource type identifier (e.g., "contact_list", "api_key_list") */
+  type: ApiObjectType;
+  /** Array of items for the current page */
+  data: T[];
+  /** Whether there are more elements available */
+  hasMore: boolean;
+}
+
+/**
  * Parse pagination parameters from request URL
  *
  * Extracts `page` and `limit` query parameters from the request URL.
@@ -95,12 +120,45 @@ export function parsePaginationParams(request: NextRequest): PaginationParams {
   const limitParam = searchParams.get("limit");
   const limit = Math.min(
     MAX_LIMIT,
-    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT))),
+    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT)))
   );
 
   const skip = (page - 1) * limit;
 
   return { page, limit, skip };
+}
+
+/**
+ * Parse cursor-based pagination parameters from request URL
+ *
+ * Extracts `limit`, `after`, and `before` query parameters from the request URL.
+ * Provides sensible defaults and enforces maximum limits.
+ *
+ * @param request - Next.js request object
+ * @returns Cursor pagination parameters
+ *
+ * @example
+ * ```ts
+ * // GET /api/contacts?limit=50&after=contact_123
+ * const { limit, after, before } = parseCursorPaginationParams(request);
+ * // Returns: { limit: 50, after: "contact_123", before: undefined }
+ * ```
+ */
+export function parseCursorPaginationParams(
+  request: NextRequest
+): CursorPaginationParams {
+  const searchParams = request.nextUrl.searchParams;
+
+  const limitParam = searchParams.get("limit");
+  const limit = Math.min(
+    MAX_LIMIT,
+    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT)))
+  );
+
+  const after = searchParams.get("after") || undefined;
+  const before = searchParams.get("before") || undefined;
+
+  return { limit, after, before };
 }
 
 /**
@@ -126,7 +184,7 @@ export function parsePaginationParams(request: NextRequest): PaginationParams {
 export function createPaginationMeta(
   total: number,
   page: number,
-  limit: number,
+  limit: number
 ): PaginationMeta {
   const totalPages = Math.ceil(total / limit);
 
@@ -168,10 +226,48 @@ export function createPaginatedResponse<T>(
   data: T[],
   total: number,
   page: number,
-  limit: number,
+  limit: number
 ): PaginatedResponse<T> {
   return {
     data,
     pagination: createPaginationMeta(total, page, limit),
+  };
+}
+
+/**
+ * Create a cursor-based paginated response
+ *
+ * Generates a standardized cursor-based paginated response
+ * The hasMore field indicates whether there are more elements available.
+ *
+ * @param data - Array of items for the current page
+ * @param hasMore - Whether there are more items available
+ * @param type - Resource type identifier (e.g., "contact_list", "api_key_list")
+ * @returns Cursor-based paginated response object
+ *
+ * @example
+ * ```ts
+ * const contacts = await prisma.contact.findMany({
+ *   where: { workspaceId },
+ *   orderBy: { createdAt: "desc" },
+ *   take: limit + 1, // Take one extra to check if there are more
+ *   ...(after && { cursor: { id: after }, skip: 1 }),
+ * });
+ *
+ * const hasMore = contacts.length > limit;
+ * const items = hasMore ? contacts.slice(0, -1) : contacts;
+ *
+ * return responseOk(createCursorPaginatedResponse(items, hasMore, "contact_list"));
+ * ```
+ */
+export function createCursorPaginatedResponse<T>(
+  data: T[],
+  hasMore: boolean,
+  type: ApiObjectType
+): CursorPaginatedResponse<T> {
+  return {
+    type,
+    data,
+    hasMore,
   };
 }

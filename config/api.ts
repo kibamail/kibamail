@@ -66,6 +66,126 @@ export const API_SCOPES: ApiScopeDefinition[] = [
     description: "Delete API keys",
     category: "API Keys",
   },
+
+  // ============================================================================
+  // CONTACTS
+  // ============================================================================
+  {
+    name: "read:contacts",
+    description: "View contacts and their details",
+    category: "Contacts",
+  },
+  {
+    name: "write:contacts",
+    description: "Create new contacts",
+    category: "Contacts",
+  },
+  {
+    name: "update:contacts",
+    description: "Update existing contacts",
+    category: "Contacts",
+  },
+  {
+    name: "delete:contacts",
+    description: "Delete contacts",
+    category: "Contacts",
+  },
+
+  // ============================================================================
+  // TAGS
+  // ============================================================================
+  {
+    name: "read:tags",
+    description: "View tags and their details",
+    category: "Tags",
+  },
+  {
+    name: "write:tags",
+    description: "Create new tags",
+    category: "Tags",
+  },
+  {
+    name: "update:tags",
+    description: "Update existing tags",
+    category: "Tags",
+  },
+  {
+    name: "delete:tags",
+    description: "Delete tags",
+    category: "Tags",
+  },
+
+  // ============================================================================
+  // TOPICS
+  // ============================================================================
+  {
+    name: "read:topics",
+    description: "View topics and their details",
+    category: "Topics",
+  },
+  {
+    name: "write:topics",
+    description: "Create new topics",
+    category: "Topics",
+  },
+  {
+    name: "update:topics",
+    description: "Update existing topics",
+    category: "Topics",
+  },
+  {
+    name: "delete:topics",
+    description: "Delete topics",
+    category: "Topics",
+  },
+
+  // ============================================================================
+  // SEGMENTS
+  // ============================================================================
+  {
+    name: "read:segments",
+    description: "View segments and their details",
+    category: "Segments",
+  },
+  {
+    name: "write:segments",
+    description: "Create new segments",
+    category: "Segments",
+  },
+  {
+    name: "update:segments",
+    description: "Update existing segments",
+    category: "Segments",
+  },
+  {
+    name: "delete:segments",
+    description: "Delete segments",
+    category: "Segments",
+  },
+
+  // ============================================================================
+  // SUPPRESSION LIST
+  // ============================================================================
+  {
+    name: "read:suppression-list",
+    description: "View suppression list entries",
+    category: "Suppression List",
+  },
+  {
+    name: "write:suppression-list",
+    description: "Add entries to suppression list",
+    category: "Suppression List",
+  },
+  {
+    name: "update:suppression-list",
+    description: "Update suppression list entries",
+    category: "Suppression List",
+  },
+  {
+    name: "delete:suppression-list",
+    description: "Remove entries from suppression list",
+    category: "Suppression List",
+  },
 ];
 
 /**
