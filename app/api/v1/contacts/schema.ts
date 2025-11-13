@@ -5,6 +5,7 @@
  */
 
 import { z } from "zod";
+import { conditionSchema } from "@/app/api/v1/segments/schema";
 
 /**
  * Contact Status Enum
@@ -126,9 +127,17 @@ export const contactListResponseSchema = z.object({
 });
 
 /**
+ * Search Contacts Request Schema
+ */
+export const searchContactsSchema = z.object({
+  filters: conditionSchema,
+});
+
+/**
  * Type exports for TypeScript
  */
 export type CreateContactRequest = z.infer<typeof createContactSchema>;
 export type UpdateContactRequest = z.infer<typeof updateContactSchema>;
 export type ContactResponse = z.infer<typeof contactResponseSchema>;
 export type ContactListResponse = z.infer<typeof contactListResponseSchema>;
+export type SearchContactsRequest = z.infer<typeof searchContactsSchema>;

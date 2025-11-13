@@ -16,7 +16,8 @@ import {
   responseOk,
   responseNotFound,
 } from "@/lib/api/responses";
-import { createContactSchema, updateContactSchema } from "./schema";
+import { createContactSchema, updateContactSchema, searchContactsSchema } from "./schema";
+import { conditionsToPrismaWhere } from "@/lib/segments/conditions-to-prisma";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
@@ -62,6 +63,71 @@ export async function listContacts(apiKey: ApiKey, request: NextRequest) {
 
   const baseQuery = {
     where: { workspaceId },
+    orderBy: before ? { id: "asc" as const } : { id: "desc" as const },
+    take: limit + 1,
+  };
+
+  const contacts = after
+    ? await prisma.contact.findMany({
+        ...baseQuery,
+        cursor: { id: after },
+        skip: 1,
+      })
+    : before
+    ? await prisma.contact.findMany({
+        ...baseQuery,
+        cursor: { id: before },
+        skip: 1,
+      })
+    : await prisma.contact.findMany(baseQuery);
+
+  const hasMore = contacts.length > limit;
+  const items = hasMore ? contacts.slice(0, -1) : contacts;
+
+  if (before) {
+    items.reverse();
+  }
+
+  const formattedContacts = items.map((contact) => ({
+    id: contact.id,
+    email: contact.email,
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    phone: contact.phone,
+    country: contact.country,
+    timezone: contact.timezone,
+    city: contact.city,
+    status: contact.status,
+  }));
+
+  const paginatedResponse = createCursorPaginatedResponse(
+    formattedContacts,
+    hasMore,
+    "contact_list"
+  );
+  return NextResponse.json(paginatedResponse, { status: 200 });
+}
+
+/**
+ * POST /api/v1/contacts/search
+ *
+ * Search contacts using segment conditions with cursor-based pagination.
+ * Workspace is determined from the authenticated API key.
+ * Filters are converted from MongoDB-style conditions to Prisma where clauses.
+ */
+export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
+  const { filters } = await validateRequestBody(searchContactsSchema, request);
+  const workspaceId = apiKey.workspaceId;
+  const { limit, after, before } = parseCursorPaginationParams(request);
+
+  // Convert segment conditions to Prisma where clause
+  const conditionsWhere = conditionsToPrismaWhere(filters);
+
+  const baseQuery = {
+    where: {
+      workspaceId,
+      ...conditionsWhere,
+    },
     orderBy: before ? { id: "asc" as const } : { id: "desc" as const },
     take: limit + 1,
   };
