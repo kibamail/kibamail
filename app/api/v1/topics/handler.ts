@@ -195,3 +195,103 @@ export async function deleteTopic(apiKey: ApiKey, topicId: string) {
     "topic"
   );
 }
+
+/**
+ * GET /api/v1/topics/[topicId]/contacts
+ *
+ * Get all contacts subscribed to a topic.
+ * Workspace is determined from the authenticated API key.
+ * Returns cursor-paginated results with contact properties.
+ */
+export async function getTopicContacts(
+  apiKey: ApiKey,
+  topicId: string,
+  request: NextRequest
+) {
+  const workspaceId = apiKey.workspaceId;
+  const { limit, after, before } = parseCursorPaginationParams(request);
+
+  // Fetch the topic and verify it belongs to this workspace
+  const topic = await prisma.topic.findFirst({
+    where: {
+      id: topicId,
+      workspaceId,
+    },
+  });
+
+  if (!topic) {
+    return responseNotFound("Topic not found");
+  }
+
+  // Fetch contact properties for this workspace
+  const contactProperties = await prisma.contactProperty.findMany({
+    where: { workspaceId },
+    select: { name: true, slot: true, type: true },
+  });
+
+  const baseQuery = {
+    where: {
+      workspaceId,
+      topics: {
+        some: {
+          topicId,
+          status: "SUBSCRIBED" as const,
+        },
+      },
+    },
+    orderBy: before ? { id: "asc" as const } : { id: "desc" as const },
+    take: limit + 1,
+  };
+
+  const contacts = after
+    ? await prisma.contact.findMany({
+        ...baseQuery,
+        cursor: { id: after },
+        skip: 1,
+      })
+    : before
+    ? await prisma.contact.findMany({
+        ...baseQuery,
+        cursor: { id: before },
+        skip: 1,
+      })
+    : await prisma.contact.findMany(baseQuery);
+
+  const hasMore = contacts.length > limit;
+  const items = hasMore ? contacts.slice(0, -1) : contacts;
+
+  if (before) {
+    items.reverse();
+  }
+
+  // Build contact properties for each contact
+  const formattedContacts = items.map((contact) => {
+    const properties: Record<string, any> = {};
+    for (const property of contactProperties) {
+      const value = contact[property.slot as keyof typeof contact];
+      if (value !== null && value !== undefined) {
+        properties[property.name] = value;
+      }
+    }
+
+    return {
+      id: contact.id,
+      email: contact.email,
+      firstName: contact.firstName,
+      lastName: contact.lastName,
+      phone: contact.phone,
+      country: contact.country,
+      timezone: contact.timezone,
+      city: contact.city,
+      status: contact.status,
+      properties,
+    };
+  });
+
+  const paginatedResponse = createCursorPaginatedResponse(
+    formattedContacts,
+    hasMore,
+    "contact_list"
+  );
+  return NextResponse.json(paginatedResponse, { status: 200 });
+}
