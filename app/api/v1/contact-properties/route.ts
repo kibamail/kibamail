@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => listContactProperties(apiKey, request),
+      (apiKey, request) => listContactProperties(apiKey.workspaceId, request),
       ["read:contact-properties"]
     )
   );
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => createContactProperty(apiKey, request),
+      (apiKey, request) => createContactProperty(apiKey.workspaceId, request),
       ["write:contact-properties"]
     )
   );

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => createContact(apiKey, request),
+      (apiKey, request) => createContact(apiKey.workspaceId, request),
       ["write:contacts"]
     ),
   );
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => listContacts(apiKey, request),
+      (apiKey, request) => listContacts(apiKey.workspaceId, request),
       ["read:contacts"]
     ),
   );

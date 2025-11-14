@@ -1,6 +1,6 @@
-import '@xyflow/react/dist/style.css';
+import "@xyflow/react/dist/style.css";
 
-import { jsonDecode } from '@del-wang/utils';
+import { jsonDecode } from "@del-wang/utils";
 import {
   Background,
   BackgroundVariant,
@@ -10,21 +10,21 @@ import {
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
-} from '@xyflow/react';
-import { useEffect, useId } from 'react';
+} from "@xyflow/react";
+import { useEffect, useId } from "react";
 
-import { ControlPanel } from './components/ControlPanel';
-import { kEdgeTypes } from './components/Edges';
-import { ColorfulMarkerDefinitions } from './components/Edges/Marker';
-import { kNodeTypes } from './components/Nodes';
-import { ReactflowInstance } from './components/ReactflowInstance';
-import { workflow2reactflow } from './data/convert';
-import defaultWorkflow from './data/data.json';
+import { ControlPanel } from "./components/ControlPanel";
+import { kEdgeTypes } from "./components/Edges";
+import { ColorfulMarkerDefinitions } from "./components/Edges/Marker";
+import { kNodeTypes } from "./components/Nodes";
+import { ReactflowInstance } from "./components/ReactflowInstance";
+import { workflow2reactflow } from "./data/convert";
+import defaultWorkflow from "./data/data-2.json";
 import {
   kDefaultLayoutConfig,
   type ReactflowLayoutConfig,
-} from './layout/node';
-import { useAutoLayout } from './layout/useAutoLayout';
+} from "./layout/node";
+import { useAutoLayout } from "./layout/useAutoLayout";
 
 const EditWorkFlow = () => {
   const [nodes, _setNodes, onNodesChange] = useNodesState([]);
@@ -35,7 +35,7 @@ const EditWorkFlow = () => {
   const layoutReactflow = async (
     props: ReactflowLayoutConfig & {
       workflow: string;
-    },
+    }
   ) => {
     if (isDirty) {
       return;
@@ -43,7 +43,7 @@ const EditWorkFlow = () => {
     const input = props.workflow;
     const data = jsonDecode(input);
     if (!data) {
-      alert('Invalid workflow JSON data');
+      alert("Invalid workflow JSON data");
       return;
     }
     const workflow = workflow2reactflow(data);
@@ -58,11 +58,11 @@ const EditWorkFlow = () => {
   return (
     <div
       style={{
-        width: '100vw',
-        height: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
       }}
     >
       <ColorfulMarkerDefinitions />

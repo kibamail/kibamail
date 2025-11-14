@@ -8,7 +8,6 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { ApiKey } from "@prisma/client";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import {
@@ -17,7 +16,11 @@ import {
   responseNotFound,
   responseBadRequest,
 } from "@/lib/api/responses";
-import { createContactSchema, updateContactSchema, searchContactsSchema } from "./schema";
+import {
+  createContactSchema,
+  updateContactSchema,
+  searchContactsSchema,
+} from "./schema";
 import {
   conditionsToPrismaWhere,
   validateConditionFields,
@@ -53,7 +56,7 @@ function buildContactProperties(
 
   for (const property of properties) {
     const value = contact[property.slot];
-    // Only include properties that have values
+
     if (value !== null && value !== undefined) {
       result[property.name] = value;
     }
@@ -115,15 +118,13 @@ function mapPropertiesToSlots(
  * Global error handler will catch constraint violations.
  * Supports optional properties object that maps property names to values.
  */
-export async function createContact(apiKey: ApiKey, request: NextRequest) {
+export async function createContact(workspaceId: string, request: NextRequest) {
   const data = await validateRequestBody(createContactSchema, request);
-  const workspaceId = apiKey.workspaceId;
 
-  // Extract properties from data
   const { properties, ...contactData } = data;
 
-  // If properties are provided, fetch contact properties and map to slots
   let slotData = {};
+
   if (properties && Object.keys(properties).length > 0) {
     const contactProperties = await prisma.contactProperty.findMany({
       where: { workspaceId },
@@ -163,8 +164,7 @@ export async function createContact(apiKey: ApiKey, request: NextRequest) {
  * Takes one extra item to determine if there are more results.
  * Reverses order for "before" cursor to maintain chronological order.
  */
-export async function listContacts(apiKey: ApiKey, request: NextRequest) {
-  const workspaceId = apiKey.workspaceId;
+export async function listContacts(workspaceId: string, request: NextRequest) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   // Fetch contact properties for this workspace
@@ -228,9 +228,11 @@ export async function listContacts(apiKey: ApiKey, request: NextRequest) {
  * Workspace is determined from the authenticated API key.
  * Filters are converted from MongoDB-style conditions to Prisma where clauses.
  */
-export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
+export async function searchContacts(
+  workspaceId: string,
+  request: NextRequest
+) {
   const { filters } = await validateRequestBody(searchContactsSchema, request);
-  const workspaceId = apiKey.workspaceId;
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   // Fetch contact properties for this workspace
@@ -243,7 +245,9 @@ export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
   const validation = validateConditionFields(filters, contactProperties);
   if (!validation.isValid) {
     return responseBadRequest(
-      `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
+      `Invalid field(s) in conditions: ${validation.invalidFields.join(
+        ", "
+      )}. ` +
         `Fields must be built-in contact fields or defined custom properties.`
     );
   }
@@ -308,9 +312,7 @@ export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
  * Get a specific contact by ID.
  * Workspace is determined from the authenticated API key.
  */
-export async function getContact(apiKey: ApiKey, contactId: string) {
-  const workspaceId = apiKey.workspaceId;
-
+export async function getContact(workspaceId: string, contactId: string) {
   // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
     where: { workspaceId },
@@ -354,12 +356,11 @@ export async function getContact(apiKey: ApiKey, contactId: string) {
  * Supports optional properties object that maps property names to values.
  */
 export async function updateContact(
-  apiKey: ApiKey,
+  workspaceId: string,
   contactId: string,
   request: NextRequest
 ) {
   const data = await validateRequestBody(updateContactSchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   // Extract properties from data
   const { properties, ...contactData } = data;
@@ -407,9 +408,7 @@ export async function updateContact(
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch not found errors.
  */
-export async function deleteContact(apiKey: ApiKey, contactId: string) {
-  const workspaceId = apiKey.workspaceId;
-
+export async function deleteContact(workspaceId: string, contactId: string) {
   const deletedContact = await prisma.contact.delete({
     where: {
       id: contactId,

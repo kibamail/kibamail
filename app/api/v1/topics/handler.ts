@@ -7,7 +7,6 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { ApiKey } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { validateRequestBody } from "@/lib/api/validation";
 import {
@@ -28,9 +27,8 @@ import { createTopicSchema, updateTopicSchema } from "./schema";
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch unique constraint violations.
  */
-export async function createTopic(apiKey: ApiKey, request: NextRequest) {
+export async function createTopic(workspaceId: string, request: NextRequest) {
   const data = await validateRequestBody(createTopicSchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   const topic = await prisma.topic.create({
     data: {
@@ -55,8 +53,7 @@ export async function createTopic(apiKey: ApiKey, request: NextRequest) {
  * Takes one extra item to determine if there are more results.
  * Reverses order for "before" cursor to maintain chronological order.
  */
-export async function listTopics(apiKey: ApiKey, request: NextRequest) {
-  const workspaceId = apiKey.workspaceId;
+export async function listTopics(workspaceId: string, request: NextRequest) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   const baseQuery = {
@@ -110,8 +107,7 @@ export async function listTopics(apiKey: ApiKey, request: NextRequest) {
  * Workspace is determined from the authenticated API key.
  * Returns 404 if topic not found or belongs to a different workspace.
  */
-export async function getTopic(apiKey: ApiKey, topicId: string) {
-  const workspaceId = apiKey.workspaceId;
+export async function getTopic(workspaceId: string, topicId: string) {
 
   const topic = await prisma.topic.findFirst({
     where: {
@@ -145,12 +141,11 @@ export async function getTopic(apiKey: ApiKey, topicId: string) {
  * Global error handler will catch unique constraint violations and not found errors.
  */
 export async function updateTopic(
-  apiKey: ApiKey,
+  workspaceId: string,
   topicId: string,
   request: NextRequest
 ) {
   const data = await validateRequestBody(updateTopicSchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   const updatedTopic = await prisma.topic.update({
     where: {
@@ -178,8 +173,7 @@ export async function updateTopic(
  * Global error handler will catch not found errors.
  * Cascade deletes all contact_topic relationships.
  */
-export async function deleteTopic(apiKey: ApiKey, topicId: string) {
-  const workspaceId = apiKey.workspaceId;
+export async function deleteTopic(workspaceId: string, topicId: string) {
 
   const deletedTopic = await prisma.topic.delete({
     where: {
@@ -204,11 +198,10 @@ export async function deleteTopic(apiKey: ApiKey, topicId: string) {
  * Returns cursor-paginated results with contact properties.
  */
 export async function getTopicContacts(
-  apiKey: ApiKey,
+  workspaceId: string,
   topicId: string,
   request: NextRequest
 ) {
-  const workspaceId = apiKey.workspaceId;
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   // Fetch the topic and verify it belongs to this workspace

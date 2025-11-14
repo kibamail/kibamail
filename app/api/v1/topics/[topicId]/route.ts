@@ -28,7 +28,7 @@ export async function GET(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => getTopic(apiKey, topicId),
+      (apiKey) => getTopic(apiKey.workspaceId, topicId),
       ["read:topics"]
     )
   );
@@ -49,7 +49,7 @@ export async function PUT(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => updateTopic(apiKey, topicId, request),
+      (apiKey, request) => updateTopic(apiKey.workspaceId, topicId, request),
       ["update:topics"]
     )
   );
@@ -70,7 +70,7 @@ export async function DELETE(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => deleteTopic(apiKey, topicId),
+      (apiKey) => deleteTopic(apiKey.workspaceId, topicId),
       ["delete:topics"]
     )
   );

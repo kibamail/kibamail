@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => createTopic(apiKey, request),
+      (apiKey, request) => createTopic(apiKey.workspaceId, request),
       ["write:topics"]
     )
   );
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => listTopics(apiKey, request),
+      (apiKey, request) => listTopics(apiKey.workspaceId, request),
       ["read:topics"]
     )
   );

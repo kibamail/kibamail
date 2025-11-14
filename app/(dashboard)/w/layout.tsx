@@ -13,6 +13,7 @@ import {
 import {
   BookStack,
   HomeAltSlimHoriz,
+  NetworkReverse,
   Plus,
   SecureWindow,
   SwipeLeftGesture,
@@ -65,7 +66,11 @@ export default async function WorkspaceLayout({ children }: PropsWithChildren) {
                       </CommandSearch.Item>
                       <CommandSearch.Item>
                         <User />
-                        Engage
+                        Audience
+                      </CommandSearch.Item>
+                      <CommandSearch.Item>
+                        <NetworkReverse />
+                        Automations
                       </CommandSearch.Item>
                       <CommandSearch.Item>
                         <SwipeLeftGesture />

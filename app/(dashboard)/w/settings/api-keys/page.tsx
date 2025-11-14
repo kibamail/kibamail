@@ -49,7 +49,9 @@ export default async function ApiKeysPage({ searchParams }: ApiKeysPageProps) {
 
   return (
     <div className="w-full">
-      <SearchInput />
+      <div className="mb-4">
+        <SearchInput />
+      </div>
 
       <ApiKeysTable apiKeys={apiKeys} canManage={canManageApiKeys} />
     </div>

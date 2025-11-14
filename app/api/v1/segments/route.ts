@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => createSegment(apiKey, request),
+      (apiKey, request) => createSegment(apiKey.workspaceId, request),
       ["write:segments"]
     )
   );
@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => listSegments(apiKey, request),
+      (apiKey, request) => listSegments(apiKey.workspaceId, request),
       ["read:segments"]
     )
   );

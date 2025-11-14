@@ -22,7 +22,7 @@ import { listApiKeysHandler } from "./handlers/list-api-keys";
 export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(request, (apiKey, request) =>
-      createApiKeyHandler(apiKey, request),
+      createApiKeyHandler(apiKey.workspaceId, request),
     ),
   );
 }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(request, (apiKey, request) =>
-      listApiKeysHandler(apiKey, request),
+      listApiKeysHandler(apiKey.workspaceId, request),
     ),
   );
 }

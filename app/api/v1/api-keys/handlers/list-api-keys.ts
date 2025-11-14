@@ -5,7 +5,6 @@
  */
 
 import type { NextRequest } from "next/server";
-import type { ApiKey } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { responseOk } from "@/lib/api/responses";
 import {
@@ -23,8 +22,7 @@ import {
  * @param request - Next.js request object
  * @returns Paginated response with API keys
  */
-export async function listApiKeysHandler(apiKey: ApiKey, request: NextRequest) {
-  const workspaceId = apiKey.workspaceId;
+export async function listApiKeysHandler(workspaceId: string, request: NextRequest) {
 
   const { page, limit, skip } = parsePaginationParams(request);
 

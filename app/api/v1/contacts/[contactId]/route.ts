@@ -28,7 +28,7 @@ export async function GET(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => getContact(apiKey, contactId),
+      (apiKey) => getContact(apiKey.workspaceId, contactId),
       ["read:contacts"]
     ),
   );
@@ -49,7 +49,7 @@ export async function PUT(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => updateContact(apiKey, contactId, request),
+      (apiKey, request) => updateContact(apiKey.workspaceId, contactId, request),
       ["update:contacts"]
     ),
   );
@@ -70,7 +70,7 @@ export async function DELETE(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => deleteContact(apiKey, contactId),
+      (apiKey) => deleteContact(apiKey.workspaceId, contactId),
       ["delete:contacts"]
     ),
   );

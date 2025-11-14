@@ -5,7 +5,6 @@
  */
 
 import type { NextRequest } from "next/server";
-import type { ApiKey } from "@prisma/client";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import { responseCreated } from "@/lib/api/responses";
@@ -23,12 +22,11 @@ import { generateApiKey, hashApiKey } from "@/lib/api-keys";
  * @returns Response with created API key data including full key
  */
 export async function createApiKeyHandler(
-  apiKey: ApiKey,
+  workspaceId: string,
   request: NextRequest,
 ) {
   const data = await validateRequestBody(createApiKeySchema, request);
 
-  const workspaceId = apiKey.workspaceId;
 
   const { key, preview } = generateApiKey();
   const keyHash = hashApiKey(key);

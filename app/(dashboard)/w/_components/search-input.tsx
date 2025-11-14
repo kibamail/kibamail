@@ -8,13 +8,17 @@ import { useDebouncedCallback } from "use-debounce";
 
 type SearchInputProps = ComponentPropsWithoutRef<typeof TextField.Root>;
 
-export function SearchInput({ name = "search", ...props }: SearchInputProps) {
+export function SearchInput({
+  name = "search",
+  placeholder = "Search",
+  ...props
+}: SearchInputProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [value, setValue] = useState(searchParams.get(name) || "");
 
   const debouncedSearch = useDebouncedCallback(function debouncedSearch(
-    searchValue: string,
+    searchValue: string
   ) {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -26,7 +30,8 @@ export function SearchInput({ name = "search", ...props }: SearchInputProps) {
 
     router.replace(`?${params.toString()}`);
     router.refresh();
-  }, 500);
+  },
+  500);
 
   function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     const newValue = event.target.value;
@@ -35,9 +40,9 @@ export function SearchInput({ name = "search", ...props }: SearchInputProps) {
   }
 
   return (
-    <div className="max-w-sm mb-4">
+    <div className="max-w-sm w-full">
       <TextField.Root
-        placeholder="Search api keys"
+        placeholder={placeholder}
         name={name}
         value={value}
         onChange={handleChange}

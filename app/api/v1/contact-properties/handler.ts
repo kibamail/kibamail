@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { ApiKey, ContactPropertyType } from "@prisma/client";
+import type { ContactPropertyType } from "@prisma/client";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import {
@@ -48,11 +48,7 @@ async function findAvailableSlot(
       : "propertyString";
 
   const maxSlots =
-    type === "NUMBER" || type === "DATE"
-      ? 30
-      : type === "BOOLEAN"
-      ? 20
-      : 50;
+    type === "NUMBER" || type === "DATE" ? 30 : type === "BOOLEAN" ? 20 : 50;
 
   const occupiedSlots = await prisma.contactProperty.findMany({
     where: {
@@ -88,11 +84,10 @@ async function findAvailableSlot(
  * Returns error if all slots of the specified type are occupied.
  */
 export async function createContactProperty(
-  apiKey: ApiKey,
+  workspaceId: string,
   request: NextRequest
 ) {
   const data = await validateRequestBody(createContactPropertySchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   const slot = await findAvailableSlot(workspaceId, data.type);
 
@@ -134,10 +129,9 @@ export async function createContactProperty(
  * Slot field is not exposed in the response.
  */
 export async function listContactProperties(
-  apiKey: ApiKey,
+  workspaceId: string,
   request: NextRequest
 ) {
-  const workspaceId = apiKey.workspaceId;
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   const baseQuery = {
@@ -190,11 +184,9 @@ export async function listContactProperties(
  * Slot field is not exposed in the response.
  */
 export async function getContactProperty(
-  apiKey: ApiKey,
+  workspaceId: string,
   contactPropertyId: string
 ) {
-  const workspaceId = apiKey.workspaceId;
-
   const contactProperty = await prisma.contactProperty.findFirst({
     where: {
       id: contactPropertyId,
@@ -226,12 +218,11 @@ export async function getContactProperty(
  * Global error handler will catch constraint violations and not found errors.
  */
 export async function updateContactProperty(
-  apiKey: ApiKey,
+  workspaceId: string,
   contactPropertyId: string,
   request: NextRequest
 ) {
   const data = await validateRequestBody(updateContactPropertySchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   const existingProperty = await prisma.contactProperty.findFirst({
     where: {
@@ -305,12 +296,9 @@ export async function updateContactProperty(
  * Global error handler will catch not found errors.
  */
 export async function deleteContactProperty(
-  apiKey: ApiKey,
+  workspaceId: string,
   contactPropertyId: string
 ) {
-  const workspaceId = apiKey.workspaceId;
-
-  // First, get the property to rename it before soft delete
   const property = await prisma.contactProperty.findFirst({
     where: {
       id: contactPropertyId,
@@ -322,7 +310,6 @@ export async function deleteContactProperty(
     return responseNotFound("Contact property not found");
   }
 
-  // Rename to free up the name for reuse (MySQL doesn't support partial unique indexes)
   const timestamp = Date.now();
   const renamedName = `${property.name}__deleted__${timestamp}`;
   const renamedSlot = `${property.slot}__deleted__${timestamp}`;
@@ -338,7 +325,6 @@ export async function deleteContactProperty(
     },
   });
 
-  // Now soft delete (sets deletedAt)
   const deletedProperty = await prisma.contactProperty.delete({
     where: {
       id: contactPropertyId,

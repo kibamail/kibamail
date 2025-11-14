@@ -7,7 +7,6 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { ApiKey } from "@prisma/client";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { validateRequestBody } from "@/lib/api/validation";
@@ -35,9 +34,8 @@ import type { ConditionInput } from "./schema";
  * Workspace is determined from the authenticated API key.
  * Validates that all fields in conditions are either built-in or custom properties.
  */
-export async function createSegment(apiKey: ApiKey, request: NextRequest) {
+export async function createSegment(workspaceId: string, request: NextRequest) {
   const data = await validateRequestBody(createSegmentSchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
@@ -79,8 +77,7 @@ export async function createSegment(apiKey: ApiKey, request: NextRequest) {
  * Takes one extra item to determine if there are more results.
  * Reverses order for "before" cursor to maintain chronological order.
  */
-export async function listSegments(apiKey: ApiKey, request: NextRequest) {
-  const workspaceId = apiKey.workspaceId;
+export async function listSegments(workspaceId: string, request: NextRequest) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   const baseQuery = {
@@ -132,8 +129,7 @@ export async function listSegments(apiKey: ApiKey, request: NextRequest) {
  * Workspace is determined from the authenticated API key.
  * Returns 404 if segment not found or belongs to a different workspace.
  */
-export async function getSegment(apiKey: ApiKey, segmentId: string) {
-  const workspaceId = apiKey.workspaceId;
+export async function getSegment(workspaceId: string, segmentId: string) {
 
   const segment = await prisma.segment.findFirst({
     where: {
@@ -166,12 +162,11 @@ export async function getSegment(apiKey: ApiKey, segmentId: string) {
  * Global error handler will catch not found errors.
  */
 export async function updateSegment(
-  apiKey: ApiKey,
+  workspaceId: string,
   segmentId: string,
   request: NextRequest
 ) {
   const data = await validateRequestBody(updateSegmentSchema, request);
-  const workspaceId = apiKey.workspaceId;
 
   // If conditions are being updated, validate them
   if (data.conditions !== undefined) {
@@ -219,8 +214,7 @@ export async function updateSegment(
  * Global error handler will catch not found errors.
  * Cascade deletes all contact_segment relationships.
  */
-export async function deleteSegment(apiKey: ApiKey, segmentId: string) {
-  const workspaceId = apiKey.workspaceId;
+export async function deleteSegment(workspaceId: string, segmentId: string) {
 
   const deletedSegment = await prisma.segment.delete({
     where: {
@@ -245,11 +239,10 @@ export async function deleteSegment(apiKey: ApiKey, segmentId: string) {
  * Returns cursor-paginated results with contact properties.
  */
 export async function getSegmentContacts(
-  apiKey: ApiKey,
+  workspaceId: string,
   segmentId: string,
   request: NextRequest
 ) {
-  const workspaceId = apiKey.workspaceId;
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   // Fetch the segment and verify it belongs to this workspace

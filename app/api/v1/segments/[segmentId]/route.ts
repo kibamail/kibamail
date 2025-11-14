@@ -28,7 +28,7 @@ export async function GET(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => getSegment(apiKey, segmentId),
+      (apiKey) => getSegment(apiKey.workspaceId, segmentId),
       ["read:segments"]
     )
   );
@@ -49,7 +49,7 @@ export async function PUT(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => updateSegment(apiKey, segmentId, request),
+      (apiKey, request) => updateSegment(apiKey.workspaceId, segmentId, request),
       ["update:segments"]
     )
   );
@@ -70,7 +70,7 @@ export async function DELETE(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => deleteSegment(apiKey, segmentId),
+      (apiKey) => deleteSegment(apiKey.workspaceId, segmentId),
       ["delete:segments"]
     )
   );

@@ -25,7 +25,7 @@ export async function DELETE(
 
   return withErrorHandling(request, () =>
     withApiSession(request, (apiKey) =>
-      deleteApiKeyHandler(apiKey, resolvedParams),
+      deleteApiKeyHandler(apiKey.workspaceId, apiKey.id, resolvedParams),
     ),
   );
 }

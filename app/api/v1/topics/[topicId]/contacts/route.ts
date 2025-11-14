@@ -23,7 +23,7 @@ export async function GET(
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => getTopicContacts(apiKey, topicId, request),
+      (apiKey, request) => getTopicContacts(apiKey.workspaceId, topicId, request),
       ["read:contacts"]
     )
   );

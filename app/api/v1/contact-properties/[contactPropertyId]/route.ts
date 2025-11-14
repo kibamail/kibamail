@@ -32,7 +32,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => getContactProperty(apiKey, contactPropertyId),
+      (apiKey) => getContactProperty(apiKey.workspaceId, contactPropertyId),
       ["read:contact-properties"]
     )
   );
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     withApiSession(
       request,
       (apiKey, request) =>
-        updateContactProperty(apiKey, contactPropertyId, request),
+        updateContactProperty(apiKey.workspaceId, contactPropertyId, request),
       ["update:contact-properties"]
     )
   );
@@ -68,7 +68,7 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) => deleteContactProperty(apiKey, contactPropertyId),
+      (apiKey) => deleteContactProperty(apiKey.workspaceId, contactPropertyId),
       ["delete:contact-properties"]
     )
   );

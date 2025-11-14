@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => searchContacts(apiKey, request),
+      (apiKey, request) => searchContacts(apiKey.workspaceId, request),
       ["read:contacts"]
     )
   );
