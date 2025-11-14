@@ -15,6 +15,7 @@ export const prisma = prismaBase.$extends(
       Tag: true,
       Topic: true,
       Segment: true,
+      ContactProperty: true,
     },
     defaultConfig: {
       field: "deletedAt",

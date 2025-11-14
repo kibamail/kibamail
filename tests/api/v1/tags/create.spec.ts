@@ -50,7 +50,7 @@ describe("POST /api/v1/tags", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("tag");
+    expect(responseData.object).toBe("tag");
     expect(responseData.id).toBeDefined();
   });
 
@@ -65,7 +65,7 @@ describe("POST /api/v1/tags", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("tag");
+    expect(responseData.object).toBe("tag");
     expect(responseData.id).toBeDefined();
   });
 

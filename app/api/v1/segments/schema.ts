@@ -134,7 +134,7 @@ export const updateSegmentSchema = z.object({
  * Segment Response Schema
  */
 export const segmentResponseSchema = z.object({
-  type: z.literal("segment"),
+  object: z.literal("segment"),
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -145,9 +145,9 @@ export const segmentResponseSchema = z.object({
  * Segment List Response Schema
  */
 export const segmentListResponseSchema = z.object({
-  type: z.literal("segment_list"),
+  object: z.literal("segment_list"),
   hasMore: z.boolean(),
-  data: z.array(segmentResponseSchema.omit({ type: true })),
+  data: z.array(segmentResponseSchema.omit({ object: true })),
 });
 
 /**

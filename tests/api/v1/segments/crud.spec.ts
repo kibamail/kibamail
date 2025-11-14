@@ -68,7 +68,7 @@ describe("GET /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("segment");
+    expect(responseData.object).toBe("segment");
     expect(responseData.id).toBe(createdSegment.id);
     expect(responseData.name).toBe("Retrieve Test");
     expect(responseData.conditions).toBeDefined();
@@ -135,7 +135,7 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("segment");
+    expect(responseData.object).toBe("segment");
     expect(responseData.id).toBe(createdSegment.id);
   });
 
@@ -261,7 +261,7 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("segment");
+    expect(responseData.object).toBe("segment");
     expect(responseData.id).toBe(createdSegment.id);
 
     // Verify segment is actually deleted

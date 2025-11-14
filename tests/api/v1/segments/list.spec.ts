@@ -55,7 +55,6 @@ afterAll(async () => {
 
 describe("GET /api/v1/segments", () => {
   test("should list segments with default limit", async () => {
-    // Create a few test segments
     await createTestSegment(fullAccessApiKey, "Segment 1");
     await createTestSegment(fullAccessApiKey, "Segment 2");
     await createTestSegment(fullAccessApiKey, "Segment 3");
@@ -65,7 +64,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("segment_list");
+    expect(responseData.object).toBe("segment_list");
     expect(responseData.data).toBeArray();
     expect(responseData.hasMore).toBeDefined();
     expect(responseData.data.length).toBeGreaterThanOrEqual(3);
@@ -75,7 +74,10 @@ describe("GET /api/v1/segments", () => {
     // Create 50 segments to test pagination
     const segments = [];
     for (let i = 1; i <= 50; i++) {
-      const segment = await createTestSegment(fullAccessApiKey, `Pagination Test ${i}`);
+      const segment = await createTestSegment(
+        fullAccessApiKey,
+        `Pagination Test ${i}`
+      );
       segments.push(segment);
     }
 
@@ -84,27 +86,33 @@ describe("GET /api/v1/segments", () => {
     const firstResponse = await GET(firstRequest);
     const firstData = await firstResponse.json();
 
-    expect(firstData.type).toBe("segment_list");
+    expect(firstData.object).toBe("segment_list");
     expect(firstData.data).toHaveLength(20);
     expect(firstData.hasMore).toBe(true);
 
     // Second page using after cursor
     const lastIdFromFirstPage = firstData.data[firstData.data.length - 1].id;
-    const secondRequest = get(`/segments?limit=20&after=${lastIdFromFirstPage}`, fullAccessApiKey.key);
+    const secondRequest = get(
+      `/segments?limit=20&after=${lastIdFromFirstPage}`,
+      fullAccessApiKey.key
+    );
     const secondResponse = await GET(secondRequest);
     const secondData = await secondResponse.json();
 
-    expect(secondData.type).toBe("segment_list");
+    expect(secondData.object).toBe("segment_list");
     expect(secondData.data).toHaveLength(20);
     expect(secondData.hasMore).toBe(true);
 
     // Third page
     const lastIdFromSecondPage = secondData.data[secondData.data.length - 1].id;
-    const thirdRequest = get(`/segments?limit=20&after=${lastIdFromSecondPage}`, fullAccessApiKey.key);
+    const thirdRequest = get(
+      `/segments?limit=20&after=${lastIdFromSecondPage}`,
+      fullAccessApiKey.key
+    );
     const thirdResponse = await GET(thirdRequest);
     const thirdData = await thirdResponse.json();
 
-    expect(thirdData.type).toBe("segment_list");
+    expect(thirdData.object).toBe("segment_list");
     expect(thirdData.data.length).toBeGreaterThanOrEqual(10);
   });
 
@@ -112,11 +120,14 @@ describe("GET /api/v1/segments", () => {
     const segment1 = await createTestSegment(fullAccessApiKey, "Cursor Test 1");
     await createTestSegment(fullAccessApiKey, "Cursor Test 2");
 
-    const request = get(`/segments?limit=10&after=${segment1.id}`, fullAccessApiKey.key);
+    const request = get(
+      `/segments?limit=10&after=${segment1.id}`,
+      fullAccessApiKey.key
+    );
     const response = await GET(request);
     const responseData = await response.json();
 
-    expect(responseData.type).toBe("segment_list");
+    expect(responseData.object).toBe("segment_list");
     const ids = responseData.data.map((s: any) => s.id);
     expect(ids).not.toContain(segment1.id);
   });
@@ -126,11 +137,14 @@ describe("GET /api/v1/segments", () => {
     const segment2 = await createTestSegment(fullAccessApiKey, "Before Test 2");
     const segment3 = await createTestSegment(fullAccessApiKey, "Before Test 3");
 
-    const request = get(`/segments?limit=10&before=${segment3.id}`, fullAccessApiKey.key);
+    const request = get(
+      `/segments?limit=10&before=${segment3.id}`,
+      fullAccessApiKey.key
+    );
     const response = await GET(request);
     const responseData = await response.json();
 
-    expect(responseData.type).toBe("segment_list");
+    expect(responseData.object).toBe("segment_list");
     const ids = responseData.data.map((s: any) => s.id);
     expect(ids).not.toContain(segment3.id);
   });
@@ -146,7 +160,7 @@ describe("GET /api/v1/segments", () => {
     const response = await GET(request);
     const responseData = await response.json();
 
-    expect(responseData.type).toBe("segment_list");
+    expect(responseData.object).toBe("segment_list");
     expect(responseData.data.length).toBeLessThanOrEqual(3);
   });
 
@@ -155,7 +169,7 @@ describe("GET /api/v1/segments", () => {
     const response = await GET(request);
     const responseData = await response.json();
 
-    expect(responseData.type).toBe("segment_list");
+    expect(responseData.object).toBe("segment_list");
     expect(responseData.data.length).toBeLessThanOrEqual(100);
   });
 
@@ -168,7 +182,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("segment_list");
+    expect(responseData.object).toBe("segment_list");
     expect(responseData.data).toBeArray();
     expect(responseData.data).toHaveLength(0);
     expect(responseData.hasMore).toBe(false);
@@ -202,7 +216,9 @@ describe("GET /api/v1/segments", () => {
     const response = await GET(request);
     const responseData = await response.json();
 
-    const foundSegment = responseData.data.find((s: any) => s.id === segment.id);
+    const foundSegment = responseData.data.find(
+      (s: any) => s.id === segment.id
+    );
 
     expect(foundSegment).toBeDefined();
     expect(foundSegment.id).toBeDefined();
@@ -212,7 +228,7 @@ describe("GET /api/v1/segments", () => {
   });
 
   test("should reject request with missing Authorization header", async () => {
-    const request = new Request("http://localhost:3000/api/v1/segments");
+    const request = get("/segments");
 
     const response = await GET(request);
     const responseData = await response.json();

@@ -45,7 +45,9 @@ export interface CreatedApiKey {
  * const request = apiRequest('/contacts').auth(apiKey.key).build();
  * ```
  */
-export async function createTestApiKey(options: CreateApiKeyOptions): Promise<CreatedApiKey> {
+export async function createTestApiKey(
+  options: CreateApiKeyOptions
+): Promise<CreatedApiKey> {
   const { key, preview } = generateApiKey();
   const keyHash = hashApiKey(key);
 
@@ -74,13 +76,15 @@ export async function createTestApiKey(options: CreateApiKeyOptions): Promise<Cr
  * @param workspaceId - Workspace ID
  * @returns Created API key with all scopes
  */
-export async function createFullAccessApiKey(workspaceId: string): Promise<CreatedApiKey> {
+export async function createFullAccessApiKey(
+  workspaceId: string
+): Promise<CreatedApiKey> {
   return createTestApiKey({
     workspaceId,
     name: "Full Access Test Key",
     scopes: [
       "read:api-keys",
-      "write:api-keys", 
+      "write:api-keys",
       "delete:api-keys",
       "read:contacts",
       "write:contacts",
@@ -102,6 +106,10 @@ export async function createFullAccessApiKey(workspaceId: string): Promise<Creat
       "write:suppression-list",
       "update:suppression-list",
       "delete:suppression-list",
+      "read:contact-properties",
+      "write:contact-properties",
+      "update:contact-properties",
+      "delete:contact-properties",
     ],
   });
 }
@@ -112,7 +120,9 @@ export async function createFullAccessApiKey(workspaceId: string): Promise<Creat
  * @param workspaceId - Workspace ID
  * @returns Created API key with read-only scopes
  */
-export async function createReadOnlyApiKey(workspaceId: string): Promise<CreatedApiKey> {
+export async function createReadOnlyApiKey(
+  workspaceId: string
+): Promise<CreatedApiKey> {
   return createTestApiKey({
     workspaceId,
     name: "Read Only Test Key",

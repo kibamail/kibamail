@@ -48,7 +48,7 @@ describe("POST /api/v1/topics", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("topic");
+    expect(responseData.object).toBe("topic");
     expect(responseData.id).toBeDefined();
   });
 
@@ -66,7 +66,7 @@ describe("POST /api/v1/topics", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("topic");
+    expect(responseData.object).toBe("topic");
     expect(responseData.id).toBeDefined();
   });
 
@@ -82,7 +82,7 @@ describe("POST /api/v1/topics", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("topic");
+    expect(responseData.object).toBe("topic");
     expect(responseData.id).toBeDefined();
   });
 

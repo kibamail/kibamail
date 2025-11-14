@@ -61,7 +61,7 @@ describe("GET /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("topic");
+    expect(responseData.object).toBe("topic");
     expect(responseData.id).toBe(createdTopic.id);
     expect(responseData.name).toBe("Retrieve Test");
     expect(responseData.slug).toBe("retrieve-test");
@@ -129,7 +129,7 @@ describe("PUT /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("topic");
+    expect(responseData.object).toBe("topic");
     expect(responseData.id).toBe(createdTopic.id);
   });
 
@@ -260,7 +260,7 @@ describe("DELETE /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("topic");
+    expect(responseData.object).toBe("topic");
     expect(responseData.id).toBe(createdTopic.id);
 
     // Verify topic is actually deleted

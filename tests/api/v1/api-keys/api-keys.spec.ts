@@ -97,7 +97,7 @@ describe("POST /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("api_key");
+    expect(responseData.object).toBe("api_key");
     expect(responseData.id).toBeDefined();
     expect(responseData.key).toMatch(/^sk_[a-f0-9]{48}$/); // Full key returned
 
@@ -236,7 +236,7 @@ describe("GET /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("api_key_list");
+    expect(responseData.object).toBe("api_key_list");
     expect(Array.isArray(responseData.data)).toBe(true);
     expect(responseData.data.length).toBeGreaterThanOrEqual(4); // Auth key + 3 created
     expect(responseData.meta).toBeDefined();
@@ -268,7 +268,7 @@ describe("GET /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("api_key_list");
+    expect(responseData.object).toBe("api_key_list");
     expect(responseData.data.length).toBe(2);
     expect(responseData.meta.page).toBe(1);
     expect(responseData.meta.limit).toBe(2);
@@ -322,7 +322,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("api_key");
+    expect(responseData.object).toBe("api_key");
 
     const deletedKey = await prisma.apiKey.findUnique({
       where: { id: keyToDelete },

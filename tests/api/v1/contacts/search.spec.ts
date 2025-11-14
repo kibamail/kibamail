@@ -157,7 +157,7 @@ describe("POST /api/v1/contacts/search", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("contact_list");
+    expect(responseData.object).toBe("contact_list");
     expect(responseData.data).toBeArray();
     expect(responseData.data.length).toBe(20); // Default limit
     expect(responseData.hasMore).toBe(true); // 70 total SUBSCRIBED contacts

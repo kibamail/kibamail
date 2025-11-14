@@ -53,7 +53,7 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("contact");
+    expect(responseData.object).toBe("contact");
     expect(responseData.id).toBe(testContactId);
     expect(responseData.email).toBeDefined();
   });
@@ -65,7 +65,7 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("contact");
+    expect(responseData.object).toBe("contact");
     expect(responseData.id).toBe(testContactId);
   });
 

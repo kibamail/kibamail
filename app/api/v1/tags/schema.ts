@@ -42,7 +42,7 @@ export const updateTagSchema = z.object({
  * Tag Response Schema
  */
 export const tagResponseSchema = z.object({
-  type: z.literal("tag"),
+  object: z.literal("tag"),
   id: z.string(),
   name: z.string(),
   color: z.string(),
@@ -52,9 +52,9 @@ export const tagResponseSchema = z.object({
  * Tag List Response Schema
  */
 export const tagListResponseSchema = z.object({
-  type: z.literal("tag_list"),
+  object: z.literal("tag_list"),
   hasMore: z.boolean(),
-  data: z.array(tagResponseSchema.omit({ type: true })),
+  data: z.array(tagResponseSchema.omit({ object: true })),
 });
 
 /**

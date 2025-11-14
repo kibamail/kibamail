@@ -61,7 +61,7 @@ describe("GET /api/v1/tags/[tagId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("tag");
+    expect(responseData.object).toBe("tag");
     expect(responseData.id).toBe(createdTag.id);
     expect(responseData.name).toBe("Retrieve Test");
     expect(responseData.color).toBeDefined();
@@ -127,7 +127,7 @@ describe("PUT /api/v1/tags/[tagId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("tag");
+    expect(responseData.object).toBe("tag");
     expect(responseData.id).toBe(createdTag.id);
   });
 
@@ -226,7 +226,7 @@ describe("DELETE /api/v1/tags/[tagId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("tag");
+    expect(responseData.object).toBe("tag");
     expect(responseData.id).toBe(createdTag.id);
 
     // Verify tag is actually deleted

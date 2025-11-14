@@ -105,7 +105,7 @@ export const updateContactSchema = z.object({
  * Contact Response Schema
  */
 export const contactResponseSchema = z.object({
-  type: z.literal("contact"),
+  object: z.literal("contact"),
   id: z.string(),
   email: z.string(),
   firstName: z.string().nullable(),
@@ -121,9 +121,9 @@ export const contactResponseSchema = z.object({
  * Contact List Response Schema
  */
 export const contactListResponseSchema = z.object({
-  type: z.literal("contact_list"),
+  object: z.literal("contact_list"),
   hasMore: z.boolean(),
-  data: z.array(contactResponseSchema.omit({ type: true })),
+  data: z.array(contactResponseSchema.omit({ object: true })),
 });
 
 /**

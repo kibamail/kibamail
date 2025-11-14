@@ -30,7 +30,7 @@ export const createApiKeySchema = z.object({
 });
 
 export const createApiKeyResponseSchema = z.object({
-  type: z.literal("api_key"),
+  object: z.literal("api_key"),
   key: z.string(),
 });
 

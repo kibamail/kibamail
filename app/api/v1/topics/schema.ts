@@ -61,7 +61,7 @@ export const updateTopicSchema = z.object({
  * Topic Response Schema
  */
 export const topicResponseSchema = z.object({
-  type: z.literal("topic"),
+  object: z.literal("topic"),
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -74,9 +74,9 @@ export const topicResponseSchema = z.object({
  * Topic List Response Schema
  */
 export const topicListResponseSchema = z.object({
-  type: z.literal("topic_list"),
+  object: z.literal("topic_list"),
   hasMore: z.boolean(),
-  data: z.array(topicResponseSchema.omit({ type: true })),
+  data: z.array(topicResponseSchema.omit({ object: true })),
 });
 
 /**

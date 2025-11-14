@@ -87,8 +87,8 @@ export interface CursorPaginationParams {
  * Cursor-based pagination response structure
  */
 export interface CursorPaginatedResponse<T> {
-  /** Resource type identifier (e.g., "contact_list", "api_key_list") */
-  type: ApiObjectType;
+  /** Resource object identifier (e.g., "contact_list", "api_key_list") */
+  object: ApiObjectType;
   /** Array of items for the current page */
   data: T[];
   /** Whether there are more elements available */
@@ -263,10 +263,10 @@ export function createPaginatedResponse<T>(
 export function createCursorPaginatedResponse<T>(
   data: T[],
   hasMore: boolean,
-  type: ApiObjectType
+  object: ApiObjectType
 ): CursorPaginatedResponse<T> {
   return {
-    type,
+    object,
     data,
     hasMore,
   };

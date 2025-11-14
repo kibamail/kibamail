@@ -54,7 +54,7 @@ describe("GET /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    expect(responseData.type).toBe("contact_list");
+    expect(responseData.object).toBe("contact_list");
     expect(responseData.data).toBeDefined();
     expect(responseData.data.length).toBe(20); // Default limit
     expect(responseData.hasMore).toBe(true); // Should have more since we have 50 total
@@ -113,7 +113,7 @@ describe("GET /api/v1/contacts", () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(200);
-      expect(responseData.type).toBe("contact_list");
+      expect(responseData.object).toBe("contact_list");
       expect(responseData.data).toBeDefined();
 
       // Add contacts to our collection
@@ -179,7 +179,7 @@ describe("GET /api/v1/contacts", () => {
     const secondData = await secondResponse.json();
 
     expect(secondResponse.status).toBe(200);
-    expect(secondData.type).toBe("contact_list");
+    expect(secondData.object).toBe("contact_list");
     expect(secondData.data).toBeDefined();
     expect(secondData.data.length).toBe(10);
     expect(secondData.hasMore).toBe(true);
@@ -230,7 +230,7 @@ describe("GET /api/v1/contacts", () => {
     const beforeData = await beforeResponse.json();
 
     expect(beforeResponse.status).toBe(200);
-    expect(beforeData.type).toBe("contact_list");
+    expect(beforeData.object).toBe("contact_list");
     expect(beforeData.data).toBeDefined();
     expect(beforeData.data.length).toBe(10);
 

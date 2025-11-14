@@ -223,7 +223,7 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("contact");
+    expect(responseData.object).toBe("contact");
     expect(responseData.id).toBeDefined();
   });
 

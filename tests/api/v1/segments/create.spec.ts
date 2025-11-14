@@ -52,7 +52,7 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("segment");
+    expect(responseData.object).toBe("segment");
     expect(responseData.id).toBeDefined();
   });
 
@@ -81,7 +81,7 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("segment");
+    expect(responseData.object).toBe("segment");
     expect(responseData.id).toBeDefined();
   });
 
@@ -325,7 +325,7 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(201);
-    expect(responseData.type).toBe("segment");
+    expect(responseData.object).toBe("segment");
     expect(responseData.id).toBeDefined();
   });
 

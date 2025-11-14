@@ -22,13 +22,13 @@
 import { NextResponse } from "next/server";
 import type { ZodError } from "zod";
 
-export type ApiObjectType = "api_key" | "api_key_list" | "contact" | "contact_list" | "tag" | "tag_list" | "topic" | "topic_list" | "segment" | "segment_list";
+export type ApiObjectType = "api_key" | "api_key_list" | "contact" | "contact_list" | "tag" | "tag_list" | "topic" | "topic_list" | "segment" | "segment_list" | "contact_property" | "contact_property_list";
 
 /**
  * Standard API response structure (for external API v1)
  */
 type ApiResponse<T = unknown> = {
-  type?: ApiObjectType;
+  object?: ApiObjectType;
   data?: T;
   meta?: unknown;
   error?: string;
@@ -50,10 +50,10 @@ type ApiResponse<T = unknown> = {
  */
 export function responseOk<T>(
   data?: T,
-  type?: ApiObjectType,
+  object?: ApiObjectType,
   meta?: unknown
 ): NextResponse<ApiResponse<T>> {
-  const response: ApiResponse<T> = { type, ...data };
+  const response: ApiResponse<T> = { object, ...data };
   if (meta) {
     response.meta = meta;
   }
@@ -74,9 +74,9 @@ export function responseOk<T>(
  */
 export function responseCreated<T>(
   data: T,
-  type?: ApiObjectType
+  object?: ApiObjectType
 ): NextResponse<ApiResponse<T>> {
-  return NextResponse.json({ type, ...data }, { status: 201 });
+  return NextResponse.json({ object, ...data }, { status: 201 });
 }
 
 /**

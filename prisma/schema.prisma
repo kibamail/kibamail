@@ -1,48 +1,29 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-/**
- * Invitations Schema
- *
- * Stores organization invitation data for user-facing queries.
- * Logto Management API doesn't support user-scoped invitation queries,
- * so we store minimal metadata here to show users their pending invitations.
- */
-
-// ============================================
-// ORGANIZATION INVITATIONS
-// ============================================
-
 model Invitation {
   /// Unique identifier for the invitation record
-  id String @id @default(cuid())
-
+  id                String           @id @default(cuid())
   /// Logto's invitation ID (from Management API response)
-  logtoInvitationId String @unique
-
+  logtoInvitationId String           @unique
   /// Logto organization ID (workspace)
-  workspaceId String
-
+  workspaceId       String
   /// Email address of the invitee
-  inviteeEmail String
-
+  inviteeEmail      String
   /// Invitation status
-  status InvitationStatus @default(PENDING)
-
+  status            InvitationStatus @default(PENDING)
   /// When the invitation expires (Unix timestamp in milliseconds)
-  expiresAt DateTime
-
+  expiresAt         DateTime
   /// When the invitation was created
-  createdAt DateTime @default(now())
-
+  createdAt         DateTime         @default(now())
   /// When the invitation was last updated
-  updatedAt DateTime @updatedAt
+  updatedAt         DateTime         @updatedAt
 
   @@index([inviteeEmail])
   @@index([workspaceId])
@@ -51,126 +32,456 @@ model Invitation {
   @@map("invitations")
 }
 
-enum InvitationStatus {
-  PENDING
-  ACCEPTED
-}
-
-// ============================================
-// API KEYS
-// ============================================
-
-/**
- * API Keys Schema
- *
- * Stores API keys for workspace authentication to the public API.
- * Uses scope-based permissions independent of the internal RBAC system.
- */
+/// *
+///  * API Keys Schema
+///  *
+///  * Stores API keys for workspace authentication to the public API.
+///  * Uses scope-based permissions independent of the internal RBAC system.
 model ApiKey {
-  id String @id @default(cuid())
-
+  id          String    @id @default(cuid())
   /// Workspace ID from Logto (organization ID)
   workspaceId String
-
   /// User-provided name for the API key
-  name String
-
+  name        String
   /// SHA-256 hash of the API key
   /// The actual key is never stored, only the hash
-  keyHash String @unique
-
+  keyHash     String    @unique
   /// Preview of the key (first 8 chars after prefix)
   /// Format: "sk_abc12345..."
   /// Used for identification in the UI
-  keyPreview String
-
+  keyPreview  String
   /// Array of scope names granted to this key
   /// @example ["read:contacts", "write:broadcasts"]
-  scopes Json
-
+  scopes      Json
   /// Last time this key was used to make an API request
-  lastUsedAt DateTime?
-
+  lastUsedAt  DateTime?
   /// When the key was created
-  createdAt DateTime @default(now())
-
+  createdAt   DateTime  @default(now())
   /// When the key was last updated
-  updatedAt DateTime @updatedAt
+  updatedAt   DateTime  @updatedAt
 
-  /// Indexes for efficient queries
   @@index([workspaceId])
   @@index([keyHash])
   @@index([createdAt])
   @@map("api_keys")
 }
 
-// ============================================
-// CONTACT MANAGEMENT SYSTEM
-// ============================================
-
-/**
- * Contacts Schema
- *
- * Core contact entity storing subscriber information and status.
- * Each contact belongs to a workspace and can have multiple topics,
- * tags, and be part of various segments.
- */
+/// *
+///  * Contacts Schema
+///  *
+///  * Core contact entity storing subscriber information and status.
+///  * Each contact belongs to a workspace and can have multiple topics,
+///  * tags, and be part of various segments.
 model Contact {
   /// Unique identifier for the contact
-  id String @id @default(cuid())
-
+  id               String            @id @default(cuid())
   /// Workspace ID for tenant segregation
-  workspaceId String
-
+  workspaceId      String
   /// Contact's email address (required)
-  email String
-
+  email            String
   /// Contact's first name
-  firstName String?
-
+  firstName        String?
   /// Contact's last name
-  lastName String?
-
+  lastName         String?
   /// Contact's phone number
-  phone String?
-
+  phone            String?
   /// Contact's country
-  country String?
-
+  country          String?
   /// Contact's timezone
-  timezone String?
-
+  timezone         String?
   /// Contact's city
-  city String?
-
+  city             String?
   /// Contact subscription status
-  status ContactStatus @default(SUBSCRIBED)
-
+  status           ContactStatus     @default(SUBSCRIBED)
   /// When the contact was created
-  createdAt DateTime @default(now())
-
+  createdAt        DateTime          @default(now())
   /// When the contact was last updated
-  updatedAt DateTime @updatedAt
+  updatedAt        DateTime          @updatedAt
+  /// Custom property slots - Date (25 slots)
+  propertyDate0    BigInt?
+  propertyDate1    BigInt?
+  propertyDate10   BigInt?
+  propertyDate11   BigInt?
+  propertyDate12   BigInt?
+  propertyDate13   BigInt?
+  propertyDate14   BigInt?
+  propertyDate15   BigInt?
+  propertyDate16   BigInt?
+  propertyDate17   BigInt?
+  propertyDate18   BigInt?
+  propertyDate19   BigInt?
+  propertyDate2    BigInt?
+  propertyDate20   BigInt?
+  propertyDate21   BigInt?
+  propertyDate22   BigInt?
+  propertyDate23   BigInt?
+  propertyDate24   BigInt?
+  propertyDate3    BigInt?
+  propertyDate4    BigInt?
+  propertyDate5    BigInt?
+  propertyDate6    BigInt?
+  propertyDate7    BigInt?
+  propertyDate8    BigInt?
+  propertyDate9    BigInt?
+  /// Custom property slots - Numeric (25 slots)
+  propertyNum0     Decimal? @db.Decimal(20, 6)
+  propertyNum1     Decimal? @db.Decimal(20, 6)
+  propertyNum10    Decimal? @db.Decimal(20, 6)
+  propertyNum11    Decimal? @db.Decimal(20, 6)
+  propertyNum12    Decimal? @db.Decimal(20, 6)
+  propertyNum13    Decimal? @db.Decimal(20, 6)
+  propertyNum14    Decimal? @db.Decimal(20, 6)
+  propertyNum15    Decimal? @db.Decimal(20, 6)
+  propertyNum16    Decimal? @db.Decimal(20, 6)
+  propertyNum17    Decimal? @db.Decimal(20, 6)
+  propertyNum18    Decimal? @db.Decimal(20, 6)
+  propertyNum19    Decimal? @db.Decimal(20, 6)
+  propertyNum2     Decimal? @db.Decimal(20, 6)
+  propertyNum20    Decimal? @db.Decimal(20, 6)
+  propertyNum21    Decimal? @db.Decimal(20, 6)
+  propertyNum22    Decimal? @db.Decimal(20, 6)
+  propertyNum23    Decimal? @db.Decimal(20, 6)
+  propertyNum24    Decimal? @db.Decimal(20, 6)
+  propertyNum3     Decimal? @db.Decimal(20, 6)
+  propertyNum4     Decimal? @db.Decimal(20, 6)
+  propertyNum5     Decimal? @db.Decimal(20, 6)
+  propertyNum6     Decimal? @db.Decimal(20, 6)
+  propertyNum7     Decimal? @db.Decimal(20, 6)
+  propertyNum8     Decimal? @db.Decimal(20, 6)
+  propertyNum9     Decimal? @db.Decimal(20, 6)
+  /// Custom property slots - String (25 slots)
+  propertyString0  String? @db.VarChar(255)
+  propertyString1  String? @db.VarChar(255)
+  propertyString10 String? @db.VarChar(255)
+  propertyString11 String? @db.VarChar(255)
+  propertyString12 String? @db.VarChar(255)
+  propertyString13 String? @db.VarChar(255)
+  propertyString14 String? @db.VarChar(255)
+  propertyString15 String? @db.VarChar(255)
+  propertyString16 String? @db.VarChar(255)
+  propertyString17 String? @db.VarChar(255)
+  propertyString18 String? @db.VarChar(255)
+  propertyString19 String? @db.VarChar(255)
+  propertyString2  String? @db.VarChar(255)
+  propertyString20 String? @db.VarChar(255)
+  propertyString21 String? @db.VarChar(255)
+  propertyString22 String? @db.VarChar(255)
+  propertyString23 String? @db.VarChar(255)
+  propertyString24 String? @db.VarChar(255)
+  propertyString3  String? @db.VarChar(255)
+  propertyString4  String? @db.VarChar(255)
+  propertyString5  String? @db.VarChar(255)
+  propertyString6  String? @db.VarChar(255)
+  propertyString7  String? @db.VarChar(255)
+  propertyString8  String? @db.VarChar(255)
+  propertyString9  String? @db.VarChar(255)
+  segments         ContactSegment[]
+  tags             ContactTag[]
+  topics           ContactTopic[]
+  suppressions     SuppressionList[]
 
-  /// Many-to-many relationship with topics
-  topics ContactTopic[]
-
-  /// Many-to-many relationship with tags
-  tags ContactTag[]
-
-  /// Many-to-many relationship with segments (for static segments)
-  segments ContactSegment[]
-
-  /// Suppression list entries for this contact
-  suppressions SuppressionList[]
-
-  /// Unique constraint on email per workspace
   @@unique([workspaceId, email])
   @@index([workspaceId])
   @@index([email])
   @@index([status])
   @@index([createdAt])
+  @@index([workspaceId, propertyNum0])
+  @@index([workspaceId, propertyNum1])
+  @@index([workspaceId, propertyNum2])
+  @@index([workspaceId, propertyNum3])
+  @@index([workspaceId, propertyNum4])
+  @@index([workspaceId, propertyNum5])
+  @@index([workspaceId, propertyNum6])
+  @@index([workspaceId, propertyNum7])
+  @@index([workspaceId, propertyNum8])
+  @@index([workspaceId, propertyNum9])
+  @@index([workspaceId, propertyNum10])
+  @@index([workspaceId, propertyNum11])
+  @@index([workspaceId, propertyDate0])
+  @@index([workspaceId, propertyDate1])
+  @@index([workspaceId, propertyDate2])
+  @@index([workspaceId, propertyDate3])
+  @@index([workspaceId, propertyDate4])
+  @@index([workspaceId, propertyDate5])
+  @@index([workspaceId, propertyDate6])
+  @@index([workspaceId, propertyDate7])
+  @@index([workspaceId, propertyDate8])
+  @@index([workspaceId, propertyDate9])
+  @@index([workspaceId, propertyDate10])
+  @@index([workspaceId, propertyDate11])
+  @@index([workspaceId, propertyString0])
+  @@index([workspaceId, propertyString1])
+  @@index([workspaceId, propertyString2])
+  @@index([workspaceId, propertyString3])
+  @@index([workspaceId, propertyString4])
+  @@index([workspaceId, propertyString5])
+  @@index([workspaceId, propertyString6])
+  @@index([workspaceId, propertyString7])
+  @@index([workspaceId, propertyString8])
+  @@index([workspaceId, propertyString9])
+  @@index([workspaceId, propertyString10])
+  @@index([workspaceId, propertyString11])
   @@map("contacts")
+}
+
+/// *
+///  * Contact Properties Schema
+///  *
+///  * Defines custom properties that can be assigned to contacts.
+///  * Each property is mapped to a pre-allocated slot on the contacts table.
+///  * The slot assignment is managed internally and not exposed via API.
+model ContactProperty {
+  /// Unique identifier for the contact property
+  id           String              @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId  String
+  /// User-facing property name
+  name         String
+  /// Internal slot name (e.g., "propertyNum0", "propertyDate5", "propertyString12")
+  /// This determines which column on the contacts table stores this property's values
+  slot         String
+  /// Property type (determines validation rules and slot prefix)
+  type         ContactPropertyType
+  /// Default value for this property (stored as string, validated based on type)
+  /// For date type: Unix timestamp in milliseconds
+  /// For number type: Decimal number as string
+  /// For string type: String value
+  defaultValue String?
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt    DateTime?           @map("deleted_at")
+  /// When the property was created
+  createdAt    DateTime            @default(now())
+  /// When the property was last updated
+  updatedAt    DateTime            @updatedAt
+
+  @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
+  @@index([workspaceId, name])
+  @@index([workspaceId, slot])
+  @@index([type])
+  @@map("contact_properties")
+}
+
+/// *
+///  * Topics Schema
+///  *
+///  * Topics represent different categories or interests that contacts
+///  * can subscribe to. Each topic has a unique slug per workspace
+///  * and can be either public or private.
+model Topic {
+  /// Unique identifier for the topic
+  id           String            @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId  String
+  /// Topic name
+  name         String
+  /// Topic description
+  description  String?
+  /// Unique slug per workspace for URL-friendly identification
+  slug         String
+  /// Topic visibility (public topics can be seen by all, private are internal)
+  visibility   TopicVisibility   @default(PUBLIC)
+  /// Whether this is a primary topic for the workspace
+  isPrimary    Boolean           @default(false)
+  /// When the topic was created
+  createdAt    DateTime          @default(now())
+  /// When the topic was last updated
+  updatedAt    DateTime          @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt    DateTime?         @map("deleted_at")
+  contacts     ContactTopic[]
+  suppressions SuppressionList[]
+
+  @@unique([workspaceId, slug])
+  @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
+  @@index([visibility])
+  @@index([isPrimary])
+  @@map("topics")
+}
+
+/// *
+///  * Contact Topics Junction Table
+///  *
+///  * Manages the many-to-many relationship between contacts and topics,
+///  * tracking subscription status for each contact-topic pair.
+model ContactTopic {
+  /// Unique identifier for the relationship
+  id        String                  @id @default(cuid())
+  /// Reference to the contact
+  contactId String
+  /// Reference to the topic
+  topicId   String
+  /// Subscription status for this contact-topic relationship
+  status    TopicSubscriptionStatus @default(SUBSCRIBED)
+  /// When the subscription was created
+  createdAt DateTime                @default(now())
+  /// When the subscription was last updated
+  updatedAt DateTime                @updatedAt
+  contact   Contact                 @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  topic     Topic                   @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, topicId])
+  @@index([contactId])
+  @@index([topicId])
+  @@index([status])
+  @@map("contact_topics")
+}
+
+/// *
+///  * Tags Schema
+///  *
+///  * Tags provide a flexible way to categorize and organize contacts.
+///  * Each tag has a name, color for UI display, and belongs to a workspace.
+///  * Tags have a many-to-many relationship with contacts.
+model Tag {
+  /// Unique identifier for the tag
+  id          String       @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId String
+  /// Tag name
+  name        String
+  /// Tag color for UI display (hex color code)
+  color       String       @default("#3B82F6")
+  /// When the tag was created
+  createdAt   DateTime     @default(now())
+  /// When the tag was last updated
+  updatedAt   DateTime     @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt   DateTime?    @map("deleted_at")
+  contacts    ContactTag[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
+  @@map("tags")
+}
+
+/// *
+///  * Contact Tags Junction Table
+///  *
+///  * Manages the many-to-many relationship between contacts and tags.
+///  * A contact can have multiple tags, and a tag can be applied to multiple contacts.
+model ContactTag {
+  /// Unique identifier for the relationship
+  id        String   @id @default(cuid())
+  /// Reference to the contact
+  contactId String
+  /// Reference to the tag
+  tagId     String
+  /// When the tag was applied to the contact
+  createdAt DateTime @default(now())
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, tagId])
+  @@index([contactId])
+  @@index([tagId])
+  @@map("contact_tags")
+}
+
+/// *
+///  * Segments Schema
+///  *
+///  * Segments allow grouping contacts based on specific criteria.
+///  * Dynamic segments use conditions to automatically include/exclude contacts,
+///  * while static segments maintain a fixed list of contacts.
+model Segment {
+  /// Unique identifier for the segment
+  id          String           @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId String
+  /// Segment name
+  name        String
+  /// Segment description
+  description String?
+  /// Segment type (dynamic segments use conditions, static are manually managed)
+  type        SegmentType      @default(DYNAMIC)
+  /// JSON representation of the query conditions for dynamic segments
+  /// Contains the logic used to determine segment membership
+  /// @example {"and": [{"field": "status", "operator": "equals", "value": "subscribed"}]}
+  conditions  Json?
+  /// When the segment was created
+  createdAt   DateTime         @default(now())
+  /// When the segment was last updated
+  updatedAt   DateTime         @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt   DateTime?        @map("deleted_at")
+  contacts    ContactSegment[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
+  @@index([type])
+  @@map("segments")
+}
+
+/// *
+///  * Contact Segments Junction Table
+///  *
+///  * Manages the many-to-many relationship between contacts and static segments.
+///  * Dynamic segments don't use this table as membership is determined by conditions.
+model ContactSegment {
+  /// Unique identifier for the relationship
+  id        String   @id @default(cuid())
+  /// Reference to the contact
+  contactId String
+  /// Reference to the segment
+  segmentId String
+  /// When the contact was added to the segment
+  createdAt DateTime @default(now())
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  segment   Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+
+  @@unique([contactId, segmentId])
+  @@index([contactId])
+  @@index([segmentId])
+  @@map("contact_segments")
+}
+
+/// *
+///  * Suppression List Schema
+///  *
+///  * Suppression list per workspace to prevent sending emails
+///  * to specific contacts. Can be scoped globally (all emails)
+///  * or to specific topics only. This is crucial for compliance
+///  * and avoiding spam complaints.
+model SuppressionList {
+  /// Unique identifier for the suppression entry
+  id          String            @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId String
+  /// Reference to the contact being suppressed
+  contactId   String?
+  /// Email address to suppress (for cases where contact might not exist)
+  email       String
+  /// Suppression scope - global or topic-specific
+  scope       SuppressionScope  @default(GLOBAL)
+  /// Topic ID if scope is TOPIC (null for global suppressions)
+  topicId     String?
+  /// Reason for suppression
+  reason      SuppressionReason
+  /// Optional notes about the suppression
+  notes       String?
+  /// When the suppression was created
+  createdAt   DateTime          @default(now())
+  /// When the suppression was last updated
+  updatedAt   DateTime          @updatedAt
+  contact     Contact?          @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  topic       Topic?            @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, email, topicId])
+  @@index([workspaceId])
+  @@index([contactId])
+  @@index([email])
+  @@index([scope])
+  @@index([topicId])
+  @@index([reason])
+  @@map("suppression_list")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
 }
 
 enum ContactStatus {
@@ -181,63 +492,10 @@ enum ContactStatus {
   ARCHIVED
 }
 
-// ============================================
-// TOPICS SYSTEM
-// ============================================
-
-/**
- * Topics Schema
- *
- * Topics represent different categories or interests that contacts
- * can subscribe to. Each topic has a unique slug per workspace
- * and can be either public or private.
- */
-model Topic {
-  /// Unique identifier for the topic
-  id String @id @default(cuid())
-
-  /// Workspace ID for tenant segregation
-  workspaceId String
-
-  /// Topic name
-  name String
-
-  /// Topic description
-  description String?
-
-  /// Unique slug per workspace for URL-friendly identification
-  slug String
-
-  /// Topic visibility (public topics can be seen by all, private are internal)
-  visibility TopicVisibility @default(PUBLIC)
-
-  /// Whether this is a primary topic for the workspace
-  isPrimary Boolean @default(false)
-
-  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
-  deletedAt DateTime? @map("deleted_at")
-
-  /// When the topic was created
-  createdAt DateTime @default(now())
-
-  /// When the topic was last updated
-  updatedAt DateTime @updatedAt
-
-  /// Many-to-many relationship with contacts
-  contacts ContactTopic[]
-
-  /// Topic-specific suppression list entries
-  suppressions SuppressionList[]
-
-  /// Unique constraint on slug per workspace
-  /// NOTE: This will be replaced with a partial index in migration
-  /// to allow slug reuse after soft delete (WHERE deleted_at IS NULL)
-  @@unique([workspaceId, slug])
-  @@index([workspaceId])
-  @@index([workspaceId, deletedAt])
-  @@index([visibility])
-  @@index([isPrimary])
-  @@map("topics")
+enum ContactPropertyType {
+  DATE
+  NUMBER
+  STRING
 }
 
 enum TopicVisibility {
@@ -245,257 +503,14 @@ enum TopicVisibility {
   PRIVATE
 }
 
-/**
- * Contact Topics Junction Table
- *
- * Manages the many-to-many relationship between contacts and topics,
- * tracking subscription status for each contact-topic pair.
- */
-model ContactTopic {
-  /// Unique identifier for the relationship
-  id String @id @default(cuid())
-
-  /// Reference to the contact
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  /// Reference to the topic
-  topicId String
-  topic   Topic  @relation(fields: [topicId], references: [id], onDelete: Cascade)
-
-  /// Subscription status for this contact-topic relationship
-  status TopicSubscriptionStatus @default(SUBSCRIBED)
-
-  /// When the subscription was created
-  createdAt DateTime @default(now())
-
-  /// When the subscription was last updated
-  updatedAt DateTime @updatedAt
-
-  /// Unique constraint to prevent duplicate subscriptions
-  @@unique([contactId, topicId])
-  @@index([contactId])
-  @@index([topicId])
-  @@index([status])
-  @@map("contact_topics")
-}
-
 enum TopicSubscriptionStatus {
   SUBSCRIBED
   UNSUBSCRIBED
 }
 
-// ============================================
-// TAGS SYSTEM
-// ============================================
-
-/**
- * Tags Schema
- *
- * Tags provide a flexible way to categorize and organize contacts.
- * Each tag has a name, color for UI display, and belongs to a workspace.
- * Tags have a many-to-many relationship with contacts.
- */
-model Tag {
-  /// Unique identifier for the tag
-  id String @id @default(cuid())
-
-  /// Workspace ID for tenant segregation
-  workspaceId String
-
-  /// Tag name
-  name String
-
-  /// Tag color for UI display (hex color code)
-  color String @default("#3B82F6")
-
-  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
-  deletedAt DateTime? @map("deleted_at")
-
-  /// When the tag was created
-  createdAt DateTime @default(now())
-
-  /// When the tag was last updated
-  updatedAt DateTime @updatedAt
-
-  /// Many-to-many relationship with contacts
-  contacts ContactTag[]
-
-  /// Unique constraint on name per workspace
-  /// NOTE: This will be replaced with a partial index in migration
-  /// to allow name reuse after soft delete (WHERE deleted_at IS NULL)
-  @@unique([workspaceId, name])
-  @@index([workspaceId])
-  @@index([workspaceId, deletedAt])
-  @@map("tags")
-}
-
-/**
- * Contact Tags Junction Table
- *
- * Manages the many-to-many relationship between contacts and tags.
- * A contact can have multiple tags, and a tag can be applied to multiple contacts.
- */
-model ContactTag {
-  /// Unique identifier for the relationship
-  id String @id @default(cuid())
-
-  /// Reference to the contact
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  /// Reference to the tag
-  tagId String
-  tag   Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  /// When the tag was applied to the contact
-  createdAt DateTime @default(now())
-
-  /// Unique constraint to prevent duplicate tag assignments
-  @@unique([contactId, tagId])
-  @@index([contactId])
-  @@index([tagId])
-  @@map("contact_tags")
-}
-
-// ============================================
-// SEGMENTS SYSTEM
-// ============================================
-
-/**
- * Segments Schema
- *
- * Segments allow grouping contacts based on specific criteria.
- * Dynamic segments use conditions to automatically include/exclude contacts,
- * while static segments maintain a fixed list of contacts.
- */
-model Segment {
-  /// Unique identifier for the segment
-  id String @id @default(cuid())
-
-  /// Workspace ID for tenant segregation
-  workspaceId String
-
-  /// Segment name
-  name String
-
-  /// Segment description
-  description String?
-
-  /// Segment type (dynamic segments use conditions, static are manually managed)
-  type SegmentType @default(DYNAMIC)
-
-  /// JSON representation of the query conditions for dynamic segments
-  /// Contains the logic used to determine segment membership
-  /// @example {"and": [{"field": "status", "operator": "equals", "value": "subscribed"}]}
-  conditions Json?
-
-  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
-  deletedAt DateTime? @map("deleted_at")
-
-  /// When the segment was created
-  createdAt DateTime @default(now())
-
-  /// When the segment was last updated
-  updatedAt DateTime @updatedAt
-
-  /// Many-to-many relationship with contacts (for static segments)
-  contacts ContactSegment[]
-
-  @@index([workspaceId])
-  @@index([workspaceId, deletedAt])
-  @@index([type])
-  @@map("segments")
-}
-
 enum SegmentType {
   DYNAMIC
   STATIC
-}
-
-/**
- * Contact Segments Junction Table
- *
- * Manages the many-to-many relationship between contacts and static segments.
- * Dynamic segments don't use this table as membership is determined by conditions.
- */
-model ContactSegment {
-  /// Unique identifier for the relationship
-  id String @id @default(cuid())
-
-  /// Reference to the contact
-  contactId String
-  contact   Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  /// Reference to the segment
-  segmentId String
-  segment   Segment @relation(fields: [segmentId], references: [id], onDelete: Cascade)
-
-  /// When the contact was added to the segment
-  createdAt DateTime @default(now())
-
-  /// Unique constraint to prevent duplicate segment assignments
-  @@unique([contactId, segmentId])
-  @@index([contactId])
-  @@index([segmentId])
-  @@map("contact_segments")
-}
-
-// ============================================
-// SUPPRESSION LIST
-// ============================================
-
-/**
- * Suppression List Schema
- *
- * Suppression list per workspace to prevent sending emails
- * to specific contacts. Can be scoped globally (all emails)
- * or to specific topics only. This is crucial for compliance
- * and avoiding spam complaints.
- */
-model SuppressionList {
-  /// Unique identifier for the suppression entry
-  id String @id @default(cuid())
-
-  /// Workspace ID for tenant segregation
-  workspaceId String
-
-  /// Reference to the contact being suppressed
-  contactId String?
-  contact   Contact? @relation(fields: [contactId], references: [id], onDelete: Cascade)
-
-  /// Email address to suppress (for cases where contact might not exist)
-  email String
-
-  /// Suppression scope - global or topic-specific
-  scope SuppressionScope @default(GLOBAL)
-
-  /// Topic ID if scope is TOPIC (null for global suppressions)
-  topicId String?
-  topic   Topic? @relation(fields: [topicId], references: [id], onDelete: Cascade)
-
-  /// Reason for suppression
-  reason SuppressionReason
-
-  /// Optional notes about the suppression
-  notes String?
-
-  /// When the suppression was created
-  createdAt DateTime @default(now())
-
-  /// When the suppression was last updated
-  updatedAt DateTime @updatedAt
-
-  /// Unique constraint on email per workspace per topic (for topic-scoped)
-  /// For global suppressions, topicId will be null
-  @@unique([workspaceId, email, topicId])
-  @@index([workspaceId])
-  @@index([contactId])
-  @@index([email])
-  @@index([scope])
-  @@index([topicId])
-  @@index([reason])
-  @@map("suppression_list")
 }
 
 enum SuppressionScope {
