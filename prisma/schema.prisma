@@ -254,10 +254,10 @@ model ContactProperty {
   /// When the property was last updated
   updatedAt    DateTime            @updatedAt
 
+  @@unique([workspaceId, name])
+  @@unique([workspaceId, slot])
   @@index([workspaceId])
   @@index([workspaceId, deletedAt])
-  @@index([workspaceId, name])
-  @@index([workspaceId, slot])
   @@index([type])
   @@map("contact_properties")
 }

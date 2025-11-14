@@ -17,7 +17,6 @@ import {
   responseOk,
   responseNotFound,
   responseBadRequest,
-  responseConflict,
 } from "@/lib/api/responses";
 import {
   createContactPropertySchema,
@@ -82,19 +81,6 @@ export async function createContactProperty(
 ) {
   const data = await validateRequestBody(createContactPropertySchema, request);
   const workspaceId = apiKey.workspaceId;
-
-  const existingProperty = await prisma.contactProperty.findFirst({
-    where: {
-      workspaceId,
-      name: data.name,
-    },
-  });
-
-  if (existingProperty) {
-    return responseConflict(
-      `A contact property with the name "${data.name}" already exists in this workspace.`
-    );
-  }
 
   const slot = await findAvailableSlot(workspaceId, data.type);
 
@@ -273,24 +259,6 @@ export async function updateContactProperty(
     }
   }
 
-  if (data.name !== undefined && data.name !== existingProperty.name) {
-    const duplicateName = await prisma.contactProperty.findFirst({
-      where: {
-        workspaceId,
-        name: data.name,
-        id: {
-          not: contactPropertyId,
-        },
-      },
-    });
-
-    if (duplicateName) {
-      return responseConflict(
-        `A contact property with the name "${data.name}" already exists in this workspace.`
-      );
-    }
-  }
-
   const updatedProperty = await prisma.contactProperty.update({
     where: {
       id: contactPropertyId,
@@ -313,6 +281,8 @@ export async function updateContactProperty(
  * DELETE /api/v1/contact-properties/[contactPropertyId]
  *
  * Delete a specific contact property by ID (soft delete).
+ * To support unique constraints with soft deletes in MySQL/TiDB,
+ * we rename the property on deletion to free up the name for reuse.
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch not found errors.
  */
@@ -322,6 +292,35 @@ export async function deleteContactProperty(
 ) {
   const workspaceId = apiKey.workspaceId;
 
+  // First, get the property to rename it before soft delete
+  const property = await prisma.contactProperty.findFirst({
+    where: {
+      id: contactPropertyId,
+      workspaceId,
+    },
+  });
+
+  if (!property) {
+    return responseNotFound("Contact property not found");
+  }
+
+  // Rename to free up the name for reuse (MySQL doesn't support partial unique indexes)
+  const timestamp = Date.now();
+  const renamedName = `${property.name}__deleted__${timestamp}`;
+  const renamedSlot = `${property.slot}__deleted__${timestamp}`;
+
+  await prisma.contactProperty.update({
+    where: {
+      id: contactPropertyId,
+      workspaceId,
+    },
+    data: {
+      name: renamedName,
+      slot: renamedSlot,
+    },
+  });
+
+  // Now soft delete (sets deletedAt)
   const deletedProperty = await prisma.contactProperty.delete({
     where: {
       id: contactPropertyId,

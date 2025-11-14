@@ -89,6 +89,8 @@ CREATE TABLE `contact_properties` (
 
     INDEX `contact_properties_workspaceId_idx`(`workspaceId`),
     INDEX `contact_properties_workspaceId_deleted_at_idx`(`workspaceId`, `deleted_at`),
+    INDEX `contact_properties_workspaceId_name_idx`(`workspaceId`, `name`),
+    INDEX `contact_properties_workspaceId_slot_idx`(`workspaceId`, `slot`),
     INDEX `contact_properties_type_idx`(`type`),
     UNIQUE INDEX `contact_properties_workspaceId_name_key`(`workspaceId`, `name`),
     UNIQUE INDEX `contact_properties_workspaceId_slot_key`(`workspaceId`, `slot`),
