@@ -6,14 +6,7 @@
  */
 
 // API Client utilities
-export {
-  TestApiRequest,
-  apiRequest,
-  get,
-  post,
-  put,
-  del,
-} from "./api-client";
+export { TestApiRequest, apiRequest, get, post, put, del } from "./api-client";
 
 // API Key utilities
 export {
@@ -45,7 +38,6 @@ export {
   cleanupWorkspace,
   cleanupWorkspaces,
   createTestContacts,
-  createTestTags,
   createTestTopics,
   type TestWorkspace,
 } from "./workspace";

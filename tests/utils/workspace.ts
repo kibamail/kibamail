@@ -36,16 +36,12 @@ export function createTestWorkspace(): TestWorkspace {
  */
 export async function cleanupWorkspace(workspaceId: string): Promise<void> {
   // Delete in order to handle foreign key constraints
-  
+
   // 1. Delete junction table records first
-  await prisma.contactTag.deleteMany({
-    where: { contact: { workspaceId } },
-  });
-  
   await prisma.contactTopic.deleteMany({
     where: { contact: { workspaceId } },
   });
-  
+
   await prisma.contactSegment.deleteMany({
     where: { contact: { workspaceId } },
   });
@@ -60,7 +56,7 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
     where: { workspaceId },
   });
 
-  await prisma.tag.deleteMany({
+  await prisma.contactProperty.deleteMany({
     where: { workspaceId },
   });
 
@@ -121,33 +117,6 @@ export async function createTestContacts(
   return createdContacts;
 }
 
-/**
- * Create test tags in a workspace
- *
- * @param workspaceId - Workspace ID
- * @param tags - Array of tag data
- * @returns Created tags with IDs
- */
-export async function createTestTags(
-  workspaceId: string,
-  tags: Array<{
-    name: string;
-    color?: string;
-  }>
-) {
-  const createdTags = await Promise.all(
-    tags.map(tag =>
-      prisma.tag.create({
-        data: {
-          workspaceId,
-          ...tag,
-        },
-      })
-    )
-  );
-
-  return createdTags;
-}
 
 /**
  * Create test topics in a workspace

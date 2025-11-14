@@ -36,13 +36,7 @@ describe("Debug Response Format", () => {
     const request = get("/contacts", fullAccessApiKey.key);
 
     const response = await GET(request);
-    const responseData = await response.json();
 
-    console.log("Response status:", response.status);
-    console.log("Response data:", JSON.stringify(responseData, null, 2));
-    console.log("Response keys:", Object.keys(responseData));
-    
-    // This test is just for debugging
     expect(response.status).toBe(200);
   });
 });

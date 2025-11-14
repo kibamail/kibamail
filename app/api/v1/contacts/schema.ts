@@ -57,6 +57,7 @@ export const createContactSchema = z.object({
     .optional()
     .nullable(),
   status: ContactStatusEnum.optional().default("SUBSCRIBED"),
+  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
 });
 
 /**
@@ -99,6 +100,7 @@ export const updateContactSchema = z.object({
     .optional()
     .nullable(),
   status: ContactStatusEnum.optional(),
+  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
 });
 
 /**
@@ -115,6 +117,7 @@ export const contactResponseSchema = z.object({
   timezone: z.string().nullable(),
   city: z.string().nullable(),
   status: ContactStatusEnum,
+  properties: z.record(z.string(), z.union([z.string(), z.number()])),
 });
 
 /**

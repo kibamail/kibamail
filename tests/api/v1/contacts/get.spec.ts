@@ -56,6 +56,8 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     expect(responseData.object).toBe("contact");
     expect(responseData.id).toBe(testContactId);
     expect(responseData.email).toBeDefined();
+    expect(responseData.properties).toBeDefined();
+    expect(responseData.properties).toBeObject();
   });
 
   test("should work with read-only API key", async () => {
@@ -67,6 +69,8 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     expect(response.status).toBe(200);
     expect(responseData.object).toBe("contact");
     expect(responseData.id).toBe(testContactId);
+    expect(responseData.properties).toBeDefined();
+    expect(responseData.properties).toBeObject();
   });
 
   test("should return 404 for non-existent contact", async () => {

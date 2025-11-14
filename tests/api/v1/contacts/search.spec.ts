@@ -8,8 +8,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { POST as SEARCH } from "@/app/api/v1/contacts/search/route";
 import { POST as CREATE_CONTACT } from "@/app/api/v1/contacts/route";
-import { POST as CREATE_TAG } from "@/app/api/v1/tags/route";
 import { POST as CREATE_TOPIC } from "@/app/api/v1/topics/route";
+import { POST as CREATE_PROPERTY } from "@/app/api/v1/contact-properties/route";
 import { prisma } from "@/lib/db";
 import {
   createTestWorkspace,
@@ -22,8 +22,6 @@ import {
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
-let vipTagId: string;
-let spamTagId: string;
 let newsletterTopicId: string;
 let marketingTopicId: string;
 
@@ -33,17 +31,6 @@ let marketingTopicId: string;
 beforeAll(async () => {
   testWorkspace = createTestWorkspace();
   fullAccessApiKey = await createFullAccessApiKey(testWorkspace.id);
-
-  // Create tags
-  const vipTagResponse = await CREATE_TAG(
-    post("/tags", { name: "VIP", color: "#FFD700" }, fullAccessApiKey.key)
-  );
-  vipTagId = (await vipTagResponse.json()).id;
-
-  const spamTagResponse = await CREATE_TAG(
-    post("/tags", { name: "Spam", color: "#FF0000" }, fullAccessApiKey.key)
-  );
-  spamTagId = (await spamTagResponse.json()).id;
 
   // Create topics
   const newsletterTopicResponse = await CREATE_TOPIC(
@@ -87,26 +74,6 @@ beforeAll(async () => {
     );
     const contactId = (await contactResponse.json()).id;
     contactIds.push(contactId);
-  }
-
-  // Assign VIP tag to first 30 contacts
-  for (let i = 0; i < 30; i++) {
-    await prisma.contactTag.create({
-      data: {
-        contactId: contactIds[i],
-        tagId: vipTagId,
-      },
-    });
-  }
-
-  // Assign Spam tag to contacts 80-90
-  for (let i = 80; i < 90; i++) {
-    await prisma.contactTag.create({
-      data: {
-        contactId: contactIds[i],
-        tagId: spamTagId,
-      },
-    });
   }
 
   // Subscribe first 40 contacts to newsletter topic
@@ -161,6 +128,11 @@ describe("POST /api/v1/contacts/search", () => {
     expect(responseData.data).toBeArray();
     expect(responseData.data.length).toBe(20); // Default limit
     expect(responseData.hasMore).toBe(true); // 70 total SUBSCRIBED contacts
+
+    responseData.data.forEach((contact: any) => {
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
+    });
   });
 
   test("should search contacts by country", async () => {
@@ -184,6 +156,8 @@ describe("POST /api/v1/contacts/search", () => {
     // All returned contacts should be from US
     for (const contact of responseData.data) {
       expect(contact.country).toBe("US");
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     }
   });
 
@@ -207,43 +181,9 @@ describe("POST /api/v1/contacts/search", () => {
     expect(responseData.data.length).toBe(75); // 50 US + 25 CA
     for (const contact of responseData.data) {
       expect(["US", "CA"]).toContain(contact.country);
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     }
-  });
-
-  test("should search contacts with hasTag condition", async () => {
-    const request = post(
-      "/contacts/search?limit=50",
-      {
-        filters: {
-          hasTag: [vipTagId],
-        },
-      },
-      fullAccessApiKey.key
-    );
-
-    const response = await SEARCH(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(responseData.data.length).toBe(30); // 30 VIP contacts
-  });
-
-  test("should search contacts with doesNotHaveTag condition", async () => {
-    const request = post(
-      "/contacts/search?limit=100",
-      {
-        filters: {
-          doesNotHaveTag: [spamTagId],
-        },
-      },
-      fullAccessApiKey.key
-    );
-
-    const response = await SEARCH(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(responseData.data.length).toBe(90); // 100 - 10 spam contacts
   });
 
   test("should search contacts with subscribedToTopic condition", async () => {
@@ -308,10 +248,11 @@ describe("POST /api/v1/contacts/search", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    // Should return SUBSCRIBED contacts from US only
     for (const contact of responseData.data) {
       expect(contact.status).toBe("SUBSCRIBED");
       expect(contact.country).toBe("US");
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     }
   });
 
@@ -342,8 +283,11 @@ describe("POST /api/v1/contacts/search", () => {
 
     expect(response.status).toBe(200);
     expect(responseData.data.length).toBe(15); // 10 BOUNCED + 5 COMPLAINED
+
     for (const contact of responseData.data) {
       expect(["BOUNCED", "COMPLAINED"]).toContain(contact.status);
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     }
   });
 
@@ -372,9 +316,6 @@ describe("POST /api/v1/contacts/search", () => {
                 },
               ],
             },
-            {
-              hasTag: [vipTagId],
-            },
           ],
         },
       },
@@ -385,37 +326,13 @@ describe("POST /api/v1/contacts/search", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
-    // Should return SUBSCRIBED VIP contacts from US or CA
+    // Should return SUBSCRIBED contacts from US or CA
     for (const contact of responseData.data) {
       expect(contact.status).toBe("SUBSCRIBED");
       expect(["US", "CA"]).toContain(contact.country);
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     }
-  });
-
-  test("should search with tag and topic conditions combined", async () => {
-    const request = post(
-      "/contacts/search?limit=50",
-      {
-        filters: {
-          $and: [
-            {
-              hasTag: [vipTagId],
-            },
-            {
-              subscribedToTopic: [newsletterTopicId],
-            },
-          ],
-        },
-      },
-      fullAccessApiKey.key
-    );
-
-    const response = await SEARCH(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(200);
-    // VIP contacts (0-29) AND newsletter subscribers (0-39) = 0-29 (30 contacts)
-    expect(responseData.data.length).toBeGreaterThanOrEqual(1);
   });
 
   test("should support cursor pagination", async () => {
@@ -482,15 +399,13 @@ describe("POST /api/v1/contacts/search", () => {
     // Should find test1@, test10-19@
     for (const contact of responseData.data) {
       expect(contact.email).toContain("test1");
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     }
   });
 
   test("should reject search without filters", async () => {
-    const request = post(
-      "/contacts/search",
-      {},
-      fullAccessApiKey.key
-    );
+    const request = post("/contacts/search", {}, fullAccessApiKey.key);
 
     const response = await SEARCH(request);
     const responseData = await response.json();
@@ -534,5 +449,413 @@ describe("POST /api/v1/contacts/search", () => {
     const responseData = await response.json();
 
     expect(responseData.data.length).toBeLessThanOrEqual(100);
+  });
+});
+
+describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
+  test("should search by NUMBER property with eq operator", async () => {
+    const timestamp = Date.now();
+    const workspace = createTestWorkspace();
+    const apiKey = await createFullAccessApiKey(workspace.id);
+
+    // Create custom property
+    const ageProperty = await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `Age_${timestamp}`, type: "NUMBER" },
+        apiKey.key
+      )
+    );
+    const ageData = await ageProperty.json();
+    const ageRecord = await prisma.contactProperty.findUnique({
+      where: { id: ageData.id },
+    });
+    const agePropertySlot = ageRecord!.slot;
+
+    // Create test contacts with different ages
+    for (let i = 0; i < 5; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `contact${i}_${timestamp}@example.com`,
+          firstName: `User${i}`,
+          status: "SUBSCRIBED",
+          [agePropertySlot]: 35,
+        },
+      });
+    }
+
+    // Create contacts with different age
+    for (let i = 5; i < 8; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `contact${i}_${timestamp}@example.com`,
+          firstName: `User${i}`,
+          status: "SUBSCRIBED",
+          [agePropertySlot]: 25,
+        },
+      });
+    }
+
+    // Search for age = 35
+    const request = post(
+      "/contacts/search?limit=50",
+      {
+        filters: {
+          field: `Age_${timestamp}`,
+          operator: "eq",
+          value: 35,
+        },
+      },
+      apiKey.key
+    );
+
+    const response = await SEARCH(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.data.length).toBe(5);
+    for (const contact of responseData.data) {
+      expect(contact.properties[`Age_${timestamp}`]).toBe(35);
+    }
+
+    await cleanupWorkspace(workspace.id);
+  });
+
+  test("should search by STRING property with eq operator", async () => {
+    const timestamp = Date.now();
+    const workspace = createTestWorkspace();
+    const apiKey = await createFullAccessApiKey(workspace.id);
+
+    // Create custom property
+    const deptProperty = await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `Department_${timestamp}`, type: "STRING" },
+        apiKey.key
+      )
+    );
+    const deptData = await deptProperty.json();
+    const deptRecord = await prisma.contactProperty.findUnique({
+      where: { id: deptData.id },
+    });
+    const deptPropertySlot = deptRecord!.slot;
+
+    // Create test contacts
+    for (let i = 0; i < 5; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `eng${i}_${timestamp}@example.com`,
+          firstName: `Eng${i}`,
+          status: "SUBSCRIBED",
+          [deptPropertySlot]: "Engineering",
+        },
+      });
+    }
+
+    for (let i = 0; i < 3; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `mkt${i}_${timestamp}@example.com`,
+          firstName: `Mkt${i}`,
+          status: "SUBSCRIBED",
+          [deptPropertySlot]: "Marketing",
+        },
+      });
+    }
+
+    // Search for Engineering
+    const request = post(
+      "/contacts/search?limit=50",
+      {
+        filters: {
+          field: `Department_${timestamp}`,
+          operator: "eq",
+          value: "Engineering",
+        },
+      },
+      apiKey.key
+    );
+
+    const response = await SEARCH(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.data.length).toBe(5);
+    for (const contact of responseData.data) {
+      expect(contact.properties[`Department_${timestamp}`]).toBe("Engineering");
+    }
+
+    await cleanupWorkspace(workspace.id);
+  });
+
+  test("should search by BOOLEAN property", async () => {
+    const timestamp = Date.now();
+    const workspace = createTestWorkspace();
+    const apiKey = await createFullAccessApiKey(workspace.id);
+
+    // Create custom property
+    const vipProperty = await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `VIP_${timestamp}`, type: "BOOLEAN" },
+        apiKey.key
+      )
+    );
+    const vipData = await vipProperty.json();
+    const vipRecord = await prisma.contactProperty.findUnique({
+      where: { id: vipData.id },
+    });
+    const vipPropertySlot = vipRecord!.slot;
+
+    // Create test contacts
+    for (let i = 0; i < 7; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `vip${i}_${timestamp}@example.com`,
+          firstName: `VIP${i}`,
+          status: "SUBSCRIBED",
+          [vipPropertySlot]: true,
+        },
+      });
+    }
+
+    for (let i = 0; i < 3; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `regular${i}_${timestamp}@example.com`,
+          firstName: `Regular${i}`,
+          status: "SUBSCRIBED",
+          [vipPropertySlot]: false,
+        },
+      });
+    }
+
+    // Search for VIP = true
+    const request = post(
+      "/contacts/search?limit=50",
+      {
+        filters: {
+          field: `VIP_${timestamp}`,
+          operator: "eq",
+          value: true,
+        },
+      },
+      apiKey.key
+    );
+
+    const response = await SEARCH(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.data.length).toBe(7);
+    for (const contact of responseData.data) {
+      expect(contact.properties[`VIP_${timestamp}`]).toBe(true);
+    }
+
+    await cleanupWorkspace(workspace.id);
+  });
+
+  test("should combine multiple custom properties with $and operator", async () => {
+    const timestamp = Date.now();
+    const workspace = createTestWorkspace();
+    const apiKey = await createFullAccessApiKey(workspace.id);
+
+    // Create custom properties
+    const ageProperty = await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `Age_${timestamp}`, type: "NUMBER" },
+        apiKey.key
+      )
+    );
+    const ageData = await ageProperty.json();
+    const ageRecord = await prisma.contactProperty.findUnique({
+      where: { id: ageData.id },
+    });
+    const agePropertySlot = ageRecord!.slot;
+
+    const deptProperty = await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `Dept_${timestamp}`, type: "STRING" },
+        apiKey.key
+      )
+    );
+    const deptData = await deptProperty.json();
+    const deptRecord = await prisma.contactProperty.findUnique({
+      where: { id: deptData.id },
+    });
+    const deptPropertySlot = deptRecord!.slot;
+
+    // Create matching contacts: age >= 30 AND department = Engineering
+    for (let i = 0; i < 4; i++) {
+      await prisma.contact.create({
+        data: {
+          workspaceId: workspace.id,
+          email: `match${i}_${timestamp}@example.com`,
+          firstName: `Match${i}`,
+          status: "SUBSCRIBED",
+          [agePropertySlot]: 35,
+          [deptPropertySlot]: "Engineering",
+        },
+      });
+    }
+
+    // Create non-matching contacts
+    await prisma.contact.create({
+      data: {
+        workspaceId: workspace.id,
+        email: `nomatch1_${timestamp}@example.com`,
+        firstName: "NoMatch1",
+        status: "SUBSCRIBED",
+        [agePropertySlot]: 25, // age too low
+        [deptPropertySlot]: "Engineering",
+      },
+    });
+
+    await prisma.contact.create({
+      data: {
+        workspaceId: workspace.id,
+        email: `nomatch2_${timestamp}@example.com`,
+        firstName: "NoMatch2",
+        status: "SUBSCRIBED",
+        [agePropertySlot]: 35,
+        [deptPropertySlot]: "Marketing", // wrong dept
+      },
+    });
+
+    // Search with $and
+    const request = post(
+      "/contacts/search?limit=50",
+      {
+        filters: {
+          $and: [
+            {
+              field: `Age_${timestamp}`,
+              operator: "gte",
+              value: 30,
+            },
+            {
+              field: `Dept_${timestamp}`,
+              operator: "eq",
+              value: "Engineering",
+            },
+          ],
+        },
+      },
+      apiKey.key
+    );
+
+    const response = await SEARCH(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.data.length).toBe(4);
+    for (const contact of responseData.data) {
+      expect(contact.properties[`Age_${timestamp}`]).toBeGreaterThanOrEqual(30);
+      expect(contact.properties[`Dept_${timestamp}`]).toBe("Engineering");
+    }
+
+    await cleanupWorkspace(workspace.id);
+  });
+
+  test("should reject search with invalid property name", async () => {
+    const timestamp = Date.now();
+    const workspace = createTestWorkspace();
+    const apiKey = await createFullAccessApiKey(workspace.id);
+
+    const request = post(
+      "/contacts/search",
+      {
+        filters: {
+          field: `NonExistentProperty_${timestamp}`,
+          operator: "eq",
+          value: "test",
+        },
+      },
+      apiKey.key
+    );
+
+    const response = await SEARCH(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error).toContain("Invalid field(s) in conditions");
+    expect(responseData.error).toContain(`NonExistentProperty_${timestamp}`);
+
+    await cleanupWorkspace(workspace.id);
+  });
+
+  test("should return property values in search results", async () => {
+    const timestamp = Date.now();
+    const workspace = createTestWorkspace();
+    const apiKey = await createFullAccessApiKey(workspace.id);
+
+    // Create custom properties
+    const ageProperty = await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `Age_${timestamp}`, type: "NUMBER" },
+        apiKey.key
+      )
+    );
+    const ageData = await ageProperty.json();
+    const ageRecord = await prisma.contactProperty.findUnique({
+      where: { id: ageData.id },
+    });
+    const agePropertySlot = ageRecord!.slot;
+
+    // Create property that won't be set
+    await CREATE_PROPERTY(
+      post(
+        "/contact-properties",
+        { name: `EmptyProp_${timestamp}`, type: "STRING" },
+        apiKey.key
+      )
+    );
+
+    // Create contact with only age set
+    await prisma.contact.create({
+      data: {
+        workspaceId: workspace.id,
+        email: `withprops_${timestamp}@example.com`,
+        firstName: "WithProps",
+        status: "SUBSCRIBED",
+        [agePropertySlot]: 42,
+      },
+    });
+
+    // Search for this contact
+    const request = post(
+      "/contacts/search?limit=50",
+      {
+        filters: {
+          field: "email",
+          operator: "eq",
+          value: `withprops_${timestamp}@example.com`,
+        },
+      },
+      apiKey.key
+    );
+
+    const response = await SEARCH(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.data.length).toBe(1);
+    expect(responseData.data[0].properties).toBeDefined();
+    expect(responseData.data[0].properties).toBeObject();
+    // Should include set property
+    expect(responseData.data[0].properties[`Age_${timestamp}`]).toBe(42);
+    // Should NOT include unset property
+    expect(responseData.data[0].properties[`EmptyProp_${timestamp}`]).toBeUndefined();
+
+    await cleanupWorkspace(workspace.id);
   });
 });

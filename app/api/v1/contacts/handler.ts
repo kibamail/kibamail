@@ -15,13 +15,97 @@ import {
   responseCreated,
   responseOk,
   responseNotFound,
+  responseBadRequest,
 } from "@/lib/api/responses";
 import { createContactSchema, updateContactSchema, searchContactsSchema } from "./schema";
-import { conditionsToPrismaWhere } from "@/lib/segments/conditions-to-prisma";
+import {
+  conditionsToPrismaWhere,
+  validateConditionFields,
+} from "@/lib/segments/conditions-to-prisma";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
+
+/**
+ * Build properties object for a contact from contact property definitions
+ * Maps property names to their values from the contact's slot columns
+ *
+ * @param contact - The contact record with slot columns (propertyFloat0, propertyString5, etc.)
+ * @param properties - Array of contact property definitions for the workspace
+ * @returns Object with property names as keys and contact values from slots
+ *
+ * @example
+ * ```ts
+ * const properties = [
+ *   { name: "Age", slot: "propertyFloat0", type: "NUMBER" },
+ *   { name: "Join Date", slot: "propertyFloat1", type: "DATE" }
+ * ];
+ * const result = buildContactProperties(contact, properties);
+ * // Returns: { "Age": 25, "Join Date": 1699564800000 }
+ * ```
+ */
+function buildContactProperties(
+  contact: any,
+  properties: Array<{ name: string; slot: string }>
+): Record<string, any> {
+  const result: Record<string, any> = {};
+
+  for (const property of properties) {
+    const value = contact[property.slot];
+    // Only include properties that have values
+    if (value !== null && value !== undefined) {
+      result[property.name] = value;
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Map property names to slot columns for creating/updating contacts
+ * Validates that all provided property names exist in the workspace
+ *
+ * @param properties - Object with property names as keys and values to set
+ * @param contactProperties - Array of contact property definitions for the workspace
+ * @returns Object with slot column names as keys and values to set, or error response
+ *
+ * @example
+ * ```ts
+ * const properties = { "Age": 30, "Department": "Engineering" };
+ * const contactProperties = [
+ *   { name: "Age", slot: "propertyNum0" },
+ *   { name: "Department", slot: "propertyString1" }
+ * ];
+ * const result = mapPropertiesToSlots(properties, contactProperties);
+ * // Returns: { propertyNum0: 30, propertyString1: "Engineering" }
+ * ```
+ */
+function mapPropertiesToSlots(
+  properties: Record<string, string | number>,
+  contactProperties: Array<{ name: string; slot: string }>
+): { slotData?: Record<string, any>; error?: NextResponse } {
+  const slotData: Record<string, any> = {};
+  const propertyNameToSlot = new Map(
+    contactProperties.map((prop) => [prop.name, prop.slot])
+  );
+
+  for (const [propertyName, propertyValue] of Object.entries(properties)) {
+    const slot = propertyNameToSlot.get(propertyName);
+
+    if (!slot) {
+      return {
+        error: responseBadRequest(
+          `Property "${propertyName}" does not exist in this workspace`
+        ),
+      };
+    }
+
+    slotData[slot] = propertyValue;
+  }
+
+  return { slotData };
+}
 
 /**
  * POST /api/v1/contacts
@@ -29,15 +113,37 @@ import {
  * Create a new contact for the workspace.
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch constraint violations.
+ * Supports optional properties object that maps property names to values.
  */
 export async function createContact(apiKey: ApiKey, request: NextRequest) {
   const data = await validateRequestBody(createContactSchema, request);
   const workspaceId = apiKey.workspaceId;
 
+  // Extract properties from data
+  const { properties, ...contactData } = data;
+
+  // If properties are provided, fetch contact properties and map to slots
+  let slotData = {};
+  if (properties && Object.keys(properties).length > 0) {
+    const contactProperties = await prisma.contactProperty.findMany({
+      where: { workspaceId },
+      select: { name: true, slot: true },
+    });
+
+    const mappingResult = mapPropertiesToSlots(properties, contactProperties);
+
+    if (mappingResult.error) {
+      return mappingResult.error;
+    }
+
+    slotData = mappingResult.slotData || {};
+  }
+
   const contact = await prisma.contact.create({
     data: {
       workspaceId,
-      ...data,
+      ...contactData,
+      ...slotData,
     },
   });
 
@@ -60,6 +166,12 @@ export async function createContact(apiKey: ApiKey, request: NextRequest) {
 export async function listContacts(apiKey: ApiKey, request: NextRequest) {
   const workspaceId = apiKey.workspaceId;
   const { limit, after, before } = parseCursorPaginationParams(request);
+
+  // Fetch contact properties for this workspace
+  const contactProperties = await prisma.contactProperty.findMany({
+    where: { workspaceId },
+    select: { name: true, slot: true },
+  });
 
   const baseQuery = {
     where: { workspaceId },
@@ -98,6 +210,7 @@ export async function listContacts(apiKey: ApiKey, request: NextRequest) {
     timezone: contact.timezone,
     city: contact.city,
     status: contact.status,
+    properties: buildContactProperties(contact, contactProperties),
   }));
 
   const paginatedResponse = createCursorPaginatedResponse(
@@ -120,8 +233,23 @@ export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
   const workspaceId = apiKey.workspaceId;
   const { limit, after, before } = parseCursorPaginationParams(request);
 
+  // Fetch contact properties for this workspace
+  const contactProperties = await prisma.contactProperty.findMany({
+    where: { workspaceId },
+    select: { name: true, slot: true, type: true },
+  });
+
+  // Validate that all fields in conditions are valid
+  const validation = validateConditionFields(filters, contactProperties);
+  if (!validation.isValid) {
+    return responseBadRequest(
+      `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
+        `Fields must be built-in contact fields or defined custom properties.`
+    );
+  }
+
   // Convert segment conditions to Prisma where clause
-  const conditionsWhere = conditionsToPrismaWhere(filters);
+  const conditionsWhere = conditionsToPrismaWhere(filters, contactProperties);
 
   const baseQuery = {
     where: {
@@ -163,6 +291,7 @@ export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
     timezone: contact.timezone,
     city: contact.city,
     status: contact.status,
+    properties: buildContactProperties(contact, contactProperties),
   }));
 
   const paginatedResponse = createCursorPaginatedResponse(
@@ -181,6 +310,12 @@ export async function searchContacts(apiKey: ApiKey, request: NextRequest) {
  */
 export async function getContact(apiKey: ApiKey, contactId: string) {
   const workspaceId = apiKey.workspaceId;
+
+  // Fetch contact properties for this workspace
+  const contactProperties = await prisma.contactProperty.findMany({
+    where: { workspaceId },
+    select: { name: true, slot: true },
+  });
 
   const contact = await prisma.contact.findFirst({
     where: {
@@ -204,6 +339,7 @@ export async function getContact(apiKey: ApiKey, contactId: string) {
       timezone: contact.timezone,
       city: contact.city,
       status: contact.status,
+      properties: buildContactProperties(contact, contactProperties),
     },
     "contact"
   );
@@ -215,6 +351,7 @@ export async function getContact(apiKey: ApiKey, contactId: string) {
  * Update a specific contact by ID.
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch constraint violations and not found errors.
+ * Supports optional properties object that maps property names to values.
  */
 export async function updateContact(
   apiKey: ApiKey,
@@ -224,13 +361,34 @@ export async function updateContact(
   const data = await validateRequestBody(updateContactSchema, request);
   const workspaceId = apiKey.workspaceId;
 
+  // Extract properties from data
+  const { properties, ...contactData } = data;
+
+  // If properties are provided, fetch contact properties and map to slots
+  let slotData = {};
+  if (properties && Object.keys(properties).length > 0) {
+    const contactProperties = await prisma.contactProperty.findMany({
+      where: { workspaceId },
+      select: { name: true, slot: true },
+    });
+
+    const mappingResult = mapPropertiesToSlots(properties, contactProperties);
+
+    if (mappingResult.error) {
+      return mappingResult.error;
+    }
+
+    slotData = mappingResult.slotData || {};
+  }
+
   const updatedContact = await prisma.contact.update({
     where: {
       id: contactId,
       workspaceId,
     },
     data: {
-      ...data,
+      ...contactData,
+      ...slotData,
     },
   });
 

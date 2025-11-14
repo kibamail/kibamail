@@ -167,70 +167,6 @@ describe("conditionsToPrismaWhere", () => {
     });
   });
 
-  describe("Tag Conditions", () => {
-    test("should convert hasTag condition", () => {
-      const result = conditionsToPrismaWhere({
-        hasTag: ["tag-id-1", "tag-id-2"],
-      });
-
-      expect(result).toEqual({
-        tags: {
-          some: {
-            tagId: {
-              in: ["tag-id-1", "tag-id-2"],
-            },
-          },
-        },
-      });
-    });
-
-    test("should convert doesNotHaveTag condition", () => {
-      const result = conditionsToPrismaWhere({
-        doesNotHaveTag: ["spam-tag-id"],
-      });
-
-      expect(result).toEqual({
-        tags: {
-          none: {
-            tagId: {
-              in: ["spam-tag-id"],
-            },
-          },
-        },
-      });
-    });
-
-    test("should convert combined hasTag and doesNotHaveTag", () => {
-      const result = conditionsToPrismaWhere({
-        hasTag: ["vip-tag-id"],
-        doesNotHaveTag: ["spam-tag-id"],
-      });
-
-      expect(result).toEqual({
-        AND: [
-          {
-            tags: {
-              some: {
-                tagId: {
-                  in: ["vip-tag-id"],
-                },
-              },
-            },
-          },
-          {
-            tags: {
-              none: {
-                tagId: {
-                  in: ["spam-tag-id"],
-                },
-              },
-            },
-          },
-        ],
-      });
-    });
-  });
-
   describe("Topic Conditions", () => {
     test("should convert subscribedToTopic condition", () => {
       const result = conditionsToPrismaWhere({
@@ -378,9 +314,6 @@ describe("conditionsToPrismaWhere", () => {
             value: ["US", "CA"],
           },
           {
-            hasTag: ["vip-tag-id"],
-          },
-          {
             subscribedToTopic: ["newsletter-id"],
           },
         ],
@@ -390,15 +323,6 @@ describe("conditionsToPrismaWhere", () => {
         AND: [
           { status: "SUBSCRIBED" },
           { country: { in: ["US", "CA"] } },
-          {
-            tags: {
-              some: {
-                tagId: {
-                  in: ["vip-tag-id"],
-                },
-              },
-            },
-          },
           {
             topics: {
               some: {
@@ -474,10 +398,6 @@ describe("conditionsToPrismaWhere", () => {
             ],
           },
           {
-            hasTag: ["vip-tag-id"],
-            doesNotHaveTag: ["spam-tag-id"],
-          },
-          {
             subscribedToTopic: ["newsletter-id"],
             notSubscribedToTopic: ["marketing-id"],
           },
@@ -496,24 +416,6 @@ describe("conditionsToPrismaWhere", () => {
             OR: [
               { country: "US" },
               { country: "CA" },
-            ],
-          },
-          {
-            AND: [
-              {
-                tags: {
-                  some: {
-                    tagId: { in: ["vip-tag-id"] },
-                  },
-                },
-              },
-              {
-                tags: {
-                  none: {
-                    tagId: { in: ["spam-tag-id"] },
-                  },
-                },
-              },
             ],
           },
           {
@@ -544,32 +446,14 @@ describe("conditionsToPrismaWhere", () => {
     test("should convert $not with nested conditions", () => {
       const result = conditionsToPrismaWhere({
         $not: {
-          $and: [
-            {
-              field: "status",
-              operator: "eq",
-              value: "UNSUBSCRIBED",
-            },
-            {
-              hasTag: ["inactive-tag-id"],
-            },
-          ],
+          field: "status",
+          operator: "eq",
+          value: "UNSUBSCRIBED",
         },
       });
 
       expect(result).toEqual({
-        NOT: {
-          AND: [
-            { status: "UNSUBSCRIBED" },
-            {
-              tags: {
-                some: {
-                  tagId: { in: ["inactive-tag-id"] },
-                },
-              },
-            },
-          ],
-        },
+        NOT: { status: "UNSUBSCRIBED" },
       });
     });
   });

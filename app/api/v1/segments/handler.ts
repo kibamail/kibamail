@@ -15,22 +15,40 @@ import {
   responseCreated,
   responseOk,
   responseNotFound,
+  responseBadRequest,
 } from "@/lib/api/responses";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
 import { createSegmentSchema, updateSegmentSchema } from "./schema";
+import { validateConditionFields } from "@/lib/segments/conditions-to-prisma";
 
 /**
  * POST /api/v1/segments
  *
  * Create a new segment for the workspace.
  * Workspace is determined from the authenticated API key.
+ * Validates that all fields in conditions are either built-in or custom properties.
  */
 export async function createSegment(apiKey: ApiKey, request: NextRequest) {
   const data = await validateRequestBody(createSegmentSchema, request);
   const workspaceId = apiKey.workspaceId;
+
+  // Fetch contact properties for this workspace
+  const contactProperties = await prisma.contactProperty.findMany({
+    where: { workspaceId },
+    select: { name: true, slot: true, type: true },
+  });
+
+  // Validate that all fields in conditions are valid
+  const validation = validateConditionFields(data.conditions, contactProperties);
+  if (!validation.isValid) {
+    return responseBadRequest(
+      `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
+        `Fields must be built-in contact fields or defined custom properties.`
+    );
+  }
 
   const segment = await prisma.segment.create({
     data: {
@@ -140,6 +158,7 @@ export async function getSegment(apiKey: ApiKey, segmentId: string) {
  *
  * Update a specific segment by ID.
  * Workspace is determined from the authenticated API key.
+ * Validates that all fields in conditions are either built-in or custom properties.
  * Global error handler will catch not found errors.
  */
 export async function updateSegment(
@@ -149,6 +168,24 @@ export async function updateSegment(
 ) {
   const data = await validateRequestBody(updateSegmentSchema, request);
   const workspaceId = apiKey.workspaceId;
+
+  // If conditions are being updated, validate them
+  if (data.conditions !== undefined) {
+    // Fetch contact properties for this workspace
+    const contactProperties = await prisma.contactProperty.findMany({
+      where: { workspaceId },
+      select: { name: true, slot: true, type: true },
+    });
+
+    // Validate that all fields in conditions are valid
+    const validation = validateConditionFields(data.conditions, contactProperties);
+    if (!validation.isValid) {
+      return responseBadRequest(
+        `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
+          `Fields must be built-in contact fields or defined custom properties.`
+      );
+    }
+  }
 
   const updatedSegment = await prisma.segment.update({
     where: {

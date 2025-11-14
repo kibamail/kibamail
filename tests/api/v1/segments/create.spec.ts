@@ -312,39 +312,6 @@ describe("POST /api/v1/segments", () => {
     expect(responseData.id).toBeDefined();
   });
 
-  test("should create a segment with hasTag condition", async () => {
-    const segmentData = {
-      name: "Has VIP Tag",
-      conditions: {
-        hasTag: ["tag-id-1", "tag-id-2"],
-      },
-    };
-    const request = post("/segments", segmentData, fullAccessApiKey.key);
-
-    const response = await POST(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(responseData.object).toBe("segment");
-    expect(responseData.id).toBeDefined();
-  });
-
-  test("should create a segment with doesNotHaveTag condition", async () => {
-    const segmentData = {
-      name: "Does Not Have Spam Tag",
-      conditions: {
-        doesNotHaveTag: ["spam-tag-id"],
-      },
-    };
-    const request = post("/segments", segmentData, fullAccessApiKey.key);
-
-    const response = await POST(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(responseData.id).toBeDefined();
-  });
-
   test("should create a segment with subscribedToTopic condition", async () => {
     const segmentData = {
       name: "Newsletter Subscribers",
@@ -377,79 +344,6 @@ describe("POST /api/v1/segments", () => {
     expect(responseData.id).toBeDefined();
   });
 
-  test("should create a segment combining tag and topic conditions", async () => {
-    const segmentData = {
-      name: "VIP Newsletter Subscribers",
-      conditions: {
-        $and: [
-          {
-            hasTag: ["vip-tag-id"],
-          },
-          {
-            subscribedToTopic: ["newsletter-topic-id"],
-          },
-        ],
-      },
-    };
-    const request = post("/segments", segmentData, fullAccessApiKey.key);
-
-    const response = await POST(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(responseData.id).toBeDefined();
-  });
-
-  test("should create a segment with complex tag/topic/field conditions", async () => {
-    const segmentData = {
-      name: "Active VIP in US",
-      conditions: {
-        $and: [
-          {
-            field: "status",
-            operator: "eq",
-            value: "SUBSCRIBED",
-          },
-          {
-            field: "country",
-            operator: "eq",
-            value: "US",
-          },
-          {
-            hasTag: ["vip-tag-id"],
-          },
-          {
-            subscribedToTopic: ["newsletter-topic-id"],
-          },
-        ],
-      },
-    };
-    const request = post("/segments", segmentData, fullAccessApiKey.key);
-
-    const response = await POST(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(responseData.id).toBeDefined();
-  });
-
-  test("should create segment with both hasTag and doesNotHaveTag", async () => {
-    const segmentData = {
-      name: "Has and Does Not Have Tags",
-      conditions: {
-        hasTag: ["tag-id-1"],
-        doesNotHaveTag: ["tag-id-2"],
-      },
-    };
-    const request = post("/segments", segmentData, fullAccessApiKey.key);
-
-    const response = await POST(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(201);
-    expect(responseData.id).toBeDefined();
-  });
-
   test("should create segment with both subscribedToTopic and notSubscribedToTopic", async () => {
     const segmentData = {
       name: "Subscribed and Not Subscribed",
@@ -465,22 +359,6 @@ describe("POST /api/v1/segments", () => {
 
     expect(response.status).toBe(201);
     expect(responseData.id).toBeDefined();
-  });
-
-  test("should reject segment with empty hasTag array", async () => {
-    const segmentData = {
-      name: "Empty Tag Array",
-      conditions: {
-        hasTag: [],
-      },
-    };
-    const request = post("/segments", segmentData, fullAccessApiKey.key);
-
-    const response = await POST(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
   });
 
   test("should reject segment with empty subscribedToTopic array", async () => {

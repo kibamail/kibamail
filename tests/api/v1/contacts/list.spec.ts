@@ -11,7 +11,6 @@ import type { Contact } from "@prisma/client";
 import {
   createTestWorkspace,
   createFullAccessApiKey,
-  createReadOnlyApiKey,
   createTestApiKey,
   cleanupWorkspace,
   createTestContacts,
@@ -24,7 +23,6 @@ import {
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
-let readOnlyApiKey: CreatedApiKey;
 
 /**
  * Setup: Create a test workspace, API keys, and test contacts
@@ -32,7 +30,6 @@ let readOnlyApiKey: CreatedApiKey;
 beforeAll(async () => {
   testWorkspace = createTestWorkspace();
   fullAccessApiKey = await createFullAccessApiKey(testWorkspace.id);
-  readOnlyApiKey = await createReadOnlyApiKey(testWorkspace.id);
 
   // Create 50 contacts for thorough pagination testing
   const contactsData = fakeContacts(50);
@@ -62,6 +59,8 @@ describe("GET /api/v1/contacts", () => {
     const contact = responseData.data[0];
     expect(contact.id).toBeDefined();
     expect(contact.email).toBeDefined();
+    expect(contact.properties).toBeDefined();
+    expect(contact.properties).toBeObject();
   });
 
   test("should reject request with missing Authorization header", async () => {
@@ -92,7 +91,7 @@ describe("GET /api/v1/contacts", () => {
   });
 
   test("should paginate through all 50 contacts with 10 per page", async () => {
-    let allContacts: Contact[] = [];
+    const allContacts: Array<{ id: string; email: string; properties: Record<string, string | number> }> = [];
     let cursor: string | null = null;
     let pageCount = 0;
     let hasMore = true;
@@ -150,6 +149,8 @@ describe("GET /api/v1/contacts", () => {
     allContacts.forEach(contact => {
       expect(contact.email).toBeDefined();
       expect(contact.id).toBeDefined();
+      expect(contact.properties).toBeDefined();
+      expect(contact.properties).toBeObject();
     });
   });
 

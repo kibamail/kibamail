@@ -35,19 +35,6 @@ export const fieldConditionSchema = z.object({
 });
 
 /**
- * Tag Condition Schema
- * Check if contact has or doesn't have specific tags
- */
-export const tagConditionSchema = z
-  .object({
-    hasTag: z.array(z.string()).min(1).optional(),
-    doesNotHaveTag: z.array(z.string()).min(1).optional(),
-  })
-  .refine((data) => !!(data.hasTag || data.doesNotHaveTag), {
-    message: "At least one of 'hasTag' or 'doesNotHaveTag' must be specified",
-  });
-
-/**
  * Topic Condition Schema
  * Check if contact is subscribed or not subscribed to specific topics
  */
@@ -64,11 +51,10 @@ export const topicConditionSchema = z
 /**
  * Recursive Condition Schema
  * Supports nested logical operations with $and, $or, $not
- * Also supports field conditions, tag conditions, and topic conditions
+ * Also supports field conditions and topic conditions
  */
 export type ConditionInput =
   | z.infer<typeof fieldConditionSchema>
-  | z.infer<typeof tagConditionSchema>
   | z.infer<typeof topicConditionSchema>
   | {
       $and?: ConditionInput[];
@@ -79,7 +65,6 @@ export type ConditionInput =
 export const conditionSchema: z.ZodType<ConditionInput> = z.lazy(() =>
   z.union([
     fieldConditionSchema,
-    tagConditionSchema,
     topicConditionSchema,
     z
       .object({
@@ -158,5 +143,4 @@ export type UpdateSegmentRequest = z.infer<typeof updateSegmentSchema>;
 export type SegmentResponse = z.infer<typeof segmentResponseSchema>;
 export type SegmentListResponse = z.infer<typeof segmentListResponseSchema>;
 export type FieldCondition = z.infer<typeof fieldConditionSchema>;
-export type TagCondition = z.infer<typeof tagConditionSchema>;
 export type TopicCondition = z.infer<typeof topicConditionSchema>;

@@ -97,77 +97,41 @@ model Contact {
   createdAt        DateTime          @default(now())
   /// When the contact was last updated
   updatedAt        DateTime          @updatedAt
-  /// Custom property slots - Date (25 slots)
-  propertyDate0    BigInt?
-  propertyDate1    BigInt?
-  propertyDate10   BigInt?
-  propertyDate11   BigInt?
-  propertyDate12   BigInt?
-  propertyDate13   BigInt?
-  propertyDate14   BigInt?
-  propertyDate15   BigInt?
-  propertyDate16   BigInt?
-  propertyDate17   BigInt?
-  propertyDate18   BigInt?
-  propertyDate19   BigInt?
-  propertyDate2    BigInt?
-  propertyDate20   BigInt?
-  propertyDate21   BigInt?
-  propertyDate22   BigInt?
-  propertyDate23   BigInt?
-  propertyDate24   BigInt?
-  propertyDate3    BigInt?
-  propertyDate4    BigInt?
-  propertyDate5    BigInt?
-  propertyDate6    BigInt?
-  propertyDate7    BigInt?
-  propertyDate8    BigInt?
-  propertyDate9    BigInt?
-  /// Custom property slots - Numeric (25 slots)
-  propertyNum0     Decimal? @db.Decimal(20, 6)
-  propertyNum1     Decimal? @db.Decimal(20, 6)
-  propertyNum10    Decimal? @db.Decimal(20, 6)
-  propertyNum11    Decimal? @db.Decimal(20, 6)
-  propertyNum12    Decimal? @db.Decimal(20, 6)
-  propertyNum13    Decimal? @db.Decimal(20, 6)
-  propertyNum14    Decimal? @db.Decimal(20, 6)
-  propertyNum15    Decimal? @db.Decimal(20, 6)
-  propertyNum16    Decimal? @db.Decimal(20, 6)
-  propertyNum17    Decimal? @db.Decimal(20, 6)
-  propertyNum18    Decimal? @db.Decimal(20, 6)
-  propertyNum19    Decimal? @db.Decimal(20, 6)
-  propertyNum2     Decimal? @db.Decimal(20, 6)
-  propertyNum20    Decimal? @db.Decimal(20, 6)
-  propertyNum21    Decimal? @db.Decimal(20, 6)
-  propertyNum22    Decimal? @db.Decimal(20, 6)
-  propertyNum23    Decimal? @db.Decimal(20, 6)
-  propertyNum24    Decimal? @db.Decimal(20, 6)
-  propertyNum3     Decimal? @db.Decimal(20, 6)
-  propertyNum4     Decimal? @db.Decimal(20, 6)
-  propertyNum5     Decimal? @db.Decimal(20, 6)
-  propertyNum6     Decimal? @db.Decimal(20, 6)
-  propertyNum7     Decimal? @db.Decimal(20, 6)
-  propertyNum8     Decimal? @db.Decimal(20, 6)
-  propertyNum9     Decimal? @db.Decimal(20, 6)
-  /// Custom property slots - String (25 slots)
+  /// Custom property slots - Float (30 slots for dates and numbers)
+  propertyFloat0   Float?
+  propertyFloat1   Float?
+  propertyFloat2   Float?
+  propertyFloat3   Float?
+  propertyFloat4   Float?
+  propertyFloat5   Float?
+  propertyFloat6   Float?
+  propertyFloat7   Float?
+  propertyFloat8   Float?
+  propertyFloat9   Float?
+  propertyFloat10   Float?
+  propertyFloat11   Float?
+  propertyFloat12   Float?
+  propertyFloat13   Float?
+  propertyFloat14   Float?
+  propertyFloat15   Float?
+  propertyFloat16   Float?
+  propertyFloat17   Float?
+  propertyFloat18   Float?
+  propertyFloat19   Float?
+  propertyFloat20   Float?
+  propertyFloat21   Float?
+  propertyFloat22   Float?
+  propertyFloat23   Float?
+  propertyFloat24   Float?
+  propertyFloat25   Float?
+  propertyFloat26   Float?
+  propertyFloat27   Float?
+  propertyFloat28   Float?
+  propertyFloat29   Float?
+  /// Custom property slots - String (50 slots)
   propertyString0  String? @db.VarChar(255)
   propertyString1  String? @db.VarChar(255)
-  propertyString10 String? @db.VarChar(255)
-  propertyString11 String? @db.VarChar(255)
-  propertyString12 String? @db.VarChar(255)
-  propertyString13 String? @db.VarChar(255)
-  propertyString14 String? @db.VarChar(255)
-  propertyString15 String? @db.VarChar(255)
-  propertyString16 String? @db.VarChar(255)
-  propertyString17 String? @db.VarChar(255)
-  propertyString18 String? @db.VarChar(255)
-  propertyString19 String? @db.VarChar(255)
   propertyString2  String? @db.VarChar(255)
-  propertyString20 String? @db.VarChar(255)
-  propertyString21 String? @db.VarChar(255)
-  propertyString22 String? @db.VarChar(255)
-  propertyString23 String? @db.VarChar(255)
-  propertyString24 String? @db.VarChar(255)
   propertyString3  String? @db.VarChar(255)
   propertyString4  String? @db.VarChar(255)
   propertyString5  String? @db.VarChar(255)
@@ -175,8 +139,68 @@ model Contact {
   propertyString7  String? @db.VarChar(255)
   propertyString8  String? @db.VarChar(255)
   propertyString9  String? @db.VarChar(255)
+  propertyString10  String? @db.VarChar(255)
+  propertyString11  String? @db.VarChar(255)
+  propertyString12  String? @db.VarChar(255)
+  propertyString13  String? @db.VarChar(255)
+  propertyString14  String? @db.VarChar(255)
+  propertyString15  String? @db.VarChar(255)
+  propertyString16  String? @db.VarChar(255)
+  propertyString17  String? @db.VarChar(255)
+  propertyString18  String? @db.VarChar(255)
+  propertyString19  String? @db.VarChar(255)
+  propertyString20  String? @db.VarChar(255)
+  propertyString21  String? @db.VarChar(255)
+  propertyString22  String? @db.VarChar(255)
+  propertyString23  String? @db.VarChar(255)
+  propertyString24  String? @db.VarChar(255)
+  propertyString25  String? @db.VarChar(255)
+  propertyString26  String? @db.VarChar(255)
+  propertyString27  String? @db.VarChar(255)
+  propertyString28  String? @db.VarChar(255)
+  propertyString29  String? @db.VarChar(255)
+  propertyString30  String? @db.VarChar(255)
+  propertyString31  String? @db.VarChar(255)
+  propertyString32  String? @db.VarChar(255)
+  propertyString33  String? @db.VarChar(255)
+  propertyString34  String? @db.VarChar(255)
+  propertyString35  String? @db.VarChar(255)
+  propertyString36  String? @db.VarChar(255)
+  propertyString37  String? @db.VarChar(255)
+  propertyString38  String? @db.VarChar(255)
+  propertyString39  String? @db.VarChar(255)
+  propertyString40  String? @db.VarChar(255)
+  propertyString41  String? @db.VarChar(255)
+  propertyString42  String? @db.VarChar(255)
+  propertyString43  String? @db.VarChar(255)
+  propertyString44  String? @db.VarChar(255)
+  propertyString45  String? @db.VarChar(255)
+  propertyString46  String? @db.VarChar(255)
+  propertyString47  String? @db.VarChar(255)
+  propertyString48  String? @db.VarChar(255)
+  propertyString49  String? @db.VarChar(255)
+  /// Custom property slots - Boolean (20 slots for tags)
+  propertyBool0    Boolean?
+  propertyBool1    Boolean?
+  propertyBool2    Boolean?
+  propertyBool3    Boolean?
+  propertyBool4    Boolean?
+  propertyBool5    Boolean?
+  propertyBool6    Boolean?
+  propertyBool7    Boolean?
+  propertyBool8    Boolean?
+  propertyBool9    Boolean?
+  propertyBool10    Boolean?
+  propertyBool11    Boolean?
+  propertyBool12    Boolean?
+  propertyBool13    Boolean?
+  propertyBool14    Boolean?
+  propertyBool15    Boolean?
+  propertyBool16    Boolean?
+  propertyBool17    Boolean?
+  propertyBool18    Boolean?
+  propertyBool19    Boolean?
   segments         ContactSegment[]
-  tags             ContactTag[]
   topics           ContactTopic[]
   suppressions     SuppressionList[]
 
@@ -185,30 +209,11 @@ model Contact {
   @@index([email])
   @@index([status])
   @@index([createdAt])
-  @@index([workspaceId, propertyNum0])
-  @@index([workspaceId, propertyNum1])
-  @@index([workspaceId, propertyNum2])
-  @@index([workspaceId, propertyNum3])
-  @@index([workspaceId, propertyNum4])
-  @@index([workspaceId, propertyNum5])
-  @@index([workspaceId, propertyNum6])
-  @@index([workspaceId, propertyNum7])
-  @@index([workspaceId, propertyNum8])
-  @@index([workspaceId, propertyNum9])
-  @@index([workspaceId, propertyNum10])
-  @@index([workspaceId, propertyNum11])
-  @@index([workspaceId, propertyDate0])
-  @@index([workspaceId, propertyDate1])
-  @@index([workspaceId, propertyDate2])
-  @@index([workspaceId, propertyDate3])
-  @@index([workspaceId, propertyDate4])
-  @@index([workspaceId, propertyDate5])
-  @@index([workspaceId, propertyDate6])
-  @@index([workspaceId, propertyDate7])
-  @@index([workspaceId, propertyDate8])
-  @@index([workspaceId, propertyDate9])
-  @@index([workspaceId, propertyDate10])
-  @@index([workspaceId, propertyDate11])
+  @@index([workspaceId, propertyFloat0])
+  @@index([workspaceId, propertyFloat1])
+  @@index([workspaceId, propertyFloat2])
+  @@index([workspaceId, propertyFloat3])
+  @@index([workspaceId, propertyFloat4])
   @@index([workspaceId, propertyString0])
   @@index([workspaceId, propertyString1])
   @@index([workspaceId, propertyString2])
@@ -219,8 +224,16 @@ model Contact {
   @@index([workspaceId, propertyString7])
   @@index([workspaceId, propertyString8])
   @@index([workspaceId, propertyString9])
-  @@index([workspaceId, propertyString10])
-  @@index([workspaceId, propertyString11])
+  @@index([workspaceId, propertyBool0])
+  @@index([workspaceId, propertyBool1])
+  @@index([workspaceId, propertyBool2])
+  @@index([workspaceId, propertyBool3])
+  @@index([workspaceId, propertyBool4])
+  @@index([workspaceId, propertyBool5])
+  @@index([workspaceId, propertyBool6])
+  @@index([workspaceId, propertyBool7])
+  @@index([workspaceId, propertyBool8])
+  @@index([workspaceId, propertyBool9])
   @@map("contacts")
 }
 
@@ -328,57 +341,6 @@ model ContactTopic {
   @@map("contact_topics")
 }
 
-/// *
-///  * Tags Schema
-///  *
-///  * Tags provide a flexible way to categorize and organize contacts.
-///  * Each tag has a name, color for UI display, and belongs to a workspace.
-///  * Tags have a many-to-many relationship with contacts.
-model Tag {
-  /// Unique identifier for the tag
-  id          String       @id @default(cuid())
-  /// Workspace ID for tenant segregation
-  workspaceId String
-  /// Tag name
-  name        String
-  /// Tag color for UI display (hex color code)
-  color       String       @default("#3B82F6")
-  /// When the tag was created
-  createdAt   DateTime     @default(now())
-  /// When the tag was last updated
-  updatedAt   DateTime     @updatedAt
-  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
-  deletedAt   DateTime?    @map("deleted_at")
-  contacts    ContactTag[]
-
-  @@unique([workspaceId, name])
-  @@index([workspaceId])
-  @@index([workspaceId, deletedAt])
-  @@map("tags")
-}
-
-/// *
-///  * Contact Tags Junction Table
-///  *
-///  * Manages the many-to-many relationship between contacts and tags.
-///  * A contact can have multiple tags, and a tag can be applied to multiple contacts.
-model ContactTag {
-  /// Unique identifier for the relationship
-  id        String   @id @default(cuid())
-  /// Reference to the contact
-  contactId String
-  /// Reference to the tag
-  tagId     String
-  /// When the tag was applied to the contact
-  createdAt DateTime @default(now())
-  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  tag       Tag      @relation(fields: [tagId], references: [id], onDelete: Cascade)
-
-  @@unique([contactId, tagId])
-  @@index([contactId])
-  @@index([tagId])
-  @@map("contact_tags")
-}
 
 /// *
 ///  * Segments Schema
@@ -496,6 +458,7 @@ enum ContactPropertyType {
   DATE
   NUMBER
   STRING
+  BOOLEAN
 }
 
 enum TopicVisibility {
