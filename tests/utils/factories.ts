@@ -96,17 +96,13 @@ export function fakeTag(overrides: Partial<{
 export function fakeTopic(overrides: Partial<{
   name: string;
   description: string;
-  slug: string;
   visibility: TopicVisibility;
-  isPrimary: boolean;
 }> = {}) {
   const name = overrides.name || faker.word.words(2);
   return {
     name,
     description: overrides.description || faker.lorem.sentence(),
-    slug: overrides.slug || faker.helpers.slugify(name).toLowerCase(),
     visibility: overrides.visibility || faker.helpers.arrayElement(["PUBLIC", "PRIVATE"] as TopicVisibility[]),
-    isPrimary: overrides.isPrimary || faker.datatype.boolean(),
   };
 }
 

@@ -33,10 +33,8 @@ async function createTestTopics(workspaceId: string, count: number) {
       data: {
         workspaceId,
         name: `Topic ${i + 1}`,
-        slug: `topic-${i + 1}`,
         description: `Description for topic ${i + 1}`,
         visibility: i % 2 === 0 ? "PUBLIC" : "PRIVATE",
-        isPrimary: i === 0,
       },
     });
     topics.push(topic);
@@ -78,9 +76,8 @@ describe("GET /api/v1/topics", () => {
     const topic = responseData.data[0];
     expect(topic.id).toBeDefined();
     expect(topic.name).toBeDefined();
-    expect(topic.slug).toBeDefined();
     expect(topic.visibility).toBeDefined();
-    expect(topic.isPrimary).toBeDefined();
+    expect(topic.defaultOptIn).toBeDefined();
   });
 
   test("should reject request with missing Authorization header", async () => {

@@ -93,6 +93,10 @@ model Contact {
   city             String?
   /// Contact subscription status
   status           ContactStatus     @default(SUBSCRIBED)
+  /// When the contact was subscribed
+  subscribedAt     DateTime?
+  /// When the contact was unsubscribed
+  unsubscribedAt   DateTime?
   /// When the contact was created
   createdAt        DateTime          @default(now())
   /// When the contact was last updated
@@ -128,6 +132,11 @@ model Contact {
   propertyFloat27   Float?
   propertyFloat28   Float?
   propertyFloat29   Float?
+  propertyFloat30   Float?
+  propertyFloat31   Float?
+  propertyFloat32   Float?
+  propertyFloat33   Float?
+  propertyFloat34   Float?
   /// Custom property slots - String (50 slots)
   propertyString0  String? @db.VarChar(255)
   propertyString1  String? @db.VarChar(255)
@@ -179,41 +188,27 @@ model Contact {
   propertyString47  String? @db.VarChar(255)
   propertyString48  String? @db.VarChar(255)
   propertyString49  String? @db.VarChar(255)
-  /// Custom property slots - Boolean (20 slots for tags)
-  propertyBool0    Boolean?
-  propertyBool1    Boolean?
-  propertyBool2    Boolean?
-  propertyBool3    Boolean?
-  propertyBool4    Boolean?
-  propertyBool5    Boolean?
-  propertyBool6    Boolean?
-  propertyBool7    Boolean?
-  propertyBool8    Boolean?
-  propertyBool9    Boolean?
-  propertyBool10    Boolean?
-  propertyBool11    Boolean?
-  propertyBool12    Boolean?
-  propertyBool13    Boolean?
-  propertyBool14    Boolean?
-  propertyBool15    Boolean?
-  propertyBool16    Boolean?
-  propertyBool17    Boolean?
-  propertyBool18    Boolean?
-  propertyBool19    Boolean?
   segments         ContactSegment[]
   topics           ContactTopic[]
   suppressions     SuppressionList[]
+  automationRuns   AutomationRun[]
 
   @@unique([workspaceId, email])
   @@index([workspaceId])
   @@index([email])
   @@index([status])
   @@index([createdAt])
+  @@index([subscribedAt])
   @@index([workspaceId, propertyFloat0])
   @@index([workspaceId, propertyFloat1])
   @@index([workspaceId, propertyFloat2])
   @@index([workspaceId, propertyFloat3])
   @@index([workspaceId, propertyFloat4])
+  @@index([workspaceId, propertyFloat5])
+  @@index([workspaceId, propertyFloat6])
+  @@index([workspaceId, propertyFloat7])
+  @@index([workspaceId, propertyFloat8])
+  @@index([workspaceId, propertyFloat9])
   @@index([workspaceId, propertyString0])
   @@index([workspaceId, propertyString1])
   @@index([workspaceId, propertyString2])
@@ -224,16 +219,6 @@ model Contact {
   @@index([workspaceId, propertyString7])
   @@index([workspaceId, propertyString8])
   @@index([workspaceId, propertyString9])
-  @@index([workspaceId, propertyBool0])
-  @@index([workspaceId, propertyBool1])
-  @@index([workspaceId, propertyBool2])
-  @@index([workspaceId, propertyBool3])
-  @@index([workspaceId, propertyBool4])
-  @@index([workspaceId, propertyBool5])
-  @@index([workspaceId, propertyBool6])
-  @@index([workspaceId, propertyBool7])
-  @@index([workspaceId, propertyBool8])
-  @@index([workspaceId, propertyBool9])
   @@map("contacts")
 }
 
@@ -290,12 +275,10 @@ model Topic {
   name         String
   /// Topic description
   description  String?
-  /// Unique slug per workspace for URL-friendly identification
-  slug         String
   /// Topic visibility (public topics can be seen by all, private are internal)
   visibility   TopicVisibility   @default(PUBLIC)
-  /// Whether this is a primary topic for the workspace
-  isPrimary    Boolean           @default(false)
+  /// Whether contacts are opted in by default when subscribed to this topic
+  defaultOptIn Boolean           @default(false)
   /// When the topic was created
   createdAt    DateTime          @default(now())
   /// When the topic was last updated
@@ -305,11 +288,9 @@ model Topic {
   contacts     ContactTopic[]
   suppressions SuppressionList[]
 
-  @@unique([workspaceId, slug])
   @@index([workspaceId])
   @@index([workspaceId, deletedAt])
   @@index([visibility])
-  @@index([isPrimary])
   @@map("topics")
 }
 
@@ -458,7 +439,6 @@ enum ContactPropertyType {
   DATE
   NUMBER
   STRING
-  BOOLEAN
 }
 
 enum TopicVisibility {
@@ -488,4 +468,175 @@ enum SuppressionReason {
   UNSUBSCRIBED
   LEGAL_REQUEST
   INVALID_EMAIL
+}
+
+/// *
+///  * Automation Schema
+///  *
+///  * Represents an automation workflow (journey) that contacts can enter.
+///  * Uses React Flow for visual workflow building (stores nodes and edges as JSON).
+///  * Supports versioning - only one DRAFT and one PUBLISHED version at a time.
+///  * Competitive with Mailchimp, Klaviyo, and SendGrid automation capabilities.
+model Automation {
+  /// Unique identifier for the automation
+  id            String            @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId   String
+  /// Automation name
+  name          String
+  /// Automation description
+  description   String?
+  /// Current status of this version
+  status        AutomationStatus  @default(DRAFT)
+  /// Version number (increments with each new version)
+  version       Int               @default(1)
+  /// Reference to parent automation ID (for version grouping)
+  /// NULL for the first version, references the original automation ID for subsequent versions
+  parentId      String?
+  /// Trigger type that starts the automation
+  triggerType   AutomationTrigger
+  /// JSON configuration for the trigger (segment IDs, event names, conditions, etc.)
+  /// @example {"segmentId": "seg_123"}
+  /// @example {"event": "purchase_completed", "propertyName": "total", "operator": "greater_than", "value": 100}
+  triggerConfig Json?
+  /// React Flow nodes (triggers, actions, rules)
+  /// @example [{"id": "1", "type": "form-filled", "position": {"x": 0, "y": 0}, "data": {...}}]
+  nodes         Json              @default("[]")
+  /// React Flow edges (connections between nodes)
+  /// @example [{"id": "e1-2", "source": "1", "target": "2", "sourceHandle": null, "targetHandle": null}]
+  edges         Json              @default("[]")
+  /// Settings for the automation (timezone, send windows, frequency caps, etc.)
+  /// @example {"timezone": "UTC", "sendWindow": {"start": "09:00", "end": "17:00"}, "maxEntriesPerContact": 1}
+  settings      Json?
+  /// Statistics for this version (total runs, completions, etc.)
+  /// @example {"totalRuns": 1500, "completedRuns": 1200, "activeRuns": 300}
+  stats         Json?             @default("{}")
+  /// When this version was published (NULL if never published)
+  publishedAt   DateTime?
+  /// When the automation version was created
+  createdAt     DateTime          @default(now())
+  /// When the automation version was last updated
+  updatedAt     DateTime          @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt     DateTime?         @map("deleted_at")
+  /// Parent automation (for version tracking)
+  parent        Automation?       @relation("AutomationVersions", fields: [parentId], references: [id], onDelete: Cascade)
+  /// Child versions
+  versions      Automation[]      @relation("AutomationVersions")
+  /// Automation runs (contact journeys)
+  runs          AutomationRun[]
+
+  @@unique([workspaceId, parentId, status], name: "one_status_per_parent")
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, deletedAt])
+  @@index([parentId])
+  @@index([triggerType])
+  @@index([version])
+  @@map("automations")
+}
+
+/// *
+///  * Automation Run Schema
+///  *
+///  * Tracks a contact's journey through an automation version.
+///  * Records entry, progress, completion, and any errors.
+///  * Stores execution state as JSON (current node, completed nodes, pending nodes).
+model AutomationRun {
+  /// Unique identifier for the run
+  id              String              @id @default(cuid())
+  /// Automation ID this run belongs to
+  automationId    String
+  /// Contact going through the automation
+  contactId       String
+  /// Workspace ID for tenant segregation
+  workspaceId     String
+  /// Current status of the run
+  status          AutomationRunStatus @default(ACTIVE)
+  /// Current node ID the contact is on (from React Flow nodes)
+  currentNodeId   String?
+  /// Execution state (completed nodes, pending nodes, branch decisions, etc.)
+  /// @example {"completedNodes": ["node-1", "node-2"], "pendingNodes": ["node-3"], "branchDecisions": {"if-else-1": "true"}}
+  executionState  Json?
+  /// When the contact entered the automation
+  startedAt       DateTime            @default(now())
+  /// When the automation run completed (success or failure)
+  completedAt     DateTime?
+  /// When the next scheduled action should occur (for time delays)
+  scheduledAt     DateTime?
+  /// Error message if the run failed
+  errorMessage    String?             @db.Text
+  /// Metadata about the run (entry trigger data, custom attributes, execution history, etc.)
+  /// @example {"entrySource": "segment", "segmentId": "seg_123", "nodeExecutions": [{...}]}
+  metadata        Json?
+  /// When the run was created
+  createdAt       DateTime            @default(now())
+  /// When the run was last updated
+  updatedAt       DateTime            @updatedAt
+  /// Parent automation version
+  automation      Automation          @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  /// Contact
+  contact         Contact             @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([automationId, contactId])
+  @@index([workspaceId])
+  @@index([automationId])
+  @@index([contactId])
+  @@index([status])
+  @@index([currentNodeId])
+  @@index([startedAt])
+  @@index([completedAt])
+  @@index([scheduledAt])
+  @@map("automation_runs")
+}
+
+/// Automation version status
+/// Only one DRAFT and one PUBLISHED version can exist per automation at a time
+enum AutomationStatus {
+  DRAFT               // Draft version being edited
+  PUBLISHED           // Published version (active)
+  ARCHIVED            // Archived version (replaced by newer published version)
+}
+
+/// Automation trigger types
+enum AutomationTrigger {
+  CONTACT_SUBSCRIBED         // Contact subscribed
+  PROPERTY_UPDATED           // Contact property updated
+  FORM_SUBMITTED             // Form submitted
+  API                        // Triggered via API call
+  EVENT                      // Custom event occurs
+  SEGMENT_ENTRY              // Contact enters a segment
+  SEGMENT_EXIT               // Contact exits a segment
+  EMAIL_ENGAGEMENT           // Email opened, clicked, etc.
+}
+
+/// Automation node types (from React Flow)
+enum AutomationNodeType {
+  // Triggers
+  FORM_FILLED                // Trigger: Form filled (form-filled)
+  CONTACT_SUBSCRIBED         // Trigger: Contact subscribed (contact-subscribed)
+  CONTACT_PROPERTY_UPDATED   // Trigger: Contact property updated (contact-property-updated)
+  WEBHOOK_TRIGGER            // Trigger: Webhook trigger (webhook-trigger)
+
+  // Actions
+  SEND_EMAIL                 // Action: Send email (send-email)
+  SEND_WEBHOOK               // Action: Send webhook (send-webhook)
+  UPDATE_CONTACT             // Action: Update contact (update-contact)
+  UNSUBSCRIBE_CONTACT        // Action: Unsubscribe contact (unsubscribe-contact)
+  ADD_TO_TOPIC               // Action: Add to topic (add-to-topic)
+  REMOVE_FROM_TOPIC          // Action: Remove from topic (remove-from-topic)
+
+  // Rules
+  IF_ELSE                    // Rule: If/else condition (if-else)
+  PERCENTAGE_SPLIT           // Rule: Percentage split / A/B test (percentage-split)
+  TIME_DELAY                 // Rule: Time delay / wait (time-delay)
+}
+
+/// Automation run status
+enum AutomationRunStatus {
+  ACTIVE              // Currently running
+  COMPLETED           // Successfully completed
+  FAILED              // Failed with error
+  CANCELLED           // Manually cancelled
+  PAUSED              // Paused (e.g., waiting for time delay)
 }

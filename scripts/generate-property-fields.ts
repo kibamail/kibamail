@@ -1,44 +1,53 @@
-// Helper script to generate property field definitions
-// Run with: bun run scripts/generate-property-fields.ts
+/**
+ * Development Helper: Generate Property Field Definitions
+ *
+ * This script generates the property field definitions and indexes
+ * for the Contact model in schema.prisma. It's useful when you need
+ * to add/remove property slots or regenerate the field definitions.
+ *
+ * Usage: bun run scripts/generate-property-fields.ts
+ *
+ * Configuration is sourced from @/lib/contact-properties/config
+ * to ensure consistency across the codebase.
+ *
+ * Output is printed to console for copy-pasting into schema.prisma
+ */
 
-// Generate 50 string fields
+import {
+  PROPERTY_SLOT_LIMITS,
+  INDEXED_PROPERTY_SLOTS,
+} from "../lib/contact-properties/config";
+
+// Generate string fields
 const stringFields = [];
-for (let i = 0; i < 50; i++) {
+for (let i = 0; i < PROPERTY_SLOT_LIMITS.STRING; i++) {
   stringFields.push(`  propertyString${i}  String? @db.VarChar(255)`);
 }
 
-// Generate 30 float fields (combines date and number)
+// Generate float fields (combines date and number)
 const floatFields = [];
-for (let i = 0; i < 30; i++) {
+for (let i = 0; i < PROPERTY_SLOT_LIMITS.FLOAT; i++) {
   floatFields.push(`  propertyFloat${i}   Float?`);
-}
-
-// Generate 20 bool fields (for tagging)
-const boolFields = [];
-for (let i = 0; i < 20; i++) {
-  boolFields.push(`  propertyBool${i}    Boolean?`);
 }
 
 // Generate selective indexes
 const indexes = [];
-// First 5 float fields
-for (let i = 0; i < 5; i++) {
+// Float field indexes
+for (let i = 0; i < INDEXED_PROPERTY_SLOTS.FLOAT; i++) {
   indexes.push(`  @@index([workspaceId, propertyFloat${i}])`);
 }
-// First 10 string fields
-for (let i = 0; i < 10; i++) {
+// String field indexes
+for (let i = 0; i < INDEXED_PROPERTY_SLOTS.STRING; i++) {
   indexes.push(`  @@index([workspaceId, propertyString${i}])`);
 }
-// First 10 bool fields
-for (let i = 0; i < 10; i++) {
-  indexes.push(`  @@index([workspaceId, propertyBool${i}])`);
-}
 
-console.log("// Custom property slots - Float (30 slots for dates and numbers)");
+console.log(
+  `// Custom property slots - Float (${PROPERTY_SLOT_LIMITS.FLOAT} slots for dates and numbers)`
+);
 console.log(floatFields.join("\n"));
-console.log("\n// Custom property slots - String (50 slots)");
+console.log(`\n// Custom property slots - String (${PROPERTY_SLOT_LIMITS.STRING} slots)`);
 console.log(stringFields.join("\n"));
-console.log("\n// Custom property slots - Boolean (20 slots for tags)");
-console.log(boolFields.join("\n"));
-console.log("\n// Selective indexes (only first 5 float, 10 string, 10 bool)");
+console.log(
+  `\n// Selective indexes (first ${INDEXED_PROPERTY_SLOTS.FLOAT} float, ${INDEXED_PROPERTY_SLOTS.STRING} string)`
+);
 console.log(indexes.join("\n"));

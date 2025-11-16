@@ -59,6 +59,8 @@ describe("GET /api/v1/contacts", () => {
     const contact = responseData.data[0];
     expect(contact.id).toBeDefined();
     expect(contact.email).toBeDefined();
+    expect(contact.subscribedAt).toBeDefined();
+    expect(contact.unsubscribedAt).toBeDefined();
     expect(contact.properties).toBeDefined();
     expect(contact.properties).toBeObject();
   });

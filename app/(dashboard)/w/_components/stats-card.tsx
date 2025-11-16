@@ -13,7 +13,7 @@ interface StatsCardItemProps extends PropsWithChildren {
 
 /**
  * StatsCard Container
- * 
+ *
  * A card component for displaying statistics with rounded corners,
  * padding, and tertiary border styling.
  */
@@ -21,7 +21,7 @@ export function StatsCard({ children, className }: StatsCardProps) {
   return (
     <div
       className={clsx(
-        "w-full rounded-3xl border border-kb-border-tertiary bg-kb-surface-primary overflow-hidden",
+        "w-full rounded-lg border border-kb-border-tertiary bg-kb-surface-primary overflow-hidden",
         className
       )}
     >
@@ -34,18 +34,13 @@ export function StatsCard({ children, className }: StatsCardProps) {
 
 /**
  * StatsCardItem
- * 
+ *
  * Individual stat item within a StatsCard. Items are automatically
  * separated by vertical borders using CSS divide utilities.
  */
 export function StatsCardItem({ children, className }: StatsCardItemProps) {
   return (
-    <div
-      className={clsx(
-        "flex-1 p-6",
-        className
-      )}
-    >
+    <div className={clsx("flex-1 p-6 flex flex-col gap-2", className)}>
       {children}
     </div>
   );

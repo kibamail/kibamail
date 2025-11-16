@@ -55,10 +55,7 @@ export type LogtoWorkspace = NonNullable<
  * Handles role assignment and removal for workspace members.
  */
 class WorkspaceMemberRolesManager {
-  constructor(
-    private workspaceId: string,
-    private userId: string,
-  ) {}
+  constructor(private workspaceId: string, private userId: string) {}
 
   /**
    * Assign roles to member
@@ -73,7 +70,7 @@ class WorkspaceMemberRolesManager {
           organizationRoleIds: roleIds,
         },
         parseAs: "text",
-      },
+      }
     );
 
     return response;
@@ -111,7 +108,7 @@ class WorkspaceMemberRolesManager {
           },
         },
         parseAs: "text",
-      },
+      }
     );
 
     return response;
@@ -154,7 +151,7 @@ class WorkspaceMemberManager {
       "/api/organizations/{id}/users/{userId}",
       {
         params: { path: { id: this.workspaceId, userId } },
-      },
+      }
     );
 
     if (response.error) {
@@ -239,7 +236,7 @@ class WorkspaceMemberManager {
       "/api/organization-invitations/{id}",
       {
         params: { path: { id: invitationId } },
-      },
+      }
     );
 
     if (response.error) {
@@ -301,7 +298,7 @@ class WorkspaceManager {
    */
   async update(
     workspaceId: string,
-    data: { name?: string; description?: string },
+    data: { name?: string; description?: string }
   ) {
     const response = await apiClient.PATCH("/api/organizations/{id}", {
       params: { path: { id: workspaceId } },
@@ -397,14 +394,14 @@ class UserInvitationsManager {
     data: {
       status: "Accepted" | "Revoked";
       acceptedUserId: string | null;
-    },
+    }
   ) {
     const response = await apiClient.PUT(
       "/api/organization-invitations/{id}/status",
       {
         params: { path: { id: invitationId } },
         body: data,
-      },
+      }
     );
 
     return {
@@ -457,6 +454,7 @@ class UserManager {
     });
 
     if (response.error) {
+      console.error(response.error);
       throw new Error(`Failed to get user organizations: ${response.error}`);
     }
 

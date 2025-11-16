@@ -20,14 +20,8 @@ export const createTopicSchema = z.object({
     .trim()
     .optional()
     .nullable(),
-  slug: z
-    .string()
-    .trim()
-    .min(1, "Slug is required")
-    .max(100, "Slug must be 100 characters or less")
-    .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens"),
   visibility: TopicVisibilityEnum.optional().default("PUBLIC"),
-  isPrimary: z.boolean().optional().default(false),
+  defaultOptIn: z.boolean().optional().default(false),
 });
 
 /**
@@ -46,15 +40,8 @@ export const updateTopicSchema = z.object({
     .trim()
     .optional()
     .nullable(),
-  slug: z
-    .string()
-    .trim()
-    .min(1, "Slug is required")
-    .max(100, "Slug must be 100 characters or less")
-    .regex(/^[a-z0-9-]+$/, "Slug must contain only lowercase letters, numbers, and hyphens")
-    .optional(),
   visibility: TopicVisibilityEnum.optional(),
-  isPrimary: z.boolean().optional(),
+  defaultOptIn: z.boolean().optional(),
 });
 
 /**
@@ -65,9 +52,8 @@ export const topicResponseSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
-  slug: z.string(),
   visibility: TopicVisibilityEnum,
-  isPrimary: z.boolean(),
+  defaultOptIn: z.boolean(),
 });
 
 /**

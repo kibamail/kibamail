@@ -110,6 +110,10 @@ export async function createFullAccessApiKey(
       "write:contact-properties",
       "update:contact-properties",
       "delete:contact-properties",
+      "read:automations",
+      "write:automations",
+      "update:automations",
+      "delete:automations",
     ],
   });
 }

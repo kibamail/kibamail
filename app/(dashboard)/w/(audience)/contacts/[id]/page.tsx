@@ -1,13 +1,15 @@
-import { notFound } from "next/navigation";
 import {
+  DashboardLayoutStickyContentHeaderContainer,
   DashboardLayoutStickyDetailHeader,
   DashboardLayoutStickyDetailHeaderDescription,
   DashboardLayoutStickyDetailHeaderIcon,
   DashboardLayoutStickyDetailHeaderTitle,
-  DashboardLayoutStickyContentHeaderContainer,
 } from "@kibamail/owly/dashboard-layout";
-import { User } from "iconoir-react";
-import { ContactDetailClient } from "../_components/contact-detail-client";
+import gravatarUrl from "gravatar-url";
+import { notFound } from "next/navigation";
+import { getSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
+import { ContactActionsDropdown } from "./_components/contact-actions-dropdown";
 
 interface ContactDetailPageProps {
   params: Promise<{
@@ -15,91 +17,36 @@ interface ContactDetailPageProps {
   }>;
 }
 
-// Mock function to get contact - replace with real API call
-async function getContact(id: string) {
-  // This would be replaced with actual API call
-  const mockContacts = [
-    {
-      id: "cm3yz1abc123",
-      workspaceId: "org_123",
-      email: "john.doe@example.com",
-      firstName: "John",
-      lastName: "Doe",
-      phone: "+1-555-0123",
-      country: "US",
-      timezone: "America/New_York",
-      city: "New York",
-      status: "SUBSCRIBED" as const,
-      createdAt: "2024-01-15T10:30:00Z",
-      updatedAt: "2024-01-15T10:30:00Z",
-    },
-    {
-      id: "cm3yz2def456",
-      workspaceId: "org_123",
-      email: "jane.smith@example.com",
-      firstName: "Jane",
-      lastName: "Smith",
-      phone: "+1-555-0124",
-      country: "CA",
-      timezone: "America/Toronto",
-      city: "Toronto",
-      status: "UNSUBSCRIBED" as const,
-      createdAt: "2024-01-10T14:20:00Z",
-      updatedAt: "2024-01-12T09:15:00Z",
-    },
-    {
-      id: "cm3yz3ghi789",
-      workspaceId: "org_123",
-      email: "bob.johnson@example.com",
-      firstName: "Bob",
-      lastName: "Johnson",
-      phone: null,
-      country: "GB",
-      timezone: "Europe/London",
-      city: "London",
-      status: "SUBSCRIBED" as const,
-      createdAt: "2024-01-08T16:45:00Z",
-      updatedAt: "2024-01-08T16:45:00Z",
-    },
-    {
-      id: "cm3yz4jkl012",
-      workspaceId: "org_123",
-      email: "alice.brown@example.com",
-      firstName: "Alice",
-      lastName: "Brown",
-      phone: "+1-555-0125",
-      country: "AU",
-      timezone: "Australia/Sydney",
-      city: "Sydney",
-      status: "BOUNCED" as const,
-      createdAt: "2024-01-05T08:10:00Z",
-      updatedAt: "2024-01-06T12:30:00Z",
-    },
-  ];
-
-  return mockContacts.find(contact => contact.id === id) || null;
-}
-
 export default async function ContactDetailPage({
   params,
 }: ContactDetailPageProps) {
   const { id } = await params;
-  
-  const contact = await getContact(id);
+  const session = await getSession();
+
+  if (!session.currentOrganization) {
+    throw new Error("No active workspace found");
+  }
+
+  const contact = await prisma.contact.findFirst({
+    where: {
+      id,
+      workspaceId: session.currentOrganization.id,
+    },
+  });
 
   if (!contact) {
     notFound();
   }
 
-  const displayName = contact.firstName && contact.lastName 
-    ? `${contact.firstName} ${contact.lastName}`
-    : contact.firstName || contact.lastName || contact.email;
-
   return (
     <DashboardLayoutStickyContentHeaderContainer>
       <DashboardLayoutStickyDetailHeader>
         <DashboardLayoutStickyDetailHeaderIcon>
-          <User />
+          <img
+            src={gravatarUrl(contact.email, { size: 40 })}
+            alt={`Avatar for ${contact.email}`}
+            className="w-10 h-10 rounded-full object-cover"
+          />
         </DashboardLayoutStickyDetailHeaderIcon>
 
         <div className="flex items-center">
@@ -108,15 +55,20 @@ export default async function ContactDetailPage({
               Contact
             </DashboardLayoutStickyDetailHeaderDescription>
             <DashboardLayoutStickyDetailHeaderTitle>
-              {displayName}
+              {contact.email}
             </DashboardLayoutStickyDetailHeaderTitle>
           </div>
 
-          {/* Contact actions dropdown would go here */}
+          <ContactActionsDropdown variant="default" />
         </div>
       </DashboardLayoutStickyDetailHeader>
 
-      <ContactDetailClient contact={contact} />
+      {/* TODO: Add contact details content here */}
+      <div className="p-6">
+        <p className="text-kb-content-tertiary">
+          Contact details coming soon...
+        </p>
+      </div>
     </DashboardLayoutStickyContentHeaderContainer>
   );
 }

@@ -78,6 +78,23 @@ describe("POST /api/v1/contacts", () => {
     expect(responseData.id).toBeDefined();
   });
 
+  test("should create a contact with subscribedAt and unsubscribedAt fields", async () => {
+    const now = new Date();
+    const contactData = {
+      ...fakeContact(),
+      subscribedAt: now.toISOString(),
+      unsubscribedAt: null,
+    };
+    const request = post("/contacts", contactData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("contact");
+    expect(responseData.id).toBeDefined();
+  });
+
   test("should reject duplicate email in same workspace", async () => {
     const contactData = fakeContact();
 

@@ -36,7 +36,7 @@ beforeAll(async () => {
   const newsletterTopicResponse = await CREATE_TOPIC(
     post(
       "/topics",
-      { name: "Newsletter", slug: "newsletter-test" },
+      { name: "Newsletter" },
       fullAccessApiKey.key
     )
   );
@@ -45,7 +45,7 @@ beforeAll(async () => {
   const marketingTopicResponse = await CREATE_TOPIC(
     post(
       "/topics",
-      { name: "Marketing", slug: "marketing-test" },
+      { name: "Marketing" },
       fullAccessApiKey.key
     )
   );
@@ -592,74 +592,6 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     await cleanupWorkspace(workspace.id);
   });
 
-  test("should search by BOOLEAN property", async () => {
-    const timestamp = Date.now();
-    const workspace = createTestWorkspace();
-    const apiKey = await createFullAccessApiKey(workspace.id);
-
-    // Create custom property
-    const vipProperty = await CREATE_PROPERTY(
-      post(
-        "/contact-properties",
-        { name: `VIP_${timestamp}`, type: "BOOLEAN" },
-        apiKey.key
-      )
-    );
-    const vipData = await vipProperty.json();
-    const vipRecord = await prisma.contactProperty.findUnique({
-      where: { id: vipData.id },
-    });
-    const vipPropertySlot = vipRecord!.slot;
-
-    // Create test contacts
-    for (let i = 0; i < 7; i++) {
-      await prisma.contact.create({
-        data: {
-          workspaceId: workspace.id,
-          email: `vip${i}_${timestamp}@example.com`,
-          firstName: `VIP${i}`,
-          status: "SUBSCRIBED",
-          [vipPropertySlot]: true,
-        },
-      });
-    }
-
-    for (let i = 0; i < 3; i++) {
-      await prisma.contact.create({
-        data: {
-          workspaceId: workspace.id,
-          email: `regular${i}_${timestamp}@example.com`,
-          firstName: `Regular${i}`,
-          status: "SUBSCRIBED",
-          [vipPropertySlot]: false,
-        },
-      });
-    }
-
-    // Search for VIP = true
-    const request = post(
-      "/contacts/search?limit=50",
-      {
-        filters: {
-          field: `VIP_${timestamp}`,
-          operator: "eq",
-          value: true,
-        },
-      },
-      apiKey.key
-    );
-
-    const response = await SEARCH(request);
-    const responseData = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(responseData.data.length).toBe(7);
-    for (const contact of responseData.data) {
-      expect(contact.properties[`VIP_${timestamp}`]).toBe(true);
-    }
-
-    await cleanupWorkspace(workspace.id);
-  });
 
   test("should combine multiple custom properties with $and operator", async () => {
     const timestamp = Date.now();

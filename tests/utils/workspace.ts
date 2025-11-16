@@ -130,9 +130,7 @@ export async function createTestTopics(
   topics: Array<{
     name: string;
     description?: string;
-    slug: string;
     visibility?: TopicVisibility;
-    isPrimary?: boolean;
   }>
 ) {
   const createdTopics = await Promise.all(

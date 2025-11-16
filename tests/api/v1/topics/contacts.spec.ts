@@ -43,7 +43,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Newsletter ${timestamp}`,
-          slug: `newsletter-${timestamp}`,
         },
         fullAccessApiKey.key
       )
@@ -118,7 +117,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Premium ${timestamp}`,
-          slug: `premium-${timestamp}`,
         },
         fullAccessApiKey.key
       )
@@ -184,7 +182,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Large List ${timestamp}`,
-          slug: `large-list-${timestamp}`,
         },
         fullAccessApiKey.key
       )
@@ -255,7 +252,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Empty Topic ${timestamp}`,
-          slug: `empty-topic-${timestamp}`,
         },
         fullAccessApiKey.key
       )
@@ -303,7 +299,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `W1 Topic ${timestamp}`,
-          slug: `w1-topic-${timestamp}`,
         },
         apiKey1.key
       )
@@ -357,7 +352,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Test Topic ${timestamp}`,
-          slug: `test-topic-${timestamp}`,
         },
         fullAccessApiKey.key
       )
@@ -391,7 +385,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Topic 1 ${timestamp}`,
-          slug: `topic-1-${timestamp}`,
         },
         fullAccessApiKey.key
       )
@@ -404,7 +397,6 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         "/topics",
         {
           name: `Topic 2 ${timestamp}`,
-          slug: `topic-2-${timestamp}`,
         },
         fullAccessApiKey.key
       )

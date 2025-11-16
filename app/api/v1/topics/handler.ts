@@ -87,9 +87,8 @@ export async function listTopics(workspaceId: string, request: NextRequest) {
     id: topic.id,
     name: topic.name,
     description: topic.description,
-    slug: topic.slug,
     visibility: topic.visibility,
-    isPrimary: topic.isPrimary,
+    defaultOptIn: topic.defaultOptIn,
   }));
 
   const paginatedResponse = createCursorPaginatedResponse(
@@ -125,9 +124,8 @@ export async function getTopic(workspaceId: string, topicId: string) {
       id: topic.id,
       name: topic.name,
       description: topic.description,
-      slug: topic.slug,
       visibility: topic.visibility,
-      isPrimary: topic.isPrimary,
+      defaultOptIn: topic.defaultOptIn,
     },
     "topic"
   );

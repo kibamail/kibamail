@@ -5,27 +5,29 @@
  * Workspace is automatically determined from the API key.
  */
 
+import type { Prisma } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { Prisma } from "@prisma/client";
-import { prisma } from "@/lib/db";
-import { validateRequestBody } from "@/lib/api/validation";
-import {
-  responseCreated,
-  responseOk,
-  responseNotFound,
-  responseBadRequest,
-} from "@/lib/api/responses";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
-import { createSegmentSchema, updateSegmentSchema } from "./schema";
 import {
+  responseBadRequest,
+  responseCreated,
+  responseNotFound,
+  responseOk,
+} from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
+import { prisma } from "@/lib/db";
+import {
+  conditionsToPrismaWhere,
   validateConditionFields,
-  conditionsToPrismaWhere
 } from "@/lib/segments/conditions-to-prisma";
+import { getRedisClient } from "@/lib/storage/redis-client";
+import { getSegmentContactsKey } from "@/lib/storage/redis-keys";
 import type { ConditionInput } from "./schema";
+import { createSegmentSchema, updateSegmentSchema } from "./schema";
 
 /**
  * POST /api/v1/segments
@@ -44,11 +46,14 @@ export async function createSegment(workspaceId: string, request: NextRequest) {
   });
 
   // Validate that all fields in conditions are valid
-  const validation = validateConditionFields(data.conditions, contactProperties);
+  const validation = validateConditionFields(
+    data.conditions,
+    contactProperties,
+  );
   if (!validation.isValid) {
     return responseBadRequest(
       `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
-        `Fields must be built-in contact fields or defined custom properties.`
+        `Fields must be built-in contact fields or defined custom properties.`,
     );
   }
 
@@ -61,11 +66,16 @@ export async function createSegment(workspaceId: string, request: NextRequest) {
     },
   });
 
+  // Clear the cached segment contact counts to trigger recomputation
+  const redis = getRedisClient();
+  const cacheKey = getSegmentContactsKey(workspaceId);
+  await redis.del(cacheKey);
+
   return responseCreated(
     {
       id: segment.id,
     },
-    "segment"
+    "segment",
   );
 }
 
@@ -93,12 +103,12 @@ export async function listSegments(workspaceId: string, request: NextRequest) {
         skip: 1,
       })
     : before
-    ? await prisma.segment.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.segment.findMany(baseQuery);
+      ? await prisma.segment.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.segment.findMany(baseQuery);
 
   const hasMore = segments.length > limit;
   const items = hasMore ? segments.slice(0, -1) : segments;
@@ -117,7 +127,7 @@ export async function listSegments(workspaceId: string, request: NextRequest) {
   const paginatedResponse = createCursorPaginatedResponse(
     formattedSegments,
     hasMore,
-    "segment_list"
+    "segment_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -130,7 +140,6 @@ export async function listSegments(workspaceId: string, request: NextRequest) {
  * Returns 404 if segment not found or belongs to a different workspace.
  */
 export async function getSegment(workspaceId: string, segmentId: string) {
-
   const segment = await prisma.segment.findFirst({
     where: {
       id: segmentId,
@@ -149,7 +158,7 @@ export async function getSegment(workspaceId: string, segmentId: string) {
       description: segment.description,
       conditions: segment.conditions,
     },
-    "segment"
+    "segment",
   );
 }
 
@@ -164,7 +173,7 @@ export async function getSegment(workspaceId: string, segmentId: string) {
 export async function updateSegment(
   workspaceId: string,
   segmentId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateSegmentSchema, request);
 
@@ -177,11 +186,14 @@ export async function updateSegment(
     });
 
     // Validate that all fields in conditions are valid
-    const validation = validateConditionFields(data.conditions, contactProperties);
+    const validation = validateConditionFields(
+      data.conditions,
+      contactProperties,
+    );
     if (!validation.isValid) {
       return responseBadRequest(
         `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
-          `Fields must be built-in contact fields or defined custom properties.`
+          `Fields must be built-in contact fields or defined custom properties.`,
       );
     }
   }
@@ -194,15 +206,22 @@ export async function updateSegment(
     data: {
       ...(data.name && { name: data.name }),
       ...(data.description !== undefined && { description: data.description }),
-      ...(data.conditions !== undefined && { conditions: data.conditions as Prisma.InputJsonValue }),
+      ...(data.conditions !== undefined && {
+        conditions: data.conditions as Prisma.InputJsonValue,
+      }),
     },
   });
+
+  // Clear the cached segment contact counts to trigger recomputation
+  const redis = getRedisClient();
+  const cacheKey = getSegmentContactsKey(workspaceId);
+  await redis.del(cacheKey);
 
   return responseOk(
     {
       id: updatedSegment.id,
     },
-    "segment"
+    "segment",
   );
 }
 
@@ -215,7 +234,6 @@ export async function updateSegment(
  * Cascade deletes all contact_segment relationships.
  */
 export async function deleteSegment(workspaceId: string, segmentId: string) {
-
   const deletedSegment = await prisma.segment.delete({
     where: {
       id: segmentId,
@@ -223,11 +241,16 @@ export async function deleteSegment(workspaceId: string, segmentId: string) {
     },
   });
 
+  // Clear the cached segment contact counts to trigger recomputation
+  const redis = getRedisClient();
+  const cacheKey = getSegmentContactsKey(workspaceId);
+  await redis.del(cacheKey);
+
   return responseOk(
     {
       id: deletedSegment.id,
     },
-    "segment"
+    "segment",
   );
 }
 
@@ -241,7 +264,7 @@ export async function deleteSegment(workspaceId: string, segmentId: string) {
 export async function getSegmentContacts(
   workspaceId: string,
   segmentId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
@@ -266,7 +289,7 @@ export async function getSegmentContacts(
   // Convert segment conditions to Prisma where clause
   const conditionsWhere = conditionsToPrismaWhere(
     segment.conditions as ConditionInput,
-    contactProperties
+    contactProperties,
   );
 
   const baseQuery = {
@@ -285,12 +308,12 @@ export async function getSegmentContacts(
         skip: 1,
       })
     : before
-    ? await prisma.contact.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.contact.findMany(baseQuery);
+      ? await prisma.contact.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.contact.findMany(baseQuery);
 
   const hasMore = contacts.length > limit;
   const items = hasMore ? contacts.slice(0, -1) : contacts;
@@ -326,7 +349,7 @@ export async function getSegmentContacts(
   const paginatedResponse = createCursorPaginatedResponse(
     formattedContacts,
     hasMore,
-    "contact_list"
+    "contact_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }

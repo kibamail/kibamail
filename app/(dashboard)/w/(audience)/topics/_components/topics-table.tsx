@@ -2,110 +2,159 @@
 
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
+import { ConfirmDialog } from "@kibamail/owly/dialog";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
-import { MoreHoriz, EditPencil, Trash } from "iconoir-react";
+import * as Switch from "@kibamail/owly/switch";
+import { MoreHoriz, EditPencil, Trash, Lock, Globe } from "iconoir-react";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
+import { useToast } from "@kibamail/owly/toast";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@/hooks/use-mutation";
+import { internalApi } from "@/lib/api/client";
+import { formatDistanceToNow } from "date-fns";
+import { useToggleState } from "@/hooks/utils/useToggleState";
+import type { Topic } from "@prisma/client";
+import { CreateTopicModal } from "./create-topic-modal";
 
-// Static data matching actual database schema
-const mockTopics = [
-  {
-    id: "cm3yz1top123",
-    workspaceId: "org_123",
-    name: "Newsletter",
-    description: "Weekly newsletter updates",
-    slug: "newsletter",
-    visibility: "PUBLIC" as const,
-    isPrimary: true,
-    subscriberCount: 2456, // This would be calculated from ContactTopic
-    createdAt: "2024-01-15T10:30:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz2top456",
-    workspaceId: "org_123",
-    name: "Product Updates",
-    description: "New feature announcements and updates",
-    slug: "product-updates",
-    visibility: "PUBLIC" as const,
-    isPrimary: false,
-    subscriberCount: 1823,
-    createdAt: "2024-01-10T14:20:00Z",
-    updatedAt: "2024-01-10T14:20:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz3top789",
-    workspaceId: "org_123",
-    name: "Marketing",
-    description: "Promotional content and special offers",
-    slug: "marketing",
-    visibility: "PUBLIC" as const,
-    isPrimary: false,
-    subscriberCount: 987,
-    createdAt: "2024-01-08T16:45:00Z",
-    updatedAt: "2024-01-08T16:45:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz4top012",
-    workspaceId: "org_123",
-    name: "Events",
-    description: "Webinars, conferences, and event notifications",
-    slug: "events",
-    visibility: "PUBLIC" as const,
-    isPrimary: false,
-    subscriberCount: 654,
-    createdAt: "2024-01-05T08:10:00Z",
-    updatedAt: "2024-01-05T08:10:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz5top345",
-    workspaceId: "org_123",
-    name: "Beta Features",
-    description: "Early access to new features",
-    slug: "beta-features",
-    visibility: "PRIVATE" as const,
-    isPrimary: false,
-    subscriberCount: 234,
-    createdAt: "2024-01-03T12:15:00Z",
-    updatedAt: "2024-01-03T12:15:00Z",
-    deletedAt: null,
-  },
-];
+interface TopicsTableProps {
+  topics: (Topic & {
+    subscriberCount: number;
+  })[];
+}
 
-function TopicActionsDropdown({ topic }: { topic: typeof mockTopics[0] }) {
+function DefaultOptInSwitch({
+  topic,
+}: {
+  topic: TopicsTableProps["topics"][0];
+}) {
+  const { success: toast, error: errorToast } = useToast();
+  const router = useRouter();
+
+  const updateMutation = useMutation({
+    async mutationFn(defaultOptIn: boolean) {
+      return internalApi.topics().update(topic.id, {
+        defaultOptIn,
+      });
+    },
+    onSuccess() {
+      toast("Topic updated successfully.");
+      router.refresh();
+    },
+    onError() {
+      errorToast("Failed to update topic. Please try again.");
+    },
+  });
+
+  function handleChange(checked: boolean) {
+    updateMutation.mutate(checked);
+  }
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <Button variant="tertiary" size="sm">
-          <MoreHoriz className="w-4 h-4" />
-        </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item>
-          <EditPencil className="w-4 h-4" />
-          Edit
-        </DropdownMenu.Item>
-        <DropdownMenu.Separator />
-        <DropdownMenu.Item className="text-kb-content-error">
-          <Trash className="w-4 h-4" />
-          Delete
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <Switch.Root
+      checked={topic.defaultOptIn}
+      onCheckedChange={handleChange}
+      disabled={updateMutation.isPending}
+      size="sm"
+    />
   );
 }
 
-export function TopicsTable() {
-  if (mockTopics.length === 0) {
+function TopicActionsDropdown({
+  topic,
+}: {
+  topic: TopicsTableProps["topics"][0];
+}) {
+  const { success: toast, error: errorToast } = useToast();
+  const router = useRouter();
+  const deleteDialogState = useToggleState();
+  const editModalState = useToggleState();
+
+  const deleteMutation = useMutation({
+    async mutationFn() {
+      return internalApi.topics().delete(topic.id);
+    },
+    onSuccess() {
+      toast("Topic deleted successfully.");
+      deleteDialogState.onOpenChange?.(false);
+      router.refresh();
+    },
+    onError() {
+      errorToast("Failed to delete topic. Please try again.");
+    },
+  });
+
+  function onDelete() {
+    deleteDialogState.onOpenChange?.(true);
+  }
+
+  function onEdit() {
+    editModalState.onOpenChange?.(true);
+  }
+
+  function onConfirmDelete() {
+    deleteMutation.mutate();
+  }
+
+  return (
+    <>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <Button variant="secondary" size="sm">
+            <MoreHoriz className="w-4 h-4" />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end" className="w-48">
+          <DropdownMenu.Item onClick={onEdit}>
+            <EditPencil className="w-4 h-4" />
+            Edit
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator />
+          <DropdownMenu.Item
+            className="text-kb-content-error"
+            onClick={onDelete}
+          >
+            <Trash className="w-4 h-4" />
+            Delete
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+
+      <CreateTopicModal
+        {...editModalState}
+        topic={topic}
+        mode="edit"
+      />
+
+      <ConfirmDialog
+        {...deleteDialogState}
+        title="Delete topic"
+        description={`Are you sure you want to delete "${topic.name}"? This action cannot be undone and will remove all subscriber relationships for this topic.`}
+        confirmText={topic.name.toUpperCase()}
+        confirm={{
+          variant: "destructive",
+          children: "Delete",
+          onClick: onConfirmDelete,
+          loading: deleteMutation.isPending,
+          disabled: deleteMutation.isPending,
+        }}
+        cancel={{
+          variant: "secondary",
+          children: "Cancel",
+          disabled: deleteMutation.isPending,
+        }}
+      />
+    </>
+  );
+}
+
+export function TopicsTable({ topics }: TopicsTableProps) {
+  if (topics.length === 0) {
     return (
       <EmptyCard.Root>
         <EmptyCard.Title>No topics yet</EmptyCard.Title>
         <EmptyCard.Description>
-          Create your first topic to organize your content.
+          Create your first topic to organize your email communications.
         </EmptyCard.Description>
       </EmptyCard.Root>
     );
@@ -117,34 +166,35 @@ export function TopicsTable() {
         <Table.Header>
           <Table.Row>
             <Table.Head>Name</Table.Head>
-            <Table.Head className="w-[120px]">Contacts</Table.Head>
             <Table.Head className="w-[120px]">Visibility</Table.Head>
+            <Table.Head className="w-[180px]">Default Opt-in</Table.Head>
+            <Table.Head className="w-[120px]">Subscribers</Table.Head>
             <Table.Head className="w-[100px]">Actions</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {mockTopics.map((topic) => (
+          {topics.map((topic) => (
             <Table.Row key={topic.id}>
-              <Table.Cell className="font-medium">
-                <div className="flex items-center gap-2">
-                  {topic.name}
-                  {topic.isPrimary && (
-                    <Badge variant="warning" size="sm">Primary</Badge>
-                  )}
-                </div>
+              <Table.Cell className="font-medium">{topic.name}</Table.Cell>
+              <Table.Cell>
+                <Badge
+                  variant={
+                    topic.visibility === "PUBLIC" ? "success" : "neutral"
+                  }
+                  size="sm"
+                >
+                  {topic.visibility === "PRIVATE" ? <Lock /> : <Globe />}
+                  {topic.visibility.charAt(0) +
+                    topic.visibility.slice(1).toLowerCase()}
+                </Badge>
+              </Table.Cell>
+              <Table.Cell>
+                <DefaultOptInSwitch topic={topic} />
               </Table.Cell>
               <Table.Cell>
                 <span className="text-sm font-medium text-kb-content-primary">
                   {topic.subscriberCount.toLocaleString()}
                 </span>
-              </Table.Cell>
-              <Table.Cell>
-                <Badge
-                  variant={topic.visibility === "PUBLIC" ? "success" : "neutral"}
-                  size="sm"
-                >
-                  {topic.visibility.charAt(0) + topic.visibility.slice(1).toLowerCase()}
-                </Badge>
               </Table.Cell>
               <Table.Cell>
                 <TopicActionsDropdown topic={topic} />

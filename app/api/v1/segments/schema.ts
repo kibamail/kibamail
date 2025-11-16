@@ -22,17 +22,32 @@ export const ComparisonOperators = z.enum([
  * Field Condition Schema
  * Represents a single condition on a field
  */
-export const fieldConditionSchema = z.object({
-  field: z.string().min(1, "Field name is required"),
-  operator: ComparisonOperators,
-  value: z.union([
-    z.string(),
-    z.number(),
-    z.boolean(),
-    z.null(),
-    z.array(z.union([z.string(), z.number()])),
-  ]),
-});
+export const fieldConditionSchema = z
+  .object({
+    field: z.string().min(1, "Field name is required"),
+    operator: ComparisonOperators,
+    value: z.union([
+      z.string(),
+      z.number(),
+      z.boolean(),
+      z.null(),
+      z.array(z.union([z.string(), z.number()])),
+    ]),
+  })
+  .refine(
+    (data) => {
+      // Null values can only be used with the "exists" operator
+      if (data.value === null && data.operator !== "exists") {
+        return false;
+      }
+      return true;
+    },
+    {
+      message:
+        'Null values can only be used with the "exists" operator. Use {"operator": "exists", "value": false} to check for null/empty fields.',
+      path: ["value"],
+    }
+  );
 
 /**
  * Topic Condition Schema

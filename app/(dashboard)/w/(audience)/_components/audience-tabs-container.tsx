@@ -9,8 +9,10 @@ import * as Tabs from "@kibamail/owly/tabs";
 import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
 import { AudienceTabs } from "./audience-tabs";
-import { Button } from "@kibamail/owly/button";
-import { Plus } from "iconoir-react";
+import { CreateContactButton } from "../contacts/_components/create-contact-button";
+import { CreateTopicButton } from "../topics/_components/create-topic-button";
+import { CreateSegmentButton } from "../segments/_components/create-segment-button";
+import { CreateContactPropertyButton } from "../contacts/_components/create-contact-property-button";
 
 /**
  * Audience Tabs Container
@@ -30,30 +32,10 @@ export function AudienceTabsContainer({ children }: PropsWithChildren) {
       <DashboardLayoutStickyContentHeaderContainer>
         <DashboardLayoutContentHeader title="Audience">
           <DashboardLayoutContentActions>
-            {activeTab === "contacts" && (
-              <Button>
-                <Plus className="w-4 h-4" />
-                Add Contact
-              </Button>
-            )}
-            {activeTab === "segments" && (
-              <Button>
-                <Plus className="w-4 h-4" />
-                Create Segment
-              </Button>
-            )}
-            {activeTab === "topics" && (
-              <Button>
-                <Plus className="w-4 h-4" />
-                Create Topic
-              </Button>
-            )}
-            {activeTab === "properties" && (
-              <Button>
-                <Plus className="w-4 h-4" />
-                Add Property
-              </Button>
-            )}
+            {activeTab === "contacts" && <CreateContactButton />}
+            {activeTab === "topics" && <CreateTopicButton />}
+            {activeTab === "segments" && <CreateSegmentButton />}
+            {activeTab === "properties" && <CreateContactPropertyButton />}
           </DashboardLayoutContentActions>
         </DashboardLayoutContentHeader>
 

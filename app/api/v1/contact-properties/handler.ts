@@ -26,29 +26,20 @@ import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
+import { getMaxSlots, getSlotPrefix } from "@/lib/contact-properties/config";
 
 /**
  * Find next available slot for a given property type
  * Returns null if all slots are occupied
  *
- * Slot limits:
- * - Float (NUMBER + DATE): 30 slots
- * - String: 50 slots
- * - Boolean: 20 slots
+ * Slot limits are defined in @/lib/contact-properties/config
  */
 async function findAvailableSlot(
   workspaceId: string,
   type: ContactPropertyType
 ): Promise<string | null> {
-  const slotPrefix =
-    type === "NUMBER" || type === "DATE"
-      ? "propertyFloat"
-      : type === "BOOLEAN"
-      ? "propertyBool"
-      : "propertyString";
-
-  const maxSlots =
-    type === "NUMBER" || type === "DATE" ? 30 : type === "BOOLEAN" ? 20 : 50;
+  const slotPrefix = getSlotPrefix(type);
+  const maxSlots = getMaxSlots(type);
 
   const occupiedSlots = await prisma.contactProperty.findMany({
     where: {
@@ -92,12 +83,7 @@ export async function createContactProperty(
   const slot = await findAvailableSlot(workspaceId, data.type);
 
   if (!slot) {
-    const maxSlots =
-      data.type === "NUMBER" || data.type === "DATE"
-        ? 30
-        : data.type === "BOOLEAN"
-        ? 20
-        : 50;
+    const maxSlots = getMaxSlots(data.type);
     return responseBadRequest(
       `No available slots for property type ${data.type}. Maximum of ${maxSlots} properties per type reached.`
     );

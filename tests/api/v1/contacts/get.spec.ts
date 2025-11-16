@@ -56,6 +56,8 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     expect(responseData.object).toBe("contact");
     expect(responseData.id).toBe(testContactId);
     expect(responseData.email).toBeDefined();
+    expect(responseData.subscribedAt).toBeDefined();
+    expect(responseData.unsubscribedAt).toBeDefined();
     expect(responseData.properties).toBeDefined();
     expect(responseData.properties).toBeObject();
   });

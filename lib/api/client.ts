@@ -70,11 +70,41 @@ import {
   updateLogoResponseSchema,
 } from "@/app/api/internal/v1/workspaces/[id]/logo/schema";
 import {
+  type CreateTopicRequest,
+  type TopicResponse,
+  type TopicListResponse,
+  createTopicSchema,
+  topicResponseSchema,
+  topicListResponseSchema,
+} from "@/app/api/v1/topics/schema";
+import {
+  type CreateSegmentRequest,
+  type SegmentResponse,
+  type SegmentListResponse,
+  createSegmentSchema,
+  segmentResponseSchema,
+  segmentListResponseSchema,
+} from "@/app/api/v1/segments/schema";
+import {
+  type CreateContactPropertyRequest,
+  type ContactPropertyResponse,
+  type ContactPropertyListResponse,
+  createContactPropertySchema,
+  contactPropertyResponseSchema,
+  contactPropertyListResponseSchema,
+} from "@/app/api/v1/contact-properties/schema";
+import {
   type UpdateWorkspaceInput,
   type UpdateWorkspaceResponse,
   updateWorkspaceSchema,
   updateWorkspaceResponseSchema,
 } from "@/app/api/internal/v1/workspaces/[id]/schema";
+import {
+  type CreateContactInternalRequest,
+  type UpdateContactInternalRequest,
+  createContactInternalSchema,
+  updateContactInternalSchema,
+} from "@/app/api/internal/v1/contacts/schema";
 
 type ApiErrorResponse = {
   error: string;
@@ -675,6 +705,410 @@ class ApiKeysApi extends HttpClient {
 }
 
 /**
+ * Segments API namespace
+ */
+class SegmentsApi extends HttpClient {
+  /**
+   * Create a new segment
+   *
+   * @param data - Segment creation data
+   * @returns Created segment
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const segment = await internalApi.segments().create({
+   *   name: 'High Value Customers',
+   *   description: 'Customers with high lifetime value',
+   *   conditions: { field: 'status', operator: 'eq', value: 'SUBSCRIBED' }
+   * })
+   * ```
+   */
+  async create(data: CreateSegmentRequest): Promise<SegmentResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/segments",
+      createSegmentSchema,
+      segmentResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * List all segments for the current workspace
+   *
+   * @returns List of segments
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const segments = await internalApi.segments().list()
+   * ```
+   */
+  async list(): Promise<SegmentListResponse> {
+    return this.request(
+      "GET",
+      "/api/internal/v1/segments",
+      null,
+      segmentListResponseSchema
+    );
+  }
+
+  /**
+   * Get a specific segment by ID
+   *
+   * @param segmentId - ID of the segment to retrieve
+   * @returns Segment data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const segment = await internalApi.segments().get('segment_123')
+   * ```
+   */
+  async get(segmentId: string): Promise<SegmentResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/segments/${segmentId}`,
+      null,
+      segmentResponseSchema
+    );
+  }
+
+  /**
+   * Update a specific segment by ID
+   *
+   * @param segmentId - ID of the segment to update
+   * @param data - Segment update data
+   * @returns Updated segment data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const segment = await internalApi.segments().update('segment_123', {
+   *   name: 'Updated High Value Customers',
+   *   description: 'Updated description'
+   * })
+   * ```
+   */
+  async update(segmentId: string, data: Partial<CreateSegmentRequest>): Promise<SegmentResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/segments/${segmentId}`,
+      null,
+      segmentResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Delete a specific segment by ID
+   *
+   * @param segmentId - ID of the segment to delete
+   * @returns Deleted segment data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * await internalApi.segments().delete('segment_123')
+   * ```
+   */
+  async delete(segmentId: string): Promise<SegmentResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/segments/${segmentId}`,
+      null,
+      segmentResponseSchema
+    );
+  }
+}
+
+/**
+ * Contact Properties API namespace
+ */
+class ContactPropertiesApi extends HttpClient {
+  /**
+   * Create a new contact property
+   *
+   * @param data - Contact property creation data
+   * @returns Created contact property
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const property = await internalApi.contactProperties().create({
+   *   name: 'Lead Score',
+   *   type: 'NUMBER',
+   *   defaultValue: '0'
+   * })
+   * ```
+   */
+  async create(data: CreateContactPropertyRequest): Promise<ContactPropertyResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/contact-properties",
+      createContactPropertySchema,
+      contactPropertyResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * List all contact properties for the current workspace
+   *
+   * @returns List of contact properties
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const properties = await internalApi.contactProperties().list()
+   * ```
+   */
+  async list(): Promise<ContactPropertyListResponse> {
+    return this.request(
+      "GET",
+      "/api/internal/v1/contact-properties",
+      null,
+      contactPropertyListResponseSchema
+    );
+  }
+
+  /**
+   * Update a specific contact property by ID
+   *
+   * @param propertyId - ID of the contact property to update
+   * @param data - Contact property update data
+   * @returns Updated contact property data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const property = await internalApi.contactProperties().update('property_123', {
+   *   name: 'Updated Lead Score',
+   *   defaultValue: '10'
+   * })
+   * ```
+   */
+  async update(
+    propertyId: string,
+    data: Partial<CreateContactPropertyRequest>
+  ): Promise<ContactPropertyResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/contact-properties/${propertyId}`,
+      null,
+      contactPropertyResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Delete a specific contact property by ID
+   *
+   * @param propertyId - ID of the contact property to delete
+   * @returns Deleted contact property data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * await internalApi.contactProperties().delete('property_123')
+   * ```
+   */
+  async delete(propertyId: string): Promise<ContactPropertyResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/contact-properties/${propertyId}`,
+      null,
+      contactPropertyResponseSchema
+    );
+  }
+}
+
+/**
+ * Topics API namespace
+ */
+class TopicsApi extends HttpClient {
+  /**
+   * Create a new topic
+   *
+   * @param data - Topic creation data
+   * @returns Created topic
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const topic = await internalApi.topics().create({
+   *   name: 'Newsletter',
+   *   description: 'Weekly newsletter updates',
+   *   slug: 'newsletter',
+   *   visibility: 'PUBLIC',
+   *   defaultOptIn: false
+   * })
+   * ```
+   */
+  async create(data: CreateTopicRequest): Promise<TopicResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/topics",
+      createTopicSchema,
+      topicResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * List all topics for the current workspace
+   *
+   * @returns List of topics
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const topics = await internalApi.topics().list()
+   * ```
+   */
+  async list(): Promise<TopicListResponse> {
+    return this.request(
+      "GET",
+      "/api/internal/v1/topics",
+      null,
+      topicListResponseSchema
+    );
+  }
+
+  /**
+   * Get a specific topic by ID
+   *
+   * @param topicId - ID of the topic to retrieve
+   * @returns Topic data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const topic = await internalApi.topics().get('topic_123')
+   * ```
+   */
+  async get(topicId: string): Promise<TopicResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/topics/${topicId}`,
+      null,
+      topicResponseSchema
+    );
+  }
+
+  /**
+   * Update a specific topic by ID
+   *
+   * @param topicId - ID of the topic to update
+   * @param data - Topic update data
+   * @returns Updated topic data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const topic = await internalApi.topics().update('topic_123', {
+   *   name: 'Updated Newsletter',
+   *   description: 'Updated description'
+   * })
+   * ```
+   */
+  async update(topicId: string, data: Partial<CreateTopicRequest>): Promise<TopicResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/topics/${topicId}`,
+      null,
+      topicResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Delete a specific topic by ID
+   *
+   * @param topicId - ID of the topic to delete
+   * @returns Deleted topic data
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * await internalApi.topics().delete('topic_123')
+   * ```
+   */
+  async delete(topicId: string): Promise<TopicResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/topics/${topicId}`,
+      null,
+      topicResponseSchema
+    );
+  }
+}
+
+/**
+ * Contacts API namespace
+ */
+class ContactsApi extends HttpClient {
+  /**
+   * Create a new contact with topic subscriptions
+   *
+   * @param data - Contact creation data
+   * @returns Created contact
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const contact = await internalApi.contacts().create({
+   *   email: 'user@example.com',
+   *   firstName: 'John',
+   *   lastName: 'Doe',
+   *   status: 'SUBSCRIBED',
+   *   topicIds: ['topic_1', 'topic_2'],
+   *   properties: { 'Lead Score': 100 }
+   * })
+   * ```
+   */
+  async create(data: CreateContactInternalRequest): Promise<any> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/contacts",
+      createContactInternalSchema,
+      {} as any,
+      data
+    );
+  }
+
+  /**
+   * Update an existing contact
+   *
+   * @param contactId - ID of the contact to update
+   * @param data - Contact update data
+   * @returns Updated contact
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const contact = await internalApi.contacts().update('contact_123', {
+   *   firstName: 'Jane',
+   *   topicIds: ['topic_1']
+   * })
+   * ```
+   */
+  async update(
+    contactId: string,
+    data: UpdateContactInternalRequest
+  ): Promise<any> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/contacts/${contactId}`,
+      updateContactInternalSchema,
+      {} as any,
+      data
+    );
+  }
+}
+
+/**
  * Internal API SDK
  *
  * Provides namespaced, type-safe methods for all internal API endpoints.
@@ -684,12 +1118,20 @@ export class InternalApi {
   private _invitations: InvitationsApi;
   private _apiKeys: ApiKeysApi;
   private _webhooks: WebhooksApi;
+  private _topics: TopicsApi;
+  private _segments: SegmentsApi;
+  private _contactProperties: ContactPropertiesApi;
+  private _contacts: ContactsApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
     this._invitations = new InvitationsApi();
     this._apiKeys = new ApiKeysApi();
     this._webhooks = new WebhooksApi();
+    this._topics = new TopicsApi();
+    this._segments = new SegmentsApi();
+    this._contactProperties = new ContactPropertiesApi();
+    this._contacts = new ContactsApi();
   }
 
   /**
@@ -753,6 +1195,80 @@ export class InternalApi {
    */
   webhooks() {
     return this._webhooks;
+  }
+
+  /**
+   * Access topics API
+   *
+   * @returns TopicsApi instance
+   *
+   * @example
+   * ```ts
+   * const topic = await internalApi.topics().create({
+   *   name: 'Newsletter',
+   *   description: 'Weekly newsletter updates',
+   *   slug: 'newsletter',
+   *   visibility: 'PUBLIC'
+   * })
+   * ```
+   */
+  topics() {
+    return this._topics;
+  }
+
+  /**
+   * Access segments API
+   *
+   * @returns SegmentsApi instance
+   *
+   * @example
+   * ```ts
+   * const segment = await internalApi.segments().create({
+   *   name: 'High Value Customers',
+   *   description: 'Customers with high lifetime value',
+   *   conditions: { field: 'status', operator: 'eq', value: 'SUBSCRIBED' }
+   * })
+   * ```
+   */
+  segments() {
+    return this._segments;
+  }
+
+  /**
+   * Access contact properties API
+   *
+   * @returns ContactPropertiesApi instance
+   *
+   * @example
+   * ```ts
+   * const property = await internalApi.contactProperties().create({
+   *   name: 'Lead Score',
+   *   type: 'NUMBER',
+   *   defaultValue: '0'
+   * })
+   * ```
+   */
+  contactProperties() {
+    return this._contactProperties;
+  }
+
+  /**
+   * Access contacts API
+   *
+   * @returns ContactsApi instance
+   *
+   * @example
+   * ```ts
+   * const contact = await internalApi.contacts().create({
+   *   email: 'user@example.com',
+   *   firstName: 'John',
+   *   status: 'SUBSCRIBED',
+   *   topicIds: ['topic_1']
+   * })
+   * ```
+   */
+  contacts() {
+    return this._contacts;
   }
 }
 

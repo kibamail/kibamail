@@ -8,6 +8,7 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { TopicSubscriptionStatus } from "@prisma/client";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import {
@@ -117,11 +118,12 @@ function mapPropertiesToSlots(
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch constraint violations.
  * Supports optional properties object that maps property names to values.
+ * Supports optional topics array to subscribe contact to topics.
  */
 export async function createContact(workspaceId: string, request: NextRequest) {
   const data = await validateRequestBody(createContactSchema, request);
 
-  const { properties, ...contactData } = data;
+  const { properties, topics, ...contactData } = data;
 
   let slotData = {};
 
@@ -147,6 +149,18 @@ export async function createContact(workspaceId: string, request: NextRequest) {
       ...slotData,
     },
   });
+
+  // Create topic subscriptions if topics were provided
+  if (topics && topics.length > 0) {
+    await prisma.contactTopic.createMany({
+      data: topics.map((topicId: string) => ({
+        contactId: contact.id,
+        topicId,
+        status: TopicSubscriptionStatus.SUBSCRIBED,
+      })),
+      skipDuplicates: true,
+    });
+  }
 
   return responseCreated(
     {
@@ -210,6 +224,8 @@ export async function listContacts(workspaceId: string, request: NextRequest) {
     timezone: contact.timezone,
     city: contact.city,
     status: contact.status,
+    subscribedAt: contact.subscribedAt,
+    unsubscribedAt: contact.unsubscribedAt,
     properties: buildContactProperties(contact, contactProperties),
   }));
 
@@ -295,6 +311,8 @@ export async function searchContacts(
     timezone: contact.timezone,
     city: contact.city,
     status: contact.status,
+    subscribedAt: contact.subscribedAt,
+    unsubscribedAt: contact.unsubscribedAt,
     properties: buildContactProperties(contact, contactProperties),
   }));
 
@@ -341,6 +359,8 @@ export async function getContact(workspaceId: string, contactId: string) {
       timezone: contact.timezone,
       city: contact.city,
       status: contact.status,
+      subscribedAt: contact.subscribedAt,
+      unsubscribedAt: contact.unsubscribedAt,
       properties: buildContactProperties(contact, contactProperties),
     },
     "contact"
@@ -354,6 +374,7 @@ export async function getContact(workspaceId: string, contactId: string) {
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch constraint violations and not found errors.
  * Supports optional properties object that maps property names to values.
+ * Supports optional topics array to update contact topic subscriptions.
  */
 export async function updateContact(
   workspaceId: string,
@@ -362,8 +383,8 @@ export async function updateContact(
 ) {
   const data = await validateRequestBody(updateContactSchema, request);
 
-  // Extract properties from data
-  const { properties, ...contactData } = data;
+  // Extract properties and topics from data
+  const { properties, topics, ...contactData } = data;
 
   // If properties are provided, fetch contact properties and map to slots
   let slotData = {};
@@ -392,6 +413,26 @@ export async function updateContact(
       ...slotData,
     },
   });
+
+  // Update topic subscriptions if topics were provided
+  if (topics !== undefined) {
+    // Delete existing topic subscriptions
+    await prisma.contactTopic.deleteMany({
+      where: { contactId },
+    });
+
+    // Create new topic subscriptions
+    if (topics.length > 0) {
+      await prisma.contactTopic.createMany({
+        data: topics.map((topicId: string) => ({
+          contactId,
+          topicId,
+          status: TopicSubscriptionStatus.SUBSCRIBED,
+        })),
+        skipDuplicates: true,
+      });
+    }
+  }
 
   return responseOk(
     {

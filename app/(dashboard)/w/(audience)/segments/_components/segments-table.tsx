@@ -1,106 +1,116 @@
 "use client";
 
-import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
+import { ConfirmDialog } from "@kibamail/owly/dialog";
+import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
-import { MoreHoriz, EditPencil, Trash, Play } from "iconoir-react";
-import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
+import { useToast } from "@kibamail/owly/toast";
+import * as Tooltip from "@kibamail/owly/tooltip";
+import type { Segment } from "@prisma/client";
+import { EditPencil, HelpCircle, MoreHoriz, Play, Trash } from "iconoir-react";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@/hooks/use-mutation";
+import { useToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
+import { CreateSegmentModal } from "./create-segment-modal";
 
-// Static data matching actual database schema
-const mockSegments = [
-  {
-    id: "cm3yz1seg123",
-    workspaceId: "org_123",
-    name: "Active Subscribers",
-    description: "Users who have opened emails in the last 30 days",
-    type: "DYNAMIC" as const,
-    conditions: {
-      and: [
-        { field: "status", operator: "equals", value: "SUBSCRIBED" },
-        { field: "lastEngagement", operator: "greaterThan", value: "30d" }
-      ]
-    },
-    contactCount: 1245, // This would be calculated from ContactSegment or query
-    createdAt: "2024-01-15T10:30:00Z",
-    updatedAt: "2024-01-15T10:30:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz2seg456",
-    workspaceId: "org_123",
-    name: "New Signups",
-    description: "Users who signed up in the last 7 days",
-    type: "DYNAMIC" as const,
-    conditions: {
-      and: [
-        { field: "createdAt", operator: "greaterThan", value: "7d" }
-      ]
-    },
-    contactCount: 89,
-    createdAt: "2024-01-10T14:20:00Z",
-    updatedAt: "2024-01-10T14:20:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz3seg789",
-    workspaceId: "org_123",
-    name: "High Value Customers",
-    description: "Customers with purchase value > $500",
-    type: "STATIC" as const,
-    conditions: null,
-    contactCount: 156,
-    createdAt: "2024-01-08T16:45:00Z",
-    updatedAt: "2024-01-08T16:45:00Z",
-    deletedAt: null,
-  },
-  {
-    id: "cm3yz4seg012",
-    workspaceId: "org_123",
-    name: "Inactive Users",
-    description: "Users who haven't engaged in 90+ days",
-    type: "DYNAMIC" as const,
-    conditions: {
-      and: [
-        { field: "lastEngagement", operator: "lessThan", value: "90d" }
-      ]
-    },
-    contactCount: 567,
-    createdAt: "2024-01-05T08:10:00Z",
-    updatedAt: "2024-01-05T08:10:00Z",
-    deletedAt: null,
-  },
-];
+interface SegmentsTableProps {
+  segments: (Pick<Segment, "id" | "name" | "description" | "conditions"> & {
+    contactCount: number | null;
+  })[];
+}
 
-function SegmentActionsDropdown({ segment }: { segment: typeof mockSegments[0] }) {
+function SegmentActionsDropdown({
+  segment,
+}: {
+  segment: SegmentsTableProps["segments"][0];
+}) {
+  const { success: toast, error: errorToast } = useToast();
+  const router = useRouter();
+  const deleteDialogState = useToggleState();
+  const editModalState = useToggleState();
+
+  const deleteMutation = useMutation({
+    async mutationFn() {
+      return internalApi.segments().delete(segment.id);
+    },
+    onSuccess() {
+      toast("Segment deleted successfully.");
+      deleteDialogState.onOpenChange?.(false);
+      router.refresh();
+    },
+    onError() {
+      errorToast("Failed to delete segment. Please try again.");
+    },
+  });
+
+  function onDelete() {
+    deleteDialogState.onOpenChange?.(true);
+  }
+
+  function onEdit() {
+    editModalState.onOpenChange?.(true);
+  }
+
+  function onConfirmDelete() {
+    deleteMutation.mutate();
+  }
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <Button variant="tertiary" size="sm">
-          <MoreHoriz className="w-4 h-4" />
-        </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item>
-          <EditPencil className="w-4 h-4" />
-          Edit
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Play className="w-4 h-4" />
-          Refresh
-        </DropdownMenu.Item>
-        <DropdownMenu.Separator />
-        <DropdownMenu.Item className="text-kb-content-error">
-          <Trash className="w-4 h-4" />
-          Delete
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <Button variant="secondary" size="sm">
+            <MoreHoriz className="w-4 h-4" />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end" className="w-48">
+          <DropdownMenu.Item onClick={onEdit}>
+            <EditPencil className="w-4 h-4" />
+            Edit
+          </DropdownMenu.Item>
+          <DropdownMenu.Item>
+            <Play className="w-4 h-4" />
+            Refresh
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator />
+          <DropdownMenu.Item
+            className="text-kb-content-error"
+            onClick={onDelete}
+          >
+            <Trash className="w-4 h-4" />
+            Delete
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+
+      <CreateSegmentModal {...editModalState} segment={segment} mode="edit" />
+
+      <ConfirmDialog
+        {...deleteDialogState}
+        title="Delete segment"
+        description={`Are you sure you want to delete "${segment.name}"? This action cannot be undone.`}
+        confirmText={segment.name.toUpperCase()}
+        confirm={{
+          variant: "destructive",
+          children: "Delete",
+          onClick: onConfirmDelete,
+          loading: deleteMutation.isPending,
+          disabled: deleteMutation.isPending,
+        }}
+        cancel={{
+          variant: "secondary",
+          children: "Cancel",
+          disabled: deleteMutation.isPending,
+        }}
+      />
+    </>
   );
 }
 
-export function SegmentsTable() {
-  if (mockSegments.length === 0) {
+export function SegmentsTable({ segments }: SegmentsTableProps) {
+  if (segments.length === 0) {
     return (
       <EmptyCard.Root>
         <EmptyCard.Title>No segments yet</EmptyCard.Title>
@@ -122,15 +132,35 @@ export function SegmentsTable() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {mockSegments.map((segment) => (
+          {segments.map((segment) => (
             <Table.Row key={segment.id}>
-              <Table.Cell className="font-medium">
-                {segment.name}
-              </Table.Cell>
+              <Table.Cell className="font-medium">{segment.name}</Table.Cell>
               <Table.Cell>
-                <span className="text-sm font-medium text-kb-content-primary">
-                  {segment.contactCount.toLocaleString()}
-                </span>
+                {segment.contactCount !== null ? (
+                  <span className="text-sm font-medium text-kb-content-primary">
+                    {segment.contactCount.toLocaleString()}
+                  </span>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <span className="text-sm font-medium text-kb-content-secondary">
+                      —
+                    </span>
+                    <Tooltip.Provider>
+                      <Tooltip.Root>
+                        <Tooltip.Trigger asChild>
+                          <HelpCircle className="w-3.5 h-3.5 text-kb-content-tertiary" />
+                        </Tooltip.Trigger>
+                        <Tooltip.Content>
+                          <p className="text-xs">
+                            Contacts count is being computed in the background.
+                            <br />
+                            It will be available shortly.
+                          </p>
+                        </Tooltip.Content>
+                      </Tooltip.Root>
+                    </Tooltip.Provider>
+                  </div>
+                )}
               </Table.Cell>
               <Table.Cell>
                 <SegmentActionsDropdown segment={segment} />

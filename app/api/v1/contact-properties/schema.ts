@@ -10,7 +10,7 @@ import { z } from "zod";
 /**
  * Contact Property Type Enum
  */
-export const ContactPropertyTypeEnum = z.enum(["DATE", "NUMBER", "STRING", "BOOLEAN"]);
+export const ContactPropertyTypeEnum = z.enum(["DATE", "NUMBER", "STRING"]);
 
 /**
  * Default value validation per type
@@ -55,14 +55,6 @@ export const createContactPropertySchema = z
   })
   .refine(
     (data) => {
-      // BOOLEAN type should not have a default value
-      if (data.type === "BOOLEAN") {
-        if (data.defaultValue !== null && data.defaultValue !== undefined) {
-          return false;
-        }
-        return true;
-      }
-
       // Only validate if defaultValue is explicitly provided (not null/undefined)
       if (data.defaultValue === null || data.defaultValue === undefined) {
         return true;
@@ -81,7 +73,7 @@ export const createContactPropertySchema = z
     },
     {
       message:
-        "Default value validation failed: DATE must be Unix timestamp, NUMBER must be decimal, STRING must be 1-255 chars, BOOLEAN should not have a default value",
+        "Default value validation failed: DATE must be Unix timestamp, NUMBER must be decimal, STRING must be 1-255 chars",
       path: ["defaultValue"],
     }
   );
