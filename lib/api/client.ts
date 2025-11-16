@@ -100,11 +100,11 @@ import {
   updateWorkspaceResponseSchema,
 } from "@/app/api/internal/v1/workspaces/[id]/schema";
 import {
-  type CreateContactInternalRequest,
-  type UpdateContactInternalRequest,
-  createContactInternalSchema,
-  updateContactInternalSchema,
-} from "@/app/api/internal/v1/contacts/schema";
+  type CreateContactRequest,
+  type UpdateContactRequest,
+  createContactSchema,
+  updateContactSchema,
+} from "@/app/api/v1/contacts/schema";
 
 type ApiErrorResponse = {
   error: string;
@@ -1068,11 +1068,11 @@ class ContactsApi extends HttpClient {
    * })
    * ```
    */
-  async create(data: CreateContactInternalRequest): Promise<any> {
+  async create(data: CreateContactRequest): Promise<any> {
     return this.request(
       "POST",
       "/api/internal/v1/contacts",
-      createContactInternalSchema,
+      createContactSchema,
       {} as any,
       data
     );
@@ -1096,14 +1096,34 @@ class ContactsApi extends HttpClient {
    */
   async update(
     contactId: string,
-    data: UpdateContactInternalRequest
+    data: UpdateContactRequest
   ): Promise<any> {
     return this.request(
       "PUT",
       `/api/internal/v1/contacts/${contactId}`,
-      updateContactInternalSchema,
+      updateContactSchema,
       {} as any,
       data
+    );
+  }
+
+  /**
+   * Delete a contact
+   *
+   * @param contactId - ID of the contact to delete
+   * @returns Empty response on success
+   *
+   * @example
+   * ```ts
+   * await internalApi.contacts().delete('contact_123')
+   * ```
+   */
+  async delete(contactId: string): Promise<any> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/contacts/${contactId}`,
+      {} as any,
+      {} as any
     );
   }
 }

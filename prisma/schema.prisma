@@ -640,3 +640,182 @@ enum AutomationRunStatus {
   CANCELLED           // Manually cancelled
   PAUSED              // Paused (e.g., waiting for time delay)
 }
+
+/// *
+///  * Forms Schema
+///  *
+///  * Represents forms that can be embedded on websites to collect contact information.
+///  * Form fields are stored as JSON and mapped to submission flat columns.
+///  * Supports versioning - only one DRAFT and one PUBLISHED version at a time.
+///  * Competitive with Typeform, Mailchimp forms, and ConvertKit forms.
+model Form {
+  /// Unique identifier for the form
+  id              String             @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId     String
+  /// Form name
+  name            String
+  /// Form description
+  description     String?
+  /// Form status
+  status          FormStatus         @default(DRAFT)
+  /// Version number (increments with each new version)
+  version         Int                @default(1)
+  /// Reference to parent form ID (for version grouping)
+  /// NULL for the first version, references the original form ID for subsequent versions
+  parentId        String?
+  /// Form fields configuration stored as JSON
+  /// Each field defines its name, type, validation, and which submission slot it maps to
+  /// @example [{"id": "field-1", "name": "email", "type": "email", "label": "Email Address", "required": true, "slot": "fieldString0"}]
+  fields          Json               @default("[]")
+  /// Form settings (success message, redirect URL, double opt-in, etc.)
+  /// @example {"successMessage": "Thank you!", "redirectUrl": "https://example.com/thank-you", "doubleOptIn": true, "createContact": true}
+  settings        Json?
+
+  /// When this version was published (NULL if never published)
+  publishedAt     DateTime?
+  /// When the form was created
+  createdAt       DateTime           @default(now())
+  /// When the form was last updated
+  updatedAt       DateTime           @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt       DateTime?          @map("deleted_at")
+  /// Parent form (for version tracking)
+  parent          Form?              @relation("FormVersions", fields: [parentId], references: [id], onDelete: Cascade)
+  /// Child versions
+  versions        Form[]             @relation("FormVersions")
+  /// Form submissions
+  submissions     FormSubmission[]
+
+  @@unique([workspaceId, parentId, status], name: "one_status_per_parent")
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, deletedAt])
+  @@index([parentId])
+  @@index([status])
+  @@index([version])
+  @@map("forms")
+}
+
+/// *
+///  * Form Submissions Schema
+///  *
+///  * Stores form submission data using flat columns for custom fields.
+///  * Similar to contacts, uses pre-allocated slots that are mapped from form fields.
+///  * The slot assignment is defined in the form's fields JSON configuration.
+model FormSubmission {
+  /// Unique identifier for the submission
+  id             String               @id @default(cuid())
+  /// Form ID this submission belongs to
+  formId         String
+  /// Workspace ID for tenant segregation
+  workspaceId    String
+  /// Contact ID if submission created/updated a contact
+  contactId      String?
+  /// Submission status
+  status         FormSubmissionStatus @default(PENDING)
+  /// IP address of the submitter
+  ipAddress      String?
+  /// User agent of the submitter
+  userAgent      String?              @db.Text
+  /// Referrer URL
+  referrerUrl    String?              @db.Text
+  /// Landing page URL where form was submitted
+  landingPageUrl String?              @db.Text
+  /// When the submission was created
+  createdAt      DateTime             @default(now())
+  /// When the submission was last updated
+  updatedAt      DateTime             @updatedAt
+  /// Custom field slots - String (30 slots)
+  fieldString0   String?              @db.VarChar(255)
+  fieldString1   String?              @db.VarChar(255)
+  fieldString2   String?              @db.VarChar(255)
+  fieldString3   String?              @db.VarChar(255)
+  fieldString4   String?              @db.VarChar(255)
+  fieldString5   String?              @db.VarChar(255)
+  fieldString6   String?              @db.VarChar(255)
+  fieldString7   String?              @db.VarChar(255)
+  fieldString8   String?              @db.VarChar(255)
+  fieldString9   String?              @db.VarChar(255)
+  fieldString10  String?              @db.VarChar(255)
+  fieldString11  String?              @db.VarChar(255)
+  fieldString12  String?              @db.VarChar(255)
+  fieldString13  String?              @db.VarChar(255)
+  fieldString14  String?              @db.VarChar(255)
+  fieldString15  String?              @db.VarChar(255)
+  fieldString16  String?              @db.VarChar(255)
+  fieldString17  String?              @db.VarChar(255)
+  fieldString18  String?              @db.VarChar(255)
+  fieldString19  String?              @db.VarChar(255)
+  fieldString20  String?              @db.VarChar(255)
+  fieldString21  String?              @db.VarChar(255)
+  fieldString22  String?              @db.VarChar(255)
+  fieldString23  String?              @db.VarChar(255)
+  fieldString24  String?              @db.VarChar(255)
+  fieldString25  String?              @db.VarChar(255)
+  fieldString26  String?              @db.VarChar(255)
+  fieldString27  String?              @db.VarChar(255)
+  fieldString28  String?              @db.VarChar(255)
+  fieldString29  String?              @db.VarChar(255)
+  /// Custom field slots - Numeric (30 slots for dates and numbers)
+  fieldNum0      Float?
+  fieldNum1      Float?
+  fieldNum2      Float?
+  fieldNum3      Float?
+  fieldNum4      Float?
+  fieldNum5      Float?
+  fieldNum6      Float?
+  fieldNum7      Float?
+  fieldNum8      Float?
+  fieldNum9      Float?
+  fieldNum10     Float?
+  fieldNum11     Float?
+  fieldNum12     Float?
+  fieldNum13     Float?
+  fieldNum14     Float?
+  fieldNum15     Float?
+  fieldNum16     Float?
+  fieldNum17     Float?
+  fieldNum18     Float?
+  fieldNum19     Float?
+  fieldNum20     Float?
+  fieldNum21     Float?
+  fieldNum22     Float?
+  fieldNum23     Float?
+  fieldNum24     Float?
+
+  /// Parent form
+  form           Form                 @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([formId])
+  @@index([contactId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([workspaceId, fieldString0])
+  @@index([workspaceId, fieldString1])
+  @@index([workspaceId, fieldString2])
+  @@index([workspaceId, fieldString3])
+  @@index([workspaceId, fieldString4])
+  @@index([workspaceId, fieldNum0])
+  @@index([workspaceId, fieldNum1])
+  @@index([workspaceId, fieldNum2])
+  @@index([workspaceId, fieldNum3])
+  @@index([workspaceId, fieldNum4])
+  @@map("form_submissions")
+}
+
+/// Form status
+enum FormStatus {
+  DRAFT      // Draft form being edited
+  PUBLISHED  // Published form (active and accepting submissions)
+  ARCHIVED   // Archived form (no longer accepting submissions)
+}
+
+/// Form submission status
+enum FormSubmissionStatus {
+  PENDING   // Pending processing
+  PROCESSED // Successfully processed
+  SPAM      // Marked as spam
+  FAILED    // Processing failed
+}

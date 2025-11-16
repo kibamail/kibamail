@@ -106,7 +106,6 @@ export function CreateContactModal({
 
   const mutation = useMutation<unknown, Error, ContactFormData>({
     async mutationFn(data: ContactFormData) {
-      // Convert Date objects to Unix timestamps for properties
       const properties: Record<string, string | number> = {};
 
       if (data.properties) {
@@ -122,7 +121,9 @@ export function CreateContactModal({
       const payload = {
         email: data.email,
         topics: data.topics,
-        status: (data.subscribed ? "SUBSCRIBED" : "UNSUBSCRIBED") as ContactStatus,
+        status: (data.subscribed
+          ? "SUBSCRIBED"
+          : "UNSUBSCRIBED") as ContactStatus,
         subscribedAt: data.subscribed ? new Date() : undefined,
         properties: Object.keys(properties).length > 0 ? properties : undefined,
       };
@@ -227,72 +228,76 @@ export function CreateContactModal({
               </Switch.Root>
             </div>
 
-            {!propertiesLoading && contactProperties && contactProperties.length > 0 && (
-              <>
-                <div className="h-px bg-kb-stroke-secondary" />
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium leading-none">
-                      Contact Properties
-                    </p>
-                    <p className="text-sm text-kb-content-secondary mt-1">
-                      Add custom property values for this contact
-                    </p>
-                  </div>
+            {!propertiesLoading &&
+              contactProperties &&
+              contactProperties.length > 0 && (
+                <>
+                  <div className="h-px bg-kb-bg-secondary" />
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium leading-none">
+                        Contact Properties
+                      </p>
+                      <p className="text-sm text-kb-content-secondary mt-1">
+                        Add custom property values for this contact
+                      </p>
+                    </div>
 
-                  {contactProperties.map((property) => {
-                    if (property.type === "DATE") {
-                      return (
-                        <Controller
-                          key={property.name}
-                          name={`properties.${property.name}`}
-                          control={control}
-                          render={({ field }) => (
-                            <DateField.Root
-                              value={
-                                field.value instanceof Date ? field.value : undefined
-                              }
-                              onValueChange={(date) => field.onChange(date)}
-                              label={property.name}
-                              hint=""
-                            />
-                          )}
-                        />
-                      );
-                    }
+                    {contactProperties.map((property) => {
+                      if (property.type === "DATE") {
+                        return (
+                          <Controller
+                            key={property.name}
+                            name={`properties.${property.name}`}
+                            control={control}
+                            render={({ field }) => (
+                              <DateField.Root
+                                value={
+                                  field.value instanceof Date
+                                    ? field.value
+                                    : undefined
+                                }
+                                onValueChange={(date) => field.onChange(date)}
+                                label={property.name}
+                                hint=""
+                              />
+                            )}
+                          />
+                        );
+                      }
 
-                    if (property.type === "NUMBER") {
+                      if (property.type === "NUMBER") {
+                        return (
+                          <TextField.Root
+                            key={property.name}
+                            id={`property-${property.name}`}
+                            type="number"
+                            step="any"
+                            placeholder="Enter a number"
+                            {...register(`properties.${property.name}`, {
+                              valueAsNumber: true,
+                            })}
+                          >
+                            <TextField.Label>{property.name}</TextField.Label>
+                          </TextField.Root>
+                        );
+                      }
+
                       return (
                         <TextField.Root
                           key={property.name}
                           id={`property-${property.name}`}
-                          type="number"
-                          step="any"
-                          placeholder="Enter a number"
-                          {...register(`properties.${property.name}`, {
-                            valueAsNumber: true,
-                          })}
+                          type="text"
+                          placeholder="Enter a value"
+                          {...register(`properties.${property.name}`)}
                         >
                           <TextField.Label>{property.name}</TextField.Label>
                         </TextField.Root>
                       );
-                    }
-
-                    return (
-                      <TextField.Root
-                        key={property.name}
-                        id={`property-${property.name}`}
-                        type="text"
-                        placeholder="Enter a value"
-                        {...register(`properties.${property.name}`)}
-                      >
-                        <TextField.Label>{property.name}</TextField.Label>
-                      </TextField.Root>
-                    );
-                  })}
-                </div>
-              </>
-            )}
+                    })}
+                  </div>
+                </>
+              )}
           </div>
 
           <Dialog.Footer className="flex items-center justify-between">

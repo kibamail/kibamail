@@ -103,7 +103,7 @@ export function ApiKeysTable({ apiKeys, canManage }: ApiKeysTableProps) {
               <Table.Row key={apiKey.id}>
                 <Table.Cell className="font-medium">{apiKey.name}</Table.Cell>
                 <Table.Cell>
-                  <code className="text-xs bg-kb-bg-tertiary px-2 py-1 rounded">
+                  <code className="text-xs bg-kb-bg-secondary px-2 py-1 rounded">
                     {apiKey.keyPreview}
                   </code>
                 </Table.Cell>

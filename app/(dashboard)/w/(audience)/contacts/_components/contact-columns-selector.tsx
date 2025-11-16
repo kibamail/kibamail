@@ -70,7 +70,7 @@ export function ContactColumnsSelector({
 
         {contactProperties.length > 0 && (
           <>
-            <div className="h-px bg-kb-stroke-secondary my-2" />
+            <div className="h-px bg-kb-bg-secondary my-2" />
             <div className="px-2 py-1.5 text-xs font-semibold text-kb-content-tertiary">
               Custom Properties
             </div>
