@@ -169,20 +169,12 @@ export async function validateRequestBody<T>(
   options?: { shouldThrow?: boolean }
 ): Promise<ValidationResult<T> | T> {
   const shouldThrow = options?.shouldThrow ?? true;
+
+  let body: unknown;
   try {
-    const body = await request.json();
-
-    const result = validateRequest(schema, body);
-
-    if (!result.success) {
-      if (shouldThrow) {
-        throw result.error;
-      }
-      return result;
-    }
-
-    return shouldThrow ? result.data : result;
+    body = await request.json();
   } catch (_error) {
+    // JSON parsing failed
     const issues = [
       {
         code: "custom" as const,
@@ -204,4 +196,16 @@ export async function validateRequestBody<T>(
       error: zodError,
     };
   }
+
+  // Now validate the parsed body
+  const result = validateRequest(schema, body);
+
+  if (!result.success) {
+    if (shouldThrow) {
+      throw result.error;
+    }
+    return result;
+  }
+
+  return shouldThrow ? result.data : result;
 }

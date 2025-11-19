@@ -262,6 +262,18 @@ export const PERMISSIONS: PermissionDefinition[] = [
   },
 
   // ============================================================================
+  // FORMS MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:forms",
+    description: "View forms and their details",
+  },
+  {
+    name: "manage:forms",
+    description: "Full form management (create, update, delete forms and versions)",
+  },
+
+  // ============================================================================
   // WEBHOOKS
   // ============================================================================
   {
@@ -324,6 +336,9 @@ export const ROLES: Role[] = [
       // Suppression List - Full Access
       "read:suppression-list",
       "manage:suppression-list",
+      // Forms Management - Full Access
+      "read:forms",
+      "manage:forms",
     ],
   },
 
@@ -362,6 +377,9 @@ export const ROLES: Role[] = [
       // Suppression List - Full Access
       "read:suppression-list",
       "manage:suppression-list",
+      // Forms Management - Full Access
+      "read:forms",
+      "manage:forms",
     ],
   },
 
@@ -478,7 +496,10 @@ export type Permission =
   | "manage:segments"
   // Suppression List Management
   | "read:suppression-list"
-  | "manage:suppression-list";
+  | "manage:suppression-list"
+  // Forms Management
+  | "read:forms"
+  | "manage:forms";
 
 /**
  * Type: Role name

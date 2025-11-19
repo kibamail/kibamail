@@ -7,47 +7,13 @@ import * as Table from "@kibamail/owly/table";
 import { EditPencil, MoreHoriz, Trash, Eye, Copy } from "iconoir-react";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import Link from "next/link";
+import type { Form } from "@prisma/client";
 
-// Static data for demonstration
-const mockForms = [
-  {
-    id: "1",
-    name: "Newsletter Signup",
-    status: "live" as const,
-    submissions: 1247,
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Contact Us Form",
-    status: "live" as const,
-    submissions: 453,
-    createdAt: "2024-01-12",
-  },
-  {
-    id: "3",
-    name: "Product Feedback Survey",
-    status: "draft" as const,
-    submissions: 0,
-    createdAt: "2024-01-10",
-  },
-  {
-    id: "4",
-    name: "Event Registration",
-    status: "live" as const,
-    submissions: 892,
-    createdAt: "2024-01-08",
-  },
-  {
-    id: "5",
-    name: "Early Access Waitlist",
-    status: "draft" as const,
-    submissions: 0,
-    createdAt: "2024-01-05",
-  },
-];
+type FormWithSubmissions = Form & {
+  submissions: number;
+};
 
-function FormActionsDropdown({ form }: { form: (typeof mockForms)[0] }) {
+function FormActionsDropdown({ form }: { form: FormWithSubmissions }) {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -78,8 +44,8 @@ function FormActionsDropdown({ form }: { form: (typeof mockForms)[0] }) {
   );
 }
 
-export function FormsTable() {
-  if (mockForms.length === 0) {
+export function FormsTable({ forms }: { forms: FormWithSubmissions[] }) {
+  if (forms.length === 0) {
     return (
       <EmptyCard.Root>
         <EmptyCard.Title>No forms yet</EmptyCard.Title>
@@ -103,11 +69,11 @@ export function FormsTable() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {mockForms.map((form) => (
+          {forms.map((form) => (
             <Table.Row key={form.id}>
               <Table.Cell>
                 <Link
-                  href={`/w/forms/${form.id}`}
+                  href={`/forms/${form.id}`}
                   className="font-medium underline underline-offset-4 cursor-pointer hover:text-kb-content-tertiary transition ease-linear"
                 >
                   {form.name}
@@ -115,10 +81,20 @@ export function FormsTable() {
               </Table.Cell>
               <Table.Cell>
                 <Badge
-                  variant={form.status === "live" ? "success" : "neutral"}
+                  variant={
+                    form.status === "PUBLISHED"
+                      ? "success"
+                      : form.status === "DRAFT"
+                        ? "neutral"
+                        : "warning"
+                  }
                   size="sm"
                 >
-                  {form.status.charAt(0).toUpperCase() + form.status.slice(1)}
+                  {form.status === "PUBLISHED"
+                    ? "Live"
+                    : form.status === "DRAFT"
+                      ? "Draft"
+                      : "Archived"}
                 </Badge>
               </Table.Cell>
               <Table.Cell>

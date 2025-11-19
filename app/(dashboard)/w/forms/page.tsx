@@ -1,29 +1,59 @@
-import { Button } from "@kibamail/owly/button";
 import * as Tabs from "@kibamail/owly/tabs";
 import {
   DashboardLayoutStickyContentHeaderContainer,
   DashboardLayoutContentHeader,
   DashboardLayoutContentActions,
 } from "@kibamail/owly/dashboard-layout";
-import { Plus } from "iconoir-react";
 import { FormsTable } from "./_components/forms-table";
+import { CreateFormButton } from "./_components/create-form-button";
 import { SearchInput } from "@/app/(dashboard)/w/_components/search-input";
+import { getSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
 
-export default function FormsPage() {
+async function getForms(workspaceId: string) {
+  const forms = await prisma.form.findMany({
+    where: {
+      workspaceId,
+      parentId: null, // Only root forms
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+    include: {
+      _count: {
+        select: {
+          submissions: true,
+        },
+      },
+    },
+  });
+
+  return forms.map((form) => ({
+    ...form,
+    submissions: form._count.submissions,
+  }));
+}
+
+export default async function FormsPage() {
+  const session = await getSession();
+
+  if (!session.currentOrganization) {
+    throw new Error("No active workspace found");
+  }
+
+  const forms = await getForms(session.currentOrganization.id);
+
   return (
     <div className="w-full">
       <DashboardLayoutStickyContentHeaderContainer>
         <DashboardLayoutContentHeader title="Forms">
           <DashboardLayoutContentActions>
-            <Button>
-              <Plus className="w-4 h-4" />
-              Create Form
-            </Button>
+            <CreateFormButton />
           </DashboardLayoutContentActions>
         </DashboardLayoutContentHeader>
       </DashboardLayoutStickyContentHeaderContainer>
 
-      <div className="flex w-full flex-col gap-4 p-4">
+      <div className="flex w-full flex-col gap-4">
         <div className="flex items-center justify-between">
           <SearchInput placeholder="Search forms" />
 
@@ -37,7 +67,7 @@ export default function FormsPage() {
             </Tabs.List>
           </Tabs.Root>
         </div>
-        <FormsTable />
+        <FormsTable forms={forms} />
       </div>
     </div>
   );

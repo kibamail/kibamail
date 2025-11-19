@@ -105,6 +105,12 @@ import {
   createContactSchema,
   updateContactSchema,
 } from "@/app/api/v1/contacts/schema";
+import {
+  type CreateFormRequest,
+  type FormResponse,
+  createFormSchema,
+  formResponseSchema,
+} from "@/app/api/v1/forms/schema";
 
 type ApiErrorResponse = {
   error: string;
@@ -1129,6 +1135,68 @@ class ContactsApi extends HttpClient {
 }
 
 /**
+ * Forms API
+ *
+ * Internal API for form management.
+ */
+class FormsApi extends HttpClient {
+  /**
+   * Create a new form
+   *
+   * @param data - Form creation data
+   * @returns Created form
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const form = await internalApi.forms().create({
+   *   name: 'Newsletter Signup',
+   *   description: 'Sign up for our newsletter',
+   *   fields: { pages: [{ elements: [] }] }
+   * })
+   * ```
+   */
+  async create(data: CreateFormRequest): Promise<FormResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/forms",
+      createFormSchema,
+      formResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Update an existing form
+   *
+   * @param formId - ID of the form to update
+   * @param data - Form update data
+   * @returns Updated form
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const form = await internalApi.forms().update('form_123', {
+   *   name: 'Updated Form Name',
+   *   description: 'Updated description'
+   * })
+   * ```
+   */
+  async update(
+    formId: string,
+    data: Partial<CreateFormRequest>
+  ): Promise<FormResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/forms/${formId}`,
+      null,
+      formResponseSchema,
+      data
+    );
+  }
+}
+
+/**
  * Internal API SDK
  *
  * Provides namespaced, type-safe methods for all internal API endpoints.
@@ -1142,6 +1210,7 @@ export class InternalApi {
   private _segments: SegmentsApi;
   private _contactProperties: ContactPropertiesApi;
   private _contacts: ContactsApi;
+  private _forms: FormsApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
@@ -1152,6 +1221,7 @@ export class InternalApi {
     this._segments = new SegmentsApi();
     this._contactProperties = new ContactPropertiesApi();
     this._contacts = new ContactsApi();
+    this._forms = new FormsApi();
   }
 
   /**
@@ -1289,6 +1359,23 @@ export class InternalApi {
    */
   contacts() {
     return this._contacts;
+  }
+
+  /**
+   * Access forms API
+   *
+   * @returns FormsApi instance
+   *
+   * @example
+   * ```ts
+   * const form = await internalApi.forms().create({
+   *   name: 'Newsletter Signup',
+   *   fields: { pages: [] }
+   * })
+   * ```
+   */
+  forms() {
+    return this._forms;
   }
 }
 

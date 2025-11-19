@@ -31,6 +31,11 @@ import {
   segmentResponseSchema,
   segmentListResponseSchema,
 } from "@/app/api/v1/segments/schema";
+import {
+  createFormSchema,
+  updateFormSchema,
+  formResponseSchema,
+} from "@/app/api/v1/forms/schema";
 
 const standardErrorSchema = z.object({
   error: z.string(),
@@ -1047,6 +1052,279 @@ const document = createDocument({
           },
           "404": {
             description: "Not Found - Topic does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/forms": {
+      post: {
+        summary: "Create Form",
+        description: "Create a new form with SurveyJS configuration",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: createFormSchema },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Form created successfully",
+            content: {
+              "application/json": { schema: formResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Invalid input",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/forms/{formId}": {
+      get: {
+        summary: "Get Form",
+        description: "Retrieve a specific form by ID",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Form details",
+            content: {
+              "application/json": { schema: formResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Form does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+      put: {
+        summary: "Update Form",
+        description: "Update an existing form (DRAFT forms only)",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateFormSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description: "Form updated successfully",
+            content: {
+              "application/json": { schema: formResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Cannot update published or archived forms",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Form does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: "Delete Form",
+        description: "Delete a form and all its versions (if root form)",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Form deleted successfully",
+            content: {
+              "application/json": { schema: formResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Form does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/forms/{formId}/versions": {
+      post: {
+        summary: "Create Form Version",
+        description: "Create a new version of an existing form. All fields optional - derived from parent if not provided.",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID (can be root form or any version)",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateFormSchema },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Form version created successfully",
+            content: {
+              "application/json": { schema: formResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - DRAFT version already exists for this form",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Form does not exist",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "422": {
+            description: "Validation Error - Invalid field values",
+            content: {
+              "application/json": { schema: validationErrorSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/forms/{formId}/publish": {
+      post: {
+        summary: "Publish Form",
+        description: "Publish a form. Archives previous published version and updates root form's publishedVersionId. Supports rollback/rollforward.",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID to publish",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Form published successfully",
+            content: {
+              "application/json": { schema: formResponseSchema },
+            },
+          },
+          "400": {
+            description: "Bad Request - Form is already published",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            content: {
+              "application/json": { schema: standardErrorSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Form does not exist",
             content: {
               "application/json": { schema: standardErrorSchema },
             },

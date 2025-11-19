@@ -46,11 +46,8 @@ import { revalidatePath } from "next/cache";
 import type { NextRequest, NextResponse } from "next/server";
 import { NextResponse as NextResp } from "next/server";
 import { ZodError } from "zod";
-import { ApiError, UnauthorizedError, ConflictError, NotFoundError } from "@/lib/api/errors";
-import {
-  responseUnauthorized,
-  responseValidationFailed,
-} from "@/lib/api/responses";
+import { ApiError, UnauthorizedError } from "@/lib/api/errors";
+import { responseValidationFailed } from "@/lib/api/responses";
 import { getSession, type UserSession } from "@/lib/auth/get-session";
 import { requirePermissions } from "@/lib/auth/permissions";
 import type { Permission } from "@/config/rbac";
@@ -62,7 +59,7 @@ import type { ApiKey } from "@prisma/client";
  */
 type SessionHandler = (
   session: UserSession,
-  request: NextRequest,
+  request: NextRequest
 ) => Promise<NextResponse> | NextResponse;
 
 /**
@@ -137,7 +134,7 @@ type SessionHandler = (
 export async function withSession(
   request: NextRequest,
   handler: SessionHandler,
-  requiredPermissions?: Permission[],
+  requiredPermissions?: Permission[]
 ): Promise<NextResponse> {
   const session = await getSession();
 
@@ -201,7 +198,7 @@ type Handler = (request: NextRequest) => Promise<NextResponse> | NextResponse;
  */
 export async function withErrorHandling(
   request: NextRequest,
-  handler: Handler,
+  handler: Handler
 ): Promise<NextResponse> {
   try {
     return await handler(request);
@@ -213,7 +210,7 @@ export async function withErrorHandling(
           error: error.message,
           ...(error.fieldErrors && { fieldErrors: error.fieldErrors }),
         },
-        { status: error.statusCode },
+        { status: error.statusCode }
       );
     }
 
@@ -238,10 +235,7 @@ export async function withErrorHandling(
 
       // Record not found
       if (prismaError.code === "P2025") {
-        return NextResp.json(
-          { error: "Record not found" },
-          { status: 404 }
-        );
+        return NextResp.json({ error: "Record not found" }, { status: 404 });
       }
     }
 
@@ -252,7 +246,7 @@ export async function withErrorHandling(
             ? error.message
             : "An unexpected error occurred",
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -262,7 +256,7 @@ export async function withErrorHandling(
  */
 type ApiKeyHandler = (
   apiKey: ApiKey,
-  request: NextRequest,
+  request: NextRequest
 ) => Promise<NextResponse> | NextResponse;
 
 /**
@@ -322,14 +316,14 @@ async function hashApiKey(key: string): Promise<string> {
 export async function withApiSession(
   request: NextRequest,
   handler: ApiKeyHandler,
-  requiredScopes?: string[],
+  requiredScopes?: string[]
 ): Promise<NextResponse> {
   // Extract API key from Authorization header
   const authHeader = request.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new UnauthorizedError(
-      "Missing or invalid Authorization header. Expected format: Bearer <api_key>",
+      "Missing or invalid Authorization header. Expected format: Bearer <api_key>"
     );
   }
 
@@ -355,12 +349,12 @@ export async function withApiSession(
   if (requiredScopes && requiredScopes.length > 0) {
     const scopes = Array.isArray(apiKey.scopes) ? apiKey.scopes : [];
     const missingScopes = requiredScopes.filter(
-      (scope) => !scopes.includes(scope),
+      (scope) => !scopes.includes(scope)
     );
 
     if (missingScopes.length > 0) {
       throw new UnauthorizedError(
-        `Missing required scopes: ${missingScopes.join(", ")}`,
+        `Missing required scopes: ${missingScopes.join(", ")}`
       );
     }
   }

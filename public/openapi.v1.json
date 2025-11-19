@@ -258,6 +258,26 @@
                               "ARCHIVED"
                             ]
                           },
+                          "subscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unsubscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "properties": {
                             "type": "object",
                             "propertyNames": {
@@ -285,6 +305,8 @@
                           "timezone",
                           "city",
                           "status",
+                          "subscribedAt",
+                          "unsubscribedAt",
                           "properties"
                         ],
                         "additionalProperties": false
@@ -424,6 +446,26 @@
                       "ARCHIVED"
                     ]
                   },
+                  "subscribedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "unsubscribedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "properties": {
                     "type": "object",
                     "propertyNames": {
@@ -438,6 +480,13 @@
                           "type": "number"
                         }
                       ]
+                    }
+                  },
+                  "topics": {
+                    "default": [],
+                    "type": "array",
+                    "items": {
+                      "type": "string"
                     }
                   }
                 },
@@ -536,6 +585,26 @@
                         "ARCHIVED"
                       ]
                     },
+                    "subscribedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "unsubscribedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "properties": {
                       "type": "object",
                       "propertyNames": {
@@ -564,6 +633,8 @@
                     "timezone",
                     "city",
                     "status",
+                    "subscribedAt",
+                    "unsubscribedAt",
                     "properties"
                   ],
                   "additionalProperties": false
@@ -773,6 +844,26 @@
                         "ARCHIVED"
                       ]
                     },
+                    "subscribedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "unsubscribedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "properties": {
                       "type": "object",
                       "propertyNames": {
@@ -801,6 +892,8 @@
                     "timezone",
                     "city",
                     "status",
+                    "subscribedAt",
+                    "unsubscribedAt",
                     "properties"
                   ],
                   "additionalProperties": false
@@ -960,6 +1053,26 @@
                       "ARCHIVED"
                     ]
                   },
+                  "subscribedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "unsubscribedAt": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "properties": {
                     "type": "object",
                     "propertyNames": {
@@ -974,6 +1087,12 @@
                           "type": "number"
                         }
                       ]
+                    }
+                  },
+                  "topics": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
                     }
                   }
                 }
@@ -1069,6 +1188,26 @@
                         "ARCHIVED"
                       ]
                     },
+                    "subscribedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "unsubscribedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "properties": {
                       "type": "object",
                       "propertyNames": {
@@ -1097,6 +1236,8 @@
                     "timezone",
                     "city",
                     "status",
+                    "subscribedAt",
+                    "unsubscribedAt",
                     "properties"
                   ],
                   "additionalProperties": false
@@ -1341,9 +1482,6 @@
                               }
                             ]
                           },
-                          "slug": {
-                            "type": "string"
-                          },
                           "visibility": {
                             "type": "string",
                             "enum": [
@@ -1351,7 +1489,7 @@
                               "PRIVATE"
                             ]
                           },
-                          "isPrimary": {
+                          "defaultOptIn": {
                             "type": "boolean"
                           }
                         },
@@ -1359,9 +1497,8 @@
                           "id",
                           "name",
                           "description",
-                          "slug",
                           "visibility",
-                          "isPrimary"
+                          "defaultOptIn"
                         ],
                         "additionalProperties": false
                       }
@@ -1432,12 +1569,6 @@
                       }
                     ]
                   },
-                  "slug": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 100,
-                    "pattern": "^[a-z0-9-]+$"
-                  },
                   "visibility": {
                     "default": "PUBLIC",
                     "type": "string",
@@ -1446,14 +1577,13 @@
                       "PRIVATE"
                     ]
                   },
-                  "isPrimary": {
+                  "defaultOptIn": {
                     "default": false,
                     "type": "boolean"
                   }
                 },
                 "required": [
-                  "name",
-                  "slug"
+                  "name"
                 ]
               }
             }
@@ -1487,9 +1617,6 @@
                         }
                       ]
                     },
-                    "slug": {
-                      "type": "string"
-                    },
                     "visibility": {
                       "type": "string",
                       "enum": [
@@ -1497,7 +1624,7 @@
                         "PRIVATE"
                       ]
                     },
-                    "isPrimary": {
+                    "defaultOptIn": {
                       "type": "boolean"
                     }
                   },
@@ -1506,9 +1633,8 @@
                     "id",
                     "name",
                     "description",
-                    "slug",
                     "visibility",
-                    "isPrimary"
+                    "defaultOptIn"
                   ],
                   "additionalProperties": false
                 }
@@ -1657,9 +1783,6 @@
                         }
                       ]
                     },
-                    "slug": {
-                      "type": "string"
-                    },
                     "visibility": {
                       "type": "string",
                       "enum": [
@@ -1667,7 +1790,7 @@
                         "PRIVATE"
                       ]
                     },
-                    "isPrimary": {
+                    "defaultOptIn": {
                       "type": "boolean"
                     }
                   },
@@ -1676,9 +1799,8 @@
                     "id",
                     "name",
                     "description",
-                    "slug",
                     "visibility",
-                    "isPrimary"
+                    "defaultOptIn"
                   ],
                   "additionalProperties": false
                 }
@@ -1770,12 +1892,6 @@
                       }
                     ]
                   },
-                  "slug": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 100,
-                    "pattern": "^[a-z0-9-]+$"
-                  },
                   "visibility": {
                     "type": "string",
                     "enum": [
@@ -1783,7 +1899,7 @@
                       "PRIVATE"
                     ]
                   },
-                  "isPrimary": {
+                  "defaultOptIn": {
                     "type": "boolean"
                   }
                 }
@@ -1819,9 +1935,6 @@
                         }
                       ]
                     },
-                    "slug": {
-                      "type": "string"
-                    },
                     "visibility": {
                       "type": "string",
                       "enum": [
@@ -1829,7 +1942,7 @@
                         "PRIVATE"
                       ]
                     },
-                    "isPrimary": {
+                    "defaultOptIn": {
                       "type": "boolean"
                     }
                   },
@@ -1838,9 +1951,8 @@
                     "id",
                     "name",
                     "description",
-                    "slug",
                     "visibility",
-                    "isPrimary"
+                    "defaultOptIn"
                   ],
                   "additionalProperties": false
                 }
@@ -2006,9 +2118,6 @@
                         }
                       ]
                     },
-                    "slug": {
-                      "type": "string"
-                    },
                     "visibility": {
                       "type": "string",
                       "enum": [
@@ -2016,7 +2125,7 @@
                         "PRIVATE"
                       ]
                     },
-                    "isPrimary": {
+                    "defaultOptIn": {
                       "type": "boolean"
                     }
                   },
@@ -2025,9 +2134,8 @@
                     "id",
                     "name",
                     "description",
-                    "slug",
                     "visibility",
-                    "isPrimary"
+                    "defaultOptIn"
                   ],
                   "additionalProperties": false
                 }
@@ -2838,8 +2946,7 @@
                             "enum": [
                               "DATE",
                               "NUMBER",
-                              "STRING",
-                              "BOOLEAN"
+                              "STRING"
                             ]
                           },
                           "defaultValue": {
@@ -2923,8 +3030,7 @@
                     "enum": [
                       "DATE",
                       "NUMBER",
-                      "STRING",
-                      "BOOLEAN"
+                      "STRING"
                     ]
                   },
                   "defaultValue": {
@@ -2970,8 +3076,7 @@
                       "enum": [
                         "DATE",
                         "NUMBER",
-                        "STRING",
-                        "BOOLEAN"
+                        "STRING"
                       ]
                     },
                     "defaultValue": {
@@ -3134,8 +3239,7 @@
                       "enum": [
                         "DATE",
                         "NUMBER",
-                        "STRING",
-                        "BOOLEAN"
+                        "STRING"
                       ]
                     },
                     "defaultValue": {
@@ -3275,8 +3379,7 @@
                       "enum": [
                         "DATE",
                         "NUMBER",
-                        "STRING",
-                        "BOOLEAN"
+                        "STRING"
                       ]
                     },
                     "defaultValue": {
@@ -3456,8 +3559,7 @@
                       "enum": [
                         "DATE",
                         "NUMBER",
-                        "STRING",
-                        "BOOLEAN"
+                        "STRING"
                       ]
                     },
                     "defaultValue": {
@@ -3682,6 +3784,26 @@
                               "ARCHIVED"
                             ]
                           },
+                          "subscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unsubscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "properties": {
                             "type": "object",
                             "propertyNames": {
@@ -3709,6 +3831,8 @@
                           "timezone",
                           "city",
                           "status",
+                          "subscribedAt",
+                          "unsubscribedAt",
                           "properties"
                         ],
                         "additionalProperties": false
@@ -3946,6 +4070,26 @@
                               "ARCHIVED"
                             ]
                           },
+                          "subscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unsubscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "properties": {
                             "type": "object",
                             "propertyNames": {
@@ -3973,6 +4117,8 @@
                           "timezone",
                           "city",
                           "status",
+                          "subscribedAt",
+                          "unsubscribedAt",
                           "properties"
                         ],
                         "additionalProperties": false
@@ -4179,6 +4325,26 @@
                               "ARCHIVED"
                             ]
                           },
+                          "subscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "unsubscribedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
                           "properties": {
                             "type": "object",
                             "propertyNames": {
@@ -4206,6 +4372,8 @@
                           "timezone",
                           "city",
                           "status",
+                          "subscribedAt",
+                          "unsubscribedAt",
                           "properties"
                         ],
                         "additionalProperties": false
@@ -4243,6 +4411,1114 @@
           },
           "404": {
             "description": "Not Found - Topic does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/forms": {
+      "post": {
+        "summary": "Create Form",
+        "description": "Create a new form with SurveyJS configuration",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fields": {}
+                },
+                "required": [
+                  "name",
+                  "fields"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Form created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Invalid field values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/forms/{formId}": {
+      "get": {
+        "summary": "Get Form",
+        "description": "Retrieve a specific form by ID",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "Form ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Form details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Form does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Form",
+        "description": "Update an existing form (DRAFT forms only)",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "Form ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fields": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Form updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Cannot update published or archived forms",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Form does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Invalid field values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Form",
+        "description": "Delete a form and all its versions (if root form)",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "Form ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Form deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Form does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/forms/{formId}/versions": {
+      "post": {
+        "summary": "Create Form Version",
+        "description": "Create a new version of an existing form. All fields optional - derived from parent if not provided.",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "Form ID (can be root form or any version)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fields": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Form version created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - DRAFT version already exists for this form",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Form does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Invalid field values",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    },
+                    "fieldErrors": {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/forms/{formId}/publish": {
+      "post": {
+        "summary": "Publish Form",
+        "description": "Publish a form. Archives previous published version and updates root form's publishedVersionId. Supports rollback/rollforward.",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "Form ID to publish",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Form published successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Form is already published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Form does not exist",
             "content": {
               "application/json": {
                 "schema": {
