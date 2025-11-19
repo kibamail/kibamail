@@ -22,6 +22,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -76,8 +77,10 @@ describe("GET /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("not found");
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should not retrieve topic from different workspace", async () => {
@@ -94,7 +97,7 @@ describe("GET /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.message).toContain("not found");
 
     await cleanupWorkspace(otherWorkspace.id);
   });
@@ -113,7 +116,7 @@ describe("GET /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.message).toContain("scope");
   });
 });
 
@@ -188,7 +191,7 @@ describe("PUT /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.message).toContain("scope");
   });
 
   test("should return 404 when updating non-existent topic", async () => {
@@ -200,7 +203,10 @@ describe("PUT /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });
 
@@ -233,7 +239,10 @@ describe("DELETE /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject delete without delete:topics scope", async () => {
@@ -250,7 +259,7 @@ describe("DELETE /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.message).toContain("scope");
   });
 
   test("should not delete topic from different workspace", async () => {
@@ -267,7 +276,7 @@ describe("DELETE /api/v1/topics/[topicId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.message).toContain("not found");
 
     // Verify original topic still exists
     const getRequest = get(`/topics/${createdTopic.id}`, fullAccessApiKey.key);

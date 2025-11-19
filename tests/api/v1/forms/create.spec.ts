@@ -18,6 +18,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -74,8 +75,10 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Authorization header");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid API key", async () => {
@@ -108,8 +111,10 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with unrelated scope", async () => {
@@ -128,8 +133,10 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should accept request with write:forms scope", async () => {
@@ -182,8 +189,11 @@ describe("POST /api/v1/forms - Validation", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
-    expect(responseData.fieldErrors?.name).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject form with name exceeding max length", async () => {
@@ -197,8 +207,11 @@ describe("POST /api/v1/forms - Validation", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
-    expect(responseData.fieldErrors?.name).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject form with description exceeding max length", async () => {
@@ -213,8 +226,11 @@ describe("POST /api/v1/forms - Validation", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
-    expect(responseData.fieldErrors?.description).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
 

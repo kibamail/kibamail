@@ -19,6 +19,7 @@ import {
   type CreatedApiKey,
 } from "@/tests/utils";
 import { prisma } from "@/lib/db";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -90,8 +91,10 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should accept request with write:forms scope", async () => {
@@ -207,7 +210,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toContain("already published");
+    expect(responseData.error.message).toContain("already published");
   });
 
   test("should publish a new version and archive old published version", async () => {

@@ -17,6 +17,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -232,8 +233,11 @@ describe("POST /api/v1/automations", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
-    expect(responseData.fieldErrors).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject automation with invalid percentage split", async () => {
@@ -270,7 +274,11 @@ describe("POST /api/v1/automations", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject automation with edges referencing non-existent nodes", async () => {
@@ -302,7 +310,11 @@ describe("POST /api/v1/automations", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject automation with empty name", async () => {
@@ -328,7 +340,11 @@ describe("POST /api/v1/automations", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with missing Authorization header", async () => {
@@ -358,8 +374,10 @@ describe("POST /api/v1/automations", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Authorization header");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request without write:automations scope", async () => {
@@ -390,7 +408,9 @@ describe("POST /api/v1/automations", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });

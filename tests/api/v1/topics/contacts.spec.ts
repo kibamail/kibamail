@@ -20,6 +20,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -284,7 +285,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBe("Topic not found");
+    expect(responseData.error.message).toBe("Topic not found");
   });
 
   test("should not return contacts from different workspace", async () => {
@@ -337,7 +338,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBe("Topic not found");
+    expect(responseData.error.message).toBe("Topic not found");
 
     await cleanupWorkspace(workspace1.id);
     await cleanupWorkspace(workspace2.id);
@@ -372,8 +373,10 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should handle contact subscribed to multiple topics", async () => {

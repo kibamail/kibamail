@@ -37,13 +37,42 @@ import {
   formResponseSchema,
 } from "@/app/api/v1/forms/schema";
 
-const standardErrorSchema = z.object({
-  error: z.string(),
+/**
+ * Validation error detail structure
+ */
+const validationErrorDetailSchema = z.object({
+  field: z.string().describe("Field name that failed validation"),
+  code: z.string().describe("Error code for this field (e.g., INVALID_FIELD_VALUE)"),
+  message: z.string().describe("Human-readable error message for this field"),
 });
 
-const validationErrorSchema = z.object({
-  error: z.string(),
-  fieldErrors: z.record(z.string(), z.array(z.string())).optional(),
+/**
+ * Standard error response structure
+ * All API errors follow this consistent format
+ */
+const errorResponseSchema = z.object({
+  error: z.object({
+    type: z
+      .enum([
+        "authentication_error",
+        "invalid_request_error",
+        "validation_error",
+        "rate_limit_error",
+        "api_error",
+      ])
+      .describe("Error type category"),
+    code: z.string().describe("Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)"),
+    message: z.string().describe("Human-readable error message"),
+    requestId: z.string().describe("Unique request identifier for tracing (starts with req_)"),
+    validationErrors: z
+      .array(validationErrorDetailSchema)
+      .optional()
+      .describe("Field-level validation errors (only present for validation_error type)"),
+    details: z
+      .record(z.string(), z.unknown())
+      .optional()
+      .describe("Additional error context (optional)"),
+  }),
 });
 
 /**
@@ -131,13 +160,13 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing authentication",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -160,7 +189,7 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -186,25 +215,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
             description: "Conflict - Contact with this email already exists",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -237,13 +266,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Contact does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -280,25 +309,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Contact does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -326,13 +355,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Contact does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -355,7 +384,7 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -381,25 +410,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
             description: "Conflict - Topic with this slug already exists",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -432,13 +461,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Topic does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -475,31 +504,31 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Topic does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
             description: "Conflict - Topic with this slug already exists",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -530,13 +559,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Topic does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -559,7 +588,7 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -585,19 +614,19 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values or conditions",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -630,13 +659,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Segment does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -673,25 +702,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Segment does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values or conditions",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -722,13 +751,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Segment does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -751,7 +780,7 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -777,25 +806,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input or property limit reached",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
             description: "Conflict - Property with this name already exists",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -828,13 +857,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Contact property does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -871,31 +900,31 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Contact property does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
             description: "Conflict - Property with this name already exists",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -926,13 +955,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Contact property does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -961,19 +990,19 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid search conditions",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid condition fields",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1007,13 +1036,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Segment does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1047,13 +1076,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Topic does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1081,19 +1110,19 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Invalid input",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1126,13 +1155,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Form does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1169,25 +1198,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Cannot update published or archived forms",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Form does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1218,13 +1247,13 @@ const document = createDocument({
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Form does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1263,25 +1292,25 @@ const document = createDocument({
           "400": {
             description: "Bad Request - DRAFT version already exists for this form",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Form does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
             description: "Validation Error - Invalid field values",
             content: {
-              "application/json": { schema: validationErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },
@@ -1314,19 +1343,19 @@ const document = createDocument({
           "400": {
             description: "Bad Request - Form is already published",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or insufficient scopes",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
             description: "Not Found - Form does not exist",
             content: {
-              "application/json": { schema: standardErrorSchema },
+              "application/json": { schema: errorResponseSchema },
             },
           },
         },

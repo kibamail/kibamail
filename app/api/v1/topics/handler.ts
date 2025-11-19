@@ -12,8 +12,11 @@ import { validateRequestBody } from "@/lib/api/validation";
 import {
   responseCreated,
   responseOk,
-  responseNotFound,
 } from "@/lib/api/responses";
+import {
+  NotFoundError,
+} from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
@@ -116,7 +119,7 @@ export async function getTopic(workspaceId: string, topicId: string) {
   });
 
   if (!topic) {
-    return responseNotFound("Topic not found");
+    throw new NotFoundError("Topic not found", ErrorCode.TOPIC_NOT_FOUND);
   }
 
   return responseOk(
@@ -211,7 +214,7 @@ export async function getTopicContacts(
   });
 
   if (!topic) {
-    return responseNotFound("Topic not found");
+    throw new NotFoundError("Topic not found", ErrorCode.TOPIC_NOT_FOUND);
   }
 
   // Fetch contact properties for this workspace

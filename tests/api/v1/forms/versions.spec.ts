@@ -20,6 +20,7 @@ import {
   type CreatedApiKey,
 } from "@/tests/utils";
 import { prisma } from "@/lib/db";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -74,8 +75,10 @@ describe("POST /api/v1/forms/[formId]/versions - Authentication & Authorization"
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should accept request with write:forms scope", async () => {
@@ -365,7 +368,10 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should create multiple versions with incrementing version numbers", async () => {
@@ -508,7 +514,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     });
     const responseData = await version3Response.json();
 
-    expect(version3Response.status).toBe(400);
-    expect(responseData.error).toContain("DRAFT version already exists");
+    expect(version3Response.status).toBe(409);
+    expect(responseData.error.message).toContain("DRAFT version already exists");
   });
 });

@@ -15,9 +15,12 @@ import { prisma } from "@/lib/db";
 import {
   responseCreated,
   responseOk,
-  responseNotFound,
-  responseBadRequest,
 } from "@/lib/api/responses";
+import {
+  NotFoundError,
+  BadRequestError,
+} from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import {
   createContactPropertySchema,
   updateContactPropertySchema,
@@ -84,8 +87,9 @@ export async function createContactProperty(
 
   if (!slot) {
     const maxSlots = getMaxSlots(data.type);
-    return responseBadRequest(
-      `No available slots for property type ${data.type}. Maximum of ${maxSlots} properties per type reached.`
+    throw new BadRequestError(
+      `No available slots for property type ${data.type}. Maximum of ${maxSlots} properties per type reached.`,
+      ErrorCode.CONTACT_PROPERTY_LIMIT_REACHED
     );
   }
 
@@ -181,7 +185,7 @@ export async function getContactProperty(
   });
 
   if (!contactProperty) {
-    return responseNotFound("Contact property not found");
+    throw new NotFoundError("Contact property not found", ErrorCode.CONTACT_PROPERTY_NOT_FOUND);
   }
 
   return responseOk(
@@ -218,7 +222,7 @@ export async function updateContactProperty(
   });
 
   if (!existingProperty) {
-    return responseNotFound("Contact property not found");
+    throw new NotFoundError("Contact property not found", ErrorCode.CONTACT_PROPERTY_NOT_FOUND);
   }
 
   if (data.defaultValue !== undefined && data.defaultValue !== null) {
@@ -228,27 +232,31 @@ export async function updateContactProperty(
     if (type === "DATE") {
       const dateRegex = /^\d+$/;
       if (!dateRegex.test(value)) {
-        return responseBadRequest(
-          "Date default value must be a Unix timestamp in milliseconds"
+        throw new BadRequestError(
+          "Date default value must be a Unix timestamp in milliseconds",
+          ErrorCode.INVALID_FIELD_VALUE
         );
       }
       const timestamp = parseInt(value, 10);
       if (timestamp <= 0 || timestamp > Date.now() + 315360000000) {
-        return responseBadRequest(
-          "Unix timestamp must be a valid date within acceptable range"
+        throw new BadRequestError(
+          "Unix timestamp must be a valid date within acceptable range",
+          ErrorCode.INVALID_FIELD_VALUE
         );
       }
     } else if (type === "NUMBER") {
       const numberRegex = /^-?\d+(\.\d+)?$/;
       if (!numberRegex.test(value)) {
-        return responseBadRequest(
-          "Number default value must be a decimal number"
+        throw new BadRequestError(
+          "Number default value must be a decimal number",
+          ErrorCode.INVALID_FIELD_VALUE
         );
       }
     } else if (type === "STRING") {
       if (value.length < 1 || value.length > 255) {
-        return responseBadRequest(
-          "String default value must be 1-255 characters"
+        throw new BadRequestError(
+          "String default value must be 1-255 characters",
+          ErrorCode.INVALID_FIELD_VALUE
         );
       }
     }
@@ -293,7 +301,7 @@ export async function deleteContactProperty(
   });
 
   if (!property) {
-    return responseNotFound("Contact property not found");
+    throw new NotFoundError("Contact property not found", ErrorCode.CONTACT_PROPERTY_NOT_FOUND);
   }
 
   const timestamp = Date.now();

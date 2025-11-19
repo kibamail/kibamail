@@ -7,13 +7,14 @@
  * - DELETE /api/v1/api-keys/[keyId] - Delete API key
  */
 
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
+import { randomUUID } from "node:crypto";
+import { NextRequest } from "next/server";
 import { DELETE } from "@/app/api/v1/api-keys/[keyId]/route";
 import { GET, POST } from "@/app/api/v1/api-keys/route";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
 import { prisma } from "@/lib/db";
-import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { NextRequest } from "next/server";
-import { randomUUID } from "node:crypto";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 // Test data
 let testWorkspaceId: string;
@@ -29,7 +30,7 @@ function createRequest(
     method: string;
     headers?: Record<string, string>;
     body?: unknown;
-  }
+  },
 ): NextRequest {
   const headers = new Headers(options.headers || {});
 
@@ -118,8 +119,10 @@ describe("POST /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Authorization header");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid API key", async () => {
@@ -138,8 +141,10 @@ describe("POST /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Invalid API key");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INVALID_API_KEY);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid body (missing name)", async () => {
@@ -157,7 +162,11 @@ describe("POST /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid body (empty scopes)", async () => {
@@ -176,7 +185,11 @@ describe("POST /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });
 
@@ -261,7 +274,7 @@ describe("GET /api/v1/api-keys", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await GET(request);
@@ -284,7 +297,10 @@ describe("GET /api/v1/api-keys", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });
 
@@ -313,7 +329,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -338,7 +354,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -347,8 +363,10 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("currently being used");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("currently being used");
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject deleting non-existent API key", async () => {
@@ -360,7 +378,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -369,8 +387,10 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Could not find api key.");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("Could not find api key.");
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject deleting API key from different workspace", async () => {
@@ -392,7 +412,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -401,8 +421,10 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Could not find api key.");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("Could not find api key.");
+    expect(responseData.error.requestId).toBeDefined();
 
     await prisma.apiKey.delete({ where: { id: otherKey.id } });
   });
@@ -412,7 +434,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
       `http://localhost:3000/api/v1/api-keys/${keyToDelete}`,
       {
         method: "DELETE",
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -421,6 +443,9 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });

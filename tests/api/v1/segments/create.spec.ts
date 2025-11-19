@@ -17,6 +17,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -194,7 +195,11 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject segment with empty name", async () => {
@@ -212,7 +217,11 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject segment with name exceeding max length", async () => {
@@ -230,7 +239,11 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject segment with invalid operator", async () => {
@@ -248,7 +261,11 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with missing Authorization header", async () => {
@@ -266,8 +283,10 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Authorization header");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request without write:segments scope", async () => {
@@ -290,8 +309,10 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should trim whitespace from name", async () => {
@@ -374,6 +395,10 @@ describe("POST /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });

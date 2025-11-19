@@ -42,24 +42,32 @@
  * ```
  */
 
+import type { ApiKey } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import type { NextRequest, NextResponse } from "next/server";
 import { NextResponse as NextResp } from "next/server";
 import { ZodError } from "zod";
-import { ApiError, UnauthorizedError } from "@/lib/api/errors";
-import { responseValidationFailed } from "@/lib/api/responses";
+import type { Permission } from "@/config/rbac";
+import { ErrorCode } from "@/lib/api/error-codes";
+import {
+  ApiError,
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+  UnauthorizedError,
+  ValidationError,
+  type ValidationErrorDetail,
+} from "@/lib/api/errors";
 import { getSession, type UserSession } from "@/lib/auth/get-session";
 import { requirePermissions } from "@/lib/auth/permissions";
-import type { Permission } from "@/config/rbac";
 import { prisma } from "@/lib/db";
-import type { ApiKey } from "@prisma/client";
 
 /**
  * Handler that receives session and request
  */
 type SessionHandler = (
   session: UserSession,
-  request: NextRequest
+  request: NextRequest,
 ) => Promise<NextResponse> | NextResponse;
 
 /**
@@ -134,7 +142,7 @@ type SessionHandler = (
 export async function withSession(
   request: NextRequest,
   handler: SessionHandler,
-  requiredPermissions?: Permission[]
+  requiredPermissions?: Permission[],
 ): Promise<NextResponse> {
   const session = await getSession();
 
@@ -158,25 +166,59 @@ export async function withSession(
 type Handler = (request: NextRequest) => Promise<NextResponse> | NextResponse;
 
 /**
+ * Generate a unique request ID for tracing
+ */
+function generateRequestId(): string {
+  return `req_${crypto.randomUUID().replace(/-/g, "").substring(0, 24)}`;
+}
+
+/**
+ * Convert Zod errors to ValidationErrorDetail format
+ */
+function zodErrorToValidationDetails(
+  zodError: ZodError,
+): ValidationErrorDetail[] {
+  return zodError.issues.map((issue) => ({
+    field: issue.path.join("."),
+    code: ErrorCode.INVALID_FIELD_VALUE,
+    message: issue.message,
+  }));
+}
+
+/**
  * Global error handling middleware
  *
- * Catches all errors thrown in handlers and converts them to appropriate responses.
- * Handles ApiError, ZodError, and unexpected errors.
+ * Catches all errors thrown in handlers and converts them to standardized error responses.
+ * All errors follow the format:
+ * {
+ *   error: {
+ *     type: "validation_error",
+ *     code: "FORM_NOT_FOUND",
+ *     message: "Human readable message",
+ *     requestId: "req_abc123",
+ *     validationErrors?: [...],
+ *     details?: {...}
+ *   }
+ * }
+ *
+ * Handles:
+ * - ApiError (custom error classes)
+ * - ZodError (validation errors)
+ * - Prisma errors (database errors)
+ * - Unexpected errors
  *
  * @param request - Next.js request object
  * @param handler - Handler function to execute
- * @returns Response from handler or error response
+ * @returns Response from handler or standardized error response
  *
  * @example
  * ```ts
  * export async function POST(request: NextRequest) {
  *   return withErrorHandling(request, async (req) => {
- *     // Can throw any error
- *     throw new NotFoundError('User not found')
- *     throw new ValidationError('Invalid input', { email: ['Required'] })
+ *     // Can throw any error - will be converted to standard format
+ *     throw new NotFoundError('User not found', ErrorCode.RESOURCE_NOT_FOUND)
+ *     throw new ValidationError('Invalid input', ErrorCode.VALIDATION_FAILED, validationErrors)
  *     throw new Error('Something went wrong')
- *
- *     // All will be caught and converted to proper responses
  *   })
  * }
  * ```
@@ -186,9 +228,9 @@ type Handler = (request: NextRequest) => Promise<NextResponse> | NextResponse;
  * export async function POST(request: NextRequest) {
  *   return withErrorHandling(request, (req) =>
  *     withSession(req, async (session, req) => {
- *       // Errors thrown here are caught by withErrorHandling
+ *       // Errors thrown here are caught and standardized
  *       if (!session.currentOrganization) {
- *         throw new BadRequestError('No organization found')
+ *         throw new BadRequestError('No organization found', ErrorCode.RESOURCE_NOT_FOUND)
  *       }
  *       return responseOk({ org: session.currentOrganization })
  *     })
@@ -198,8 +240,10 @@ type Handler = (request: NextRequest) => Promise<NextResponse> | NextResponse;
  */
 export async function withErrorHandling(
   request: NextRequest,
-  handler: Handler
+  handler: Handler,
 ): Promise<NextResponse> {
+  const requestId = generateRequestId();
+
   try {
     return await handler(request);
   } catch (error) {
@@ -207,18 +251,48 @@ export async function withErrorHandling(
     if (error instanceof ApiError) {
       return NextResp.json(
         {
-          error: error.message,
-          ...(error.fieldErrors && { fieldErrors: error.fieldErrors }),
+          error: {
+            type: error.errorType,
+            code: error.errorCode,
+            message: error.message,
+            requestId,
+            ...(error.validationErrors &&
+              error.validationErrors.length > 0 && {
+                validationErrors: error.validationErrors,
+              }),
+            ...(error.details && { details: error.details }),
+          },
         },
-        { status: error.statusCode }
+        { status: error.statusCode },
       );
     }
 
+    // Handle Zod validation errors
     if (
       error instanceof ZodError ||
       (error && typeof error === "object" && "issues" in error)
     ) {
-      return responseValidationFailed(error as ZodError);
+      const zodError = error as ZodError;
+      const validationErrors = zodErrorToValidationDetails(zodError);
+
+      const validationError = new ValidationError(
+        "Validation failed",
+        ErrorCode.VALIDATION_FAILED,
+        validationErrors,
+      );
+
+      return NextResp.json(
+        {
+          error: {
+            type: validationError.errorType,
+            code: validationError.errorCode,
+            message: validationError.message,
+            requestId,
+            validationErrors: validationError.validationErrors,
+          },
+        },
+        { status: 422 },
+      );
     }
 
     // Handle Prisma errors
@@ -227,26 +301,82 @@ export async function withErrorHandling(
 
       // Unique constraint violation
       if (prismaError.code === "P2002") {
+        const conflictError = new ConflictError(
+          "A record with this information already exists",
+          ErrorCode.RESOURCE_ALREADY_EXISTS,
+        );
+
         return NextResp.json(
-          { error: "A record with this information already exists" },
-          { status: 409 }
+          {
+            error: {
+              type: conflictError.errorType,
+              code: conflictError.errorCode,
+              message: conflictError.message,
+              requestId,
+            },
+          },
+          { status: 409 },
         );
       }
 
       // Record not found
       if (prismaError.code === "P2025") {
-        return NextResp.json({ error: "Record not found" }, { status: 404 });
+        const notFoundError = new NotFoundError(
+          "Record not found",
+          ErrorCode.RESOURCE_NOT_FOUND,
+        );
+
+        return NextResp.json(
+          {
+            error: {
+              type: notFoundError.errorType,
+              code: notFoundError.errorCode,
+              message: notFoundError.message,
+              requestId,
+            },
+          },
+          { status: 404 },
+        );
       }
+
+      // Other database errors
+      const dbError = new InternalServerError(
+        "Database error occurred",
+        ErrorCode.DATABASE_ERROR,
+      );
+
+      return NextResp.json(
+        {
+          error: {
+            type: dbError.errorType,
+            code: dbError.errorCode,
+            message: dbError.message,
+            requestId,
+            details: {
+              prismaCode: prismaError.code,
+            },
+          },
+        },
+        { status: 500 },
+      );
     }
+
+    // Handle unexpected errors
+    const unexpectedError = new InternalServerError(
+      error instanceof Error ? error.message : "An unexpected error occurred",
+      ErrorCode.UNEXPECTED_ERROR,
+    );
 
     return NextResp.json(
       {
-        error:
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
+        error: {
+          type: unexpectedError.errorType,
+          code: unexpectedError.errorCode,
+          message: unexpectedError.message,
+          requestId,
+        },
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -256,7 +386,7 @@ export async function withErrorHandling(
  */
 type ApiKeyHandler = (
   apiKey: ApiKey,
-  request: NextRequest
+  request: NextRequest,
 ) => Promise<NextResponse> | NextResponse;
 
 /**
@@ -316,21 +446,25 @@ async function hashApiKey(key: string): Promise<string> {
 export async function withApiSession(
   request: NextRequest,
   handler: ApiKeyHandler,
-  requiredScopes?: string[]
+  requiredScopes?: string[],
 ): Promise<NextResponse> {
   // Extract API key from Authorization header
   const authHeader = request.headers.get("Authorization");
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new UnauthorizedError(
-      "Missing or invalid Authorization header. Expected format: Bearer <api_key>"
+      "Missing or invalid Authorization header. Expected format: Bearer <api_key>",
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
   }
 
   const apiKeyValue = authHeader.slice(7); // Remove "Bearer " prefix
 
   if (!apiKeyValue) {
-    throw new UnauthorizedError("API key is required");
+    throw new UnauthorizedError(
+      "API key is required",
+      ErrorCode.MISSING_API_KEY,
+    );
   }
 
   // Hash the API key
@@ -342,19 +476,20 @@ export async function withApiSession(
   });
 
   if (!apiKey) {
-    throw new UnauthorizedError("Invalid API key");
+    throw new UnauthorizedError("Invalid API key", ErrorCode.INVALID_API_KEY);
   }
 
   // Check required scopes if specified
   if (requiredScopes && requiredScopes.length > 0) {
     const scopes = Array.isArray(apiKey.scopes) ? apiKey.scopes : [];
     const missingScopes = requiredScopes.filter(
-      (scope) => !scopes.includes(scope)
+      (scope) => !scopes.includes(scope),
     );
 
     if (missingScopes.length > 0) {
       throw new UnauthorizedError(
-        `Missing required scopes: ${missingScopes.join(", ")}`
+        `Missing required scope: ${missingScopes.join(", ")}`,
+        ErrorCode.INSUFFICIENT_SCOPE,
       );
     }
   }

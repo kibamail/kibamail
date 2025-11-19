@@ -19,6 +19,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -83,7 +84,10 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with missing Authorization header", async () => {
@@ -93,7 +97,9 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Authorization header");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });

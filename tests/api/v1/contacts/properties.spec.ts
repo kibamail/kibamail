@@ -19,6 +19,7 @@ import {
   type CreatedApiKey,
 } from "@/tests/utils";
 import { prisma } from "@/lib/db";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;

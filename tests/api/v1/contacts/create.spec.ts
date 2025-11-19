@@ -20,6 +20,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -106,8 +107,10 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(409);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("already exists");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("already exists");
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with missing Authorization header", async () => {
@@ -118,8 +121,10 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Authorization header");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid API key", async () => {
@@ -130,8 +135,10 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("Invalid API key");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INVALID_API_KEY);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with missing email", async () => {
@@ -141,7 +148,11 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid email format", async () => {
@@ -151,7 +162,11 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid status", async () => {
@@ -162,7 +177,11 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request without write:contacts scope", async () => {
@@ -173,7 +192,9 @@ describe("POST /api/v1/contacts", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });

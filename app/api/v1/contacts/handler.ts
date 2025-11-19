@@ -14,9 +14,12 @@ import { prisma } from "@/lib/db";
 import {
   responseCreated,
   responseOk,
-  responseNotFound,
-  responseBadRequest,
 } from "@/lib/api/responses";
+import {
+  NotFoundError,
+  BadRequestError,
+} from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import {
   createContactSchema,
   updateContactSchema,
@@ -72,7 +75,8 @@ function buildContactProperties(
  *
  * @param properties - Object with property names as keys and values to set
  * @param contactProperties - Array of contact property definitions for the workspace
- * @returns Object with slot column names as keys and values to set, or error response
+ * @returns Object with slot column names as keys and values to set
+ * @throws BadRequestError if a property name doesn't exist in the workspace
  *
  * @example
  * ```ts
@@ -88,7 +92,7 @@ function buildContactProperties(
 function mapPropertiesToSlots(
   properties: Record<string, string | number>,
   contactProperties: Array<{ name: string; slot: string }>
-): { slotData?: Record<string, any>; error?: NextResponse } {
+): Record<string, any> {
   const slotData: Record<string, any> = {};
   const propertyNameToSlot = new Map(
     contactProperties.map((prop) => [prop.name, prop.slot])
@@ -98,17 +102,16 @@ function mapPropertiesToSlots(
     const slot = propertyNameToSlot.get(propertyName);
 
     if (!slot) {
-      return {
-        error: responseBadRequest(
-          `Property "${propertyName}" does not exist in this workspace`
-        ),
-      };
+      throw new BadRequestError(
+        `Property "${propertyName}" does not exist in this workspace`,
+        ErrorCode.INVALID_PARAMETER
+      );
     }
 
     slotData[slot] = propertyValue;
   }
 
-  return { slotData };
+  return slotData;
 }
 
 /**
@@ -133,13 +136,7 @@ export async function createContact(workspaceId: string, request: NextRequest) {
       select: { name: true, slot: true },
     });
 
-    const mappingResult = mapPropertiesToSlots(properties, contactProperties);
-
-    if (mappingResult.error) {
-      return mappingResult.error;
-    }
-
-    slotData = mappingResult.slotData || {};
+    slotData = mapPropertiesToSlots(properties, contactProperties);
   }
 
   const contact = await prisma.contact.create({
@@ -260,11 +257,12 @@ export async function searchContacts(
   // Validate that all fields in conditions are valid
   const validation = validateConditionFields(filters, contactProperties);
   if (!validation.isValid) {
-    return responseBadRequest(
+    throw new BadRequestError(
       `Invalid field(s) in conditions: ${validation.invalidFields.join(
         ", "
       )}. ` +
-        `Fields must be built-in contact fields or defined custom properties.`
+        `Fields must be built-in contact fields or defined custom properties.`,
+      ErrorCode.INVALID_PARAMETER
     );
   }
 
@@ -345,7 +343,7 @@ export async function getContact(workspaceId: string, contactId: string) {
   });
 
   if (!contact) {
-    return responseNotFound("Contact not found");
+    throw new NotFoundError("Contact not found", ErrorCode.CONTACT_NOT_FOUND);
   }
 
   return responseOk(
@@ -394,13 +392,7 @@ export async function updateContact(
       select: { name: true, slot: true },
     });
 
-    const mappingResult = mapPropertiesToSlots(properties, contactProperties);
-
-    if (mappingResult.error) {
-      return mappingResult.error;
-    }
-
-    slotData = mappingResult.slotData || {};
+    slotData = mapPropertiesToSlots(properties, contactProperties);
   }
 
   const updatedContact = await prisma.contact.update({

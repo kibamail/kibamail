@@ -26,6 +26,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -113,8 +114,10 @@ describe("GET /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("not found");
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should not retrieve automation from different workspace", async () => {
@@ -137,7 +140,7 @@ describe("GET /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.message).toContain("not found");
 
     await cleanupWorkspace(otherWorkspace.id);
   });
@@ -162,7 +165,10 @@ describe("GET /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });
 
@@ -314,7 +320,10 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should return 404 when updating non-existent automation", async () => {
@@ -330,7 +339,10 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });
 
@@ -372,7 +384,10 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject delete without delete:automations scope", async () => {
@@ -395,7 +410,10 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should not delete automation from different workspace", async () => {
@@ -418,7 +436,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.message).toContain("not found");
 
     // Verify original automation still exists
     const getRequest = get(

@@ -13,11 +13,14 @@ import {
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
 import {
-  responseBadRequest,
   responseCreated,
-  responseNotFound,
   responseOk,
 } from "@/lib/api/responses";
+import {
+  NotFoundError,
+  BadRequestError,
+} from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import {
@@ -51,9 +54,10 @@ export async function createSegment(workspaceId: string, request: NextRequest) {
     contactProperties,
   );
   if (!validation.isValid) {
-    return responseBadRequest(
+    throw new BadRequestError(
       `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
         `Fields must be built-in contact fields or defined custom properties.`,
+      ErrorCode.INVALID_PARAMETER
     );
   }
 
@@ -148,7 +152,7 @@ export async function getSegment(workspaceId: string, segmentId: string) {
   });
 
   if (!segment) {
-    return responseNotFound("Segment not found");
+    throw new NotFoundError("Segment not found", ErrorCode.SEGMENT_NOT_FOUND);
   }
 
   return responseOk(
@@ -191,9 +195,10 @@ export async function updateSegment(
       contactProperties,
     );
     if (!validation.isValid) {
-      return responseBadRequest(
+      throw new BadRequestError(
         `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
           `Fields must be built-in contact fields or defined custom properties.`,
+        ErrorCode.INVALID_PARAMETER
       );
     }
   }
@@ -277,7 +282,7 @@ export async function getSegmentContacts(
   });
 
   if (!segment) {
-    return responseNotFound("Segment not found");
+    throw new NotFoundError("Segment not found", ErrorCode.SEGMENT_NOT_FOUND);
   }
 
   // Fetch contact properties for this workspace

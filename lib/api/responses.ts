@@ -4,18 +4,27 @@
  * Standardized response utilities for Next.js API routes.
  * Provides consistent response formatting across all endpoints.
  *
+ * SUCCESS RESPONSES (use these):
+ * - responseOk() - 200 OK
+ * - responseCreated() - 201 Created
+ * - responseNoContent() - 204 No Content
+ *
+ * ERROR RESPONSES (DEPRECATED - throw errors instead):
+ * - Instead of responseBadRequest(), throw new BadRequestError()
+ * - Instead of responseNotFound(), throw new NotFoundError()
+ * - Instead of responseUnauthorized(), throw new UnauthorizedError()
+ * - All errors will be automatically formatted by withErrorHandling middleware
+ *
  * @example
  * ```ts
- * // Success responses
+ * // Success responses (correct usage)
  * return responseOk({ user: { id: '123', name: 'John' } })
  * return responseCreated({ workspace: { id: 'ws_1', name: 'Acme' } })
  *
- * // Error responses
- * return responseValidationFailed(zodError)
- * return responseBadRequest('Invalid input')
- * return responseNotFound('User not found')
- * return responseUnauthorized('Authentication required')
- * return responseServerError('Database connection failed')
+ * // Error responses (NEW - use throw instead)
+ * throw new NotFoundError('User not found', ErrorCode.RESOURCE_NOT_FOUND)
+ * throw new BadRequestError('Invalid input', ErrorCode.INVALID_PARAMETER)
+ * throw new ValidationError('Validation failed', ErrorCode.VALIDATION_FAILED, errors)
  * ```
  */
 
@@ -97,12 +106,17 @@ export function responseNoContent(): NextResponse {
 /**
  * 400 Bad Request - Invalid request
  *
+ * @deprecated Use `throw new BadRequestError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message
  * @returns NextResponse with status 400
  *
  * @example
  * ```ts
+ * // OLD (deprecated)
  * return responseBadRequest('Missing required field: email')
+ *
+ * // NEW (correct)
+ * throw new BadRequestError('Missing required field: email', ErrorCode.MISSING_PARAMETER)
  * ```
  */
 export function responseBadRequest(
@@ -114,13 +128,17 @@ export function responseBadRequest(
 /**
  * 401 Unauthorized - Authentication required or failed
  *
+ * @deprecated Use `throw new UnauthorizedError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message (defaults to "Authentication required")
  * @returns NextResponse with status 401
  *
  * @example
  * ```ts
- * return responseUnauthorized()
+ * // OLD (deprecated)
  * return responseUnauthorized('Invalid API key')
+ *
+ * // NEW (correct)
+ * throw new UnauthorizedError('Invalid API key', ErrorCode.INVALID_API_KEY)
  * ```
  */
 export function responseUnauthorized(
@@ -132,13 +150,17 @@ export function responseUnauthorized(
 /**
  * 403 Forbidden - Authenticated but not authorized
  *
+ * @deprecated Use `throw new ForbiddenError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message (defaults to "Access denied")
  * @returns NextResponse with status 403
  *
  * @example
  * ```ts
- * return responseForbidden()
+ * // OLD (deprecated)
  * return responseForbidden('You do not have permission to access this resource')
+ *
+ * // NEW (correct)
+ * throw new ForbiddenError('You do not have permission to access this resource', ErrorCode.ACCESS_DENIED)
  * ```
  */
 export function responseForbidden(
@@ -150,13 +172,17 @@ export function responseForbidden(
 /**
  * 404 Not Found - Resource not found
  *
+ * @deprecated Use `throw new NotFoundError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message (defaults to "Resource not found")
  * @returns NextResponse with status 404
  *
  * @example
  * ```ts
- * return responseNotFound()
+ * // OLD (deprecated)
  * return responseNotFound('Workspace not found')
+ *
+ * // NEW (correct)
+ * throw new NotFoundError('Workspace not found', ErrorCode.RESOURCE_NOT_FOUND)
  * ```
  */
 export function responseNotFound(
@@ -168,12 +194,17 @@ export function responseNotFound(
 /**
  * 409 Conflict - Request conflicts with current state
  *
+ * @deprecated Use `throw new ConflictError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message
  * @returns NextResponse with status 409
  *
  * @example
  * ```ts
+ * // OLD (deprecated)
  * return responseConflict('Email already exists')
+ *
+ * // NEW (correct)
+ * throw new ConflictError('Email already exists', ErrorCode.EMAIL_ALREADY_EXISTS)
  * ```
  */
 export function responseConflict(
@@ -185,13 +216,13 @@ export function responseConflict(
 /**
  * 422 Unprocessable Entity - Validation failed
  *
- * Automatically formats Zod validation errors into field-level errors.
- *
+ * @deprecated Zod errors are now automatically handled by withErrorHandling middleware. No need to call this function.
  * @param zodError - Zod validation error
  * @returns NextResponse with status 422 and field errors
  *
  * @example
  * ```ts
+ * // OLD (deprecated)
  * try {
  *   schema.parse(data)
  * } catch (error) {
@@ -199,15 +230,25 @@ export function responseConflict(
  *     return responseValidationFailed(error)
  *   }
  * }
+ *
+ * // NEW (correct) - Just let it throw, withErrorHandling will catch it
+ * const validatedData = schema.parse(data) // Will throw if validation fails
+ * // Or for custom validation errors:
+ * throw new ValidationError('Validation failed', ErrorCode.VALIDATION_FAILED, validationErrors)
  * ```
  *
- * Response format:
+ * New response format:
  * ```json
  * {
- *   "error": "Validation failed",
- *   "fieldErrors": {
- *     "name": ["Name must be at least 3 characters"],
- *     "email": ["Invalid email format"]
+ *   "error": {
+ *     "type": "validation_error",
+ *     "code": "VALIDATION_FAILED",
+ *     "message": "Validation failed",
+ *     "requestId": "req_abc123",
+ *     "validationErrors": [
+ *       { "field": "name", "code": "INVALID_FIELD_VALUE", "message": "Name must be at least 3 characters" },
+ *       { "field": "email", "code": "INVALID_FIELD_VALUE", "message": "Invalid email format" }
+ *     ]
  *   }
  * }
  * ```
@@ -237,13 +278,17 @@ export function responseValidationFailed(
 /**
  * 429 Too Many Requests - Rate limit exceeded
  *
+ * @deprecated Use `throw new RateLimitError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message (defaults to "Rate limit exceeded")
  * @returns NextResponse with status 429
  *
  * @example
  * ```ts
- * return responseRateLimitExceeded()
+ * // OLD (deprecated)
  * return responseRateLimitExceeded('Too many requests. Try again in 60 seconds')
+ *
+ * // NEW (correct)
+ * throw new RateLimitError('Too many requests. Try again in 60 seconds', ErrorCode.RATE_LIMIT_EXCEEDED)
  * ```
  */
 export function responseRateLimitExceeded(
@@ -255,13 +300,17 @@ export function responseRateLimitExceeded(
 /**
  * 500 Internal Server Error - Unexpected server error
  *
+ * @deprecated Use `throw new InternalServerError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message (defaults to "Internal server error")
  * @returns NextResponse with status 500
  *
  * @example
  * ```ts
- * return responseServerError()
+ * // OLD (deprecated)
  * return responseServerError('Database connection failed')
+ *
+ * // NEW (correct)
+ * throw new InternalServerError('Database connection failed', ErrorCode.DATABASE_ERROR)
  * ```
  */
 export function responseServerError(
@@ -273,13 +322,17 @@ export function responseServerError(
 /**
  * 503 Service Unavailable - Service temporarily unavailable
  *
+ * @deprecated Use `throw new ServiceUnavailableError()` instead. All errors are now handled by withErrorHandling middleware.
  * @param error - Error message (defaults to "Service temporarily unavailable")
  * @returns NextResponse with status 503
  *
  * @example
  * ```ts
- * return responseServiceUnavailable()
+ * // OLD (deprecated)
  * return responseServiceUnavailable('Maintenance in progress')
+ *
+ * // NEW (correct)
+ * throw new ServiceUnavailableError('Maintenance in progress', ErrorCode.SERVICE_UNAVAILABLE)
  * ```
  */
 export function responseServiceUnavailable(

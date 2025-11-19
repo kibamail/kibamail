@@ -22,6 +22,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -84,7 +85,11 @@ describe("GET /api/v1/segments/[segmentId]", () => {
 
     expect(response.status).toBe(404);
     expect(responseData.error).toBeDefined();
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("not found");
+    expect(responseData.error.requestId).toBeDefined();
+    expect(responseData.error.requestId).toMatch(/^req_/);
   });
 
   test("should not retrieve segment from different workspace", async () => {
@@ -101,7 +106,12 @@ describe("GET /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("not found");
+    expect(responseData.error.requestId).toBeDefined();
+    expect(responseData.error.requestId).toMatch(/^req_/);
 
     await cleanupWorkspace(otherWorkspace.id);
   });
@@ -120,7 +130,11 @@ describe("GET /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 });
 
@@ -217,7 +231,13 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toContain("Validation failed");
+    expect(responseData.error.requestId).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.validationErrors.length).toBeGreaterThan(0);
   });
 
   test("should reject update without update:segments scope", async () => {
@@ -235,7 +255,11 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should return 404 when updating non-existent segment", async () => {
@@ -248,6 +272,11 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
 
     expect(response.status).toBe(404);
     expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
+    expect(responseData.error.requestId).toMatch(/^req_/);
   });
 });
 
@@ -281,6 +310,11 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
 
     expect(response.status).toBe(404);
     expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
+    expect(responseData.error.requestId).toMatch(/^req_/);
   });
 
   test("should reject delete without delete:segments scope", async () => {
@@ -297,7 +331,11 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should not delete segment from different workspace", async () => {
@@ -314,7 +352,12 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toContain("not found");
+    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toContain("not found");
+    expect(responseData.error.requestId).toBeDefined();
+    expect(responseData.error.requestId).toMatch(/^req_/);
 
     // Verify original segment still exists
     const getRequest = get(`/segments/${createdSegment.id}`, fullAccessApiKey.key);

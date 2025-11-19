@@ -13,11 +13,14 @@ import {
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
 import {
-  responseBadRequest,
   responseCreated,
-  responseNotFound,
   responseOk,
 } from "@/lib/api/responses";
+import {
+  NotFoundError,
+  BadRequestError,
+} from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import { createAutomationSchema, updateAutomationSchema } from "./schema";
@@ -159,7 +162,7 @@ export async function getAutomation(
   });
 
   if (!automation) {
-    return responseNotFound("Automation not found");
+    throw new NotFoundError("Automation not found", ErrorCode.RESOURCE_NOT_FOUND);
   }
 
   return responseOk(formatAutomationResponse(automation), "automation");
@@ -189,12 +192,13 @@ export async function updateAutomation(
   });
 
   if (!automation) {
-    return responseNotFound("Automation not found");
+    throw new NotFoundError("Automation not found", ErrorCode.RESOURCE_NOT_FOUND);
   }
 
   if (automation.status !== "DRAFT") {
-    return responseBadRequest(
-      "Only DRAFT automations can be updated. Create a new version to modify a PUBLISHED automation."
+    throw new BadRequestError(
+      "Only DRAFT automations can be updated. Create a new version to modify a PUBLISHED automation.",
+      ErrorCode.INVALID_PARAMETER
     );
   }
 
@@ -240,12 +244,13 @@ export async function deleteAutomation(
   });
 
   if (!automation) {
-    return responseNotFound("Automation not found");
+    throw new NotFoundError("Automation not found", ErrorCode.RESOURCE_NOT_FOUND);
   }
 
   if (automation.status === "PUBLISHED") {
-    return responseBadRequest(
-      "Cannot delete a PUBLISHED automation. Archive it first or create a new version."
+    throw new BadRequestError(
+      "Cannot delete a PUBLISHED automation. Archive it first or create a new version.",
+      ErrorCode.INVALID_PARAMETER
     );
   }
 

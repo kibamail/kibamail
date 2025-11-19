@@ -24,6 +24,7 @@ import {
   type CreatedApiKey,
 } from "@/tests/utils";
 import { prisma } from "@/lib/db";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -107,7 +108,10 @@ describe("GET /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should require read:forms scope", async () => {
@@ -127,7 +131,7 @@ describe("GET /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.message).toContain("scope");
   });
 });
 
@@ -256,7 +260,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toContain("DRAFT");
+    expect(responseData.error.message).toContain("DRAFT");
   });
 
   test("should not allow updating archived forms", async () => {
@@ -294,7 +298,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toContain("DRAFT");
+    expect(responseData.error.message).toContain("DRAFT");
   });
 
   test("should return 404 for non-existent form", async () => {
@@ -310,7 +314,10 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should require update:forms scope", async () => {
@@ -331,7 +338,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.message).toContain("scope");
   });
 });
 
@@ -378,7 +385,10 @@ describe("DELETE /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
-    expect(responseData.error).toBeDefined();
+    expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
+    expect(responseData.error.code).toBeDefined();
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should require delete:forms scope", async () => {
@@ -395,7 +405,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
-    expect(responseData.error).toContain("scope");
+    expect(responseData.error.message).toContain("scope");
   });
 
   test("should delete a version without affecting parent or other versions", async () => {

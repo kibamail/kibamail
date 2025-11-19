@@ -8,12 +8,13 @@
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { validateRequestBody } from "@/lib/api/validation";
+import { responseCreated, responseOk } from "@/lib/api/responses";
 import {
-  responseBadRequest,
-  responseCreated,
-  responseNotFound,
-  responseOk,
-} from "@/lib/api/responses";
+  NotFoundError,
+  BadRequestError,
+  ConflictError,
+} from "@/lib/api/errors";
+import { ErrorCode } from "@/lib/api/error-codes";
 import { createFormSchema, updateFormSchema } from "./schema";
 
 /**
@@ -61,7 +62,7 @@ export async function getForm(workspaceId: string, formId: string) {
   });
 
   if (!form) {
-    return responseNotFound("Form not found");
+    throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
   return responseOk(
@@ -103,12 +104,13 @@ export async function updateForm(
   });
 
   if (!existingForm) {
-    return responseNotFound("Form not found");
+    throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
   if (existingForm.status !== "DRAFT") {
-    return responseBadRequest(
-      "Only forms in DRAFT status can be edited. Published or archived forms cannot be modified."
+    throw new BadRequestError(
+      "Only forms in DRAFT status can be edited. Published or archived forms cannot be modified.",
+      ErrorCode.FORM_NOT_EDITABLE
     );
   }
 
@@ -154,7 +156,7 @@ export async function deleteForm(workspaceId: string, formId: string) {
   });
 
   if (!form) {
-    return responseNotFound("Form not found");
+    throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
   // If it's a root form (parentId=null), delete all child versions first
@@ -219,7 +221,7 @@ export async function createFormVersion(
   });
 
   if (!sourceForm) {
-    return responseNotFound("Form not found");
+    throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
   // Determine the root parent ID
@@ -239,8 +241,9 @@ export async function createFormVersion(
   });
 
   if (existingDraft) {
-    return responseBadRequest(
-      "A DRAFT version already exists for this form. Please publish or delete it before creating a new version."
+    throw new ConflictError(
+      "A DRAFT version already exists for this form. Please publish or delete it before creating a new version.",
+      ErrorCode.FORM_HAS_DRAFT_VERSION
     );
   }
 
@@ -298,12 +301,15 @@ export async function publishForm(workspaceId: string, formId: string) {
   });
 
   if (!form) {
-    return responseNotFound("Form not found");
+    throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
   // Check if already published
   if (form.status === "PUBLISHED") {
-    return responseBadRequest("Form is already published");
+    throw new BadRequestError(
+      "Form is already published",
+      ErrorCode.FORM_ALREADY_PUBLISHED
+    );
   }
 
   // Root form (first publish)

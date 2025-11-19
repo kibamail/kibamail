@@ -19,6 +19,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -411,7 +412,11 @@ describe("POST /api/v1/contacts/search", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject search with invalid condition structure", async () => {
@@ -429,7 +434,11 @@ describe("POST /api/v1/contacts/search", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(422);
-    expect(responseData.error).toBe("Validation failed");
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+    expect(responseData.error.message).toBeDefined();
+    expect(responseData.error.validationErrors).toBeDefined();
+    expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should enforce maximum limit of 100", async () => {
@@ -718,8 +727,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error).toContain("Invalid field(s) in conditions");
-    expect(responseData.error).toContain(`NonExistentProperty_${timestamp}`);
+    expect(responseData.error.message).toContain("Invalid field(s) in conditions");
+    expect(responseData.error.message).toContain(`NonExistentProperty_${timestamp}`);
 
     await cleanupWorkspace(workspace.id);
   });
