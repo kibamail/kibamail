@@ -1,6 +1,7 @@
 /**
  * Forms Collection Route (External API)
  *
+ * GET    /api/v1/forms - List all forms
  * POST   /api/v1/forms - Create new form
  *
  * Authentication: API Key (Bearer token)
@@ -9,7 +10,23 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { createForm } from "./handler";
+import { createForm, listForms } from "./handler";
+
+/**
+ * GET /api/v1/forms
+ *
+ * List all forms with cursor-based pagination
+ * Requires API key authentication with read:forms scope
+ */
+export async function GET(request: NextRequest) {
+  return withErrorHandling(request, () =>
+    withApiSession(
+      request,
+      (apiKey, request) => listForms(apiKey.workspaceId, request),
+      ["read:forms"]
+    )
+  );
+}
 
 /**
  * POST /api/v1/forms

@@ -16,6 +16,10 @@ import {
 } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { createFormSchema, updateFormSchema } from "./schema";
+import {
+  createCursorPaginatedResponse,
+  parseCursorPaginationParams,
+} from "@/lib/api/pagination";
 
 /**
  * POST /api/v1/forms
@@ -43,6 +47,64 @@ export async function createForm(workspaceId: string, request: NextRequest) {
       id: form.id,
     },
     "form"
+  );
+}
+
+/**
+ * GET /api/v1/forms
+ *
+ * List all root forms for the workspace with cursor-based pagination.
+ * Only returns top-level forms (parentId is null).
+ * Use GET /v1/forms/{formId}/versions to get versions of a specific form.
+ * Workspace is determined from the authenticated API key.
+ *
+ * Supports cursor-based pagination with:
+ * - after: Cursor to fetch forms after this ID
+ * - before: Cursor to fetch forms before this ID
+ * - limit: Number of forms per page (default 20, max 100)
+ */
+export async function listForms(workspaceId: string, request: NextRequest) {
+  const { limit, after, before } = parseCursorPaginationParams(request);
+
+  const baseQuery = {
+    where: {
+      workspaceId,
+      parentId: null, // Only root forms
+    },
+    orderBy: before ? { id: "asc" as const } : { id: "desc" as const },
+    take: limit + 1,
+  };
+
+  const forms = after
+    ? await prisma.form.findMany({
+        ...baseQuery,
+        cursor: { id: after },
+        skip: 1,
+      })
+    : before
+      ? await prisma.form.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.form.findMany(baseQuery);
+
+  const hasMore = forms.length > limit;
+  const items = hasMore ? forms.slice(0, -1) : forms;
+
+  if (before) {
+    items.reverse();
+  }
+
+  const formattedForms = items.map((form) => ({
+    id: form.id,
+    name: form.name,
+    description: form.description,
+    status: form.status,
+  }));
+
+  return responseOk(
+    createCursorPaginatedResponse(formattedForms, hasMore, "form_list")
   );
 }
 
@@ -79,6 +141,57 @@ export async function getForm(workspaceId: string, formId: string) {
       updatedAt: form.updatedAt.toISOString(),
     },
     "form"
+  );
+}
+
+/**
+ * GET /api/v1/forms/[formId]/versions
+ *
+ * List all versions of a specific form.
+ * Returns the root form and all its child versions.
+ * Workspace is determined from the authenticated API key.
+ */
+export async function listFormVersions(workspaceId: string, formId: string) {
+  // First verify the root form exists and belongs to this workspace
+  const rootForm = await prisma.form.findFirst({
+    where: {
+      id: formId,
+      workspaceId,
+      parentId: null, // Must be a root form
+    },
+  });
+
+  if (!rootForm) {
+    throw new NotFoundError(
+      "Form not found or is not a root form",
+      ErrorCode.FORM_NOT_FOUND
+    );
+  }
+
+  // Get all versions (including root form)
+  const versions = await prisma.form.findMany({
+    where: {
+      workspaceId,
+      OR: [{ id: formId }, { parentId: formId }],
+    },
+    orderBy: {
+      version: "asc",
+    },
+  });
+
+  const formattedVersions = versions.map((version) => ({
+    id: version.id,
+    name: version.name,
+    description: version.description,
+    status: version.status,
+    version: version.version,
+  }));
+
+  return responseOk(
+    {
+      object: "form_version_list",
+      data: formattedVersions,
+    }
   );
 }
 

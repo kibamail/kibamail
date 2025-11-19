@@ -1,6 +1,7 @@
 /**
  * Form Versions Route (External API)
  *
+ * GET  /api/v1/forms/[formId]/versions - List all versions of a form
  * POST /api/v1/forms/[formId]/versions - Create new version
  *
  * Authentication: API Key (Bearer token)
@@ -9,7 +10,28 @@
 
 import type { NextRequest } from "next/server";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-import { createFormVersion } from "../../handler";
+import { createFormVersion, listFormVersions } from "../../handler";
+
+/**
+ * GET /api/v1/forms/[formId]/versions
+ *
+ * List all versions of a form (root form and all child versions)
+ * Requires API key authentication with read:forms scope
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
+  const { formId } = await params;
+
+  return withErrorHandling(request, () =>
+    withApiSession(
+      request,
+      (apiKey) => listFormVersions(apiKey.workspaceId, formId),
+      ["read:forms"]
+    )
+  );
+}
 
 /**
  * POST /api/v1/forms/[formId]/versions

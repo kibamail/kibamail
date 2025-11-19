@@ -150,10 +150,12 @@ export function parseCursorPaginationParams(
   const searchParams = request.nextUrl.searchParams;
 
   const limitParam = searchParams.get("limit");
-  const limit = Math.min(
-    MAX_LIMIT,
-    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT)))
-  );
+  const parsedLimit = Number.parseInt(limitParam ?? String(DEFAULT_LIMIT));
+
+  // Handle NaN by defaulting to DEFAULT_LIMIT
+  const limit = Number.isNaN(parsedLimit)
+    ? DEFAULT_LIMIT
+    : Math.min(MAX_LIMIT, Math.max(1, parsedLimit));
 
   const after = searchParams.get("after") || undefined;
   const before = searchParams.get("before") || undefined;

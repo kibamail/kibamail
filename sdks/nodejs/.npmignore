@@ -1,0 +1,23 @@
+# Source files
+*.ts
+!*.d.ts
+
+# Config files
+tsconfig.json
+tsconfig.build.json
+generate-dts.ts
+bun.lock
+CLAUDE.md
+
+# Development
+node_modules
+.DS_Store
+*.log
+*.tsbuildinfo
+
+# Only publish dist folder
+*
+!dist/**
+!package.json
+!README.md
+!LICENSE

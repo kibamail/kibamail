@@ -3,23 +3,23 @@
   "info": {
     "title": "Kibamail API",
     "version": "1.0.0",
-    "description": "API for managing contacts, campaigns, and email marketing operations"
+    "description": "# Kibamail API\n\nThe Kibamail API provides a comprehensive set of endpoints for managing your email marketing operations programmatically.\n\n## Key Features\n\n- **Contacts Management**: Create, update, and segment your contact lists with custom properties\n- **Topics & Subscriptions**: Manage email topics and subscriber preferences\n- **Forms**: Create and publish embeddable forms for lead capture\n- **Segments**: Build dynamic audience segments using flexible filtering conditions\n- **Automations**: Set up automated email workflows triggered by contact behavior\n- **API Keys**: Secure, scoped API key management for workspace access\n\n## Authentication\n\nAll API requests require authentication using an API key. Include your API key in the Authorization header:\n\n```\nAuthorization: Bearer sk_your_api_key_here\n```\n\nAPI keys are scoped to specific permissions (read/write for each resource type). Generate keys from your workspace settings.\n\n## Rate Limiting\n\n- **Rate Limit**: 1000 requests per minute per API key\n- **Burst Limit**: 100 requests per second\n- Rate limit headers are included in all responses\n\n## Pagination\n\nList endpoints use cursor-based pagination for optimal performance:\n- `limit`: Number of items (1-100, default 20)\n- `after`: Cursor for next page (ID of last item)\n- `before`: Cursor for previous page (ID of first item)\n\nResponses include `hasMore` and `hasPrevious` flags for navigation.\n\n## Error Handling\n\nAll errors follow a consistent format with:\n- `type`: Error category (authentication_error, validation_error, etc.)\n- `code`: Specific error code (FORM_NOT_FOUND, INSUFFICIENT_SCOPE, etc.)\n- `message`: Human-readable description\n- `requestId`: Unique identifier for debugging\n- `validationErrors`: Field-level errors (for validation failures)\n\n## Webhooks\n\nConfigure webhooks to receive real-time notifications for:\n- Contact created/updated/unsubscribed\n- Form submissions\n- Automation triggers\n- Topic subscriptions/unsubscriptions\n\n## SDKs\n\nOfficial SDKs available for:\n- Node.js/TypeScript\n- Python\n- PHP\n- Ruby\n\nVisit https://docs.kibamail.com for detailed guides and tutorials."
   },
   "servers": [
     {
       "url": "https://api.kibamail.com",
-      "description": "Production server"
+      "description": "Production server - Use this for live applications"
     },
     {
       "url": "http://localhost:3000/api",
-      "description": "Local development server"
+      "description": "Local development server - For testing during development"
     }
   ],
   "paths": {
     "/v1/api-keys/": {
       "post": {
         "summary": "Create API Key",
-        "description": "Create a new API key for workspace authentication",
+        "description": "Generate a new API key for programmatic workspace access.\n\n**Use Cases:**\n- Set up server-side integrations with your application\n- Create separate keys for different environments (dev, staging, production)\n- Generate keys with specific scopes for third-party integrations\n- Replace compromised or leaked API keys\n\n**Behavior:**\n- Returns the full API key ONLY on creation (starts with 'sk_')\n- Key is securely hashed before storage - cannot be retrieved again\n- Keys are scoped to specific permissions you define\n- Each key can have a custom name for identification\n- Keys remain active until explicitly revoked\n- No limit on number of active keys per workspace\n\n**Required Scope:** This endpoint requires session authentication (not API key)\n\n**Security Best Practices:**\n- Store the returned key securely immediately\n- Never commit keys to version control\n- Use environment variables for key storage\n- Rotate keys periodically (recommended: every 90 days)\n- Use minimum required scopes for each key\n- Revoke unused keys immediately\n\n**Note:** You cannot view the full key value after creation. If lost, generate a new key and update your integrations.",
         "tags": [
           "API Keys"
         ],
@@ -54,7 +54,7 @@
         },
         "responses": {
           "200": {
-            "description": "API key created successfully",
+            "description": "API key created successfully. The full key value is included in the response and cannot be retrieved again.",
             "content": {
               "application/json": {
                 "schema": {
@@ -78,7 +78,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid input data, such as invalid scopes or missing required fields",
             "content": {
               "application/json": {
                 "schema": {
@@ -164,7 +164,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing authentication",
+            "description": "Unauthorized - Invalid or missing session authentication. This endpoint requires user login, not API key authentication.",
             "content": {
               "application/json": {
                 "schema": {
@@ -255,7 +255,7 @@
     "/v1/contacts": {
       "get": {
         "summary": "List Contacts",
-        "description": "Retrieve a paginated list of contacts using cursor-based pagination",
+        "description": "Retrieve a paginated list of all contacts in your workspace.\n\n**Use Cases:**\n- Export your entire contact database\n- Build custom contact management dashboards\n- Sync contacts with external CRM systems\n- Generate contact reports and analytics\n- Display contact lists in your application\n\n**Behavior:**\n- Returns contacts in reverse chronological order (newest first)\n- Uses cursor-based pagination for efficient data retrieval\n- Includes all contact properties (default and custom)\n- Includes subscription status and topic memberships\n- Maximum 100 contacts per request (use 'limit' parameter)\n- Deleted contacts are not included in results\n\n**Required Scope:** `read:contacts`\n\n**Pagination:**\n- Use 'after' cursor to fetch the next page\n- Use 'before' cursor to fetch the previous page\n- Response includes 'hasMore' and 'hasPrevious' flags\n- Cursors are based on contact IDs for stable pagination\n\n**Performance Tips:**\n- Use the maximum limit (100) for bulk exports\n- Cache results when possible to reduce API calls\n- For filtered results, use the /v1/contacts/search endpoint instead",
         "tags": [
           "Contacts"
         ],
@@ -298,7 +298,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of contacts",
+            "description": "Successfully retrieved paginated list of contacts with their properties, subscriptions, and metadata",
             "content": {
               "application/json": {
                 "schema": {
@@ -458,7 +458,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -547,7 +547,7 @@
       },
       "post": {
         "summary": "Create Contact",
-        "description": "Create a new contact in the workspace",
+        "description": "Create a new contact in your workspace.\n\n**Use Cases:**\n- Add subscribers from your website forms\n- Import contacts from external systems\n- Programmatically build your contact list\n- Create contacts from API integrations\n- Add leads captured through your application\n\n**Behavior:**\n- Email addresses are automatically normalized (lowercased, trimmed)\n- Duplicate emails return a 409 Conflict error\n- Custom properties must be pre-defined in your workspace\n- Property values are validated against their defined types (STRING, NUMBER, DATE, BOOLEAN)\n- Maximum 100 custom property slots per contact\n- Contact is created with 'subscribed' status by default\n- Timestamps (createdAt, updatedAt) are automatically set\n- Returns the complete contact object including generated ID\n\n**Required Scope:** `write:contacts`\n\n**Property Validation:**\n- STRING: Any text value, max 5000 characters\n- NUMBER: Valid numeric values (integers or decimals)\n- DATE: ISO 8601 format (YYYY-MM-DD or full timestamp)\n- BOOLEAN: true or false\n\n**Email Validation:**\n- Must be a valid email format\n- Cannot exceed 320 characters\n- Automatically converted to lowercase\n- Leading/trailing whitespace is trimmed\n\n**Note:** For bulk imports (>1000 contacts), consider using the batch import endpoint (coming soon) for better performance.",
         "tags": [
           "Contacts"
         ],
@@ -700,7 +700,7 @@
         },
         "responses": {
           "201": {
-            "description": "Contact created successfully",
+            "description": "Contact created successfully. Returns the complete contact object with generated ID and timestamps.",
             "content": {
               "application/json": {
                 "schema": {
@@ -844,7 +844,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid input data, such as malformed email or exceeding property limits",
             "content": {
               "application/json": {
                 "schema": {
@@ -930,7 +930,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -1016,7 +1016,7 @@
             }
           },
           "409": {
-            "description": "Conflict - Contact with this email already exists",
+            "description": "Conflict - A contact with this email address already exists in the workspace. Use PUT /v1/contacts/{contactId} to update existing contacts.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1102,7 +1102,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Property values don't match their defined types (e.g., text in a NUMBER field, invalid date format, undefined property names)",
             "content": {
               "application/json": {
                 "schema": {
@@ -1193,7 +1193,7 @@
     "/v1/contacts/{contactId}": {
       "get": {
         "summary": "Get Contact",
-        "description": "Retrieve a specific contact by ID",
+        "description": "Retrieve a specific contact by ID.\n\n**Use Cases:**\n- Fetch contact details for display in your application\n- Verify contact information before updates\n- Check subscription status and topic memberships\n- Retrieve contact properties for personalization\n- Audit contact data and history\n\n**Behavior:**\n- Returns complete contact object including all properties\n- Includes subscription status (subscribed/unsubscribed)\n- Shows all topic memberships and their statuses\n- Includes metadata (createdAt, updatedAt timestamps)\n- Contact must belong to your workspace\n\n**Required Scope:** `read:contacts`\n\n**Response Includes:**\n- Basic info: id, email, firstName, lastName\n- All custom property values\n- Subscription status and unsubscribe reason (if applicable)\n- Topic memberships with individual subscription statuses\n- Timestamps for creation and last update",
         "tags": [
           "Contacts"
         ],
@@ -1215,7 +1215,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Contact details",
+            "description": "Successfully retrieved contact with all properties, subscription status, topic memberships, and metadata",
             "content": {
               "application/json": {
                 "schema": {
@@ -1359,7 +1359,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -1445,7 +1445,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Contact does not exist",
+            "description": "Not Found - Contact with this ID does not exist in your workspace or has been deleted",
             "content": {
               "application/json": {
                 "schema": {
@@ -1534,7 +1534,7 @@
       },
       "put": {
         "summary": "Update Contact",
-        "description": "Update an existing contact",
+        "description": "Update an existing contact's information and properties.\n\n**Use Cases:**\n- Update contact details when information changes\n- Modify custom property values\n- Change subscription preferences\n- Update contact names or profile information\n- Sync changes from external systems\n\n**Behavior:**\n- Only provided fields are updated (partial updates supported)\n- Email address can be updated (must still be unique)\n- Custom property values are validated against their types\n- Cannot update readonly fields (id, createdAt)\n- UpdatedAt timestamp is automatically refreshed\n- Returns the complete updated contact object\n- Email normalization applies (lowercase, trimmed)\n\n**Required Scope:** `write:contacts`\n\n**Updatable Fields:**\n- email (must remain unique in workspace)\n- firstName, lastName\n- All custom property values\n- Individual topic subscription statuses\n\n**Protected Fields:**\n- id (cannot be changed)\n- createdAt (immutable)\n- workspaceId (immutable)\n\n**Property Updates:**\n- Only include properties you want to change\n- Omitted properties retain their current values\n- Set property to null to clear its value\n- Type validation still applies to new values",
         "tags": [
           "Contacts"
         ],
@@ -1693,7 +1693,7 @@
         },
         "responses": {
           "200": {
-            "description": "Contact updated successfully",
+            "description": "Contact updated successfully. Returns the complete updated contact object with refreshed updatedAt timestamp.",
             "content": {
               "application/json": {
                 "schema": {
@@ -1837,7 +1837,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid input data, such as malformed email or attempting to update protected fields",
             "content": {
               "application/json": {
                 "schema": {
@@ -1923,7 +1923,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -2009,7 +2009,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Contact does not exist",
+            "description": "Not Found - Contact with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -2095,7 +2095,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Property values don't match their defined types, or new email already exists for another contact",
             "content": {
               "application/json": {
                 "schema": {
@@ -2184,7 +2184,7 @@
       },
       "delete": {
         "summary": "Delete Contact",
-        "description": "Delete a specific contact",
+        "description": "Permanently delete a contact from your workspace.\n\n**Use Cases:**\n- Remove contacts who requested data deletion (GDPR compliance)\n- Clean up invalid or test contacts\n- Remove bounced or spam complaint contacts\n- Comply with data retention policies\n- Delete duplicates after merging\n\n**Behavior:**\n- Contact is permanently deleted and cannot be recovered\n- All associated data is removed (properties, subscriptions)\n- Contact is removed from all topics and segments\n- Historical email stats are preserved but anonymized\n- Form submissions from this contact remain in analytics\n- Operation is idempotent (no error if already deleted)\n\n**Required Scope:** `write:contacts`\n\n**Data Deletion:**\n- Contact record and all properties deleted\n- Topic subscriptions removed\n- Segment memberships recalculated\n- Email engagement history anonymized\n- Cannot be undone - ensure this is intentional\n\n**Important:**\n- This is a hard delete, not an archive\n- Consider unsubscribing instead if you need to retain history\n- For GDPR \"right to be forgotten\" requests\n- Automation triggers may reference deleted contacts in logs\n\n**Note:** If you need to preserve historical data, consider marking contacts as unsubscribed instead of deleting them.",
         "tags": [
           "Contacts"
         ],
@@ -2206,10 +2206,10 @@
         ],
         "responses": {
           "204": {
-            "description": "Contact deleted successfully"
+            "description": "Contact permanently deleted successfully. No content returned. Operation cannot be undone."
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -2295,7 +2295,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Contact does not exist",
+            "description": "Not Found - Contact with this ID does not exist (may have already been deleted)",
             "content": {
               "application/json": {
                 "schema": {
@@ -2386,7 +2386,7 @@
     "/v1/topics": {
       "get": {
         "summary": "List Topics",
-        "description": "Retrieve a paginated list of topics using cursor-based pagination",
+        "description": "Retrieve a paginated list of all topics in your workspace.\n\n**Use Cases:**\n- Display topic subscription preferences to contacts\n- Build subscription management pages\n- Export topic configuration\n- Sync topics with external systems\n- Generate topic analytics and reports\n\n**Behavior:**\n- Returns all topics in alphabetical order by name\n- Uses cursor-based pagination for efficient retrieval\n- Includes topic metadata (name, description, slug)\n- Shows subscriber counts for each topic\n- Maximum 100 topics per request\n- Includes both active and archived topics\n\n**Required Scope:** `read:topics`\n\n**Response Includes:**\n- Topic ID and slug (URL-safe identifier)\n- Name and description\n- Subscriber count (active subscriptions)\n- Creation and update timestamps\n- Visibility settings (public/private)\n\n**Use Topics For:**\n- Newsletter categories (e.g., \"Product Updates\", \"Marketing Tips\")\n- Interest-based segmentation\n- Preference center organization\n- Compliance with subscription preferences\n- Multi-channel communication preferences",
         "tags": [
           "Topics"
         ],
@@ -2429,7 +2429,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of topics",
+            "description": "Successfully retrieved paginated list of topics with metadata and subscriber counts",
             "content": {
               "application/json": {
                 "schema": {
@@ -2496,7 +2496,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:topics' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -2585,7 +2585,7 @@
       },
       "post": {
         "summary": "Create Topic",
-        "description": "Create a new topic in the workspace",
+        "description": "Create a new topic for organizing contact subscriptions.\n\n**Use Cases:**\n- Set up newsletter categories for your content\n- Create interest-based subscription options\n- Organize email types (transactional, marketing, updates)\n- Build preference center options\n- Segment communications by content type\n\n**Behavior:**\n- Slug is auto-generated from name if not provided (URL-safe, lowercase)\n- Slug must be unique across workspace\n- Topics are created in active state by default\n- Initial subscriber count is zero\n- Name and description can be updated later\n- Topic can be made public or private\n\n**Required Scope:** `write:topics`\n\n**Topic Properties:**\n- **name**: Display name (e.g., \"Product Updates\")\n- **description**: Explains what contacts will receive\n- **slug**: URL-safe identifier (auto-generated if not provided)\n- **isPublic**: Whether topic appears in public preference centers\n\n**Best Practices:**\n- Use descriptive names that contacts will understand\n- Write clear descriptions about email frequency and content\n- Keep slug short and memorable\n- Consider compliance requirements (GDPR, CAN-SPAM)\n- Plan topic hierarchy before creating many topics",
         "tags": [
           "Topics"
         ],
@@ -2639,7 +2639,7 @@
         },
         "responses": {
           "201": {
-            "description": "Topic created successfully",
+            "description": "Topic created successfully with generated ID, slug (if not provided), and timestamps",
             "content": {
               "application/json": {
                 "schema": {
@@ -2690,7 +2690,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid input data, such as invalid slug format or missing required fields",
             "content": {
               "application/json": {
                 "schema": {
@@ -2776,7 +2776,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -2862,7 +2862,7 @@
             }
           },
           "409": {
-            "description": "Conflict - Topic with this slug already exists",
+            "description": "Conflict - A topic with this slug already exists in the workspace. Slugs must be unique.",
             "content": {
               "application/json": {
                 "schema": {
@@ -2948,7 +2948,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid field values, such as name too long or invalid slug characters",
             "content": {
               "application/json": {
                 "schema": {
@@ -3039,7 +3039,7 @@
     "/v1/topics/{topicId}": {
       "get": {
         "summary": "Get Topic",
-        "description": "Retrieve a specific topic by ID",
+        "description": "Retrieve a specific topic by ID with full details.\n\n**Use Cases:**\n- Fetch topic details for display in preference centers\n- Verify topic configuration before updates\n- Check subscriber count for a topic\n- Retrieve topic metadata for analytics\n- Display topic information in your application\n\n**Behavior:**\n- Returns complete topic object with all metadata\n- Includes current subscriber count (active subscriptions)\n- Shows creation and last update timestamps\n- Topic must belong to your workspace\n- Works for both active and archived topics\n\n**Required Scope:** `read:topics`\n\n**Response Includes:**\n- Topic identification (id, slug, name)\n- Description and visibility settings\n- Subscriber count (number of active subscriptions)\n- Timestamps (createdAt, updatedAt)\n- Workspace association",
         "tags": [
           "Topics"
         ],
@@ -3061,7 +3061,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Topic details",
+            "description": "Successfully retrieved topic with full details, metadata, and subscriber count",
             "content": {
               "application/json": {
                 "schema": {
@@ -3112,7 +3112,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:topics' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -3198,7 +3198,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Topic does not exist",
+            "description": "Not Found - Topic with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -3287,7 +3287,7 @@
       },
       "put": {
         "summary": "Update Topic",
-        "description": "Update an existing topic",
+        "description": "Update an existing topic's name, description, or settings.\n\n**Use Cases:**\n- Rename topics for better clarity\n- Update topic descriptions as content strategy changes\n- Change visibility settings (public/private)\n- Refine topic slugs for better URLs\n- Update topic metadata\n\n**Behavior:**\n- Only provided fields are updated (partial updates supported)\n- Slug can be updated but must remain unique\n- Cannot change if it would create slug conflict\n- UpdatedAt timestamp is automatically refreshed\n- Subscriber count is not affected by updates\n- Returns the complete updated topic object\n\n**Required Scope:** `write:topics`\n\n**Updatable Fields:**\n- name (display name)\n- description (what subscribers will receive)\n- slug (URL-safe identifier, must be unique)\n- isPublic (visibility in preference centers)\n\n**Note:** Changing the slug will affect URLs in preference centers and unsubscribe pages. Update your integrations accordingly.",
         "tags": [
           "Topics"
         ],
@@ -3347,7 +3347,7 @@
         },
         "responses": {
           "200": {
-            "description": "Topic updated successfully",
+            "description": "Topic updated successfully with refreshed updatedAt timestamp",
             "content": {
               "application/json": {
                 "schema": {
@@ -3398,7 +3398,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid input data or attempting to update protected fields",
             "content": {
               "application/json": {
                 "schema": {
@@ -3484,7 +3484,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -3570,7 +3570,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Topic does not exist",
+            "description": "Not Found - Topic with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -3656,7 +3656,7 @@
             }
           },
           "409": {
-            "description": "Conflict - Topic with this slug already exists",
+            "description": "Conflict - Another topic with the new slug already exists. Slugs must be unique within the workspace.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3742,7 +3742,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid field values, such as invalid slug format or name too long",
             "content": {
               "application/json": {
                 "schema": {
@@ -3831,7 +3831,7 @@
       },
       "delete": {
         "summary": "Delete Topic",
-        "description": "Delete a specific topic",
+        "description": "Delete a topic and all associated subscriptions.\n\n**Use Cases:**\n- Remove deprecated or unused topics\n- Clean up topics after restructuring\n- Consolidate duplicate topics\n- Archive old newsletter categories\n- Maintain a clean topic list\n\n**Behavior:**\n- Topic and all contact subscriptions are deleted\n- Contacts are NOT deleted (only their topic subscriptions)\n- Historical email stats for this topic are preserved\n- Cannot be undone - topic is permanently removed\n- Segments referencing this topic may need updates\n- Automations using this topic may break\n\n**Required Scope:** `write:topics`\n\n**Data Impact:**\n- Topic record is permanently deleted\n- All contact subscriptions to this topic are removed\n- Contacts remain in workspace with other subscriptions\n- Email performance data remains (but topic reference is removed)\n- Preference center links to this topic will break\n\n**Important:**\n- Verify no active campaigns are using this topic\n- Update automations that reference this topic\n- Consider archiving instead of deleting for audit trails\n- Warn contacts if you're removing a topic they're subscribed to\n\n**Note:** This is a destructive operation. Consider creating a new topic and migrating subscribers before deleting the old one.",
         "tags": [
           "Topics"
         ],
@@ -3853,7 +3853,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Topic deleted successfully",
+            "description": "Topic deleted successfully. Returns the deleted topic object for reference before permanent removal.",
             "content": {
               "application/json": {
                 "schema": {
@@ -3904,7 +3904,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -3990,7 +3990,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Topic does not exist",
+            "description": "Not Found - Topic with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -4081,7 +4081,7 @@
     "/v1/segments": {
       "get": {
         "summary": "List Segments",
-        "description": "Retrieve a paginated list of segments using cursor-based pagination",
+        "description": "Retrieve a paginated list of all segments in your workspace.\n\n**Use Cases:**\n- Display available segments in your application\n- Export segment configurations for backup\n- Build segment analytics dashboards\n- List targeting options for campaigns\n- Audit segment usage and definitions\n\n**Behavior:**\n- Returns all segments in reverse chronological order (newest first)\n- Uses cursor-based pagination for efficient retrieval\n- Includes segment conditions (MongoDB-style filters)\n- Shows estimated contact counts for each segment\n- Maximum 100 segments per request\n- Segments are evaluated dynamically (contact membership updates automatically)\n\n**Required Scope:** `read:segments`\n\n**Response Includes:**\n- Segment ID, name, and description\n- Filter conditions (MongoDB query format)\n- Estimated member count (cached, updates periodically)\n- Creation and update timestamps\n- Segment type (dynamic/static)\n\n**Segment Use Cases:**\n- Target high-value customers (e.g., `lifetime_value > 1000`)\n- Engaged subscribers (e.g., `opened_last_30_days = true`)\n- Geographic targeting (e.g., `country = 'US'`)\n- Behavioral triggers (e.g., `last_purchase_date < 30_days_ago`)",
         "tags": [
           "Segments"
         ],
@@ -4124,66 +4124,17 @@
         ],
         "responses": {
           "200": {
-            "description": "List of segments",
+            "description": "Successfully retrieved paginated list of segments with conditions and estimated member counts",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "object": {
-                      "type": "string",
-                      "const": "segment_list"
-                    },
-                    "hasMore": {
-                      "type": "boolean"
-                    },
-                    "data": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "id": {
-                            "type": "string"
-                          },
-                          "name": {
-                            "type": "string"
-                          },
-                          "description": {
-                            "anyOf": [
-                              {
-                                "type": "string"
-                              },
-                              {
-                                "type": "null"
-                              }
-                            ]
-                          },
-                          "conditions": {
-                            "$ref": "#/components/schemas/__schema1"
-                          }
-                        },
-                        "required": [
-                          "id",
-                          "name",
-                          "description",
-                          "conditions"
-                        ],
-                        "additionalProperties": false
-                      }
-                    }
-                  },
-                  "required": [
-                    "object",
-                    "hasMore",
-                    "data"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/SegmentListResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:segments' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -4272,7 +4223,7 @@
       },
       "post": {
         "summary": "Create Segment",
-        "description": "Create a new segment in the workspace with MongoDB-style conditions",
+        "description": "Create a new dynamic segment using MongoDB-style filter conditions.\n\n**Use Cases:**\n- Build audience segments for targeted campaigns\n- Create customer cohorts based on behavior\n- Segment by demographics or properties\n- Identify high-value or at-risk contacts\n- Automate audience targeting rules\n\n**Behavior:**\n- Segments are dynamic - membership updates automatically as contact data changes\n- Conditions use MongoDB query syntax for flexible filtering\n- Contact count is calculated and cached (updates periodically)\n- Supports complex nested conditions with $and, $or, $not\n- Can filter on any contact property (default or custom)\n- Conditions are validated against property schemas\n\n**Required Scope:** `write:segments`\n\n**Condition Operators:**\n- **Comparison:** `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`\n- **Arrays:** `$in`, `$nin`\n- **Logical:** `$and`, `$or`, `$not`\n- **Existence:** `$exists`\n- **Text:** `$regex` (for pattern matching)\n\n**Example Conditions:**\n```json\n{\n  \"$and\": [\n    { \"country\": { \"$eq\": \"US\" } },\n    { \"lifetime_value\": { \"$gte\": 100 } },\n    { \"last_purchase_date\": { \"$gte\": \"2024-01-01\" } }\n  ]\n}\n```\n\n**Best Practices:**\n- Test conditions with /v1/contacts/search first\n- Keep conditions simple for better performance\n- Use indexed properties when possible\n- Document segment purpose in description",
         "tags": [
           "Segments"
         ],
@@ -4286,82 +4237,24 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 100
-                  },
-                  "description": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 500
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "conditions": {
-                    "$ref": "#/components/schemas/__schema0"
-                  }
-                },
-                "required": [
-                  "name",
-                  "conditions"
-                ]
+                "$ref": "#/components/schemas/CreateSegmentRequest"
               }
             }
           }
         },
         "responses": {
           "201": {
-            "description": "Segment created successfully",
+            "description": "Segment created successfully with generated ID, initial member count, and timestamps",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "object": {
-                      "type": "string",
-                      "const": "segment"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "conditions": {
-                      "$ref": "#/components/schemas/__schema1"
-                    }
-                  },
-                  "required": [
-                    "object",
-                    "id",
-                    "name",
-                    "description",
-                    "conditions"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/SegmentResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid MongoDB query syntax or malformed conditions",
             "content": {
               "application/json": {
                 "schema": {
@@ -4447,7 +4340,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -4533,7 +4426,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values or conditions",
+            "description": "Validation Error - Invalid field values, conditions reference non-existent properties, or unsupported operators",
             "content": {
               "application/json": {
                 "schema": {
@@ -4624,7 +4517,7 @@
     "/v1/segments/{segmentId}": {
       "get": {
         "summary": "Get Segment",
-        "description": "Retrieve a specific segment by ID",
+        "description": "Retrieve a specific segment by ID with its conditions and member count.\n\n**Use Cases:**\n- Fetch segment details for campaign targeting\n- Verify segment configuration\n- Check current member count before sending\n- Display segment information in UI\n- Audit segment definitions\n\n**Behavior:**\n- Returns complete segment object with all conditions\n- Includes current estimated member count (cached)\n- Shows creation and last update timestamps\n- Segment must belong to your workspace\n- Member count updates periodically (may not be real-time)\n\n**Required Scope:** `read:segments`\n\n**Response Includes:**\n- Segment identification (id, name, description)\n- Complete filter conditions (MongoDB query format)\n- Estimated member count (contacts matching conditions)\n- Timestamps (createdAt, updatedAt)\n- Segment metadata\n\n**Note:** For real-time member count, use GET /v1/segments/{segmentId}/contacts to fetch actual matching contacts.",
         "tags": [
           "Segments"
         ],
@@ -4646,50 +4539,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Segment details",
+            "description": "Successfully retrieved segment with conditions, member count, and metadata",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "object": {
-                      "type": "string",
-                      "const": "segment"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "conditions": {
-                      "$ref": "#/components/schemas/__schema1"
-                    }
-                  },
-                  "required": [
-                    "object",
-                    "id",
-                    "name",
-                    "description",
-                    "conditions"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/SegmentResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:segments' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -4775,7 +4635,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Segment does not exist",
+            "description": "Not Found - Segment with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -4864,7 +4724,7 @@
       },
       "put": {
         "summary": "Update Segment",
-        "description": "Update an existing segment",
+        "description": "Update an existing segment's name, description, or filter conditions.\n\n**Use Cases:**\n- Refine segment targeting criteria\n- Update segment names for clarity\n- Add or modify filter conditions\n- Adjust segment definitions as strategy evolves\n- Fix incorrect segment logic\n\n**Behavior:**\n- Only provided fields are updated (partial updates supported)\n- Changing conditions triggers member count recalculation\n- Members are re-evaluated against new conditions automatically\n- UpdatedAt timestamp is automatically refreshed\n- Returns the complete updated segment object\n- Condition changes may affect active campaigns using this segment\n\n**Required Scope:** `write:segments`\n\n**Updatable Fields:**\n- name (display name)\n- description (segment purpose)\n- conditions (MongoDB query - full replacement, not merge)\n\n**Important:**\n- Updating conditions replaces ALL existing conditions\n- Member count may change significantly with condition updates\n- Active campaigns using this segment will use new conditions\n- Test new conditions with /v1/contacts/search before updating\n\n**Note:** Condition updates are applied immediately and affect all uses of this segment across your workspace.",
         "tags": [
           "Segments"
         ],
@@ -4889,78 +4749,24 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 100
-                  },
-                  "description": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 500
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "conditions": {
-                    "$ref": "#/components/schemas/__schema0"
-                  }
-                }
+                "$ref": "#/components/schemas/UpdateSegmentRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Segment updated successfully",
+            "description": "Segment updated successfully with refreshed member count and updatedAt timestamp",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "object": {
-                      "type": "string",
-                      "const": "segment"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "conditions": {
-                      "$ref": "#/components/schemas/__schema1"
-                    }
-                  },
-                  "required": [
-                    "object",
-                    "id",
-                    "name",
-                    "description",
-                    "conditions"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/SegmentResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid MongoDB query syntax or malformed conditions",
             "content": {
               "application/json": {
                 "schema": {
@@ -5046,7 +4852,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -5132,7 +4938,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Segment does not exist",
+            "description": "Not Found - Segment with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -5218,7 +5024,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values or conditions",
+            "description": "Validation Error - Invalid conditions, references to non-existent properties, or unsupported operators",
             "content": {
               "application/json": {
                 "schema": {
@@ -5307,7 +5113,7 @@
       },
       "delete": {
         "summary": "Delete Segment",
-        "description": "Delete a specific segment",
+        "description": "Delete a segment from your workspace.\n\n**Use Cases:**\n- Remove unused or obsolete segments\n- Clean up after campaign completion\n- Consolidate duplicate segments\n- Archive old targeting definitions\n- Simplify segment management\n\n**Behavior:**\n- Segment definition is permanently deleted\n- Does NOT delete contacts (only the segment definition)\n- Active campaigns using this segment may break\n- Automations referencing this segment need updates\n- Cannot be undone - segment is permanently removed\n- Historical campaign data referencing segment is preserved\n\n**Required Scope:** `write:segments`\n\n**Data Impact:**\n- Segment record and conditions are deleted\n- Contacts remain in workspace (unaffected)\n- Campaign references to this segment become invalid\n- Automation triggers using this segment may fail\n- Analytics data for campaigns using this segment preserved\n\n**Important:**\n- Verify no active campaigns are using this segment\n- Update or pause automations referencing this segment\n- Consider exporting segment definition before deleting\n- Cannot recover segment definition after deletion\n\n**Note:** This only deletes the segment definition, not the contacts within it. Contacts remain in your workspace.",
         "tags": [
           "Segments"
         ],
@@ -5329,50 +5135,17 @@
         ],
         "responses": {
           "200": {
-            "description": "Segment deleted successfully",
+            "description": "Segment deleted successfully. Returns the deleted segment object for reference before permanent removal.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "object": {
-                      "type": "string",
-                      "const": "segment"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "conditions": {
-                      "$ref": "#/components/schemas/__schema1"
-                    }
-                  },
-                  "required": [
-                    "object",
-                    "id",
-                    "name",
-                    "description",
-                    "conditions"
-                  ],
-                  "additionalProperties": false
+                  "$ref": "#/components/schemas/SegmentResponse"
                 }
               }
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -5458,7 +5231,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Segment does not exist",
+            "description": "Not Found - Segment with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -5549,7 +5322,7 @@
     "/v1/contact-properties": {
       "get": {
         "summary": "List Contact Properties",
-        "description": "Retrieve a paginated list of contact properties using cursor-based pagination",
+        "description": "Retrieve a paginated list of all custom contact properties in your workspace.\n\n**Use Cases:**\n- Display available properties in your application UI\n- Build dynamic form fields based on properties\n- Export property schema for documentation\n- Validate data before contact creation/update\n- Audit custom property usage\n\n**Behavior:**\n- Returns all custom properties (default properties excluded)\n- Properties are returned in creation order\n- Uses cursor-based pagination for efficiency\n- Includes property type, default values, and metadata\n- Maximum 100 properties per request\n- Shows whether properties are required or optional\n\n**Required Scope:** `read:contacts` (contact properties are part of contacts scope)\n\n**Response Includes:**\n- Property ID and name (internal key)\n- Display label for UI\n- Data type (STRING, NUMBER, DATE, BOOLEAN)\n- Default value (if defined)\n- Required flag\n- Creation and update timestamps\n\n**Property Types:**\n- **STRING:** Text data (max 5000 characters)\n- **NUMBER:** Numeric values (integers or decimals)\n- **DATE:** Date/timestamp values (ISO 8601 format)\n- **BOOLEAN:** true/false values\n\n**Default Properties (not in response):**\n- email, firstName, lastName (always available, not listed here)",
         "tags": [
           "Contact Properties"
         ],
@@ -5592,7 +5365,7 @@
         ],
         "responses": {
           "200": {
-            "description": "List of contact properties",
+            "description": "Successfully retrieved paginated list of custom contact properties with types and metadata",
             "content": {
               "application/json": {
                 "schema": {
@@ -5656,7 +5429,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -5745,7 +5518,7 @@
       },
       "post": {
         "summary": "Create Contact Property",
-        "description": "Create a new custom contact property",
+        "description": "Define a new custom property for storing additional contact data.\n\n**Use Cases:**\n- Store custom contact attributes (industry, company size, role)\n- Track behavioral data (lifetime value, last purchase date)\n- Capture form-specific fields\n- Store integration data from external systems\n- Build flexible contact profiles\n\n**Behavior:**\n- Property name must be unique within workspace\n- Name becomes the key used in contact objects\n- Type cannot be changed after creation\n- Default value is applied to new contacts (if specified)\n- Properties can be marked as required for validation\n- Maximum 100 custom properties per workspace\n- Name is automatically converted to snake_case\n\n**Required Scope:** `write:contacts`\n\n**Property Configuration:**\n- **name:** Internal key (e.g., \"company_size\", \"last_login\")\n- **label:** Display name for UI (e.g., \"Company Size\")\n- **type:** Data type (STRING, NUMBER, DATE, BOOLEAN)\n- **defaultValue:** Applied to new contacts (optional)\n- **required:** Whether property must have a value (optional)\n\n**Type Definitions:**\n- **STRING:** Text up to 5000 characters\n- **NUMBER:** Integer or decimal values\n- **DATE:** ISO 8601 dates/timestamps\n- **BOOLEAN:** true/false only\n\n**Naming Best Practices:**\n- Use snake_case (auto-converted)\n- Keep names short but descriptive\n- Avoid special characters\n- Use consistent naming conventions\n- Document property purpose in label\n\n**Limits:**\n- Maximum 100 custom properties per workspace\n- Property names cannot be changed after creation\n- Cannot delete properties used in segments or automations",
         "tags": [
           "Contact Properties"
         ],
@@ -5797,7 +5570,7 @@
         },
         "responses": {
           "201": {
-            "description": "Contact property created successfully",
+            "description": "Contact property created successfully with generated ID and timestamps. The property is now available for use on all contacts.",
             "content": {
               "application/json": {
                 "schema": {
@@ -5845,7 +5618,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input or property limit reached",
+            "description": "Bad Request - Maximum property limit (100) reached, or invalid default value for specified type",
             "content": {
               "application/json": {
                 "schema": {
@@ -5931,7 +5704,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -6017,7 +5790,7 @@
             }
           },
           "409": {
-            "description": "Conflict - Property with this name already exists",
+            "description": "Conflict - A property with this name already exists in the workspace. Property names must be unique.",
             "content": {
               "application/json": {
                 "schema": {
@@ -6103,7 +5876,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid property type, name format, or default value doesn't match type",
             "content": {
               "application/json": {
                 "schema": {
@@ -6194,7 +5967,7 @@
     "/v1/contact-properties/{contactPropertyId}": {
       "get": {
         "summary": "Get Contact Property",
-        "description": "Retrieve a specific contact property by ID",
+        "description": "Retrieve a specific custom contact property by ID.\n\n**Use Cases:**\n- Fetch property metadata for validation\n- Display property configuration in UI\n- Verify property type before data operations\n- Check default values for forms\n- Audit property definitions\n\n**Behavior:**\n- Returns complete property definition\n- Includes type, default value, and validation rules\n- Shows whether property is required\n- Property must belong to your workspace\n- Includes creation and update timestamps\n\n**Required Scope:** `read:contacts`\n\n**Response Includes:**\n- Property identification (id, name)\n- Display label for UI\n- Data type (STRING, NUMBER, DATE, BOOLEAN)\n- Default value (if defined)\n- Required flag\n- Usage count (number of contacts with this property set)\n- Timestamps (createdAt, updatedAt)",
         "tags": [
           "Contact Properties"
         ],
@@ -6216,7 +5989,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Contact property details",
+            "description": "Successfully retrieved contact property with full definition and metadata",
             "content": {
               "application/json": {
                 "schema": {
@@ -6264,7 +6037,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -6350,7 +6123,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Contact property does not exist",
+            "description": "Not Found - Contact property with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -6439,7 +6212,7 @@
       },
       "put": {
         "summary": "Update Contact Property",
-        "description": "Update an existing contact property (name and default value only, type cannot be changed)",
+        "description": "Update an existing contact property's label or default value.\n\n**Use Cases:**\n- Update display labels for better clarity\n- Change default values for new contacts\n- Modify property descriptions\n- Update required flag\n- Refine property metadata\n\n**Behavior:**\n- Only label and defaultValue can be updated\n- Property name and type are immutable (cannot be changed)\n- Changing defaultValue affects only future contacts\n- Existing contact data is NOT modified\n- UpdatedAt timestamp is automatically refreshed\n- Returns the complete updated property object\n\n**Required Scope:** `write:contacts`\n\n**Updatable Fields:**\n- **label:** Display name in UI\n- **defaultValue:** Applied to new contacts only\n- **required:** Whether property must have a value\n\n**Immutable Fields:**\n- **name:** Property key (cannot be changed)\n- **type:** Data type (cannot be changed)\n- **id:** Property identifier (cannot be changed)\n\n**Important:**\n- Type cannot be changed after creation\n- Name cannot be modified (delete and recreate if needed)\n- Default value changes don't affect existing contacts\n- Changing required flag doesn't validate existing data\n\n**Note:** To change property type or name, create a new property and migrate data, then delete the old one.",
         "tags": [
           "Contact Properties"
         ],
@@ -6490,7 +6263,7 @@
         },
         "responses": {
           "200": {
-            "description": "Contact property updated successfully",
+            "description": "Contact property updated successfully with refreshed updatedAt timestamp",
             "content": {
               "application/json": {
                 "schema": {
@@ -6538,7 +6311,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Attempting to update immutable fields (name, type) or invalid default value for type",
             "content": {
               "application/json": {
                 "schema": {
@@ -6624,7 +6397,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -6710,7 +6483,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Contact property does not exist",
+            "description": "Not Found - Contact property with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -6796,7 +6569,7 @@
             }
           },
           "409": {
-            "description": "Conflict - Property with this name already exists",
+            "description": "Conflict - Cannot update property name (this field is immutable)",
             "content": {
               "application/json": {
                 "schema": {
@@ -6882,7 +6655,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid default value doesn't match property type",
             "content": {
               "application/json": {
                 "schema": {
@@ -6971,7 +6744,7 @@
       },
       "delete": {
         "summary": "Delete Contact Property",
-        "description": "Delete a specific contact property",
+        "description": "Delete a custom contact property from your workspace.\n\n**Use Cases:**\n- Remove unused or deprecated properties\n- Clean up properties after data migration\n- Simplify contact schema\n- Remove test or temporary properties\n- Comply with data minimization policies\n\n**Behavior:**\n- Property definition is permanently deleted\n- Property values are removed from ALL contacts\n- Segments using this property may break\n- Automations referencing this property need updates\n- Cannot be undone - data is permanently removed\n- Cannot delete if property is required by active segments\n\n**Required Scope:** `write:contacts`\n\n**Data Impact:**\n- Property definition is deleted\n- All contact values for this property are removed\n- Segment conditions referencing this property become invalid\n- Automation triggers using this property may fail\n- Form fields using this property need updates\n- Historical data is lost (cannot be recovered)\n\n**Important:**\n- Verify no active segments or automations use this property\n- Export contact data if you need to preserve values\n- Consider marking as deprecated before deletion\n- Update forms and integrations that reference this property\n- Cannot delete default properties (email, firstName, lastName)\n\n**Blocked Deletion:**\n- Cannot delete if used in active segment conditions\n- Cannot delete if required by running automations\n- Cannot delete default system properties\n\n**Note:** This is a destructive operation. All contact data for this property will be permanently lost.",
         "tags": [
           "Contact Properties"
         ],
@@ -6993,7 +6766,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Contact property deleted successfully",
+            "description": "Contact property deleted successfully. Returns the deleted property object. All contact data for this property is permanently removed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -7041,7 +6814,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -7127,7 +6900,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Contact property does not exist",
+            "description": "Not Found - Contact property with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -7218,7 +6991,7 @@
     "/v1/contacts/search": {
       "post": {
         "summary": "Search Contacts",
-        "description": "Search contacts using MongoDB-style conditions with cursor-based pagination",
+        "description": "Search for contacts using flexible MongoDB-style filter conditions.\n\n**Use Cases:**\n- Find contacts matching specific criteria\n- Build custom contact reports\n- Test segment conditions before creating segments\n- Filter contacts for targeted operations\n- Query contacts by custom property values\n\n**Behavior:**\n- Uses MongoDB query syntax for powerful filtering\n- Returns paginated results with cursor-based pagination\n- Supports complex nested conditions ($and, $or, $not)\n- Can filter on any contact property (default or custom)\n- Maximum 100 contacts per request\n- Results are sorted by createdAt (newest first)\n\n**Required Scope:** `read:contacts`\n\n**Supported Operators:**\n- **Comparison:** `$eq`, `$ne`, `$gt`, `$gte`, `$lt`, `$lte`\n- **Arrays:** `$in`, `$nin`\n- **Logical:** `$and`, `$or`, `$not`\n- **Existence:** `$exists` (check if property is set)\n- **Text:** `$regex` (pattern matching)\n\n**Example Queries:**\n\nFind US contacts with high value:\n```json\n{\n  \"$and\": [\n    { \"country\": { \"$eq\": \"US\" } },\n    { \"lifetime_value\": { \"$gte\": 1000 } }\n  ]\n}\n```\n\nFind engaged subscribers:\n```json\n{\n  \"$and\": [\n    { \"subscribed\": { \"$eq\": true } },\n    { \"last_opened_at\": { \"$gte\": \"2024-01-01\" } }\n  ]\n}\n```\n\nFind contacts missing a property:\n```json\n{\n  \"company\": { \"$exists\": false }\n}\n```\n\n**Best Practices:**\n- Test complex conditions here before creating segments\n- Use indexed properties for better performance\n- Keep conditions simple when possible\n- Combine with pagination for large result sets",
         "tags": [
           "Contacts"
         ],
@@ -7264,22 +7037,14 @@
           "content": {
             "application/json": {
               "schema": {
-                "type": "object",
-                "properties": {
-                  "filters": {
-                    "$ref": "#/components/schemas/__schema0"
-                  }
-                },
-                "required": [
-                  "filters"
-                ]
+                "$ref": "#/components/schemas/SearchContactsRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Search results",
+            "description": "Successfully retrieved contacts matching the search conditions with pagination metadata",
             "content": {
               "application/json": {
                 "schema": {
@@ -7439,7 +7204,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid search conditions",
+            "description": "Bad Request - Invalid MongoDB query syntax or malformed conditions",
             "content": {
               "application/json": {
                 "schema": {
@@ -7525,7 +7290,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -7611,7 +7376,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid condition fields",
+            "description": "Validation Error - Conditions reference non-existent properties or use unsupported operators",
             "content": {
               "application/json": {
                 "schema": {
@@ -7702,7 +7467,7 @@
     "/v1/segments/{segmentId}/contacts": {
       "get": {
         "summary": "Get Segment Contacts",
-        "description": "Retrieve all contacts that match a segment's conditions with cursor-based pagination",
+        "description": "Retrieve all contacts that match a segment's filter conditions.\n\n**Use Cases:**\n- Export contacts from a specific segment\n- Verify segment membership before campaigns\n- Build segment-based reports\n- Preview segment membership\n- Test segment conditions with real data\n\n**Behavior:**\n- Returns contacts matching segment's conditions in real-time\n- Uses cursor-based pagination for efficient retrieval\n- Results are evaluated dynamically (always current)\n- Maximum 100 contacts per request\n- Includes all contact properties and metadata\n- Sorted by contact creation date (newest first)\n\n**Required Scope:** `read:contacts` and `read:segments`\n\n**Response Includes:**\n- Complete contact objects with all properties\n- Subscription statuses and topic memberships\n- Contact metadata (createdAt, updatedAt)\n- Pagination cursors for navigation\n\n**Use Cases:**\n- Send targeted campaigns to segment members\n- Export segment data for analysis\n- Verify segment conditions are working correctly\n- Build custom reports on segment members\n\n**Note:** This endpoint evaluates conditions in real-time, so membership reflects current contact data, not cached counts.",
         "tags": [
           "Segments"
         ],
@@ -7754,7 +7519,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Contacts matching segment conditions",
+            "description": "Successfully retrieved contacts matching the segment's conditions with complete contact data and metadata",
             "content": {
               "application/json": {
                 "schema": {
@@ -7914,7 +7679,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks required scopes (read:contacts, read:segments)",
             "content": {
               "application/json": {
                 "schema": {
@@ -8000,7 +7765,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Segment does not exist",
+            "description": "Not Found - Segment with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -8091,7 +7856,7 @@
     "/v1/topics/{topicId}/contacts": {
       "get": {
         "summary": "Get Topic Contacts",
-        "description": "Retrieve all contacts subscribed to a topic with cursor-based pagination",
+        "description": "Retrieve all contacts subscribed to a specific topic.\n\n**Use Cases:**\n- Export subscribers for a specific newsletter topic\n- Send targeted communications to topic subscribers\n- Analyze subscriber demographics by topic\n- Build topic-specific reports\n- Verify subscription lists before campaigns\n\n**Behavior:**\n- Returns only actively subscribed contacts (not unsubscribed)\n- Uses cursor-based pagination for efficiency\n- Includes complete contact data and properties\n- Maximum 100 contacts per request\n- Sorted by subscription date (newest first)\n- Contact must have active subscription to this topic\n\n**Required Scope:** `read:contacts` and `read:topics`\n\n**Response Includes:**\n- Complete contact objects with all properties\n- Contact's subscription status for this topic\n- All other topic subscriptions for each contact\n- Contact metadata (createdAt, updatedAt)\n- Pagination cursors\n\n**Subscription Status:**\n- Only includes contacts with active subscriptions\n- Unsubscribed contacts are excluded\n- Globally unsubscribed contacts are excluded\n- Pending/double-opt-in contacts may be included (check status)\n\n**Note:** This returns the current snapshot. Subscriptions may change between paginated requests.",
         "tags": [
           "Topics"
         ],
@@ -8143,7 +7908,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Contacts subscribed to topic",
+            "description": "Successfully retrieved actively subscribed contacts for this topic with complete contact data",
             "content": {
               "application/json": {
                 "schema": {
@@ -8303,7 +8068,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks required scopes (read:contacts, read:topics)",
             "content": {
               "application/json": {
                 "schema": {
@@ -8389,7 +8154,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Topic does not exist",
+            "description": "Not Found - Topic with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -8478,9 +8243,205 @@
       }
     },
     "/v1/forms": {
+      "get": {
+        "summary": "List Forms",
+        "description": "Retrieve a paginated list of all root forms in your workspace.\n\n**Use Cases:**\n- Display all forms in your application dashboard\n- Build form selection dropdowns\n- Export form metadata\n- Monitor form deployment status\n- Sync forms with external systems\n\n**Behavior:**\n- Returns only root forms (parentId is null)\n- Does not include form versions - use GET /v1/forms/{formId}/versions for versions\n- Results are paginated using cursor-based pagination\n- Forms are sorted by ID in descending order (newest first)\n- Returns forms in all statuses (DRAFT, PUBLISHED, ARCHIVED)\n- Form must belong to your workspace\n\n**Cursor-Based Pagination:**\n- Use `limit` to specify page size (default: 20, max: 100)\n- Use `after` cursor to fetch next page\n- Use `before` cursor to fetch previous page\n- `hasMore` indicates if more results are available\n\n**Required Scope:** `read:forms`\n\n**Response Fields:**\n- **id:** Unique form identifier\n- **name:** Form name\n- **description:** Form description (optional)\n- **status:** DRAFT, PUBLISHED, or ARCHIVED\n\n**Pagination Example:**\n1. First request: GET /v1/forms?limit=20\n2. Get last item ID from response\n3. Next page: GET /v1/forms?limit=20&after=<last_id>\n4. Check hasMore to see if more pages exist",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of forms per page (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Cursor for fetching the next page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Cursor for fetching the previous page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved list of root forms with pagination metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form_list"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "DRAFT",
+                              "PUBLISHED",
+                              "ARCHIVED"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "status"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "hasMore",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Create Form",
-        "description": "Create a new form with SurveyJS configuration",
+        "description": "Create a new embeddable form for lead capture and contact collection.\n\n**Use Cases:**\n- Build newsletter signup forms for your website\n- Create lead generation forms\n- Capture event registrations\n- Collect customer feedback\n- Build preference center forms\n\n**Behavior:**\n- Form is created in DRAFT status (not yet public)\n- Uses SurveyJS JSON configuration for flexibility\n- Form gets a unique ID and slug for embedding\n- Initial version is created automatically\n- Form must be published to make it publicly accessible\n- Submissions are tracked and stored\n\n**Required Scope:** `write:forms`\n\n**Form Configuration:**\n- **name:** Internal form name for identification\n- **title:** Display title shown to users\n- **description:** Form purpose/instructions (optional)\n- **surveyJson:** SurveyJS JSON schema defining fields\n- **redirectUrl:** Where to send users after submission (optional)\n- **submitText:** Custom submit button text (optional)\n\n**SurveyJS Integration:**\n- Supports all SurveyJS question types\n- Flexible field validation and logic\n- Conditional field display\n- Multi-page forms supported\n- Custom styling via themes\n\n**Form Lifecycle:**\n1. Create form (DRAFT status)\n2. Configure fields and settings\n3. Test form submission\n4. Publish form (PUBLISHED status)\n5. Embed on website\n6. Create versions for updates\n7. Publish new versions (previous auto-archived)\n\n**Note:** Forms in DRAFT status cannot receive public submissions. Publish the form to make it live.",
         "tags": [
           "Forms"
         ],
@@ -8524,7 +8485,7 @@
         },
         "responses": {
           "201": {
-            "description": "Form created successfully",
+            "description": "Form created successfully in DRAFT status with generated ID, slug, and timestamps. Use POST /v1/forms/{formId}/publish to make it live.",
             "content": {
               "application/json": {
                 "schema": {
@@ -8561,6 +8522,26 @@
                     "version": {
                       "type": "number"
                     },
+                    "parentId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedVersionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "fields": {},
                     "settings": {
                       "anyOf": [
@@ -8594,6 +8575,8 @@
                     "description",
                     "status",
                     "version",
+                    "parentId",
+                    "publishedVersionId",
                     "fields",
                     "settings",
                     "publishedAt",
@@ -8606,7 +8589,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input",
+            "description": "Bad Request - Invalid SurveyJS JSON configuration or malformed input",
             "content": {
               "application/json": {
                 "schema": {
@@ -8692,7 +8675,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -8778,7 +8761,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid field values, missing required fields, or invalid SurveyJS schema",
             "content": {
               "application/json": {
                 "schema": {
@@ -8869,7 +8852,7 @@
     "/v1/forms/{formId}": {
       "get": {
         "summary": "Get Form",
-        "description": "Retrieve a specific form by ID",
+        "description": "Retrieve a specific form by ID with full configuration.\n\n**Use Cases:**\n- Fetch form details for rendering\n- Check form status before editing\n- Retrieve form configuration for frontend\n- Verify form settings\n- Get embed code parameters\n\n**Behavior:**\n- Returns forms in any status (DRAFT, PUBLISHED, ARCHIVED)\n- Includes complete SurveyJS configuration\n- Shows form version information\n- Published forms include publishedAt timestamp\n- Includes submission statistics\n- Form must belong to your workspace\n\n**Required Scope:** `read:forms`\n\n**Response Includes:**\n- Form identification (id, name, slug)\n- Display information (title, description)\n- Status (DRAFT, PUBLISHED, ARCHIVED)\n- SurveyJS configuration (surveyJson)\n- Settings (redirectUrl, submitText)\n- Version information (rootFormId, publishedVersionId)\n- Statistics (submission count)\n- Timestamps (createdAt, updatedAt, publishedAt)\n\n**Form Status:**\n- **DRAFT:** Editable, not publicly accessible\n- **PUBLISHED:** Live and accepting submissions, immutable\n- **ARCHIVED:** Previous version, read-only\n\n**Note:** Use the slug or ID to embed forms on your website.",
         "tags": [
           "Forms"
         ],
@@ -8891,7 +8874,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Form details",
+            "description": "Successfully retrieved form with complete configuration, version info, and submission statistics",
             "content": {
               "application/json": {
                 "schema": {
@@ -8928,6 +8911,26 @@
                     "version": {
                       "type": "number"
                     },
+                    "parentId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedVersionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "fields": {},
                     "settings": {
                       "anyOf": [
@@ -8961,6 +8964,8 @@
                     "description",
                     "status",
                     "version",
+                    "parentId",
+                    "publishedVersionId",
                     "fields",
                     "settings",
                     "publishedAt",
@@ -8973,7 +8978,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -9059,7 +9064,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Form does not exist",
+            "description": "Not Found - Form with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -9148,7 +9153,7 @@
       },
       "put": {
         "summary": "Update Form",
-        "description": "Update an existing form (DRAFT forms only)",
+        "description": "Update an existing form's configuration (DRAFT forms only).\n\n**Use Cases:**\n- Modify form fields and layout\n- Update form title or description\n- Change redirect URL after submission\n- Customize submit button text\n- Refine SurveyJS configuration\n\n**Behavior:**\n- Only DRAFT forms can be updated\n- PUBLISHED and ARCHIVED forms are immutable\n- To update published forms, create a new version first\n- All fields are optional (partial updates supported)\n- UpdatedAt timestamp is automatically refreshed\n- Returns the complete updated form object\n\n**Required Scope:** `write:forms`\n\n**Updatable Fields (DRAFT only):**\n- name (internal identifier)\n- title (displayed to users)\n- description (form instructions)\n- surveyJson (SurveyJS configuration)\n- redirectUrl (post-submission redirect)\n- submitText (button text)\n\n**Update Workflow for Published Forms:**\n1. Create new version: POST /v1/forms/{formId}/versions\n2. Update the new DRAFT version: PUT /v1/forms/{newVersionId}\n3. Publish the updated version: POST /v1/forms/{newVersionId}/publish\n4. Previous published version automatically becomes ARCHIVED\n\n**Important:**\n- Cannot update PUBLISHED or ARCHIVED forms\n- Changes to DRAFT don't affect live form until published\n- Test changes before publishing\n- SurveyJS configuration must be valid JSON\n\n**Note:** For published forms, create a new version instead of updating directly.",
         "tags": [
           "Forms"
         ],
@@ -9199,7 +9204,7 @@
         },
         "responses": {
           "200": {
-            "description": "Form updated successfully",
+            "description": "Form updated successfully with refreshed updatedAt timestamp. Form remains in DRAFT status.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9236,6 +9241,26 @@
                     "version": {
                       "type": "number"
                     },
+                    "parentId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedVersionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "fields": {},
                     "settings": {
                       "anyOf": [
@@ -9269,6 +9294,8 @@
                     "description",
                     "status",
                     "version",
+                    "parentId",
+                    "publishedVersionId",
                     "fields",
                     "settings",
                     "publishedAt",
@@ -9281,7 +9308,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Cannot update published or archived forms",
+            "description": "Bad Request - Form is PUBLISHED or ARCHIVED and cannot be modified. Create a new version to make changes.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9367,7 +9394,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -9453,7 +9480,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Form does not exist",
+            "description": "Not Found - Form with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -9539,7 +9566,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid SurveyJS configuration or field values",
             "content": {
               "application/json": {
                 "schema": {
@@ -9628,7 +9655,7 @@
       },
       "delete": {
         "summary": "Delete Form",
-        "description": "Delete a form and all its versions (if root form)",
+        "description": "Delete a form and all its versions permanently.\n\n**Use Cases:**\n- Remove test or deprecated forms\n- Clean up unused forms\n- Delete forms after migration\n- Comply with data retention policies\n- Remove accidentally created forms\n\n**Behavior:**\n- Deletes the specified form permanently\n- If deleting root form, ALL versions are deleted\n- If deleting a version, only that version is deleted\n- Form submissions are retained (anonymized)\n- Embedded forms will stop working immediately\n- Cannot be undone - deletion is permanent\n\n**Required Scope:** `write:forms`\n\n**Deletion Scope:**\n- **Root Form:** Deletes all versions (DRAFT, PUBLISHED, ARCHIVED)\n- **Specific Version:** Deletes only that version\n\n**Data Impact:**\n- Form configuration is permanently deleted\n- All versions deleted (if root form)\n- Form submissions preserved but form reference removed\n- Embedded forms break immediately\n- Analytics data for form retained\n\n**Important:**\n- Remove form embeds from your website first\n- Export form data if needed before deletion\n- Cannot recover deleted forms\n- Submissions are retained but disconnected from form\n- Consider archiving instead of deleting for audit trails\n\n**Warning:**\n- Embedded forms will immediately stop working\n- No confirmation step - deletion is instant\n- All versions lost if deleting root form\n\n**Note:** Form submissions are preserved for analytics but form definition is permanently removed.",
         "tags": [
           "Forms"
         ],
@@ -9650,7 +9677,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Form deleted successfully",
+            "description": "Form deleted successfully. Returns the deleted form object. If root form, all versions are permanently removed.",
             "content": {
               "application/json": {
                 "schema": {
@@ -9687,6 +9714,26 @@
                     "version": {
                       "type": "number"
                     },
+                    "parentId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedVersionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "fields": {},
                     "settings": {
                       "anyOf": [
@@ -9720,6 +9767,8 @@
                     "description",
                     "status",
                     "version",
+                    "parentId",
+                    "publishedVersionId",
                     "fields",
                     "settings",
                     "publishedAt",
@@ -9732,7 +9781,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -9818,7 +9867,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Form does not exist",
+            "description": "Not Found - Form with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -9907,9 +9956,9 @@
       }
     },
     "/v1/forms/{formId}/versions": {
-      "post": {
-        "summary": "Create Form Version",
-        "description": "Create a new version of an existing form. All fields optional - derived from parent if not provided.",
+      "get": {
+        "summary": "List Form Versions",
+        "description": "Retrieve all versions of a specific form.\n\n**Use Cases:**\n- View version history of a form\n- List all versions for rollback selection\n- Audit form changes over time\n- Display version information in admin dashboard\n- Compare versions before rollback\n\n**Behavior:**\n- Returns all versions for the specified root form\n- Includes the root form itself (version 1)\n- Versions are ordered by version number (ascending)\n- Only works with root form IDs (parentId must be null)\n- Returns error if formId is a version (not root form)\n- Returns all statuses (DRAFT, PUBLISHED, ARCHIVED)\n\n**Required Scope:** `read:forms`\n\n**Response Fields:**\n- **id:** Unique version identifier\n- **name:** Form name\n- **description:** Form description (optional)\n- **status:** DRAFT, PUBLISHED, or ARCHIVED\n- **version:** Version number (1, 2, 3, etc.)\n\n**Version Status:**\n- **DRAFT:** Can be edited, not published yet\n- **PUBLISHED:** Currently live version\n- **ARCHIVED:** Previous published version\n\n**Note:** To get a specific form/version with full details including fields, use GET /v1/forms/{formId}",
         "tags": [
           "Forms"
         ],
@@ -9922,45 +9971,16 @@
           {
             "name": "formId",
             "in": "path",
-            "description": "Form ID (can be root form or any version)",
+            "description": "Root form ID (must be a root form, not a version)",
             "required": true,
             "schema": {
               "type": "string"
             }
           }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
-                  },
-                  "description": {
-                    "anyOf": [
-                      {
-                        "type": "string",
-                        "maxLength": 1000
-                      },
-                      {
-                        "type": "null"
-                      }
-                    ]
-                  },
-                  "fields": {}
-                }
-              }
-            }
-          }
-        },
         "responses": {
-          "201": {
-            "description": "Form version created successfully",
+          "200": {
+            "description": "Successfully retrieved list of all form versions ordered by version number",
             "content": {
               "application/json": {
                 "schema": {
@@ -9968,159 +9988,55 @@
                   "properties": {
                     "object": {
                       "type": "string",
-                      "const": "form"
+                      "const": "form_version_list"
                     },
-                    "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "description": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "DRAFT",
+                              "PUBLISHED",
+                              "ARCHIVED"
+                            ]
+                          },
+                          "version": {
+                            "type": "number"
+                          }
                         },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
-                      "type": "string"
+                        "required": [
+                          "id",
+                          "name",
+                          "description",
+                          "status",
+                          "version"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad Request - DRAFT version already exists for this form",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "type": {
-                          "description": "Error type category",
-                          "type": "string",
-                          "enum": [
-                            "authentication_error",
-                            "invalid_request_error",
-                            "validation_error",
-                            "rate_limit_error",
-                            "api_error"
-                          ]
-                        },
-                        "code": {
-                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
-                          "type": "string"
-                        },
-                        "message": {
-                          "description": "Human-readable error message",
-                          "type": "string"
-                        },
-                        "requestId": {
-                          "description": "Unique request identifier for tracing (starts with req_)",
-                          "type": "string"
-                        },
-                        "validationErrors": {
-                          "description": "Field-level validation errors (only present for validation_error type)",
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "field": {
-                                "description": "Field name that failed validation",
-                                "type": "string"
-                              },
-                              "code": {
-                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
-                                "type": "string"
-                              },
-                              "message": {
-                                "description": "Human-readable error message for this field",
-                                "type": "string"
-                              }
-                            },
-                            "required": [
-                              "field",
-                              "code",
-                              "message"
-                            ],
-                            "additionalProperties": false
-                          }
-                        },
-                        "details": {
-                          "description": "Additional error context (optional)",
-                          "type": "object",
-                          "propertyNames": {
-                            "type": "string"
-                          },
-                          "additionalProperties": {}
-                        }
-                      },
-                      "required": [
-                        "type",
-                        "code",
-                        "message",
-                        "requestId"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
+                    "data"
                   ],
                   "additionalProperties": false
                 }
@@ -10128,7 +10044,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -10214,7 +10130,423 @@
             }
           },
           "404": {
-            "description": "Not Found - Form does not exist",
+            "description": "Not Found - Form with this ID does not exist, not a root form, or doesn't belong to your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Form Version",
+        "description": "Create a new version of an existing form for updates.\n\n**Use Cases:**\n- Update a published form without breaking the live version\n- Test changes before deploying to production\n- Create A/B test variants\n- Roll back to previous versions\n- Maintain form version history\n\n**Behavior:**\n- New version inherits all fields from parent if not provided\n- Created in DRAFT status (can be edited)\n- Parent can be root form or any existing version\n- Only one DRAFT version allowed per root form\n- All fields are optional (defaults to parent values)\n- New version gets unique ID but shares root form lineage\n\n**Required Scope:** `write:forms`\n\n**Version Inheritance:**\n- If no fields provided, copies all from parent\n- Specify only fields you want to change\n- Omitted fields default to parent values\n- Creates independent copy (changes don't affect parent)\n\n**Versioning Workflow:**\n1. Published form is live on website\n2. Create new version (inherits configuration)\n3. Modify new DRAFT version as needed\n4. Test new version\n5. Publish new version\n6. Previous published version becomes ARCHIVED\n7. Form URL remains constant across versions\n\n**Important:**\n- Cannot create version if DRAFT already exists for this root form\n- Only one DRAFT version per form family\n- Publish or delete existing DRAFT before creating new version\n- Versions share the same root form ID\n\n**Note:** This enables zero-downtime form updates - edit in draft, test, then publish when ready.",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "Form ID (can be root form or any version)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "description": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 1000
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "fields": {}
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Form version created successfully in DRAFT status. Returns new version with unique ID inheriting parent configuration.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "DRAFT",
+                        "PUBLISHED",
+                        "ARCHIVED"
+                      ]
+                    },
+                    "version": {
+                      "type": "number"
+                    },
+                    "parentId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedVersionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "fields": {},
+                    "settings": {
+                      "anyOf": [
+                        {},
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedAt": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "description",
+                    "status",
+                    "version",
+                    "parentId",
+                    "publishedVersionId",
+                    "fields",
+                    "settings",
+                    "publishedAt",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - A DRAFT version already exists for this form's root. Publish or delete the existing DRAFT before creating a new version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Parent form with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -10300,7 +10632,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values",
+            "description": "Validation Error - Invalid field values or SurveyJS configuration",
             "content": {
               "application/json": {
                 "schema": {
@@ -10391,7 +10723,7 @@
     "/v1/forms/{formId}/publish": {
       "post": {
         "summary": "Publish Form",
-        "description": "Publish a form. Archives previous published version and updates root form's publishedVersionId. Supports rollback/rollforward.",
+        "description": "Publish a form to make it available for public use.\n\n**Use Cases:**\n- Make a draft form live on your website\n- Deploy form updates to production\n- Roll back to a previous version by publishing an archived version\n- Release tested changes to users\n- Activate new form configuration\n\n**Behavior:**\n- **First Publish:** Root form status changes to PUBLISHED\n- **Subsequent Publishes:** Previous published version becomes ARCHIVED\n- **Rollback:** Publish an archived version to revert changes\n- Published forms are immutable - cannot be edited\n- Form URL remains constant across versions\n- Embedded forms automatically use newly published version\n- PublishedAt timestamp is set\n- Root form's publishedVersionId points to this version\n\n**Required Scope:** `write:forms`\n\n**Publishing Flow:**\n1. Create form (DRAFT status)\n2. Configure and test form\n3. Publish form (becomes PUBLISHED)\n4. **To Update:** Create new version → Edit → Publish\n5. Previous version automatically becomes ARCHIVED\n6. Form URL stays the same (version transparent to users)\n\n**Version Management:**\n- Only one PUBLISHED version exists at a time\n- Publishing archives the current PUBLISHED version\n- Can publish any version (DRAFT or ARCHIVED)\n- Publishing ARCHIVED version = rollback\n- Root form always tracks current PUBLISHED version\n\n**Important:**\n- Cannot publish already PUBLISHED forms (no-op)\n- Previous published version auto-archived\n- Embedded forms switch instantly to new version\n- Test thoroughly before publishing\n- Form becomes immutable after publishing\n\n**Rollback Scenario:**\n1. Form V1 is PUBLISHED\n2. Create V2, publish it (V1 → ARCHIVED)\n3. Issue found in V2\n4. Publish V1 again (V2 → ARCHIVED, V1 → PUBLISHED)\n\n**Note:** Publishing is instant and affects all embedded instances immediately.",
         "tags": [
           "Forms"
         ],
@@ -10413,7 +10745,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Form published successfully",
+            "description": "Form published successfully. Status changed to PUBLISHED, publishedAt timestamp set. Previous published version (if any) is now ARCHIVED. Form is now live and immutable.",
             "content": {
               "application/json": {
                 "schema": {
@@ -10450,6 +10782,26 @@
                     "version": {
                       "type": "number"
                     },
+                    "parentId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "publishedVersionId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
                     "fields": {},
                     "settings": {
                       "anyOf": [
@@ -10483,6 +10835,8 @@
                     "description",
                     "status",
                     "version",
+                    "parentId",
+                    "publishedVersionId",
                     "fields",
                     "settings",
                     "publishedAt",
@@ -10495,7 +10849,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Form is already published",
+            "description": "Bad Request - Form is already in PUBLISHED status. No action taken. To update, create a new version first.",
             "content": {
               "application/json": {
                 "schema": {
@@ -10581,7 +10935,7 @@
             }
           },
           "401": {
-            "description": "Unauthorized - Invalid or missing API key, or insufficient scopes",
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -10667,7 +11021,7 @@
             }
           },
           "404": {
-            "description": "Not Found - Form does not exist",
+            "description": "Not Found - Form with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {
@@ -10758,218 +11112,325 @@
   },
   "components": {
     "schemas": {
-      "__schema0": {
-        "anyOf": [
-          {
-            "type": "object",
-            "properties": {
-              "field": {
-                "type": "string",
-                "minLength": 1
-              },
-              "operator": {
-                "type": "string",
-                "enum": [
-                  "eq",
-                  "ne",
-                  "gt",
-                  "gte",
-                  "lt",
-                  "lte",
-                  "in",
-                  "nin",
-                  "contains",
-                  "startsWith",
-                  "endsWith",
-                  "exists"
-                ]
-              },
-              "value": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "number"
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            },
-            "required": [
-              "field",
-              "operator",
-              "value"
-            ]
+      "FieldCondition": {
+        "type": "object",
+        "required": [
+          "field",
+          "operator",
+          "value"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "description": "Contact property field name (e.g., 'email', 'firstName', custom property name)",
+            "minLength": 1
           },
-          {
-            "type": "object",
-            "properties": {
-              "subscribedToTopic": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              },
-              "notSubscribedToTopic": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
-              }
-            }
-          },
-          {
-            "type": "object",
-            "properties": {
-              "$and": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/__schema0"
-                }
-              },
-              "$or": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/__schema0"
-                }
-              },
-              "$not": {
-                "$ref": "#/components/schemas/__schema0"
-              }
-            }
-          }
-        ]
-      },
-      "__schema1": {
-        "anyOf": [
-          {
-            "type": "object",
-            "properties": {
-              "field": {
-                "type": "string",
-                "minLength": 1
-              },
-              "operator": {
-                "type": "string",
-                "enum": [
-                  "eq",
-                  "ne",
-                  "gt",
-                  "gte",
-                  "lt",
-                  "lte",
-                  "in",
-                  "nin",
-                  "contains",
-                  "startsWith",
-                  "endsWith",
-                  "exists"
-                ]
-              },
-              "value": {
-                "anyOf": [
-                  {
-                    "type": "string"
-                  },
-                  {
-                    "type": "number"
-                  },
-                  {
-                    "type": "boolean"
-                  },
-                  {
-                    "type": "null"
-                  },
-                  {
-                    "type": "array",
-                    "items": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "number"
-                        }
-                      ]
-                    }
-                  }
-                ]
-              }
-            },
-            "required": [
-              "field",
-              "operator",
-              "value"
+          "operator": {
+            "type": "string",
+            "enum": [
+              "eq",
+              "ne",
+              "gt",
+              "gte",
+              "lt",
+              "lte",
+              "in",
+              "nin",
+              "contains",
+              "startsWith",
+              "endsWith",
+              "exists"
             ],
-            "additionalProperties": false
+            "description": "Comparison operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), in (in array), nin (not in array), contains (string contains), startsWith, endsWith, exists (field exists)"
           },
-          {
-            "type": "object",
-            "properties": {
-              "subscribedToTopic": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "type": "string"
-                }
+          "value": {
+            "oneOf": [
+              {
+                "type": "string"
               },
-              "notSubscribedToTopic": {
-                "minItems": 1,
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              },
+              {
                 "type": "array",
                 "items": {
-                  "type": "string"
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
                 }
               }
-            },
-            "additionalProperties": false
-          },
-          {
-            "type": "object",
-            "properties": {
-              "$and": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/__schema1"
-                }
-              },
-              "$or": {
-                "minItems": 1,
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/__schema1"
-                }
-              },
-              "$not": {
-                "$ref": "#/components/schemas/__schema1"
-              }
-            },
-            "additionalProperties": false
+            ],
+            "description": "Value to compare against. Type depends on field and operator. Null only valid with 'exists' operator."
           }
-        ]
+        },
+        "example": {
+          "field": "country",
+          "operator": "eq",
+          "value": "US"
+        }
+      },
+      "TopicCondition": {
+        "type": "object",
+        "properties": {
+          "subscribedToTopic": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "Array of topic IDs the contact must be subscribed to (OR logic - any match)"
+          },
+          "notSubscribedToTopic": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "Array of topic IDs the contact must NOT be subscribed to (OR logic - any match)"
+          }
+        },
+        "description": "Check if contact is subscribed or not subscribed to specific topics",
+        "example": {
+          "subscribedToTopic": [
+            "topic_123",
+            "topic_456"
+          ]
+        }
+      },
+      "LogicalOperatorCondition": {
+        "type": "object",
+        "properties": {
+          "$and": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Condition"
+            },
+            "minItems": 1,
+            "description": "Array of conditions that must ALL be true (AND logic)"
+          },
+          "$or": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Condition"
+            },
+            "minItems": 1,
+            "description": "Array of conditions where at least ONE must be true (OR logic)"
+          },
+          "$not": {
+            "$ref": "#/components/schemas/Condition",
+            "description": "Condition that must be false (NOT logic)"
+          }
+        },
+        "description": "Logical operators for combining conditions. At least one operator ($and, $or, or $not) is required.",
+        "example": {
+          "$and": [
+            {
+              "field": "country",
+              "operator": "eq",
+              "value": "US"
+            },
+            {
+              "field": "age",
+              "operator": "gte",
+              "value": 18
+            }
+          ]
+        }
+      },
+      "Condition": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/FieldCondition"
+          },
+          {
+            "$ref": "#/components/schemas/TopicCondition"
+          },
+          {
+            "$ref": "#/components/schemas/LogicalOperatorCondition"
+          }
+        ],
+        "description": "A filter condition for segments and contact search. Can be a field comparison, topic subscription check, or logical operator combining multiple conditions.",
+        "example": {
+          "$and": [
+            {
+              "field": "country",
+              "operator": "eq",
+              "value": "US"
+            },
+            {
+              "field": "lifetime_value",
+              "operator": "gte",
+              "value": 100
+            }
+          ]
+        }
+      },
+      "CreateSegmentRequest": {
+        "type": "object",
+        "required": [
+          "name",
+          "conditions"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Segment name (1-100 characters)"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "Optional description (max 500 characters)"
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/Condition",
+            "description": "Filter conditions defining segment membership"
+          }
+        }
+      },
+      "UpdateSegmentRequest": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Segment name (1-100 characters)"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 500,
+            "description": "Optional description (max 500 characters)"
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/Condition",
+            "description": "Filter conditions defining segment membership"
+          }
+        }
+      },
+      "SegmentResponse": {
+        "type": "object",
+        "required": [
+          "object",
+          "id",
+          "name",
+          "conditions"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "segment"
+            ],
+            "description": "Object type identifier"
+          },
+          "id": {
+            "type": "string",
+            "description": "Unique segment identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Segment name"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Segment description"
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/Condition",
+            "description": "Filter conditions defining segment membership"
+          }
+        }
+      },
+      "SegmentListItem": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "conditions"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique segment identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Segment name"
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Segment description"
+          },
+          "conditions": {
+            "$ref": "#/components/schemas/Condition",
+            "description": "Filter conditions defining segment membership"
+          }
+        }
+      },
+      "SegmentListResponse": {
+        "type": "object",
+        "required": [
+          "object",
+          "hasMore",
+          "data"
+        ],
+        "properties": {
+          "object": {
+            "type": "string",
+            "enum": [
+              "segment_list"
+            ],
+            "description": "Object type identifier"
+          },
+          "hasMore": {
+            "type": "boolean",
+            "description": "Whether more results are available"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SegmentListItem"
+            },
+            "description": "Array of segments"
+          }
+        }
+      },
+      "SearchContactsRequest": {
+        "type": "object",
+        "required": [
+          "conditions"
+        ],
+        "properties": {
+          "conditions": {
+            "$ref": "#/components/schemas/Condition",
+            "description": "Filter conditions for contact search"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -10977,7 +11438,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "API Key",
-        "description": "API key authentication. Use format: Bearer sk_xxxxx"
+        "description": "API key authentication using Bearer token format.\n\n**How to authenticate:**\n1. Generate an API key from your workspace settings\n2. Include it in the Authorization header: `Authorization: Bearer sk_xxxxx`\n3. Ensure your API key has the required scopes for the endpoint\n\n**Scopes:**\n- `read:contacts` - Read contact data\n- `write:contacts` - Create and update contacts\n- `read:forms` - View forms\n- `write:forms` - Create and publish forms\n- `read:topics` - View topics\n- `write:topics` - Manage topics\n- `read:segments` - View segments\n- `write:segments` - Create and update segments\n- `read:automations` - View automations\n- `write:automations` - Manage automations\n\n**Security best practices:**\n- Store API keys securely (use environment variables)\n- Use separate keys for development and production\n- Rotate keys periodically\n- Use minimal required scopes for each key"
       }
     }
   }

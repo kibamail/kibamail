@@ -93,6 +93,8 @@ export const formResponseSchema = z.object({
   description: z.string().nullable(),
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
   version: z.number(),
+  parentId: z.string().nullable(),
+  publishedVersionId: z.string().nullable(),
   fields: z.unknown(),
   settings: z.unknown().nullable(),
   publishedAt: z.string().nullable(),
@@ -101,12 +103,41 @@ export const formResponseSchema = z.object({
 });
 
 /**
+ * Form List Item Schema (simplified for list endpoints)
+ */
+export const formListItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+});
+
+/**
  * Form List Response Schema
  */
 export const formListResponseSchema = z.object({
   object: z.literal("form_list"),
   hasMore: z.boolean(),
-  data: z.array(formResponseSchema.omit({ object: true })),
+  data: z.array(formListItemSchema),
+});
+
+/**
+ * Form Version Item Schema (for versions list)
+ */
+export const formVersionItemSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
+  version: z.number(),
+});
+
+/**
+ * Form Version List Response Schema
+ */
+export const formVersionListResponseSchema = z.object({
+  object: z.literal("form_version_list"),
+  data: z.array(formVersionItemSchema),
 });
 
 /**
