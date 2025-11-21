@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Kibamail Monorepo
+
+This is a monorepo for the Kibamail platform, containing the web application and Node.js SDK.
+
+## Structure
+
+```
+.
+├── apps/
+│   └── web/              # Next.js web application
+├── packages/
+│   └── nodejs-sdk/       # Official Kibamail Node.js SDK
+├── pnpm-workspace.yaml   # pnpm workspace configuration
+├── turbo.json            # Turborepo configuration
+└── package.json          # Root package.json
+```
+
+## Tech Stack
+
+- **Package Manager**: pnpm 9.15.4+
+- **Build System**: Turborepo
+- **Monorepo**: pnpm workspaces
+
+## Prerequisites
+
+- Node.js 18+
+- pnpm 9+
 
 ## Getting Started
 
-First, run the development server:
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies for all workspaces
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Development
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Run all apps in development mode
+pnpm dev
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Run specific workspace
+pnpm --filter @repo/web dev
+pnpm --filter kibamail dev
+```
 
-## Learn More
+### Building
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+# Build all packages and apps
+pnpm build
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Build specific workspace
+pnpm --filter @repo/web build
+pnpm --filter kibamail build
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Other Commands
 
-## Deploy on Vercel
+```bash
+# Run linting across all workspaces
+pnpm lint
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# Run type checking
+pnpm type-check
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+# Clean all build artifacts
+pnpm clean
+```
+
+## Workspaces
+
+### Apps
+
+#### @repo/web (apps/web)
+The main Kibamail control plane Next.js application.
+
+- **Port**: 18092
+- **Tech**: Next.js 16, React 19, TypeScript, Prisma, PostgreSQL
+- **Services**: Docker Compose with Postgres, Redis, RabbitMQ, Logto, Outpost, Garage S3
+
+See [apps/web/README.md](apps/web/README.md) for more details.
+
+### Packages
+
+#### kibamail (packages/nodejs-sdk)
+Official Node.js SDK for the Kibamail API.
+
+- **Package**: `kibamail` on npm
+- **Version**: 0.0.1-alpha.0
+- **Build**: tsup (ESM + CJS)
+
+See [packages/nodejs-sdk/README.md](packages/nodejs-sdk/README.md) for more details.
+
+## Turborepo
+
+This monorepo uses [Turborepo](https://turbo.build) for intelligent task orchestration and caching.
+
+### Pipeline Tasks
+
+- `build` - Build all packages and apps
+- `dev` - Run development servers
+- `lint` - Lint code
+- `test` - Run tests
+- `type-check` - TypeScript type checking
+
+### Remote Caching
+
+To enable remote caching, authenticate with Vercel:
+
+```bash
+pnpm dlx turbo login
+pnpm dlx turbo link
+```
+
+## Migration from Bun
+
+This project was migrated from Bun to pnpm/Node.js to better support the monorepo architecture with Turborepo.
+
+Key changes:
+- `bun` → `pnpm` for package management
+- `bun run` → `pnpm` or `tsx` for running scripts
+- Unified build system with Turborepo
+- Workspace protocol for inter-package dependencies
+
+## License
+
+MIT
