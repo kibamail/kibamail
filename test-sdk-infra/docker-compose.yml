@@ -1,12 +1,12 @@
 services:
   prism:
     image: stoplight/prism:5
-    container_name: kibamail-sdk-prism
+    container_name: kibamail-test-sdk-prism
     command: mock -h 0.0.0.0 /openapi.json
     ports:
       - "4010:4010"
     volumes:
-      - ../../apps/web/public/openapi.v1.json:/openapi.json:ro
+      - ../apps/web/public/openapi.v1.json:/openapi.json:ro
     environment:
       # Enable dynamic response generation based on examples
       - PRISM_DYNAMIC=true

@@ -111,17 +111,40 @@ pnpm install
 
 ### Testing
 
+The SDK uses a shared Prism mock server (managed at monorepo root) for integration tests.
+
 See [tests/README.md](./tests/README.md) for detailed testing documentation.
 
+**From the SDK directory (packages/nodejs-sdk):**
 ```bash
-# Start mock API server
-pnpm --filter kibamail mock:start
+# Run tests (automatically starts test infrastructure if needed)
+npm test
 
-# Run tests
-pnpm --filter kibamail test
+# Watch mode
+npm run test:watch
 
-# Stop mock server
-pnpm --filter kibamail mock:stop
+# With UI
+npm run test:ui
+
+# With coverage
+npm run test:coverage
+
+# Manually manage test infrastructure
+npm run mock:start  # Start test infrastructure
+npm run mock:stop   # Stop test infrastructure
+npm run mock:logs   # View infrastructure logs
+```
+
+**From Monorepo Root:**
+```bash
+# Start test infrastructure for all SDKs
+make test-sdk-infra-start
+
+# Run tests for all SDKs
+make test-all-sdks
+
+# Stop test infrastructure
+make test-sdk-infra-stop
 ```
 
 ### Type Generation

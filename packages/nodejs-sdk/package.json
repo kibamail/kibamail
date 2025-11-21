@@ -28,13 +28,13 @@
     "prepublishOnly": "pnpm build",
     "publish:alpha": "npm publish --tag alpha",
     "schema:generate": "openapi-typescript ../../apps/web/public/openapi.v1.json -o ./schema.d.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:coverage": "vitest run --coverage",
-    "mock:start": "docker compose up -d",
-    "mock:stop": "docker compose down",
-    "mock:logs": "docker compose logs -f prism"
+    "test": "../../test-sdk-infra/scripts/ensure-test-sdk-infra.sh && vitest run",
+    "test:watch": "../../test-sdk-infra/scripts/ensure-test-sdk-infra.sh && vitest",
+    "test:ui": "../../test-sdk-infra/scripts/ensure-test-sdk-infra.sh && vitest --ui",
+    "test:coverage": "../../test-sdk-infra/scripts/ensure-test-sdk-infra.sh && vitest run --coverage",
+    "mock:start": "cd ../.. && make test-sdk-infra-start",
+    "mock:stop": "cd ../.. && make test-sdk-infra-stop",
+    "mock:logs": "cd ../.. && make test-sdk-infra-logs"
   },
   "publishConfig": {
     "access": "public",
