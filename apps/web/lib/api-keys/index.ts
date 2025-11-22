@@ -17,8 +17,8 @@ import { API_KEY_CONFIG } from "@/config/api";
  * @example
  * ```ts
  * const { key, preview } = generateApiKey()
- * // key: "sk_a1b2c3d4e5f6..."
- * // preview: "sk_a1b2c3d4..."
+ * // key: "kb_a1b2c3d4e5f6..."
+ * // preview: "kb_a1b2c3d4..."
  * ```
  */
 export function generateApiKey(): { key: string; preview: string } {
@@ -42,7 +42,7 @@ export function generateApiKey(): { key: string; preview: string } {
  *
  * @example
  * ```ts
- * const hash = hashApiKey("sk_abc123...")
+ * const hash = hashApiKey("kb_abc123...")
  * // hash: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
  * ```
  */
@@ -60,7 +60,7 @@ export function hashApiKey(key: string): string {
  *
  * @example
  * ```ts
- * validateApiKeyFormat("sk_abc123") // true
+ * validateApiKeyFormat("kb_abc123") // true
  * validateApiKeyFormat("invalid") // false
  * validateApiKeyFormat("pk_abc123") // false (wrong prefix)
  * ```
@@ -96,7 +96,7 @@ export function validateApiKeyFormat(key: string): boolean {
  *
  * @example
  * ```ts
- * maskApiKey("sk_abc123def456ghi789") // "sk_abc123de..."
+ * maskApiKey("kb_abc123def456ghi789") // "kb_abc123de..."
  * ```
  */
 export function maskApiKey(key: string, visibleChars: number = 8): string {

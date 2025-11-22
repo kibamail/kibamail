@@ -22,7 +22,7 @@ composer require kibamail/kibamail
 
 use Kibamail;
 
-$client = Kibamail::client('sk_your_api_key_here');
+$client = Kibamail::client('kb_your_api_key_here');
 ```
 
 ### List contacts
@@ -89,6 +89,7 @@ $results = $client->contacts->search([
 The SDK provides access to the following resources:
 
 ### Contacts
+
 ```php
 $client->contacts->create($parameters);
 $client->contacts->list($options);
@@ -99,6 +100,7 @@ $client->contacts->search($parameters);
 ```
 
 ### Topics
+
 ```php
 $client->topics->create($parameters);
 $client->topics->list($options);
@@ -108,6 +110,7 @@ $client->topics->delete($id);
 ```
 
 ### Segments
+
 ```php
 $client->segments->create($parameters);
 $client->segments->list($options);
@@ -117,6 +120,7 @@ $client->segments->delete($id);
 ```
 
 ### Forms
+
 ```php
 $client->forms->create($parameters);
 $client->forms->list($options);
@@ -126,6 +130,7 @@ $client->forms->delete($id);
 ```
 
 ### API Keys
+
 ```php
 $client->apiKeys->create($parameters);
 $client->apiKeys->list($options);
@@ -133,6 +138,7 @@ $client->apiKeys->delete($id);
 ```
 
 ### Contact Properties
+
 ```php
 $client->contactProperties->create($parameters);
 $client->contactProperties->list($options);

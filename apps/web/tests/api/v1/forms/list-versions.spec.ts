@@ -143,7 +143,10 @@ describe("GET /api/v1/forms/{formId}/versions - Authentication & Authorization",
   });
 
   test("should reject request with invalid API key", async () => {
-    const request = get(`/forms/${rootFormId}/versions`, "sk_invalid_key_12345");
+    const request = get(
+      `/forms/${rootFormId}/versions`,
+      "kb_invalid_key_12345"
+    );
 
     const response = await GET(request, {
       params: Promise.resolve({ formId: rootFormId }),
@@ -342,7 +345,10 @@ describe("GET /api/v1/forms/{formId}/versions - Error Cases", () => {
     });
 
     // Try to access other workspace's form with original API key
-    const request = get(`/forms/${otherForm.id}/versions`, fullAccessApiKey.key);
+    const request = get(
+      `/forms/${otherForm.id}/versions`,
+      fullAccessApiKey.key
+    );
 
     const response = await GET(request, {
       params: Promise.resolve({ formId: otherForm.id }),

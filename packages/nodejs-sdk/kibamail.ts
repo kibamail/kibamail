@@ -146,17 +146,17 @@ export class Kibamail {
   /**
    * Initialize the Kibamail SDK client.
    *
-   * @param apiKey - Your Kibamail API key (starts with 'sk_')
+   * @param apiKey - Your Kibamail API key (starts with 'kb_')
    * @param config - Optional configuration
    * @param config.baseURL - Custom API base URL (defaults to https://api.kibamail.com)
    *
    * @example
    * ```ts
    * // Production usage
-   * const kibamail = new Kibamail("sk_live_...");
+   * const kibamail = new Kibamail("kb_live_...");
    *
    * // Development with custom base URL
-   * const kibamail = new Kibamail("sk_test_...", {
+   * const kibamail = new Kibamail("kb_test_...", {
    *   baseURL: "http://localhost:3000"
    * });
    * ```
@@ -165,10 +165,12 @@ export class Kibamail {
     protected apiKey: string,
     protected config?: KibamailConfiguration
   ) {
-    this.client = config?.client ?? createHttpClient({
-      baseURL: config?.baseURL ?? BASE_URL,
-      apiKey,
-    });
+    this.client =
+      config?.client ??
+      createHttpClient({
+        baseURL: config?.baseURL ?? BASE_URL,
+        apiKey,
+      });
 
     // Initialize all resource instances
     this.apiKeys = new ApiKeys(this.client);

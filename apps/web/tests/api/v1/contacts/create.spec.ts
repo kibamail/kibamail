@@ -102,7 +102,11 @@ describe("POST /api/v1/contacts", () => {
     const firstRequest = post("/contacts", contactData, fullAccessApiKey.key);
     await POST(firstRequest);
 
-    const duplicateRequest = post("/contacts", contactData, fullAccessApiKey.key);
+    const duplicateRequest = post(
+      "/contacts",
+      contactData,
+      fullAccessApiKey.key
+    );
     const response = await POST(duplicateRequest);
     const responseData = await response.json();
 
@@ -115,21 +119,26 @@ describe("POST /api/v1/contacts", () => {
 
   test("should reject request with missing Authorization header", async () => {
     const contactData = fakeMinimalContact();
-    const request = apiRequest("/contacts").method("POST").body(contactData).build();
+    const request = apiRequest("/contacts")
+      .method("POST")
+      .body(contactData)
+      .build();
 
     const response = await POST(request);
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid API key", async () => {
     const contactData = fakeMinimalContact();
-    const request = post("/contacts", contactData, "sk_invalid_key_12345678");
+    const request = post("/contacts", contactData, "kb_invalid_key_12345678");
 
     const response = await POST(request);
     const responseData = await response.json();
@@ -142,7 +151,11 @@ describe("POST /api/v1/contacts", () => {
   });
 
   test("should reject request with missing email", async () => {
-    const request = post("/contacts", { firstName: "John", lastName: "Doe" }, fullAccessApiKey.key);
+    const request = post(
+      "/contacts",
+      { firstName: "John", lastName: "Doe" },
+      fullAccessApiKey.key
+    );
 
     const response = await POST(request);
     const responseData = await response.json();
@@ -156,7 +169,11 @@ describe("POST /api/v1/contacts", () => {
   });
 
   test("should reject request with invalid email format", async () => {
-    const request = post("/contacts", { email: "invalid-email" }, fullAccessApiKey.key);
+    const request = post(
+      "/contacts",
+      { email: "invalid-email" },
+      fullAccessApiKey.key
+    );
 
     const response = await POST(request);
     const responseData = await response.json();

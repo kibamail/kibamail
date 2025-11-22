@@ -19,16 +19,16 @@ bun add kibamail
 ### Initialize the client
 
 ```typescript
-import { Kibamail } from 'kibamail';
+import { Kibamail } from "kibamail";
 
-const kibamail = new Kibamail('sk_your_api_key_here');
+const kibamail = new Kibamail("kb_your_api_key_here");
 ```
 
 ### Custom configuration
 
 ```typescript
-const kibamail = new Kibamail('sk_your_api_key_here', {
-  baseURL: 'https://api.kibamail.com', // Optional: override API base URL
+const kibamail = new Kibamail("kb_your_api_key_here", {
+  baseURL: "https://api.kibamail.com", // Optional: override API base URL
 });
 ```
 
@@ -38,11 +38,11 @@ const kibamail = new Kibamail('sk_your_api_key_here', {
 const { data, error } = await kibamail.contacts.list();
 
 if (error) {
-  console.error('Error:', error);
+  console.error("Error:", error);
   return;
 }
 
-console.log('Contacts:', data);
+console.log("Contacts:", data);
 ```
 
 ## API Reference
@@ -56,7 +56,7 @@ All API requests require authentication using an API key. You can create API key
 Pass your API key when initializing the client:
 
 ```typescript
-const kibamail = new Kibamail('sk_your_api_key_here');
+const kibamail = new Kibamail("kb_your_api_key_here");
 ```
 
 ### Error Handling
@@ -86,10 +86,11 @@ if (error) {
 The SDK is written in TypeScript and includes comprehensive type definitions generated from the OpenAPI specification. All API responses, request parameters, and error types are fully typed.
 
 ```typescript
-import type { paths } from 'kibamail/schema';
+import type { paths } from "kibamail/schema";
 
 // All types from the API are available
-type Contact = paths['/v1/contacts']['get']['responses']['200']['content']['application/json']['data'][0];
+type Contact =
+  paths["/v1/contacts"]["get"]["responses"]["200"]["content"]["application/json"]["data"][0];
 ```
 
 ## Requirements
@@ -116,6 +117,7 @@ The SDK uses a shared Prism mock server (managed at monorepo root) for integrati
 See [tests/README.md](./tests/README.md) for detailed testing documentation.
 
 **From the SDK directory (packages/nodejs-sdk):**
+
 ```bash
 # Run tests (automatically starts test infrastructure if needed)
 npm test
@@ -136,6 +138,7 @@ npm run mock:logs   # View infrastructure logs
 ```
 
 **From Monorepo Root:**
+
 ```bash
 # Start test infrastructure for all SDKs
 make test-sdk-infra-start

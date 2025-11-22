@@ -11,7 +11,7 @@ use Kibamail\ValueObjects\Transporter\Headers;
  */
 function createClient(): Client
 {
-    $apiKey = ApiKey::from('sk_test_mock_api_key_12345');
+    $apiKey = ApiKey::from('kb_test_mock_api_key_12345');
     $baseUri = BaseUri::from(getenv('MOCK_API_URL') ?: 'http://localhost:4010');
     $headers = Headers::withAuthorization($apiKey);
 

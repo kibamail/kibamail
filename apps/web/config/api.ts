@@ -270,9 +270,9 @@ export const API_KEY_CONFIG = {
   /**
    * API key prefix
    * Format: {prefix}_{random}
-   * @example "sk_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4"
+   * @example "kb_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4"
    */
-  PREFIX: "sk" as const,
+  PREFIX: "kb" as const,
 
   /**
    * Length of the random part (in bytes, will be hex encoded)

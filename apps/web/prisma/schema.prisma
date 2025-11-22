@@ -47,7 +47,7 @@ model ApiKey {
   /// The actual key is never stored, only the hash
   keyHash     String    @unique
   /// Preview of the key (first 8 chars after prefix)
-  /// Format: "sk_abc12345..."
+  /// Format: "kb_abc12345..."
   /// Used for identification in the UI
   keyPreview  String
   /// Array of scope names granted to this key

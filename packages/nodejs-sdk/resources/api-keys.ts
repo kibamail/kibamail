@@ -4,7 +4,8 @@ import type { paths } from "../schema";
 type HttpClient = ReturnType<typeof createHttpClient>;
 
 // Extract types from schema
-type CreateApiKeyBody = paths["/v1/api-keys/"]["post"]["requestBody"]["content"]["application/json"];
+type CreateApiKeyBody =
+  paths["/v1/api-keys/"]["post"]["requestBody"]["content"]["application/json"];
 
 /**
  * API Keys Resource
@@ -40,7 +41,7 @@ export class ApiKeys {
    * - Replace compromised or leaked API keys
    *
    * **Behavior:**
-   * - Returns the full API key ONLY on creation (starts with 'sk_')
+   * - Returns the full API key ONLY on creation (starts with 'kb_')
    * - Key is securely hashed before storage - cannot be retrieved again
    * - Keys are scoped to specific permissions you define
    * - Each key can have a custom name for identification

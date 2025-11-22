@@ -25,7 +25,7 @@ import (
 
 func main() {
     // Initialize the client with your API key
-    client := kibamail.NewClient("sk_your_api_key")
+    client := kibamail.NewClient("kb_your_api_key")
 
     // Create a contact
     contact, err := client.Contacts.Create(&kibamail.CreateContactRequest{
@@ -54,6 +54,7 @@ func main() {
 The SDK provides access to the following resources:
 
 ### Contacts
+
 Manage contact records and subscriptions.
 
 ```go
@@ -96,6 +97,7 @@ results, err := client.Contacts.Search(&kibamail.SearchContactRequest{
 ```
 
 ### Topics
+
 Organize email communications by topic.
 
 ```go
@@ -123,6 +125,7 @@ err := client.Topics.Delete("topic_123")
 ```
 
 ### Segments
+
 Create dynamic contact groups with filtering.
 
 ```go
@@ -143,6 +146,7 @@ contacts, err := client.Segments.ListContacts("segment_123", nil)
 ```
 
 ### Forms
+
 Build and manage signup/contact forms.
 
 ```go
@@ -157,6 +161,7 @@ forms, err := client.Forms.List(nil)
 ```
 
 ### API Keys
+
 Manage API keys for workspace access.
 
 ```go
@@ -174,6 +179,7 @@ err := client.ApiKeys.Delete("key_123")
 ```
 
 ### Contact Properties
+
 Define custom contact properties.
 
 ```go
@@ -252,6 +258,7 @@ make mock-logs   # View infrastructure logs
 ```
 
 **From Monorepo Root:**
+
 ```bash
 # Start test infrastructure for all SDKs
 make test-sdk-infra-start
