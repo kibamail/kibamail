@@ -1,19 +1,19 @@
-name: Test Go SDK
+name: test go sdk
 
 on:
   push:
     branches: [main, develop]
     paths:
-      - 'packages/go-sdk/**'
-      - 'test-sdk-infra/**'
-      - 'apps/web/public/openapi.v1.json'
-      - '.github/workflows/test-go-sdk.yml'
+      - "packages/go-sdk/**"
+      - "test-sdk-infra/**"
+      - "apps/web/public/openapi.v1.json"
+      - ".github/workflows/test-go-sdk.yml"
   pull_request:
     paths:
-      - 'packages/go-sdk/**'
-      - 'test-sdk-infra/**'
-      - 'apps/web/public/openapi.v1.json'
-      - '.github/workflows/test-go-sdk.yml'
+      - "packages/go-sdk/**"
+      - "test-sdk-infra/**"
+      - "apps/web/public/openapi.v1.json"
+      - ".github/workflows/test-go-sdk.yml"
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        go-version: ['1.21', '1.22', '1.23']
+        go-version: ["1.21", "1.22", "1.23"]
 
     steps:
       - name: checkout code

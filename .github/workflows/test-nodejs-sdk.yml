@@ -1,19 +1,19 @@
-name: Test Node.js SDK
+name: test node.js sdk
 
 on:
   push:
     branches: [main, develop]
     paths:
-      - 'packages/nodejs-sdk/**'
-      - 'test-sdk-infra/**'
-      - 'apps/web/public/openapi.v1.json'
-      - '.github/workflows/test-nodejs-sdk.yml'
+      - "packages/nodejs-sdk/**"
+      - "test-sdk-infra/**"
+      - "apps/web/public/openapi.v1.json"
+      - ".github/workflows/test-nodejs-sdk.yml"
   pull_request:
     paths:
-      - 'packages/nodejs-sdk/**'
-      - 'test-sdk-infra/**'
-      - 'apps/web/public/openapi.v1.json'
-      - '.github/workflows/test-nodejs-sdk.yml'
+      - "packages/nodejs-sdk/**"
+      - "test-sdk-infra/**"
+      - "apps/web/public/openapi.v1.json"
+      - ".github/workflows/test-nodejs-sdk.yml"
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: ['18', '20', '22']
+        node-version: ["18", "20", "22"]
 
     steps:
       - name: checkout code
@@ -32,8 +32,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: packages/nodejs-sdk/package-lock.json
 
       - name: install dependencies
         working-directory: packages/nodejs-sdk

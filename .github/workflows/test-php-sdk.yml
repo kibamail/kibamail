@@ -1,19 +1,19 @@
-name: Test PHP SDK
+name: test php sdk
 
 on:
   push:
     branches: [main, develop]
     paths:
-      - 'packages/php-sdk/**'
-      - 'test-sdk-infra/**'
-      - 'apps/web/public/openapi.v1.json'
-      - '.github/workflows/test-php-sdk.yml'
+      - "packages/php-sdk/**"
+      - "test-sdk-infra/**"
+      - "apps/web/public/openapi.v1.json"
+      - ".github/workflows/test-php-sdk.yml"
   pull_request:
     paths:
-      - 'packages/php-sdk/**'
-      - 'test-sdk-infra/**'
-      - 'apps/web/public/openapi.v1.json'
-      - '.github/workflows/test-php-sdk.yml'
+      - "packages/php-sdk/**"
+      - "test-sdk-infra/**"
+      - "apps/web/public/openapi.v1.json"
+      - ".github/workflows/test-php-sdk.yml"
 
 jobs:
   test:
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php-version: ['8.1', '8.2', '8.3']
+        php-version: ["8.1", "8.2", "8.3"]
 
     steps:
       - name: checkout code
