@@ -24,8 +24,8 @@ Each SDK has its own workflow that tests across multiple language versions:
   - Push to `main` or `develop` branches
   - Pull requests affecting Node.js SDK, test infrastructure, or OpenAPI spec
 - **Features:**
-  - Uses npm for dependency management
-  - Caches npm dependencies for faster builds
+  - Uses pnpm for dependency management
+  - Caches pnpm dependencies for faster builds
   - Uses Docker Compose for Prism test infrastructure
 
 #### 3. **test-php-sdk.yml** - PHP SDK Testing
@@ -68,9 +68,8 @@ docker compose up -d
 cd ../packages/go-sdk
 go test -v -race ./...
 
-# Run Node.js SDK tests
-cd ../packages/nodejs-sdk
-npm test
+# Run Node.js SDK tests (from workspace root)
+pnpm --filter kibamail test
 
 # Run PHP SDK tests
 cd ../packages/php-sdk
