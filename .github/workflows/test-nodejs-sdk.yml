@@ -1,0 +1,57 @@
+name: Test Node.js SDK
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/nodejs-sdk/**'
+      - 'test-sdk-infra/**'
+      - 'apps/web/public/openapi.v1.json'
+      - '.github/workflows/test-nodejs-sdk.yml'
+  pull_request:
+    paths:
+      - 'packages/nodejs-sdk/**'
+      - 'test-sdk-infra/**'
+      - 'apps/web/public/openapi.v1.json'
+      - '.github/workflows/test-nodejs-sdk.yml'
+
+jobs:
+  test:
+    name: test on node.js ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['18', '20', '22']
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: set up node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+          cache-dependency-path: packages/nodejs-sdk/package-lock.json
+
+      - name: install dependencies
+        working-directory: packages/nodejs-sdk
+        run: npm ci
+
+      - name: start test infrastructure (prism)
+        working-directory: test-sdk-infra
+        run: |
+          docker compose up -d
+          # Wait for Prism to be ready
+          timeout 30 bash -c 'until curl -s http://localhost:4010 > /dev/null; do sleep 1; done'
+          echo "Prism is ready"
+
+      - name: run tests
+        working-directory: packages/nodejs-sdk
+        run: npm test
+
+      - name: stop test infrastructure
+        if: always()
+        working-directory: test-sdk-infra
+        run: docker compose down

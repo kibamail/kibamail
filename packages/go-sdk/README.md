@@ -2,13 +2,13 @@
 
 Official Go SDK for the Kibamail API.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/kibamail/kibamail-go.svg)](https://pkg.go.dev/github.com/kibamail/kibamail-go)
-[![Go Report Card](https://goreportcard.com/badge/github.com/kibamail/kibamail-go)](https://goreportcard.com/report/github.com/kibamail/kibamail-go)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kibamail/kibamail/packages/go-sdk.svg)](https://pkg.go.dev/github.com/kibamail/kibamail/packages/go-sdk)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kibamail/kibamail/packages/go-sdk)](https://goreportcard.com/report/github.com/kibamail/kibamail/packages/go-sdk)
 
 ## Installation
 
 ```bash
-go get github.com/kibamail/kibamail-go
+go get github.com/kibamail/kibamail/packages/go-sdk
 ```
 
 ## Quick Start
@@ -20,7 +20,7 @@ import (
     "fmt"
     "log"
 
-    "github.com/kibamail/kibamail-go"
+    kibamail "github.com/kibamail/kibamail/packages/go-sdk"
 )
 
 func main() {

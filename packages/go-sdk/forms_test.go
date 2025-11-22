@@ -13,12 +13,10 @@ func TestFormsCreate(t *testing.T) {
 		result, err := client.Forms.Create(&CreateFormRequest{
 			Name:        "Newsletter Signup",
 			Description: "Subscribe to our weekly newsletter",
+			Fields:      map[string]interface{}{},
 		})
 
-		if err != nil {
-			t.Skipf("Skipping test due to API error: %v", err)
-			return
-		}
+		assert.NoError(t, err)
 		assert.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})

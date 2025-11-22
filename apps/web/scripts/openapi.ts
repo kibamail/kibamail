@@ -8,12 +8,14 @@ type ReferenceObject = oas31.ReferenceObject;
 import {
   createApiKeyResponseSchema,
   createApiKeySchema,
+  apiKeyDeleteResponseSchema,
 } from "@/app/api/v1/api-keys/schema";
 import {
   createContactSchema,
   updateContactSchema,
   contactResponseSchema,
   contactListResponseSchema,
+  contactDeleteResponseSchema,
   searchContactsSchema,
 } from "@/app/api/v1/contacts/schema";
 import {
@@ -21,18 +23,21 @@ import {
   updateContactPropertySchema,
   contactPropertyResponseSchema,
   contactPropertyListResponseSchema,
+  contactPropertyDeleteResponseSchema,
 } from "@/app/api/v1/contact-properties/schema";
 import {
   createTopicSchema,
   updateTopicSchema,
   topicResponseSchema,
   topicListResponseSchema,
+  topicDeleteResponseSchema,
 } from "@/app/api/v1/topics/schema";
 import {
   createSegmentSchema,
   updateSegmentSchema,
   segmentResponseSchema,
   segmentListResponseSchema,
+  segmentDeleteResponseSchema,
 } from "@/app/api/v1/segments/schema";
 import {
   createFormSchema,
@@ -40,6 +45,7 @@ import {
   formResponseSchema,
   formListResponseSchema,
   formVersionListResponseSchema,
+  formDeleteResponseSchema,
 } from "@/app/api/v1/forms/schema";
 
 /**
@@ -471,7 +477,68 @@ For detailed guides and tutorials, visit our documentation.`,
     },
   },
   paths: {
-    "/v1/api-keys/": {
+    "/v1/api-keys": {
+      get: {
+        summary: "List API Keys",
+        description: `Retrieve a paginated list of all API keys in your workspace.
+
+**Use Cases:**
+- View all active API keys
+- Audit API key usage
+- Manage workspace integrations
+- Identify keys for rotation or deletion
+
+**Behavior:**
+- Returns all API keys for the workspace
+- Keys are returned in reverse chronological order (newest first)
+- Actual key values are NOT included (only metadata)
+- Includes key name, scopes, and creation date
+- Uses cursor-based pagination
+
+**Required Scope:** Requires API key authentication
+
+**Security Note:**
+- Full key values are never returned (they're hashed)
+- Only the key prefix and metadata are shown
+- Use this to audit and manage your keys`,
+        tags: ["API Keys"],
+        security: [{ BearerAuth: [] }],
+        parameters: paginationParameters,
+        responses: {
+          "200": {
+            description: "Successfully retrieved list of API keys with metadata (key values not included)",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    object: { type: "string", example: "api_key_list" },
+                    hasMore: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: "string" },
+                          name: { type: "string" },
+                          scopes: { type: "array", items: { type: "string" } },
+                          createdAt: { type: "string", format: "date-time" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key authentication",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
       post: {
         summary: "Create API Key",
         description: `Generate a new API key for programmatic workspace access.
@@ -512,7 +579,14 @@ For detailed guides and tutorials, visit our documentation.`,
           "200": {
             description: "API key created successfully. The full key value is included in the response and cannot be retrieved again.",
             content: {
-              "application/json": { schema: createApiKeyResponseSchema },
+              "application/json": {
+                schema: createApiKeyResponseSchema,
+                example: {
+                  object: "api_key",
+                  id: "api_key_abc123xyz789",
+                  key: "sk_live_1234567890abcdefghijklmnopqrstuvwxyz",
+                },
+              },
             },
           },
           "400": {
@@ -523,6 +597,71 @@ For detailed guides and tutorials, visit our documentation.`,
           },
           "401": {
             description: "Unauthorized - Invalid or missing session authentication. This endpoint requires user login, not API key authentication.",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/api-keys/{keyId}": {
+      delete: {
+        summary: "Delete API Key",
+        description: `Delete an API key permanently.
+
+**Use Cases:**
+- Revoke compromised or leaked API keys
+- Remove unused API keys
+- Clean up keys after decommissioning integrations
+- Rotate API keys for security
+
+**Behavior:**
+- API key is permanently deleted
+- Key can no longer be used for authentication
+- Cannot delete the currently authenticated API key
+- Operation is immediate and cannot be undone
+
+**Required Scope:** Requires API key authentication
+
+**Important:**
+- You cannot delete the API key you're currently using
+- Deleted keys cannot be recovered
+- Any integrations using the deleted key will stop working immediately
+- Update all services using the key before deletion`,
+        tags: ["API Keys"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "keyId",
+            in: "path",
+            description: "API Key ID to delete",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "API key deleted successfully. Returns the deleted key's ID for confirmation.",
+            content: {
+              "application/json": {
+                schema: apiKeyDeleteResponseSchema,
+                example: {
+                  object: "api_key",
+                  id: "api_key_abc123xyz789",
+                },
+              },
+            },
+          },
+          "400": {
+            description: "Bad Request - Attempting to delete the currently authenticated API key or key not found",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key authentication",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -858,8 +997,17 @@ For detailed guides and tutorials, visit our documentation.`,
           },
         ],
         responses: {
-          "204": {
-            description: "Contact permanently deleted successfully. No content returned. Operation cannot be undone.",
+          "200": {
+            description: "Contact permanently deleted successfully. Returns the deleted contact's ID for confirmation.",
+            content: {
+              "application/json": {
+                schema: contactDeleteResponseSchema,
+                example: {
+                  object: "contact",
+                  id: "contact_abc123xyz789",
+                },
+              },
+            },
           },
           "401": {
             description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
@@ -1201,9 +1349,15 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Topic deleted successfully. Returns the deleted topic object for reference before permanent removal.",
+            description: "Topic deleted successfully. Returns the deleted topic's ID for confirmation.",
             content: {
-              "application/json": { schema: topicResponseSchema },
+              "application/json": {
+                schema: topicDeleteResponseSchema,
+                example: {
+                  object: "topic",
+                  id: "topic_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
@@ -1563,10 +1717,14 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Segment deleted successfully. Returns the deleted segment object for reference before permanent removal.",
+            description: "Segment deleted successfully. Returns the deleted segment's ID for confirmation.",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/SegmentResponse" }
+                schema: segmentDeleteResponseSchema,
+                example: {
+                  object: "segment",
+                  id: "segment_abc123xyz789",
+                },
               },
             },
           },
@@ -1945,9 +2103,15 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Contact property deleted successfully. Returns the deleted property object. All contact data for this property is permanently removed.",
+            description: "Contact property deleted successfully. Returns the deleted property's ID for confirmation. All contact data for this property is permanently removed.",
             content: {
-              "application/json": { schema: contactPropertyResponseSchema },
+              "application/json": {
+                schema: contactPropertyDeleteResponseSchema,
+                example: {
+                  object: "contact_property",
+                  id: "contact_property_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
@@ -2354,9 +2518,15 @@ Find contacts missing a property:
         },
         responses: {
           "201": {
-            description: "Form created successfully in DRAFT status with generated ID, slug, and timestamps. Use POST /v1/forms/{formId}/publish to make it live.",
+            description: "Form created successfully. Returns the generated form ID.",
             content: {
-              "application/json": { schema: formResponseSchema },
+              "application/json": {
+                schema: formResponseSchema,
+                example: {
+                  object: "form",
+                  id: "form_abc123xyz789",
+                },
+              },
             },
           },
           "400": {
@@ -2435,7 +2605,13 @@ Find contacts missing a property:
           "200": {
             description: "Successfully retrieved form with complete configuration, version info, and submission statistics",
             content: {
-              "application/json": { schema: formResponseSchema },
+              "application/json": {
+                schema: formResponseSchema,
+                example: {
+                  object: "form",
+                  id: "form_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
@@ -2606,9 +2782,15 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Form deleted successfully. Returns the deleted form object. If root form, all versions are permanently removed.",
+            description: "Form deleted successfully. Returns the deleted form's ID for confirmation. If root form, all versions are permanently removed.",
             content: {
-              "application/json": { schema: formResponseSchema },
+              "application/json": {
+                schema: formDeleteResponseSchema,
+                example: {
+                  object: "form",
+                  id: "form_abc123xyz789",
+                },
+              },
             },
           },
           "401": {

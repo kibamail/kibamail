@@ -138,6 +138,15 @@ export const contactListResponseSchema = z.object({
 });
 
 /**
+ * Contact Delete Response Schema
+ * Simple response confirming deletion with just the deleted contact's ID
+ */
+export const contactDeleteResponseSchema = z.object({
+  object: z.literal("contact"),
+  id: z.string().describe("ID of the deleted contact"),
+});
+
+/**
  * Search Contacts Request Schema
  */
 export const searchContactsSchema = z.object({
@@ -151,4 +160,5 @@ export type CreateContactRequest = z.infer<typeof createContactSchema>;
 export type UpdateContactRequest = z.infer<typeof updateContactSchema>;
 export type ContactResponse = z.infer<typeof contactResponseSchema>;
 export type ContactListResponse = z.infer<typeof contactListResponseSchema>;
+export type ContactDeleteResponse = z.infer<typeof contactDeleteResponseSchema>;
 export type SearchContactsRequest = z.infer<typeof searchContactsSchema>;

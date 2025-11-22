@@ -3,7 +3,7 @@
   "info": {
     "title": "Kibamail API",
     "version": "1.0.0",
-    "description": "# Kibamail API\n\nThe Kibamail API provides a comprehensive set of endpoints for managing your email marketing operations programmatically.\n\n## Key Features\n\n- **Contacts Management**: Create, update, and segment your contact lists with custom properties\n- **Topics & Subscriptions**: Manage email topics and subscriber preferences\n- **Forms**: Create and publish embeddable forms for lead capture\n- **Segments**: Build dynamic audience segments using flexible filtering conditions\n- **Automations**: Set up automated email workflows triggered by contact behavior\n- **API Keys**: Secure, scoped API key management for workspace access\n\n## Authentication\n\nAll API requests require authentication using an API key. Include your API key in the Authorization header:\n\n```\nAuthorization: Bearer sk_your_api_key_here\n```\n\nAPI keys are scoped to specific permissions (read/write for each resource type). Generate keys from your workspace settings.\n\n## Rate Limiting\n\n- **Rate Limit**: 1000 requests per minute per API key\n- **Burst Limit**: 100 requests per second\n- Rate limit headers are included in all responses\n\n## Pagination\n\nList endpoints use cursor-based pagination for optimal performance:\n- `limit`: Number of items (1-100, default 20)\n- `after`: Cursor for next page (ID of last item)\n- `before`: Cursor for previous page (ID of first item)\n\nResponses include `hasMore` and `hasPrevious` flags for navigation.\n\n## Error Handling\n\nAll errors follow a consistent format with:\n- `type`: Error category (authentication_error, validation_error, etc.)\n- `code`: Specific error code (FORM_NOT_FOUND, INSUFFICIENT_SCOPE, etc.)\n- `message`: Human-readable description\n- `requestId`: Unique identifier for debugging\n- `validationErrors`: Field-level errors (for validation failures)\n\n## Webhooks\n\nConfigure webhooks to receive real-time notifications for:\n- Contact created/updated/unsubscribed\n- Form submissions\n- Automation triggers\n- Topic subscriptions/unsubscriptions\n\n## SDKs\n\nOfficial SDKs available for:\n- Node.js/TypeScript\n- Python\n- PHP\n- Ruby\n\nVisit https://docs.kibamail.com for detailed guides and tutorials."
+    "description": "# Kibamail API\n\nThe Kibamail API provides a comprehensive set of endpoints for managing your email marketing operations programmatically.\n\n## Key Features\n\n- **Contacts Management**: Create, update, and segment your contact lists with custom properties\n- **Topics & Subscriptions**: Manage email topics and subscriber preferences\n- **Forms**: Create and publish embeddable forms for lead capture\n- **Segments**: Build dynamic audience segments using flexible filtering conditions\n- **Automations**: Set up automated email workflows triggered by contact behavior\n- **API Keys**: Secure, scoped API key management for workspace access\n\n## Authentication\n\nAll API requests require authentication using an API key. Include your API key in the Authorization header:\n\n```\nAuthorization: Bearer sk_your_api_key_here\n```\n\nAPI keys are scoped to specific permissions (read/write for each resource type). Generate keys from your workspace settings.\n\n## Rate Limiting\n\n- **Rate Limit**: 1000 requests per minute per API key\n- **Burst Limit**: 100 requests per second\n- Rate limit headers are included in all responses\n\n## Pagination\n\nList endpoints use cursor-based pagination for optimal performance:\n- `limit`: Number of items (1-100, default 20)\n- `after`: Cursor for next page (ID of last item)\n- `before`: Cursor for previous page (ID of first item)\n\nResponses include `hasMore` and `hasPrevious` flags for navigation.\n\n## Error Handling\n\nAll errors follow a consistent format with:\n- `type`: Error category (authentication_error, validation_error, etc.)\n- `code`: Specific error code (FORM_NOT_FOUND, INSUFFICIENT_SCOPE, etc.)\n- `message`: Human-readable description\n- `requestId`: Unique identifier for debugging\n- `validationErrors`: Field-level errors (for validation failures)\n\n## Webhooks\n\nConfigure webhooks to receive real-time notifications for:\n- Contact created/updated/unsubscribed\n- Form submissions\n- Automation triggers\n- Topic subscriptions/unsubscriptions\n\n## SDKs\n\nOfficial SDKs available for:\n- Node.js/TypeScript\n- Python\n- PHP\n- Ruby\n\nFor detailed guides and tutorials, visit our documentation."
   },
   "servers": [
     {
@@ -16,7 +16,182 @@
     }
   ],
   "paths": {
-    "/v1/api-keys/": {
+    "/v1/api-keys": {
+      "get": {
+        "summary": "List API Keys",
+        "description": "Retrieve a paginated list of all API keys in your workspace.\n\n**Use Cases:**\n- View all active API keys\n- Audit API key usage\n- Manage workspace integrations\n- Identify keys for rotation or deletion\n\n**Behavior:**\n- Returns all API keys for the workspace\n- Keys are returned in reverse chronological order (newest first)\n- Actual key values are NOT included (only metadata)\n- Includes key name, scopes, and creation date\n- Uses cursor-based pagination\n\n**Required Scope:** Requires API key authentication\n\n**Security Note:**\n- Full key values are never returned (they're hashed)\n- Only the key prefix and metadata are shown\n- Use this to audit and manage your keys",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items to return (default: 20, max: 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Cursor for pagination - ID of the last item from the previous page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Cursor for reverse pagination - ID of the first item from the next page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved list of API keys with metadata (key values not included)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "example": "api_key_list"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "scopes": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "createdAt": {
+                            "type": "string",
+                            "format": "date-time"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key authentication",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
       "post": {
         "summary": "Create API Key",
         "description": "Generate a new API key for programmatic workspace access.\n\n**Use Cases:**\n- Set up server-side integrations with your application\n- Create separate keys for different environments (dev, staging, production)\n- Generate keys with specific scopes for third-party integrations\n- Replace compromised or leaked API keys\n\n**Behavior:**\n- Returns the full API key ONLY on creation (starts with 'sk_')\n- Key is securely hashed before storage - cannot be retrieved again\n- Keys are scoped to specific permissions you define\n- Each key can have a custom name for identification\n- Keys remain active until explicitly revoked\n- No limit on number of active keys per workspace\n\n**Required Scope:** This endpoint requires session authentication (not API key)\n\n**Security Best Practices:**\n- Store the returned key securely immediately\n- Never commit keys to version control\n- Use environment variables for key storage\n- Rotate keys periodically (recommended: every 90 days)\n- Use minimum required scopes for each key\n- Revoke unused keys immediately\n\n**Note:** You cannot view the full key value after creation. If lost, generate a new key and update your integrations.",
@@ -57,6 +232,11 @@
             "description": "API key created successfully. The full key value is included in the response and cannot be retrieved again.",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "api_key",
+                  "id": "api_key_abc123xyz789",
+                  "key": "sk_live_1234567890abcdefghijklmnopqrstuvwxyz"
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -64,12 +244,18 @@
                       "type": "string",
                       "const": "api_key"
                     },
+                    "id": {
+                      "description": "API key identifier",
+                      "type": "string"
+                    },
                     "key": {
+                      "description": "The full API key value (only shown once on creation)",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
+                    "id",
                     "key"
                   ],
                   "additionalProperties": false
@@ -165,6 +351,234 @@
           },
           "401": {
             "description": "Unauthorized - Invalid or missing session authentication. This endpoint requires user login, not API key authentication.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/api-keys/{keyId}": {
+      "delete": {
+        "summary": "Delete API Key",
+        "description": "Delete an API key permanently.\n\n**Use Cases:**\n- Revoke compromised or leaked API keys\n- Remove unused API keys\n- Clean up keys after decommissioning integrations\n- Rotate API keys for security\n\n**Behavior:**\n- API key is permanently deleted\n- Key can no longer be used for authentication\n- Cannot delete the currently authenticated API key\n- Operation is immediate and cannot be undone\n\n**Required Scope:** Requires API key authentication\n\n**Important:**\n- You cannot delete the API key you're currently using\n- Deleted keys cannot be recovered\n- Any integrations using the deleted key will stop working immediately\n- Update all services using the key before deletion",
+        "tags": [
+          "API Keys"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "description": "API Key ID to delete",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key deleted successfully. Returns the deleted key's ID for confirmation.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "object": "api_key",
+                  "id": "api_key_abc123xyz789"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "api_key"
+                    },
+                    "id": {
+                      "description": "ID of the deleted API key",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Attempting to delete the currently authenticated API key or key not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key authentication",
             "content": {
               "application/json": {
                 "schema": {
@@ -2205,8 +2619,34 @@
           }
         ],
         "responses": {
-          "204": {
-            "description": "Contact permanently deleted successfully. No content returned. Operation cannot be undone."
+          "200": {
+            "description": "Contact permanently deleted successfully. Returns the deleted contact's ID for confirmation.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "object": "contact",
+                  "id": "contact_abc123xyz789"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "contact"
+                    },
+                    "id": {
+                      "description": "ID of the deleted contact",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
             "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
@@ -3853,9 +4293,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Topic deleted successfully. Returns the deleted topic object for reference before permanent removal.",
+            "description": "Topic deleted successfully. Returns the deleted topic's ID for confirmation.",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "topic",
+                  "id": "topic_abc123xyz789"
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -3864,39 +4308,13 @@
                       "const": "topic"
                     },
                     "id": {
+                      "description": "ID of the deleted topic",
                       "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "visibility": {
-                      "type": "string",
-                      "enum": [
-                        "PUBLIC",
-                        "PRIVATE"
-                      ]
-                    },
-                    "defaultOptIn": {
-                      "type": "boolean"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "visibility",
-                    "defaultOptIn"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -5135,11 +5553,30 @@
         ],
         "responses": {
           "200": {
-            "description": "Segment deleted successfully. Returns the deleted segment object for reference before permanent removal.",
+            "description": "Segment deleted successfully. Returns the deleted segment's ID for confirmation.",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "segment",
+                  "id": "segment_abc123xyz789"
+                },
                 "schema": {
-                  "$ref": "#/components/schemas/SegmentResponse"
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "segment"
+                    },
+                    "id": {
+                      "description": "ID of the deleted segment",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -6766,9 +7203,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Contact property deleted successfully. Returns the deleted property object. All contact data for this property is permanently removed.",
+            "description": "Contact property deleted successfully. Returns the deleted property's ID for confirmation. All contact data for this property is permanently removed.",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "contact_property",
+                  "id": "contact_property_abc123xyz789"
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -6777,36 +7218,13 @@
                       "const": "contact_property"
                     },
                     "id": {
+                      "description": "ID of the deleted contact property",
                       "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "DATE",
-                        "NUMBER",
-                        "STRING"
-                      ]
-                    },
-                    "defaultValue": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "type",
-                    "defaultValue"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -8485,9 +8903,13 @@
         },
         "responses": {
           "201": {
-            "description": "Form created successfully in DRAFT status with generated ID, slug, and timestamps. Use POST /v1/forms/{formId}/publish to make it live.",
+            "description": "Form created successfully. Returns the generated form ID.",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "form",
+                  "id": "form_abc123xyz789"
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -8496,92 +8918,13 @@
                       "const": "form"
                     },
                     "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedVersionId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                      "description": "Unique form identifier",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "parentId",
-                    "publishedVersionId",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -8877,6 +9220,10 @@
             "description": "Successfully retrieved form with complete configuration, version info, and submission statistics",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "form",
+                  "id": "form_abc123xyz789"
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -8885,92 +9232,13 @@
                       "const": "form"
                     },
                     "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedVersionId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                      "description": "Unique form identifier",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "parentId",
-                    "publishedVersionId",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -9215,92 +9483,13 @@
                       "const": "form"
                     },
                     "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedVersionId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                      "description": "Unique form identifier",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "parentId",
-                    "publishedVersionId",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -9677,9 +9866,13 @@
         ],
         "responses": {
           "200": {
-            "description": "Form deleted successfully. Returns the deleted form object. If root form, all versions are permanently removed.",
+            "description": "Form deleted successfully. Returns the deleted form's ID for confirmation. If root form, all versions are permanently removed.",
             "content": {
               "application/json": {
+                "example": {
+                  "object": "form",
+                  "id": "form_abc123xyz789"
+                },
                 "schema": {
                   "type": "object",
                   "properties": {
@@ -9688,92 +9881,13 @@
                       "const": "form"
                     },
                     "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedVersionId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                      "description": "ID of the deleted form",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "parentId",
-                    "publishedVersionId",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -10281,92 +10395,13 @@
                       "const": "form"
                     },
                     "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedVersionId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                      "description": "Unique form identifier",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "parentId",
-                    "publishedVersionId",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
+                    "id"
                   ],
                   "additionalProperties": false
                 }
@@ -10756,92 +10791,13 @@
                       "const": "form"
                     },
                     "id": {
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "description": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "DRAFT",
-                        "PUBLISHED",
-                        "ARCHIVED"
-                      ]
-                    },
-                    "version": {
-                      "type": "number"
-                    },
-                    "parentId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedVersionId": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "fields": {},
-                    "settings": {
-                      "anyOf": [
-                        {},
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "publishedAt": {
-                      "anyOf": [
-                        {
-                          "type": "string"
-                        },
-                        {
-                          "type": "null"
-                        }
-                      ]
-                    },
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "updatedAt": {
+                      "description": "Unique form identifier",
                       "type": "string"
                     }
                   },
                   "required": [
                     "object",
-                    "id",
-                    "name",
-                    "description",
-                    "status",
-                    "version",
-                    "parentId",
-                    "publishedVersionId",
-                    "fields",
-                    "settings",
-                    "publishedAt",
-                    "createdAt",
-                    "updatedAt"
+                    "id"
                   ],
                   "additionalProperties": false
                 }

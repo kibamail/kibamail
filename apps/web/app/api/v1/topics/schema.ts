@@ -66,9 +66,18 @@ export const topicListResponseSchema = z.object({
 });
 
 /**
+ * Topic Delete Response Schema
+ */
+export const topicDeleteResponseSchema = z.object({
+  object: z.literal("topic"),
+  id: z.string().describe("ID of the deleted topic"),
+});
+
+/**
  * Type exports
  */
 export type CreateTopicRequest = z.infer<typeof createTopicSchema>;
 export type UpdateTopicRequest = z.infer<typeof updateTopicSchema>;
 export type TopicResponse = z.infer<typeof topicResponseSchema>;
 export type TopicListResponse = z.infer<typeof topicListResponseSchema>;
+export type TopicDeleteResponse = z.infer<typeof topicDeleteResponseSchema>;
