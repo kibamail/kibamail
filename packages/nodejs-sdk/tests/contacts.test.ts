@@ -133,7 +133,7 @@ describe("Contacts Resource", () => {
 
       expect(result.data).toBeDefined();
       expect(result.error).toBeUndefined();
-      expect(result.response.status).toBe(204);
+      expect(result.response.status).toBe(200);
     });
   });
 
