@@ -131,6 +131,14 @@ export const contactPropertyListResponseSchema = z.object({
 });
 
 /**
+ * Contact Property Delete Response Schema
+ */
+export const contactPropertyDeleteResponseSchema = z.object({
+  object: z.literal("contact_property"),
+  id: z.string().describe("ID of the deleted contact property"),
+});
+
+/**
  * Type exports for TypeScript
  */
 export type CreateContactPropertyRequest = z.infer<
@@ -144,4 +152,7 @@ export type ContactPropertyResponse = z.infer<
 >;
 export type ContactPropertyListResponse = z.infer<
   typeof contactPropertyListResponseSchema
+>;
+export type ContactPropertyDeleteResponse = z.infer<
+  typeof contactPropertyDeleteResponseSchema
 >;

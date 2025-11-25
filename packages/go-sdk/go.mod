@@ -1,4 +1,4 @@
-module github.com/kibamail/kibamail-go
+module github.com/kibamail/kibamail/packages/go-sdk
 
 go 1.23
 

@@ -76,7 +76,9 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });
@@ -86,7 +88,7 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
       name: "Contact Form",
       fields: validFormFields,
     };
-    const request = post("/forms", formData, "sk_invalid_key_12345");
+    const request = post("/forms", formData, "kb_invalid_key_12345");
 
     const response = await POST(request);
     const responseData = await response.json();
@@ -233,7 +235,6 @@ describe("POST /api/v1/forms - Validation", () => {
     expect(responseData.error.requestId).toBeDefined();
   });
 
-
   test("should create form with minimal valid fields", async () => {
     const minimalFields = {
       pages: [],
@@ -276,7 +277,12 @@ describe("POST /api/v1/forms - Validation", () => {
               type: "radiogroup",
               name: "satisfaction",
               title: "How satisfied are you?",
-              choices: ["Very Satisfied", "Satisfied", "Neutral", "Dissatisfied"],
+              choices: [
+                "Very Satisfied",
+                "Satisfied",
+                "Neutral",
+                "Dissatisfied",
+              ],
             },
             {
               type: "comment",

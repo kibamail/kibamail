@@ -1,6 +1,10 @@
 import * as z from "zod/v4";
 
-import { createDocument, type ZodOpenApiSchemaObject, oas31 } from "zod-openapi";
+import {
+  createDocument,
+  type ZodOpenApiSchemaObject,
+  oas31,
+} from "zod-openapi";
 import { writeFile } from "node:fs/promises";
 
 type SchemaObject = oas31.SchemaObject;
@@ -8,12 +12,14 @@ type ReferenceObject = oas31.ReferenceObject;
 import {
   createApiKeyResponseSchema,
   createApiKeySchema,
+  apiKeyDeleteResponseSchema,
 } from "@/app/api/v1/api-keys/schema";
 import {
   createContactSchema,
   updateContactSchema,
   contactResponseSchema,
   contactListResponseSchema,
+  contactDeleteResponseSchema,
   searchContactsSchema,
 } from "@/app/api/v1/contacts/schema";
 import {
@@ -21,18 +27,21 @@ import {
   updateContactPropertySchema,
   contactPropertyResponseSchema,
   contactPropertyListResponseSchema,
+  contactPropertyDeleteResponseSchema,
 } from "@/app/api/v1/contact-properties/schema";
 import {
   createTopicSchema,
   updateTopicSchema,
   topicResponseSchema,
   topicListResponseSchema,
+  topicDeleteResponseSchema,
 } from "@/app/api/v1/topics/schema";
 import {
   createSegmentSchema,
   updateSegmentSchema,
   segmentResponseSchema,
   segmentListResponseSchema,
+  segmentDeleteResponseSchema,
 } from "@/app/api/v1/segments/schema";
 import {
   createFormSchema,
@@ -40,6 +49,7 @@ import {
   formResponseSchema,
   formListResponseSchema,
   formVersionListResponseSchema,
+  formDeleteResponseSchema,
 } from "@/app/api/v1/forms/schema";
 
 /**
@@ -47,7 +57,9 @@ import {
  */
 const validationErrorDetailSchema = z.object({
   field: z.string().describe("Field name that failed validation"),
-  code: z.string().describe("Error code for this field (e.g., INVALID_FIELD_VALUE)"),
+  code: z
+    .string()
+    .describe("Error code for this field (e.g., INVALID_FIELD_VALUE)"),
   message: z.string().describe("Human-readable error message for this field"),
 });
 
@@ -66,13 +78,21 @@ const errorResponseSchema = z.object({
         "api_error",
       ])
       .describe("Error type category"),
-    code: z.string().describe("Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)"),
+    code: z
+      .string()
+      .describe(
+        "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)"
+      ),
     message: z.string().describe("Human-readable error message"),
-    requestId: z.string().describe("Unique request identifier for tracing (starts with req_)"),
+    requestId: z
+      .string()
+      .describe("Unique request identifier for tracing (starts with req_)"),
     validationErrors: z
       .array(validationErrorDetailSchema)
       .optional()
-      .describe("Field-level validation errors (only present for validation_error type)"),
+      .describe(
+        "Field-level validation errors (only present for validation_error type)"
+      ),
     details: z
       .record(z.string(), z.unknown())
       .optional()
@@ -99,7 +119,8 @@ const paginationParameters = [
   {
     name: "after",
     in: "query" as const,
-    description: "Cursor for pagination - ID of the last item from the previous page",
+    description:
+      "Cursor for pagination - ID of the last item from the previous page",
     required: false,
     schema: {
       type: "string" as const,
@@ -108,7 +129,8 @@ const paginationParameters = [
   {
     name: "before",
     in: "query" as const,
-    description: "Cursor for reverse pagination - ID of the first item from the next page",
+    description:
+      "Cursor for reverse pagination - ID of the first item from the next page",
     required: false,
     schema: {
       type: "string" as const,
@@ -128,13 +150,28 @@ const fieldConditionOpenAPISchema: SchemaObject = {
   properties: {
     field: {
       type: "string",
-      description: "Contact property field name (e.g., 'email', 'firstName', custom property name)",
+      description:
+        "Contact property field name (e.g., 'email', 'firstName', custom property name)",
       minLength: 1,
     },
     operator: {
       type: "string",
-      enum: ["eq", "ne", "gt", "gte", "lt", "lte", "in", "nin", "contains", "startsWith", "endsWith", "exists"],
-      description: "Comparison operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), in (in array), nin (not in array), contains (string contains), startsWith, endsWith, exists (field exists)",
+      enum: [
+        "eq",
+        "ne",
+        "gt",
+        "gte",
+        "lt",
+        "lte",
+        "in",
+        "nin",
+        "contains",
+        "startsWith",
+        "endsWith",
+        "exists",
+      ],
+      description:
+        "Comparison operator: eq (equals), ne (not equals), gt (greater than), gte (>=), lt (less than), lte (<=), in (in array), nin (not in array), contains (string contains), startsWith, endsWith, exists (field exists)",
     },
     value: {
       oneOf: [
@@ -145,21 +182,19 @@ const fieldConditionOpenAPISchema: SchemaObject = {
         {
           type: "array",
           items: {
-            oneOf: [
-              { type: "string" },
-              { type: "number" }
-            ]
-          }
-        }
+            oneOf: [{ type: "string" }, { type: "number" }],
+          },
+        },
       ],
-      description: "Value to compare against. Type depends on field and operator. Null only valid with 'exists' operator.",
+      description:
+        "Value to compare against. Type depends on field and operator. Null only valid with 'exists' operator.",
     },
   },
   example: {
     field: "country",
     operator: "eq",
-    value: "US"
-  }
+    value: "US",
+  },
 };
 
 // Topic condition - subscription status
@@ -170,49 +205,54 @@ const topicConditionOpenAPISchema: SchemaObject = {
       type: "array",
       items: { type: "string" },
       minItems: 1,
-      description: "Array of topic IDs the contact must be subscribed to (OR logic - any match)",
+      description:
+        "Array of topic IDs the contact must be subscribed to (OR logic - any match)",
     },
     notSubscribedToTopic: {
       type: "array",
       items: { type: "string" },
       minItems: 1,
-      description: "Array of topic IDs the contact must NOT be subscribed to (OR logic - any match)",
+      description:
+        "Array of topic IDs the contact must NOT be subscribed to (OR logic - any match)",
     },
   },
-  description: "Check if contact is subscribed or not subscribed to specific topics",
+  description:
+    "Check if contact is subscribed or not subscribed to specific topics",
   example: {
-    subscribedToTopic: ["topic_123", "topic_456"]
-  }
+    subscribedToTopic: ["topic_123", "topic_456"],
+  },
 };
 
 // Logical operator condition - supports recursion
 const logicalOperatorConditionOpenAPISchema: SchemaObject = {
   type: "object",
   properties: {
-    "$and": {
+    $and: {
       type: "array",
       items: { $ref: "#/components/schemas/Condition" },
       minItems: 1,
       description: "Array of conditions that must ALL be true (AND logic)",
     },
-    "$or": {
+    $or: {
       type: "array",
       items: { $ref: "#/components/schemas/Condition" },
       minItems: 1,
-      description: "Array of conditions where at least ONE must be true (OR logic)",
+      description:
+        "Array of conditions where at least ONE must be true (OR logic)",
     },
-    "$not": {
+    $not: {
       $ref: "#/components/schemas/Condition",
       description: "Condition that must be false (NOT logic)",
     },
   },
-  description: "Logical operators for combining conditions. At least one operator ($and, $or, or $not) is required.",
+  description:
+    "Logical operators for combining conditions. At least one operator ($and, $or, or $not) is required.",
   example: {
-    "$and": [
-      { "field": "country", "operator": "eq", "value": "US" },
-      { "field": "age", "operator": "gte", "value": 18 }
-    ]
-  }
+    $and: [
+      { field: "country", operator: "eq", value: "US" },
+      { field: "age", operator: "gte", value: 18 },
+    ],
+  },
 };
 
 const document = createDocument({
@@ -238,7 +278,7 @@ The Kibamail API provides a comprehensive set of endpoints for managing your ema
 All API requests require authentication using an API key. Include your API key in the Authorization header:
 
 \`\`\`
-Authorization: Bearer sk_your_api_key_here
+Authorization: Bearer kb_your_api_key_here
 \`\`\`
 
 API keys are scoped to specific permissions (read/write for each resource type). Generate keys from your workspace settings.
@@ -305,7 +345,7 @@ For detailed guides and tutorials, visit our documentation.`,
 
 **How to authenticate:**
 1. Generate an API key from your workspace settings
-2. Include it in the Authorization header: \`Authorization: Bearer sk_xxxxx\`
+2. Include it in the Authorization header: \`Authorization: Bearer kb_xxxxx\`
 3. Ensure your API key has the required scopes for the endpoint
 
 **Scopes:**
@@ -338,13 +378,14 @@ For detailed guides and tutorials, visit our documentation.`,
           { $ref: "#/components/schemas/TopicCondition" },
           { $ref: "#/components/schemas/LogicalOperatorCondition" },
         ],
-        description: "A filter condition for segments and contact search. Can be a field comparison, topic subscription check, or logical operator combining multiple conditions.",
+        description:
+          "A filter condition for segments and contact search. Can be a field comparison, topic subscription check, or logical operator combining multiple conditions.",
         example: {
-          "$and": [
-            { "field": "country", "operator": "eq", "value": "US" },
-            { "field": "lifetime_value", "operator": "gte", "value": 100 }
-          ]
-        }
+          $and: [
+            { field: "country", operator: "eq", value: "US" },
+            { field: "lifetime_value", operator: "gte", value: 100 },
+          ],
+        },
       },
       // Segment schemas using explicit Condition schema
       CreateSegmentRequest: {
@@ -471,7 +512,70 @@ For detailed guides and tutorials, visit our documentation.`,
     },
   },
   paths: {
-    "/v1/api-keys/": {
+    "/v1/api-keys": {
+      get: {
+        summary: "List API Keys",
+        description: `Retrieve a paginated list of all API keys in your workspace.
+
+**Use Cases:**
+- View all active API keys
+- Audit API key usage
+- Manage workspace integrations
+- Identify keys for rotation or deletion
+
+**Behavior:**
+- Returns all API keys for the workspace
+- Keys are returned in reverse chronological order (newest first)
+- Actual key values are NOT included (only metadata)
+- Includes key name, scopes, and creation date
+- Uses cursor-based pagination
+
+**Required Scope:** Requires API key authentication
+
+**Security Note:**
+- Full key values are never returned (they're hashed)
+- Only the key prefix and metadata are shown
+- Use this to audit and manage your keys`,
+        tags: ["API Keys"],
+        security: [{ BearerAuth: [] }],
+        parameters: paginationParameters,
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved list of API keys with metadata (key values not included)",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    object: { type: "string", example: "api_key_list" },
+                    hasMore: { type: "boolean" },
+                    data: {
+                      type: "array",
+                      items: {
+                        type: "object",
+                        properties: {
+                          id: { type: "string" },
+                          name: { type: "string" },
+                          scopes: { type: "array", items: { type: "string" } },
+                          createdAt: { type: "string", format: "date-time" },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key authentication",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
       post: {
         summary: "Create API Key",
         description: `Generate a new API key for programmatic workspace access.
@@ -483,7 +587,7 @@ For detailed guides and tutorials, visit our documentation.`,
 - Replace compromised or leaked API keys
 
 **Behavior:**
-- Returns the full API key ONLY on creation (starts with 'sk_')
+- Returns the full API key ONLY on creation (starts with 'kb_')
 - Key is securely hashed before storage - cannot be retrieved again
 - Keys are scoped to specific permissions you define
 - Each key can have a custom name for identification
@@ -510,19 +614,97 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "200": {
-            description: "API key created successfully. The full key value is included in the response and cannot be retrieved again.",
+            description:
+              "API key created successfully. The full key value is included in the response and cannot be retrieved again.",
             content: {
-              "application/json": { schema: createApiKeyResponseSchema },
+              "application/json": {
+                schema: createApiKeyResponseSchema,
+                example: {
+                  object: "api_key",
+                  id: "api_key_abc123xyz789",
+                  key: "kb_live_1234567890abcdefghijklmnopqrstuvwxyz",
+                },
+              },
             },
           },
           "400": {
-            description: "Bad Request - Invalid input data, such as invalid scopes or missing required fields",
+            description:
+              "Bad Request - Invalid input data, such as invalid scopes or missing required fields",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing session authentication. This endpoint requires user login, not API key authentication.",
+            description:
+              "Unauthorized - Invalid or missing session authentication. This endpoint requires user login, not API key authentication.",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/api-keys/{keyId}": {
+      delete: {
+        summary: "Delete API Key",
+        description: `Delete an API key permanently.
+
+**Use Cases:**
+- Revoke compromised or leaked API keys
+- Remove unused API keys
+- Clean up keys after decommissioning integrations
+- Rotate API keys for security
+
+**Behavior:**
+- API key is permanently deleted
+- Key can no longer be used for authentication
+- Cannot delete the currently authenticated API key
+- Operation is immediate and cannot be undone
+
+**Required Scope:** Requires API key authentication
+
+**Important:**
+- You cannot delete the API key you're currently using
+- Deleted keys cannot be recovered
+- Any integrations using the deleted key will stop working immediately
+- Update all services using the key before deletion`,
+        tags: ["API Keys"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "keyId",
+            in: "path",
+            description: "API Key ID to delete",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "API key deleted successfully. Returns the deleted key's ID for confirmation.",
+            content: {
+              "application/json": {
+                schema: apiKeyDeleteResponseSchema,
+                example: {
+                  object: "api_key",
+                  id: "api_key_abc123xyz789",
+                },
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Attempting to delete the currently authenticated API key or key not found",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key authentication",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -567,13 +749,15 @@ For detailed guides and tutorials, visit our documentation.`,
         parameters: paginationParameters,
         responses: {
           "200": {
-            description: "Successfully retrieved paginated list of contacts with their properties, subscriptions, and metadata",
+            description:
+              "Successfully retrieved paginated list of contacts with their properties, subscriptions, and metadata",
             content: {
               "application/json": { schema: contactListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -626,31 +810,36 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "201": {
-            description: "Contact created successfully. Returns the complete contact object with generated ID and timestamps.",
+            description:
+              "Contact created successfully. Returns the complete contact object with generated ID and timestamps.",
             content: {
               "application/json": { schema: contactResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Invalid input data, such as malformed email or exceeding property limits",
+            description:
+              "Bad Request - Invalid input data, such as malformed email or exceeding property limits",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
-            description: "Conflict - A contact with this email address already exists in the workspace. Use PUT /v1/contacts/{contactId} to update existing contacts.",
+            description:
+              "Conflict - A contact with this email address already exists in the workspace. Use PUT /v1/contacts/{contactId} to update existing contacts.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Property values don't match their defined types (e.g., text in a NUMBER field, invalid date format, undefined property names)",
+            description:
+              "Validation Error - Property values don't match their defined types (e.g., text in a NUMBER field, invalid date format, undefined property names)",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -700,19 +889,22 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved contact with all properties, subscription status, topic memberships, and metadata",
+            description:
+              "Successfully retrieved contact with all properties, subscription status, topic memberships, and metadata",
             content: {
               "application/json": { schema: contactResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Contact with this ID does not exist in your workspace or has been deleted",
+            description:
+              "Not Found - Contact with this ID does not exist in your workspace or has been deleted",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -778,31 +970,36 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "200": {
-            description: "Contact updated successfully. Returns the complete updated contact object with refreshed updatedAt timestamp.",
+            description:
+              "Contact updated successfully. Returns the complete updated contact object with refreshed updatedAt timestamp.",
             content: {
               "application/json": { schema: contactResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Invalid input data, such as malformed email or attempting to update protected fields",
+            description:
+              "Bad Request - Invalid input data, such as malformed email or attempting to update protected fields",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Contact with this ID does not exist in your workspace",
+            description:
+              "Not Found - Contact with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Property values don't match their defined types, or new email already exists for another contact",
+            description:
+              "Validation Error - Property values don't match their defined types, or new email already exists for another contact",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -858,17 +1055,29 @@ For detailed guides and tutorials, visit our documentation.`,
           },
         ],
         responses: {
-          "204": {
-            description: "Contact permanently deleted successfully. No content returned. Operation cannot be undone.",
+          "200": {
+            description:
+              "Contact permanently deleted successfully. Returns the deleted contact's ID for confirmation.",
+            content: {
+              "application/json": {
+                schema: contactDeleteResponseSchema,
+                example: {
+                  object: "contact",
+                  id: "contact_abc123xyz789",
+                },
+              },
+            },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Contact with this ID does not exist (may have already been deleted)",
+            description:
+              "Not Found - Contact with this ID does not exist (may have already been deleted)",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -916,13 +1125,15 @@ For detailed guides and tutorials, visit our documentation.`,
         parameters: paginationParameters,
         responses: {
           "200": {
-            description: "Successfully retrieved paginated list of topics with metadata and subscriber counts",
+            description:
+              "Successfully retrieved paginated list of topics with metadata and subscriber counts",
             content: {
               "application/json": { schema: topicListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:topics' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:topics' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -972,31 +1183,36 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "201": {
-            description: "Topic created successfully with generated ID, slug (if not provided), and timestamps",
+            description:
+              "Topic created successfully with generated ID, slug (if not provided), and timestamps",
             content: {
               "application/json": { schema: topicResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Invalid input data, such as invalid slug format or missing required fields",
+            description:
+              "Bad Request - Invalid input data, such as invalid slug format or missing required fields",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
-            description: "Conflict - A topic with this slug already exists in the workspace. Slugs must be unique.",
+            description:
+              "Conflict - A topic with this slug already exists in the workspace. Slugs must be unique.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid field values, such as name too long or invalid slug characters",
+            description:
+              "Validation Error - Invalid field values, such as name too long or invalid slug characters",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1046,19 +1262,22 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved topic with full details, metadata, and subscriber count",
+            description:
+              "Successfully retrieved topic with full details, metadata, and subscriber count",
             content: {
               "application/json": { schema: topicResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:topics' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:topics' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Topic with this ID does not exist in your workspace",
+            description:
+              "Not Found - Topic with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1114,37 +1333,43 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "200": {
-            description: "Topic updated successfully with refreshed updatedAt timestamp",
+            description:
+              "Topic updated successfully with refreshed updatedAt timestamp",
             content: {
               "application/json": { schema: topicResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Invalid input data or attempting to update protected fields",
+            description:
+              "Bad Request - Invalid input data or attempting to update protected fields",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Topic with this ID does not exist in your workspace",
+            description:
+              "Not Found - Topic with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
-            description: "Conflict - Another topic with the new slug already exists. Slugs must be unique within the workspace.",
+            description:
+              "Conflict - Another topic with the new slug already exists. Slugs must be unique within the workspace.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid field values, such as invalid slug format or name too long",
+            description:
+              "Validation Error - Invalid field values, such as invalid slug format or name too long",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1201,19 +1426,28 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Topic deleted successfully. Returns the deleted topic object for reference before permanent removal.",
+            description:
+              "Topic deleted successfully. Returns the deleted topic's ID for confirmation.",
             content: {
-              "application/json": { schema: topicResponseSchema },
+              "application/json": {
+                schema: topicDeleteResponseSchema,
+                example: {
+                  object: "topic",
+                  id: "topic_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:topics' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Topic with this ID does not exist in your workspace",
+            description:
+              "Not Found - Topic with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1260,15 +1494,17 @@ For detailed guides and tutorials, visit our documentation.`,
         parameters: paginationParameters,
         responses: {
           "200": {
-            description: "Successfully retrieved paginated list of segments with conditions and estimated member counts",
+            description:
+              "Successfully retrieved paginated list of segments with conditions and estimated member counts",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/SegmentListResponse" }
+                schema: { $ref: "#/components/schemas/SegmentListResponse" },
               },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:segments' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:segments' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1325,33 +1561,37 @@ For detailed guides and tutorials, visit our documentation.`,
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/CreateSegmentRequest" }
+              schema: { $ref: "#/components/schemas/CreateSegmentRequest" },
             },
           },
         },
         responses: {
           "201": {
-            description: "Segment created successfully with generated ID, initial member count, and timestamps",
+            description:
+              "Segment created successfully with generated ID, initial member count, and timestamps",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/SegmentResponse" }
+                schema: { $ref: "#/components/schemas/SegmentResponse" },
               },
             },
           },
           "400": {
-            description: "Bad Request - Invalid MongoDB query syntax or malformed conditions",
+            description:
+              "Bad Request - Invalid MongoDB query syntax or malformed conditions",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid field values, conditions reference non-existent properties, or unsupported operators",
+            description:
+              "Validation Error - Invalid field values, conditions reference non-existent properties, or unsupported operators",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1403,21 +1643,24 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved segment with conditions, member count, and metadata",
+            description:
+              "Successfully retrieved segment with conditions, member count, and metadata",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/SegmentResponse" }
+                schema: { $ref: "#/components/schemas/SegmentResponse" },
               },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:segments' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:segments' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Segment with this ID does not exist in your workspace",
+            description:
+              "Not Found - Segment with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1474,39 +1717,44 @@ For detailed guides and tutorials, visit our documentation.`,
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/UpdateSegmentRequest" }
+              schema: { $ref: "#/components/schemas/UpdateSegmentRequest" },
             },
           },
         },
         responses: {
           "200": {
-            description: "Segment updated successfully with refreshed member count and updatedAt timestamp",
+            description:
+              "Segment updated successfully with refreshed member count and updatedAt timestamp",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/SegmentResponse" }
+                schema: { $ref: "#/components/schemas/SegmentResponse" },
               },
             },
           },
           "400": {
-            description: "Bad Request - Invalid MongoDB query syntax or malformed conditions",
+            description:
+              "Bad Request - Invalid MongoDB query syntax or malformed conditions",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Segment with this ID does not exist in your workspace",
+            description:
+              "Not Found - Segment with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid conditions, references to non-existent properties, or unsupported operators",
+            description:
+              "Validation Error - Invalid conditions, references to non-existent properties, or unsupported operators",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1563,21 +1811,28 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Segment deleted successfully. Returns the deleted segment object for reference before permanent removal.",
+            description:
+              "Segment deleted successfully. Returns the deleted segment's ID for confirmation.",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/SegmentResponse" }
+                schema: segmentDeleteResponseSchema,
+                example: {
+                  object: "segment",
+                  id: "segment_abc123xyz789",
+                },
               },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:segments' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Segment with this ID does not exist in your workspace",
+            description:
+              "Not Found - Segment with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1628,13 +1883,15 @@ For detailed guides and tutorials, visit our documentation.`,
         parameters: paginationParameters,
         responses: {
           "200": {
-            description: "Successfully retrieved paginated list of custom contact properties with types and metadata",
+            description:
+              "Successfully retrieved paginated list of custom contact properties with types and metadata",
             content: {
               "application/json": { schema: contactPropertyListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1697,31 +1954,36 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "201": {
-            description: "Contact property created successfully with generated ID and timestamps. The property is now available for use on all contacts.",
+            description:
+              "Contact property created successfully with generated ID and timestamps. The property is now available for use on all contacts.",
             content: {
               "application/json": { schema: contactPropertyResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Maximum property limit (100) reached, or invalid default value for specified type",
+            description:
+              "Bad Request - Maximum property limit (100) reached, or invalid default value for specified type",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
-            description: "Conflict - A property with this name already exists in the workspace. Property names must be unique.",
+            description:
+              "Conflict - A property with this name already exists in the workspace. Property names must be unique.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid property type, name format, or default value doesn't match type",
+            description:
+              "Validation Error - Invalid property type, name format, or default value doesn't match type",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1773,19 +2035,22 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved contact property with full definition and metadata",
+            description:
+              "Successfully retrieved contact property with full definition and metadata",
             content: {
               "application/json": { schema: contactPropertyResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Contact property with this ID does not exist in your workspace",
+            description:
+              "Not Found - Contact property with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1851,37 +2116,43 @@ For detailed guides and tutorials, visit our documentation.`,
         },
         responses: {
           "200": {
-            description: "Contact property updated successfully with refreshed updatedAt timestamp",
+            description:
+              "Contact property updated successfully with refreshed updatedAt timestamp",
             content: {
               "application/json": { schema: contactPropertyResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Attempting to update immutable fields (name, type) or invalid default value for type",
+            description:
+              "Bad Request - Attempting to update immutable fields (name, type) or invalid default value for type",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Contact property with this ID does not exist in your workspace",
+            description:
+              "Not Found - Contact property with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "409": {
-            description: "Conflict - Cannot update property name (this field is immutable)",
+            description:
+              "Conflict - Cannot update property name (this field is immutable)",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid default value doesn't match property type",
+            description:
+              "Validation Error - Invalid default value doesn't match property type",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -1945,19 +2216,28 @@ For detailed guides and tutorials, visit our documentation.`,
         ],
         responses: {
           "200": {
-            description: "Contact property deleted successfully. Returns the deleted property object. All contact data for this property is permanently removed.",
+            description:
+              "Contact property deleted successfully. Returns the deleted property's ID for confirmation. All contact data for this property is permanently removed.",
             content: {
-              "application/json": { schema: contactPropertyResponseSchema },
+              "application/json": {
+                schema: contactPropertyDeleteResponseSchema,
+                example: {
+                  object: "contact_property",
+                  id: "contact_property_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Contact property with this ID does not exist in your workspace",
+            description:
+              "Not Found - Contact property with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2035,31 +2315,35 @@ Find contacts missing a property:
           required: true,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/SearchContactsRequest" }
+              schema: { $ref: "#/components/schemas/SearchContactsRequest" },
             },
           },
         },
         responses: {
           "200": {
-            description: "Successfully retrieved contacts matching the search conditions with pagination metadata",
+            description:
+              "Successfully retrieved contacts matching the search conditions with pagination metadata",
             content: {
               "application/json": { schema: contactListResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Invalid MongoDB query syntax or malformed conditions",
+            description:
+              "Bad Request - Invalid MongoDB query syntax or malformed conditions",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:contacts' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Conditions reference non-existent properties or use unsupported operators",
+            description:
+              "Validation Error - Conditions reference non-existent properties or use unsupported operators",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2118,19 +2402,22 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved contacts matching the segment's conditions with complete contact data and metadata",
+            description:
+              "Successfully retrieved contacts matching the segment's conditions with complete contact data and metadata",
             content: {
               "application/json": { schema: contactListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks required scopes (read:contacts, read:segments)",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks required scopes (read:contacts, read:segments)",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Segment with this ID does not exist in your workspace",
+            description:
+              "Not Found - Segment with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2190,19 +2477,22 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved actively subscribed contacts for this topic with complete contact data",
+            description:
+              "Successfully retrieved actively subscribed contacts for this topic with complete contact data",
             content: {
               "application/json": { schema: contactListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks required scopes (read:contacts, read:topics)",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks required scopes (read:contacts, read:topics)",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Topic with this ID does not exist in your workspace",
+            description:
+              "Not Found - Topic with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2285,13 +2575,15 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved list of root forms with pagination metadata",
+            description:
+              "Successfully retrieved list of root forms with pagination metadata",
             content: {
               "application/json": { schema: formListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2354,25 +2646,35 @@ Find contacts missing a property:
         },
         responses: {
           "201": {
-            description: "Form created successfully in DRAFT status with generated ID, slug, and timestamps. Use POST /v1/forms/{formId}/publish to make it live.",
+            description:
+              "Form created successfully. Returns the generated form ID.",
             content: {
-              "application/json": { schema: formResponseSchema },
+              "application/json": {
+                schema: formResponseSchema,
+                example: {
+                  object: "form",
+                  id: "form_abc123xyz789",
+                },
+              },
             },
           },
           "400": {
-            description: "Bad Request - Invalid SurveyJS JSON configuration or malformed input",
+            description:
+              "Bad Request - Invalid SurveyJS JSON configuration or malformed input",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid field values, missing required fields, or invalid SurveyJS schema",
+            description:
+              "Validation Error - Invalid field values, missing required fields, or invalid SurveyJS schema",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2433,19 +2735,28 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved form with complete configuration, version info, and submission statistics",
+            description:
+              "Successfully retrieved form with complete configuration, version info, and submission statistics",
             content: {
-              "application/json": { schema: formResponseSchema },
+              "application/json": {
+                schema: formResponseSchema,
+                example: {
+                  object: "form",
+                  id: "form_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Form with this ID does not exist in your workspace",
+            description:
+              "Not Found - Form with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2515,31 +2826,36 @@ Find contacts missing a property:
         },
         responses: {
           "200": {
-            description: "Form updated successfully with refreshed updatedAt timestamp. Form remains in DRAFT status.",
+            description:
+              "Form updated successfully with refreshed updatedAt timestamp. Form remains in DRAFT status.",
             content: {
               "application/json": { schema: formResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Form is PUBLISHED or ARCHIVED and cannot be modified. Create a new version to make changes.",
+            description:
+              "Bad Request - Form is PUBLISHED or ARCHIVED and cannot be modified. Create a new version to make changes.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Form with this ID does not exist in your workspace",
+            description:
+              "Not Found - Form with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid SurveyJS configuration or field values",
+            description:
+              "Validation Error - Invalid SurveyJS configuration or field values",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2606,19 +2922,28 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Form deleted successfully. Returns the deleted form object. If root form, all versions are permanently removed.",
+            description:
+              "Form deleted successfully. Returns the deleted form's ID for confirmation. If root form, all versions are permanently removed.",
             content: {
-              "application/json": { schema: formResponseSchema },
+              "application/json": {
+                schema: formDeleteResponseSchema,
+                example: {
+                  object: "form",
+                  id: "form_abc123xyz789",
+                },
+              },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Form with this ID does not exist in your workspace",
+            description:
+              "Not Found - Form with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2676,19 +3001,22 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Successfully retrieved list of all form versions ordered by version number",
+            description:
+              "Successfully retrieved list of all form versions ordered by version number",
             content: {
               "application/json": { schema: formVersionListResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Form with this ID does not exist, not a root form, or doesn't belong to your workspace",
+            description:
+              "Not Found - Form with this ID does not exist, not a root form, or doesn't belong to your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2759,31 +3087,36 @@ Find contacts missing a property:
         },
         responses: {
           "201": {
-            description: "Form version created successfully in DRAFT status. Returns new version with unique ID inheriting parent configuration.",
+            description:
+              "Form version created successfully in DRAFT status. Returns new version with unique ID inheriting parent configuration.",
             content: {
               "application/json": { schema: formResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - A DRAFT version already exists for this form's root. Publish or delete the existing DRAFT before creating a new version.",
+            description:
+              "Bad Request - A DRAFT version already exists for this form's root. Publish or delete the existing DRAFT before creating a new version.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Parent form with this ID does not exist in your workspace",
+            description:
+              "Not Found - Parent form with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "422": {
-            description: "Validation Error - Invalid field values or SurveyJS configuration",
+            description:
+              "Validation Error - Invalid field values or SurveyJS configuration",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2859,25 +3192,29 @@ Find contacts missing a property:
         ],
         responses: {
           "200": {
-            description: "Form published successfully. Status changed to PUBLISHED, publishedAt timestamp set. Previous published version (if any) is now ARCHIVED. Form is now live and immutable.",
+            description:
+              "Form published successfully. Status changed to PUBLISHED, publishedAt timestamp set. Previous published version (if any) is now ARCHIVED. Form is now live and immutable.",
             content: {
               "application/json": { schema: formResponseSchema },
             },
           },
           "400": {
-            description: "Bad Request - Form is already in PUBLISHED status. No action taken. To update, create a new version first.",
+            description:
+              "Bad Request - Form is already in PUBLISHED status. No action taken. To update, create a new version first.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "401": {
-            description: "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
           },
           "404": {
-            description: "Not Found - Form with this ID does not exist in your workspace",
+            description:
+              "Not Found - Form with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },

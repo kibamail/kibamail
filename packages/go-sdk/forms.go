@@ -7,9 +7,9 @@ import (
 
 // CreateFormRequest is the request object for the Create call.
 type CreateFormRequest struct {
-	Name        string        `json:"name"`
-	Description string        `json:"description,omitempty"`
-	Fields      []interface{} `json:"fields,omitempty"`
+	Name        string      `json:"name"`
+	Description string      `json:"description,omitempty"`
+	Fields      interface{} `json:"fields"`
 }
 
 // UpdateFormRequest is the request object for the Update call.
@@ -32,7 +32,8 @@ type Form struct {
 
 // FormResponse is the response from the Create call.
 type FormResponse struct {
-	ID string `json:"id"`
+	Object string `json:"object"`
+	ID     string `json:"id"`
 }
 
 // ListFormsResponse is the response from the List call.

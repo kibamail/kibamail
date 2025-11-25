@@ -128,13 +128,15 @@ describe("GET /api/v1/forms - Authentication & Authorization", () => {
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });
 
   test("should reject request with invalid API key", async () => {
-    const request = get("/forms", "sk_invalid_key_12345");
+    const request = get("/forms", "kb_invalid_key_12345");
 
     const response = await GET(request);
     const responseData = await response.json();
@@ -194,7 +196,9 @@ describe("GET /api/v1/forms - List Forms", () => {
     expect(response.status).toBe(200);
 
     // Check that version form is NOT in the list
-    const versionInList = responseData.data.find((f: any) => f.id === versionFormId);
+    const versionInList = responseData.data.find(
+      (f: any) => f.id === versionFormId
+    );
     expect(versionInList).toBeUndefined();
 
     // Check that all root forms ARE in the list
@@ -254,7 +258,9 @@ describe("GET /api/v1/forms - List Forms", () => {
     expect(response.status).toBe(200);
 
     // Find the form with null description (Contact Form)
-    const formWithNullDesc = responseData.data.find((f: any) => f.id === rootForm2Id);
+    const formWithNullDesc = responseData.data.find(
+      (f: any) => f.id === rootForm2Id
+    );
     expect(formWithNullDesc).toBeDefined();
     expect(formWithNullDesc.description).toBeNull();
   });
@@ -303,7 +309,10 @@ describe("GET /api/v1/forms - Pagination", () => {
 
     // Get next page using after cursor
     const firstItemId = data1.data[0].id;
-    const request2 = get(`/forms?limit=1&after=${firstItemId}`, fullAccessApiKey.key);
+    const request2 = get(
+      `/forms?limit=1&after=${firstItemId}`,
+      fullAccessApiKey.key
+    );
     const response2 = await GET(request2);
     const data2 = await response2.json();
 

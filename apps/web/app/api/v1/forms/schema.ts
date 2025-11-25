@@ -85,21 +85,11 @@ export const updateFormSchema = z.object({
 
 /**
  * Form Response Schema
+ * Returns only the generated form ID after creation
  */
 export const formResponseSchema = z.object({
   object: z.literal("form"),
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullable(),
-  status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
-  version: z.number(),
-  parentId: z.string().nullable(),
-  publishedVersionId: z.string().nullable(),
-  fields: z.unknown(),
-  settings: z.unknown().nullable(),
-  publishedAt: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
+  id: z.string().describe("Unique form identifier"),
 });
 
 /**
@@ -141,9 +131,18 @@ export const formVersionListResponseSchema = z.object({
 });
 
 /**
+ * Form Delete Response Schema
+ */
+export const formDeleteResponseSchema = z.object({
+  object: z.literal("form"),
+  id: z.string().describe("ID of the deleted form"),
+});
+
+/**
  * Type exports
  */
 export type CreateFormRequest = z.infer<typeof createFormSchema>;
 export type UpdateFormRequest = z.infer<typeof updateFormSchema>;
 export type FormResponse = z.infer<typeof formResponseSchema>;
 export type FormListResponse = z.infer<typeof formListResponseSchema>;
+export type FormDeleteResponse = z.infer<typeof formDeleteResponseSchema>;

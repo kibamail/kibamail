@@ -11,7 +11,7 @@ var (
 	// MockAPIURL is the URL of the Prism mock server
 	MockAPIURL = getEnv("MOCK_API_URL", "http://localhost:4010")
 	// MockAPIKey is the test API key
-	MockAPIKey = "sk_test_mock_api_key_12345"
+	MockAPIKey = "kb_test_mock_api_key_12345"
 )
 
 // newTestClient creates a new Kibamail client configured for testing
