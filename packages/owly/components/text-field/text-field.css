@@ -1,0 +1,121 @@
+@import "../input-label/input-label.css";
+@import "../input-hint/input-hint.css";
+
+.kb-text-field-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--sp-sm);
+
+  &:where([data-invalid="true"]) {
+    .kb-text-field-content {
+      border-color: var(--border-negative);
+    }
+  }
+}
+
+.kb-text-field-content {
+  --text-field-input-padding: var(--sp-md);
+
+  display: flex;
+  align-items: stretch;
+
+  border-radius: var(--radius-md);
+  border: var(--width-px) solid var(--border-tertiary);
+  background: var(--background-hover);
+
+  box-shadow: var(--shadow-inner-sm);
+
+  transition: border-color 150ms ease-in-out;
+
+  @supports selector(:has(*)) {
+    &:where(:has(.kb-text-field-input:focus)) {
+      border-color: var(--border-focus);
+    }
+  }
+
+  @supports not selector(:has(*)) {
+    &:where(:focus-within) {
+      border-color: var(--border-focus);
+    }
+  }
+}
+
+.kb-text-field-input {
+  color: var(--content-primary);
+
+  padding: 0px var(--sp-md);
+
+  width: 100%;
+  background: transparent;
+  border: none;
+
+  height: 36px;
+
+  @apply --kb-text-body-md;
+  font-weight: var(--font-weight-medium);
+
+  &:where(:focus) {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--content-tertiary-inverse);
+    font-weight: var(--font-weight-regular);
+  }
+}
+
+/* Size variants */
+.kb-text-field-root.kb-size-sm {
+  .kb-text-field-input {
+    height: 32px;
+    font-size: var(--font-body-sm);
+  }
+}
+
+.kb-text-field-slot {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+
+  color: var(--content-tertiary);
+
+  &:where([data-side="left"]) {
+    order: -1;
+    margin-right: 0;
+    margin-left: var(--text-field-input-padding);
+  }
+
+  &:where([data-side="right"]) {
+    order: 0;
+    margin-left: 0;
+    margin-right: var(--text-field-input-padding);
+  }
+}
+
+.kb-text-field-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  color: var(--content-tertiary);
+
+  svg {
+    width: var(--sp-xl);
+    height: var(--sp-xl);
+  }
+
+  .kb-text-field-hint-text {
+    color: var(--content-tertiary);
+
+    @apply --kb-text-body-sm;
+  }
+
+  &:where(.kb-text-field-error) {
+    color: var(--content-negative);
+
+    .kb-text-field-hint-text {
+      color: var(--content-negative);
+    }
+  }
+}

@@ -1,0 +1,228 @@
+.kb-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-secondary);
+  z-index: 50;
+  animation: kb-dialog-overlay-fade-in 0.15s ease;
+}
+
+@keyframes kb-dialog-overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.kb-dialog-content {
+  width: 100%;
+  max-width: 560px;
+  background: var(--background-primary);
+  border-radius: var(--radius-3xl);
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  border-width: var(--width-px);
+  border-color: var(--border-tertiary);
+  border-style: solid;
+
+  /* TODO: Make this box shadow semantic */
+  box-shadow: 0px 16px 24px -8px var(--black-10);
+  animation: kb-dialog-zoom-in 0.15s ease;
+}
+
+@keyframes kb-dialog-zoom-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.kb-dialog-footer {
+  border-top-width: var(--width-px);
+  border-top-color: var(--border-tertiary);
+  border-top-style: solid;
+  padding: var(--sp-2xl);
+}
+
+.kb-dialog-header {
+  padding: var(--sp-2xl);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+
+  border-bottom-width: var(--width-px);
+  border-bottom-color: var(--border-tertiary);
+  border-bottom-style: solid;
+
+  .kb-dialog-close {
+    --dialog-close-color: var(--content-disabled);
+    --dialog-close-color-hover: var(--content-tertiary);
+
+    position: absolute;
+    right: var(--sp-xl);
+    top: var(--sp-xl);
+    color: var(--dialog-close-color);
+    cursor: pointer;
+
+    @media (hover: hover) {
+      &:where(:hover) {
+        color: var(--dialog-close-color-hover);
+      }
+    }
+
+    svg {
+      width: var(--sp-2xl);
+      height: var(--sp-2xl);
+    }
+  }
+}
+
+.kb-dialog-description {
+  color: var(--content-tertiary);
+}
+
+/* Confirm Dialog Header Styles */
+.kb-confirm-dialog-header {
+  display: flex;
+  gap: var(--sp-md);
+  align-items: flex-start;
+}
+
+.kb-confirm-dialog-icon-container {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: var(--width-px) solid var(--confirm-dialog-border);
+  background: var(--confirm-dialog-background);
+}
+
+.kb-confirm-dialog-icon-container svg {
+  color: var(--confirm-dialog-icon-color);
+}
+
+.kb-confirm-dialog-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.kb-dialog-header {
+  color: var(--content-primary);
+}
+
+/* Variant styles for confirm dialog */
+.kb-confirm-dialog-header {
+  &:where(.kb-variant-destructive) {
+    --confirm-dialog-border: var(--border-negative);
+    --confirm-dialog-background: var(--background-negative-subtle);
+    --confirm-dialog-icon-color: var(--content-negative);
+  }
+
+  &:where(.kb-variant-primary) {
+    --confirm-dialog-border: var(--border-info);
+    --confirm-dialog-background: var(--background-info-subtle);
+    --confirm-dialog-icon-color: var(--content-info);
+  }
+
+  &:where(.kb-variant-secondary) {
+    --confirm-dialog-border: var(--border-tertiary);
+    --confirm-dialog-background: var(--background-secondary);
+    --confirm-dialog-icon-color: var(--content-secondary);
+  }
+
+  &:where(.kb-variant-tertiary) {
+    --confirm-dialog-border: var(--border-tertiary);
+    --confirm-dialog-background: var(--background-secondary);
+    --confirm-dialog-icon-color: var(--content-tertiary);
+  }
+}
+
+.kb-confirm-dialog-body {
+  padding: var(--sp-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xl);
+}
+
+.kb-confirm-dialog-confirm-text {
+  gap: var(--sp-sm);
+  align-items: center;
+
+  display: inline-flex;
+}
+
+.kb-confirm-dialog-confirm-text-copy {
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  margin: 0;
+  padding: 0;
+  margin-top: 2px;
+  color: inherit;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kb-confirm-dialog-copy-icon,
+.kb-confirm-dialog-check-icon {
+  transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1),
+    transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.kb-confirm-dialog-copy-icon {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.kb-confirm-dialog-copy-icon-hidden {
+  opacity: 0;
+  transform: scale(0.5) rotate(-90deg);
+}
+
+.kb-confirm-dialog-check-icon {
+  position: absolute;
+  opacity: 0;
+  transform: scale(0.5) rotate(90deg);
+  color: var(--content-positive);
+}
+
+.kb-confirm-dialog-check-icon-visible {
+  opacity: 1;
+  transform: scale(1) rotate(0deg);
+}
+
+.kb-confirm-dialog-actions {
+  display: flex;
+  gap: var(--sp-md);
+  justify-content: flex-end;
+}
+
+/* Dark mode overrides */
+[data-theme="dark"] .kb-dialog-close {
+  --dialog-close-color: var(--content-primary);
+  --dialog-close-color-hover: var(--content-secondary);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .kb-dialog-close {
+    --dialog-close-color: var(--content-primary);
+    --dialog-close-color-hover: var(--content-secondary);
+  }
+}

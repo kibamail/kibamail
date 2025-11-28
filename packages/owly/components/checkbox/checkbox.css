@@ -1,0 +1,96 @@
+.kb-checkbox-root {
+  --checkbox-icon-default-width: 14px;
+  --checkbox-icon-default-height: 14px;
+
+  display: flex;
+
+  padding: var(--sp-xs);
+
+  justify-content: center;
+  align-items: center;
+
+  flex-shrink: 0;
+
+  border: var(--width-px) solid var(--border-secondary);
+  background: var(--background-secondary);
+  border-bottom-width: 1px;
+  box-shadow: 0px 3px 0px 0px var(--black-5) inset;
+
+  /* TODO: Make this transition a semantic variable */
+  transition: outline 150ms ease-in-out, background 250ms ease-in-out;
+
+  svg {
+    width: var(--checkbox-icon-default-width);
+    height: var(--checkbox-icon-default-height);
+    flex-shrink: 0;
+  }
+
+  &:where(:focus) {
+    outline: none;
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    position: relative;
+  }
+}
+
+.kb-checkbox-root {
+  &:where(.kb-variant-default) {
+    border-radius: var(--radius-sm);
+  }
+
+  &:where(.kb-variant-circle) {
+    border-radius: var(--radius-full);
+  }
+}
+
+@breakpoints {
+  .kb-checkbox-root {
+    &:where(.kb-r-size-sm) {
+      width: var(--sp-xl);
+      height: var(--sp-xl);
+    }
+
+    &:where(.kb-r-size-md) {
+      width: var(--sp-2xl);
+      height: var(--sp-2xl);
+    }
+  }
+}
+
+.kb-checkbox-root {
+  @media (hover: hover) {
+    &:where(:hover) {
+      /* border: var(--width-px) solid var(--border-secondary); */
+      background: var(--background-hover);
+      /* box-shadow: 0px 3px 0px 0px var(--black-5) inset; */
+    }
+  }
+}
+
+.kb-checkbox-root {
+  &:where([data-disabled]) {
+    opacity: 0.5;
+  }
+}
+
+.kb-checkbox-root {
+  &:where([data-state="checked"], [data-state="indeterminate"]) {
+    border-top: var(--width-px) solid var(--black-10);
+    border-right: var(--width-px) solid var(--black-10);
+    border-bottom: var(--width-2xs) solid var(--black-10);
+    border-left: var(--width-px) solid var(--black-10);
+
+    background: var(--background-info);
+
+    /* TODO: Change these to semantic colors. */
+    box-shadow: 0px 2px 0px 0px var(--white-5) inset,
+      0px 1px 0px 0px var(--black-10);
+
+    .kb-checkbox-indicator {
+      /* TODO: Change this to a semantic color. */
+      color: var(--white-100);
+    }
+  }
+}

@@ -1,0 +1,67 @@
+@breakpoints {
+  .kb-heading {
+    &:where(.kb-r-variant-heading) {
+      &:where(.kb-r-size-xs) {
+        @apply --kb-text-heading-xs;
+      }
+
+      &:where(.kb-r-size-sm) {
+        @apply --kb-text-heading-sm;
+      }
+
+      &:where(.kb-r-size-md) {
+        @apply --kb-text-heading-md;
+      }
+
+      &:where(.kb-r-size-lg) {
+        @apply --kb-text-heading-lg;
+      }
+
+      &:where(.kb-r-size-xl) {
+        @apply --kb-text-heading-xl;
+      }
+    }
+
+    &:where(.kb-r-variant-display) {
+      &:where(.kb-r-size-xs) {
+        @apply --kb-text-display-xs;
+      }
+
+      &:where(.kb-r-size-sm) {
+        @apply --kb-text-display-sm;
+      }
+
+      &:where(.kb-r-size-md) {
+        @apply --kb-text-display-md;
+      }
+
+      &:where(.kb-r-size-lg) {
+        @apply --kb-text-display-lg;
+      }
+
+      &:where(.kb-r-size-xl) {
+        @apply --kb-text-display-xl;
+      }
+    }
+  }
+}
+
+/* &:where(.kb-r-size-xs) {
+            @apply --kb-text-heading-xs;
+        }
+
+        &:where(.kb-r-size-sm) {
+            @apply --kb-text-heading-sm;
+        }
+
+        &:where(.kb-r-size-md) {
+            @apply --kb-text-heading-md;
+        }
+
+        &:where(.kb-r-size-lg) {
+            @apply --kb-text-heading-lg;
+        }
+
+        &:where(.kb-r-size-xl) {
+            @apply --kb-text-heading-xl;
+        } */

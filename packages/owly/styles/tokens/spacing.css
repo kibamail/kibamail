@@ -1,0 +1,22 @@
+:root {
+  --sp-2xs: 2px;
+  --sp-xs: 4px;
+  --sp-sm: 6px;
+  --sp-md: 8px;
+  --sp-lg: 12px;
+  --sp-xl: 16px;
+  --sp-2xl: 20px;
+  --sp-3xl: 24px;
+  --sp-4xl: 32px;
+  --sp-5xl: 40px;
+  --sp-6xl: 56px;
+  --sp-7xl: 64px;
+  --sp-8xl: 72px;
+  --sp-9xl: 80px;
+  --sp-10xl: 88px;
+  --sp-11xl: 96px;
+  --sp-12xl: 104px;
+  --sp-13xl: 112px;
+  --sp-14xl: 120px;
+  --sp-15xl: 128px;
+}

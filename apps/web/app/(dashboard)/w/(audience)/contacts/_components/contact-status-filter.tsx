@@ -15,6 +15,7 @@ const statusLabels: Record<StatusFilterValue, string> = {
   BOUNCED: "Bounced",
   COMPLAINED: "Complained",
   ARCHIVED: "Archived",
+  UNCONFIRMED: "Pending opt in",
 };
 
 export function ContactStatusFilter() {

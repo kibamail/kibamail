@@ -1,0 +1,26 @@
+.kb-input-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-xs);
+  color: var(--content-tertiary);
+
+  svg {
+    width: var(--sp-xl);
+    height: var(--sp-xl);
+    flex-shrink: 0;
+  }
+
+  .kb-input-hint-text {
+    color: var(--content-tertiary);
+
+    @apply --kb-text-body-sm;
+  }
+
+  &:where(.kb-input-hint-error) {
+    color: var(--content-negative);
+
+    .kb-input-hint-text {
+      color: var(--content-negative);
+    }
+  }
+}

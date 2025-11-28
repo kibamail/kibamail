@@ -1,0 +1,88 @@
+.kb-spinner {
+  --spinner-animation-duration: 800ms;
+  --spinner-opacity: 0.65;
+
+  display: block;
+  position: relative;
+  opacity: var(--spinner-opacity);
+}
+
+.kb-spinner-leaf {
+  position: absolute;
+  top: 0;
+  left: calc(50% - 12.5% / 2);
+  width: 12.5%;
+  height: 100%;
+  animation: kb-spinner-leaf-fade var(--spinner-animation-duration) linear
+    infinite;
+
+  &::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 30%;
+    border-radius: var(--radius-1, 3px);
+    background-color: currentColor;
+  }
+
+  &:where(:nth-child(1)) {
+    transform: rotate(0deg);
+    animation-delay: calc(-8 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(2)) {
+    transform: rotate(45deg);
+    animation-delay: calc(-7 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(3)) {
+    transform: rotate(90deg);
+    animation-delay: calc(-6 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(4)) {
+    transform: rotate(135deg);
+    animation-delay: calc(-5 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(5)) {
+    transform: rotate(180deg);
+    animation-delay: calc(-4 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(6)) {
+    transform: rotate(225deg);
+    animation-delay: calc(-3 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(7)) {
+    transform: rotate(270deg);
+    animation-delay: calc(-2 / 8 * var(--spinner-animation-duration));
+  }
+  &:where(:nth-child(8)) {
+    transform: rotate(315deg);
+    animation-delay: calc(-1 / 8 * var(--spinner-animation-duration));
+  }
+}
+
+@keyframes kb-spinner-leaf-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.25;
+  }
+}
+
+@breakpoints {
+  .kb-spinner {
+    &:where(.kb-r-size-md) {
+      width: var(--sp-lg);
+      height: var(--sp-lg);
+    }
+
+    &:where(.kb-r-size-lg) {
+      width: var(--sp-xl);
+      height: var(--sp-xl);
+    }
+
+    &:where(.kb-r-size-xl) {
+      width: var(--sp-2xl);
+      height: var(--sp-2xl);
+    }
+  }
+}

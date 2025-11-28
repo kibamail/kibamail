@@ -1,0 +1,92 @@
+.kb-alert {
+  --alert-border-color: var(--border-tertiary);
+  --alert-background-color: transparent;
+
+  border-radius: var(--radius-md);
+  background-color: var(--alert-background-color);
+
+  border: var(--width-px) solid var(--alert-border-color);
+  color: var(--content-primary);
+
+  /* TODO: Make shadow standard. */
+  box-shadow: 0px 8px 16px -4px var(--black-5);
+  padding: var(--sp-lg);
+
+  box-sizing: border-box;
+
+  display: grid;
+  align-items: flex-start;
+  /* flex-direction: column; */
+  justify-content: flex-start;
+  gap: var(--sp-xs);
+  grid-template-columns: auto 1fr;
+}
+
+.kb-alert {
+  .kb-alert-icon {
+    --alert-icon-height: var(--sp-2xl);
+    --alert-icon-width: var(--sp-2xl);
+
+    display: flex;
+    align-items: center;
+    grid-column: 1;
+
+    width: var(--alert-icon-width);
+    height: var(--alert-icon-height);
+  }
+
+  > :where(:not(.kb-alert-icon)) {
+    grid-column: 2;
+    width: 100%;
+  }
+}
+
+.kb-alert {
+  --alert-icon-color: var(--content-tertiary-inverse);
+
+  .kb-alert-icon {
+    svg {
+      color: var(--alert-icon-color);
+    }
+  }
+}
+
+.kb-alert {
+  &:where(.kb-variant-error) {
+    --alert-border-color: var(--border-negative);
+    --alert-background-color: var(--background-negative-subtle);
+    --alert-icon-color: var(--content-negative);
+  }
+}
+
+.kb-alert {
+  &:where(.kb-variant-warning) {
+    --alert-border-color: var(--border-notice);
+    --alert-background-color: var(--background-notice-subtle);
+    --alert-icon-color: var(--content-notice);
+  }
+}
+
+.kb-alert {
+  &:where(.kb-variant-success) {
+    --alert-border-color: var(--border-positive);
+    --alert-background-color: var(--background-positive-subtle);
+    --alert-icon-color: var(--content-positive);
+  }
+}
+
+.kb-alert {
+  &:where(.kb-variant-info) {
+    --alert-border-color: var(--border-info);
+    --alert-background-color: var(--background-info-subtle);
+    --alert-icon-color: var(--content-info);
+  }
+}
+
+.kb-alert {
+  &:where(.kb-variant-feature) {
+    --alert-border-color: var(--border-tertiary);
+    --alert-background-color: var(--background-pressed);
+    --alert-icon-color: var(--content-tertiary-inverse);
+  }
+}

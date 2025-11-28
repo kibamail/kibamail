@@ -1,0 +1,292 @@
+.kb-select-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--sp-sm);
+
+  &:where([data-invalid="true"]) {
+    .kb-select-trigger {
+      border-color: var(--border-negative);
+    }
+  }
+
+  &:where([data-disabled="true"]) {
+    .kb-input-hint {
+      color: var(--content-tertiary-inverse);
+      .kb-input-hint-text {
+        color: var(--content-tertiary-inverse);
+      }
+    }
+  }
+}
+
+.kb-select-trigger {
+  @apply --kb-text-body-md;
+  --button-icon-default-width: 1rem;
+  --button-icon-default-height: 1rem;
+
+  --button-padding: var(--sp-md) var(--sp-lg);
+
+  border-radius: var(--radius-md);
+
+  border-top: var(--width-px) solid var(--button-border-color);
+  border-left: var(--width-px) solid var(--button-border-color);
+  border-right: var(--width-px) solid var(--button-border-color);
+  border-bottom: var(--width-2xs) solid var(--button-border-color);
+
+  background: var(--button-background-color);
+
+  box-shadow: var(--button-shadow);
+
+  display: inline-flex;
+  align-items: center;
+
+  gap: var(--sp-xs);
+  padding: var(--button-padding);
+
+  color: var(--content-secondary);
+  font-family: var(--default-font-family);
+
+  /* TODO: Make this transition a semantic variable */
+  transition: outline 150ms ease-in-out, background-color 150ms ease-in-out;
+
+  width: 100%;
+
+  &:where([data-placeholder]) {
+    color: var(--content-tertiary-inverse);
+  }
+
+  svg {
+    width: var(--button-icon-default-width);
+    height: var(--button-icon-default-height);
+    color: var(--content-tertiary-inverse);
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+
+  &:where(:focus) {
+    outline: none;
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    position: relative;
+  }
+
+  --button-border-color: var(--border-tertiary);
+  --button-background-color: var(--background-secondary);
+
+  /* TODO: Make this box shadow a semantic variable */
+  --button-shadow: 0px 2px 0px 0px var(--white-5) inset,
+    0px 1px 0px 0px var(--black-10);
+
+  --button-background-active-color: transparent;
+
+  @media (hover: hover) {
+    &:where(:hover):where(:not([data-disabled])) {
+      --button-background-color: var(--background-secondary-hover);
+    }
+  }
+  cursor: pointer;
+
+  &:where([data-disabled]) {
+    cursor: not-allowed;
+    color: var(--content-tertiary-inverse);
+
+    .kb-select-trigger-inner {
+      color: var(--content-tertiary-inverse);
+    }
+  }
+
+  &:where(:active):where(:not([data-disabled])) {
+    --button-background-color: var(--background-secondary-pressed);
+  }
+}
+
+.kb-select-trigger {
+  .kb-select-trigger-inner {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .kb-select-item-text {
+      @apply --kb-text-body-md;
+
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+
+      svg {
+        --button-icon-default-width: var(--sp-2xl);
+        --button-icon-default-height: var(--sp-2xl);
+
+        color: var(--content-secondary);
+      }
+    }
+  }
+
+  &:where([data-disabled]) {
+    .kb-select-trigger-inner {
+      .kb-select-item-text {
+        color: var(--content-tertiary-inverse);
+
+        svg {
+          color: var(--content-tertiary-inverse);
+        }
+      }
+    }
+  }
+
+  .kb-select-icon {
+    flex-shrink: 0;
+    color: var(--content-tertiary);
+  }
+
+  &:where([data-disabled]) {
+    .kb-select-icon {
+      color: var(--content-tertiary-inverse);
+    }
+  }
+}
+
+.kb-select-separator {
+  height: var(--width-px);
+  background: var(--black-5);
+  margin: var(--sp-xs) 0;
+}
+
+/* Size variants */
+.kb-select-root.kb-size-sm {
+  .kb-select-trigger {
+    padding: var(--sp-xs) var(--sp-md);
+    font-size: var(--font-body-sm);
+    min-height: 32px;
+  }
+
+  .kb-select-item {
+    min-height: 32px;
+    height: 32px;
+    font-size: var(--font-body-sm);
+  }
+
+  .kb-select-trigger-inner .kb-select-item-text {
+    font-size: var(--font-body-sm);
+  }
+}
+
+.kb-select-content {
+  min-width: var(--radix-select-trigger-width);
+  max-height: var(--radix-select-content-available-height);
+  transform-origin: var(--radix-select-content-transform-origin);
+  width: var(--radix-select-trigger-width);
+
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+  border-width: var(--width-px);
+  border-style: solid;
+  border-color: var(--border-tertiary);
+  background: var(--background-primary);
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* TODO: Make this box shadow a semantic variable */
+  box-shadow: 0px 16px 24px -8px var(--black-10);
+  animation: kb-select-zoom-in 0.15s ease;
+
+  .kb-select-viewport {
+    box-sizing: border-box;
+    padding: var(--sp-xs);
+  }
+}
+
+@keyframes kb-select-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kb-select-item {
+  width: 100%;
+  padding: var(--sp-md);
+  min-height: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  border: none;
+
+  &:where(:focus) {
+    outline: none;
+  }
+
+  svg {
+    width: var(--sp-2xl);
+    height: var(--sp-2xl);
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    position: relative;
+  }
+
+  &:where([data-disabled]) {
+    .kb-text {
+      color: var(--content-tertiary-inverse);
+    }
+  }
+
+  @media (hover: hover) {
+    &:where(:hover:not([data-disabled])) {
+      background: var(--background-secondary-hover);
+      cursor: pointer;
+    }
+  }
+
+  .kb-select-item-indicator {
+    margin-left: auto;
+  }
+
+  &:where(:not([data-disabled])) {
+    .kb-text {
+      @apply --kb-text-body-md;
+
+      display: flex;
+      align-items: center;
+      gap: var(--sp-md);
+      flex-grow: 1;
+
+      color: var(--content-secondary);
+    }
+  }
+}
+
+/* Small size content */
+.kb-select-content-sm {
+  .kb-select-viewport {
+    padding: calc(var(--sp-xs) * 0.75);
+  }
+}
+
+/* Small size items */
+.kb-select-item-sm {
+  padding: calc(var(--sp-md) * 0.75);
+  min-height: 28px;
+  height: 28px;
+
+  .kb-text {
+    font-size: var(--font-body-sm);
+    gap: calc(var(--sp-md) * 0.75);
+  }
+
+  svg {
+    width: calc(var(--sp-2xl) * 0.75);
+    height: calc(var(--sp-2xl) * 0.75);
+  }
+}

@@ -16,6 +16,7 @@ export const ContactStatusEnum = z.enum([
   "BOUNCED",
   "COMPLAINED",
   "ARCHIVED",
+  "UNCONFIRMED",
 ]);
 
 /**
@@ -59,7 +60,9 @@ export const createContactSchema = z.object({
   status: ContactStatusEnum.optional().default("SUBSCRIBED"),
   subscribedAt: z.coerce.date().optional().nullable(),
   unsubscribedAt: z.coerce.date().optional().nullable(),
-  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  properties: z
+    .record(z.string(), z.union([z.string(), z.number()]))
+    .optional(),
   topics: z.array(z.string()).optional().default([]),
 });
 
@@ -105,7 +108,9 @@ export const updateContactSchema = z.object({
   status: ContactStatusEnum.optional(),
   subscribedAt: z.coerce.date().optional().nullable(),
   unsubscribedAt: z.coerce.date().optional().nullable(),
-  properties: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+  properties: z
+    .record(z.string(), z.union([z.string(), z.number()]))
+    .optional(),
   topics: z.array(z.string()).optional(),
 });
 

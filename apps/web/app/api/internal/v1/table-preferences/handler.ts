@@ -34,22 +34,16 @@ export async function getTablePreferences(userId: string, tableName: string) {
   const config = await redis.get(key);
 
   if (!config) {
-    return responseOk(
-      {
-        tableName,
-        config: { columns: [] },
-      },
-      "table_preferences",
-    );
+    return responseOk({
+      tableName,
+      config: { columns: [] },
+    });
   }
 
-  return responseOk(
-    {
-      tableName,
-      config: JSON.parse(config),
-    },
-    "table_preferences",
-  );
+  return responseOk({
+    tableName,
+    config: JSON.parse(config),
+  });
 }
 
 /**
@@ -59,7 +53,7 @@ export async function getTablePreferences(userId: string, tableName: string) {
  */
 export async function updateTablePreferences(
   userId: string,
-  request: NextRequest,
+  request: NextRequest
 ) {
   const data = await validateRequestBody(updateTablePreferencesSchema, request);
 
@@ -69,11 +63,8 @@ export async function updateTablePreferences(
   // Store preferences in Redis (no expiration)
   await redis.set(key, JSON.stringify(data.config));
 
-  return responseOk(
-    {
-      tableName: data.tableName,
-      config: data.config,
-    },
-    "table_preferences",
-  );
+  return responseOk({
+    tableName: data.tableName,
+    config: data.config,
+  });
 }

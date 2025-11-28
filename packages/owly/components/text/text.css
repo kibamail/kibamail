@@ -1,0 +1,37 @@
+.kb-text {
+  &:where(.kb-text-variant-primary) {
+    color: var(--content-primary);
+  }
+
+  &:where(.kb-text-variant-secondary) {
+    color: var(--content-secondary);
+  }
+
+  &:where(.kb-text-variant-tertiary) {
+    color: var(--content-tertiary);
+  }
+}
+
+@breakpoints {
+  .kb-text {
+    &:where(.kb-r-size-xs) {
+      @apply --kb-text-body-xs;
+    }
+
+    &:where(.kb-r-size-sm) {
+      @apply --kb-text-body-sm;
+    }
+
+    &:where(.kb-r-size-md) {
+      @apply --kb-text-body-md;
+    }
+
+    &:where(.kb-r-size-lg) {
+      @apply --kb-text-body-lg;
+    }
+
+    &:where(.kb-r-size-xl) {
+      @apply --kb-text-body-xl;
+    }
+  }
+}

@@ -1,0 +1,313 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
+
+@import "tailwindcss";
+@import "@kibamail/owly/styles/index.css";
+
+@font-face {
+  font-family: "RocaTwo";
+  src: url("/fonts/roca-two-rg.ttf") format("truetype");
+
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  --font-heading: "RocaTwo";
+}
+
+@theme inline {
+  --font-heading: var(--default-font-family-display);
+}
+
+@theme {
+  /* ===== COLORS ===== */
+
+  /* Primitives - Full color palette */
+  --color-kb-blue-0: var(--blue-0);
+  --color-kb-blue-100: var(--blue-100);
+  --color-kb-blue-200: var(--blue-200);
+  --color-kb-blue-300: var(--blue-300);
+  --color-kb-blue-400: var(--blue-400);
+  --color-kb-blue-500: var(--blue-500);
+  --color-kb-blue-600: var(--blue-600);
+  --color-kb-blue-700: var(--blue-700);
+  --color-kb-blue-800: var(--blue-800);
+  --color-kb-blue-900: var(--blue-900);
+
+  --color-kb-gray-0: var(--gray-0);
+  --color-kb-gray-10: var(--gray-10);
+  --color-kb-gray-20: var(--gray-20);
+  --color-kb-gray-30: var(--gray-30);
+  --color-kb-gray-40: var(--gray-40);
+  --color-kb-gray-50: var(--gray-50);
+  --color-kb-gray-60: var(--gray-60);
+  --color-kb-gray-70: var(--gray-70);
+  --color-kb-gray-80: var(--gray-80);
+  --color-kb-gray-90: var(--gray-90);
+  --color-kb-gray-100: var(--gray-100);
+  --color-kb-gray-200: var(--gray-200);
+  --color-kb-gray-300: var(--gray-300);
+  --color-kb-gray-400: var(--gray-400);
+  --color-kb-gray-500: var(--gray-500);
+  --color-kb-gray-600: var(--gray-600);
+  --color-kb-gray-700: var(--gray-700);
+  --color-kb-gray-800: var(--gray-800);
+  --color-kb-gray-900: var(--gray-900);
+
+  --color-kb-green-0: var(--green-0);
+  --color-kb-green-100: var(--green-100);
+  --color-kb-green-200: var(--green-200);
+  --color-kb-green-300: var(--green-300);
+  --color-kb-green-400: var(--green-400);
+  --color-kb-green-500: var(--green-500);
+  --color-kb-green-600: var(--green-600);
+  --color-kb-green-700: var(--green-700);
+  --color-kb-green-800: var(--green-800);
+  --color-kb-green-900: var(--green-900);
+
+  --color-kb-red-0: var(--red-0);
+  --color-kb-red-100: var(--red-100);
+  --color-kb-red-200: var(--red-200);
+  --color-kb-red-300: var(--red-300);
+  --color-kb-red-400: var(--red-400);
+  --color-kb-red-500: var(--red-500);
+  --color-kb-red-600: var(--red-600);
+  --color-kb-red-700: var(--red-700);
+  --color-kb-red-800: var(--red-800);
+  --color-kb-red-900: var(--red-900);
+
+  --color-kb-orange-0: var(--orange-0);
+  --color-kb-orange-100: var(--orange-100);
+  --color-kb-orange-200: var(--orange-200);
+  --color-kb-orange-300: var(--orange-300);
+  --color-kb-orange-400: var(--orange-400);
+  --color-kb-orange-500: var(--orange-500);
+  --color-kb-orange-600: var(--orange-600);
+  --color-kb-orange-700: var(--orange-700);
+  --color-kb-orange-800: var(--orange-800);
+  --color-kb-orange-900: var(--orange-900);
+
+  --color-kb-yellow-100: var(--yellow-100);
+  --color-kb-yellow-200: var(--yellow-200);
+  --color-kb-yellow-300: var(--yellow-300);
+  --color-kb-yellow-400: var(--yellow-400);
+  --color-kb-yellow-500: var(--yellow-500);
+  --color-kb-yellow-600: var(--yellow-600);
+  --color-kb-yellow-700: var(--yellow-700);
+  --color-kb-yellow-800: var(--yellow-800);
+  --color-kb-yellow-900: var(--yellow-900);
+
+  --color-kb-purple-100: var(--purple-100);
+  --color-kb-purple-200: var(--purple-200);
+  --color-kb-purple-300: var(--purple-300);
+  --color-kb-purple-400: var(--purple-400);
+  --color-kb-purple-500: var(--purple-500);
+  --color-kb-purple-600: var(--purple-600);
+  --color-kb-purple-700: var(--purple-700);
+  --color-kb-purple-800: var(--purple-800);
+  --color-kb-purple-900: var(--purple-900);
+
+  --color-kb-brown-0: var(--brown-0);
+  --color-kb-brown-100: var(--brown-100);
+  --color-kb-brown-200: var(--brown-200);
+  --color-kb-brown-300: var(--brown-300);
+  --color-kb-brown-400: var(--brown-400);
+  --color-kb-brown-500: var(--brown-500);
+  --color-kb-brown-600: var(--brown-600);
+  --color-kb-brown-700: var(--brown-700);
+  --color-kb-brown-800: var(--brown-800);
+  --color-kb-brown-900: var(--brown-900);
+
+  /* Semantic Colors - Backgrounds */
+  --color-kb-bg-primary: var(--background-primary);
+  --color-kb-bg-layout: var(--background-layout);
+  --color-kb-bg-hover: var(--background-hover);
+  --color-kb-bg-pressed: var(--background-pressed);
+  --color-kb-bg-selected: var(--background-selected);
+  --color-kb-bg-disabled: var(--background-disabled);
+  --color-kb-bg-inverse: var(--background-inverse);
+  --color-kb-bg-brand: var(--background-brand);
+  --color-kb-bg-brand-hover: var(--background-brand-hover);
+  --color-kb-bg-brand-pressed: var(--background-brand-pressed);
+  --color-kb-bg-brand-disabled: var(--background-brand-disabled);
+  --color-kb-bg-secondary: var(--background-secondary);
+  --color-kb-bg-secondary-hover: var(--background-secondary-hover);
+  --color-kb-bg-secondary-pressed: var(--background-secondary-pressed);
+  --color-kb-bg-info: var(--background-info);
+  --color-kb-bg-info-subtle: var(--background-info-subtle);
+  --color-kb-bg-positive: var(--background-positive);
+  --color-kb-bg-positive-subtle: var(--background-positive-subtle);
+  --color-kb-bg-negative: var(--background-negative);
+  --color-kb-bg-negative-hover: var(--background-negative-hover);
+  --color-kb-bg-negative-pressed: var(--background-negative-pressed);
+  --color-kb-bg-negative-subtle: var(--background-negative-subtle);
+  --color-kb-bg-notice: var(--background-notice);
+  --color-kb-bg-notice-subtle: var(--background-notice-subtle);
+  --color-kb-bg-highlight: var(--background-highlight);
+
+  /* Semantic Colors - Borders */
+  --color-kb-border-primary: var(--border-primary);
+  --color-kb-border-secondary: var(--border-secondary);
+  --color-kb-border-tertiary: var(--border-tertiary);
+  --color-kb-border-disabled: var(--border-disabled);
+  --color-kb-border-focus: var(--border-focus);
+  --color-kb-border-brand: var(--border-brand);
+  --color-kb-border-inverse: var(--border-inverse);
+  --color-kb-border-info: var(--border-info);
+  --color-kb-border-notice: var(--border-notice);
+  --color-kb-border-negative: var(--border-negative);
+  --color-kb-border-positive: var(--border-positive);
+  --color-kb-border-highlight: var(--border-highlight);
+
+  /* Semantic Colors - Content/Text */
+  --color-kb-content-primary: var(--content-primary);
+  --color-kb-content-secondary: var(--content-secondary);
+  --color-kb-content-tertiary: var(--content-tertiary);
+  --color-kb-content-primary-inverse: var(--content-primary-inverse);
+  --color-kb-content-secondary-inverse: var(--content-secondary-inverse);
+  --color-kb-content-tertiary-inverse: var(--content-tertiary-inverse);
+  --color-kb-content-brand: var(--content-brand);
+  --color-kb-content-link: var(--content-link);
+  --color-kb-content-link-hover: var(--content-link-hover);
+  --color-kb-content-link-pressed: var(--content-link-pressed);
+  --color-kb-content-notice: var(--content-notice);
+  --color-kb-content-notice-bold: var(--content-notice-bold);
+  --color-kb-content-negative: var(--content-negative);
+  --color-kb-content-negative-bold: var(--content-negative-bold);
+  --color-kb-content-positive: var(--content-positive);
+  --color-kb-content-positive-bold: var(--content-positive-bold);
+  --color-kb-content-highlight: var(--content-highlight);
+  --color-kb-content-highlight-bold: var(--content-highlight-bold);
+  --color-kb-content-disabled: var(--content-disabled);
+  --color-kb-content-info: var(--content-info);
+  --color-kb-content-info-bold: var(--content-info-bold);
+
+  /* Navigation Menu Animations */
+  --animate-nav-enter-from-right: nav-enter-from-right 250ms ease;
+  --animate-nav-enter-from-left: nav-enter-from-left 250ms ease;
+  --animate-nav-exit-to-right: nav-exit-to-right 250ms ease;
+  --animate-nav-exit-to-left: nav-exit-to-left 250ms ease;
+  --animate-nav-scale-in: nav-scale-in 200ms ease;
+  --animate-nav-scale-out: nav-scale-out 200ms ease;
+  --animate-nav-fade-in: nav-fade-in 200ms ease;
+  --animate-nav-fade-out: nav-fade-out 200ms ease;
+
+  @keyframes nav-enter-from-right {
+    from {
+      opacity: 0;
+      transform: translateX(200px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes nav-enter-from-left {
+    from {
+      opacity: 0;
+      transform: translateX(-200px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @keyframes nav-exit-to-right {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(200px);
+    }
+  }
+
+  @keyframes nav-exit-to-left {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(-200px);
+    }
+  }
+
+  @keyframes nav-scale-in {
+    from {
+      opacity: 0;
+      transform: rotateX(-30deg) scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: rotateX(0deg) scale(1);
+    }
+  }
+
+  @keyframes nav-scale-out {
+    from {
+      opacity: 1;
+      transform: rotateX(0deg) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: rotateX(-10deg) scale(0.95);
+    }
+  }
+
+  @keyframes nav-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes nav-fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+
+/* Navigation Menu Content Animations */
+.NavigationMenuContent[data-motion="from-start"] {
+  animation: nav-enter-from-left 250ms ease;
+}
+.NavigationMenuContent[data-motion="from-end"] {
+  animation: nav-enter-from-right 250ms ease;
+}
+.NavigationMenuContent[data-motion="to-start"] {
+  animation: nav-exit-to-left 250ms ease;
+}
+.NavigationMenuContent[data-motion="to-end"] {
+  animation: nav-exit-to-right 250ms ease;
+}
+
+/* Navigation Menu Viewport Animations */
+.NavigationMenuViewport[data-state="open"] {
+  animation: nav-scale-in 200ms ease;
+}
+.NavigationMenuViewport[data-state="closed"] {
+  animation: nav-scale-out 200ms ease;
+}
+
+/* Navigation Menu Indicator Animations */
+.NavigationMenuIndicator[data-state="visible"] {
+  animation: nav-fade-in 200ms ease;
+}
+.NavigationMenuIndicator[data-state="hidden"] {
+  animation: nav-fade-out 200ms ease;
+}
+
+/* Caret rotation */
+[data-state="open"] > .NavigationMenuCaret {
+  transform: rotate(-180deg);
+}

@@ -23,11 +23,10 @@
  * // Get user access token
  * const token = await logto.users().accessToken()
  */
-
 import { createManagementApi } from "@logto/api/management";
-import type { paths } from "@logto/api/management";
 import { env } from "@/env/schema";
 import { InternalServerError } from "@/lib/api/errors";
+import type { paths } from "./logto.types";
 
 // Initialize Management API client
 const { apiClient } = createManagementApi(env.LOGTO_TENANT_ID, {

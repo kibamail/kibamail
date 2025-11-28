@@ -1,0 +1,139 @@
+@import "../input-label/input-label.css";
+@import "../input-hint/input-hint.css";
+
+.kb-textarea-field-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: var(--sp-sm);
+
+  &:where([data-invalid="true"]) {
+    .kb-textarea-field-content {
+      border-color: var(--border-negative);
+    }
+  }
+}
+
+.kb-textarea-field-content {
+  --textarea-field-input-padding: var(--sp-md);
+
+  display: flex;
+  align-items: stretch;
+
+  border-radius: var(--radius-md);
+  border: var(--width-px) solid var(--border-tertiary);
+  background: var(--background-hover);
+
+  /* Inner small */
+  box-shadow: 0px 2px 0px 0px var(--black-5) inset,
+    0px -2px 0px 0px var(--white-100) inset;
+
+  transition: border-color 150ms ease-in-out;
+
+  @supports selector(:has(*)) {
+    &:where(:has(.kb-textarea-field-input:focus)) {
+      border-color: var(--border-focus);
+    }
+  }
+
+  @supports not selector(:has(*)) {
+    &:where(:focus-within) {
+      border-color: var(--border-focus);
+    }
+  }
+}
+
+.kb-textarea-field-input {
+  color: var(--content-primary);
+
+  padding: var(--sp-md);
+
+  width: 100%;
+  background: transparent;
+  border: none;
+
+  min-height: 80px;
+  resize: vertical;
+
+  @apply --kb-text-body-md;
+  font-weight: var(--font-weight-medium);
+  font-family: inherit;
+  line-height: 1.5;
+
+  &:where(:focus) {
+    outline: none;
+  }
+
+  &::placeholder {
+    color: var(--content-tertiary-inverse);
+    font-weight: var(--font-weight-regular);
+  }
+}
+
+/* Size variants */
+.kb-textarea-field-root.kb-size-sm {
+  .kb-textarea-field-input {
+    min-height: 64px;
+    font-size: var(--font-body-sm);
+    padding: var(--sp-sm);
+  }
+  
+  .kb-textarea-field-content {
+    --textarea-field-input-padding: var(--sp-sm);
+  }
+}
+
+.kb-textarea-field-slot {
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: flex-start;
+  padding-top: var(--sp-md);
+
+  color: var(--content-tertiary);
+
+  &:where([data-side="left"]) {
+    order: -1;
+    margin-right: 0;
+    margin-left: var(--textarea-field-input-padding);
+  }
+
+  &:where([data-side="right"]) {
+    order: 0;
+    margin-left: 0;
+    margin-right: var(--textarea-field-input-padding);
+  }
+}
+
+/* Size variants for slots */
+.kb-textarea-field-root.kb-size-sm {
+  .kb-textarea-field-slot {
+    padding-top: var(--sp-sm);
+  }
+}
+
+.kb-textarea-field-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  color: var(--content-tertiary);
+
+  svg {
+    width: var(--sp-xl);
+    height: var(--sp-xl);
+  }
+
+  .kb-textarea-field-hint-text {
+    color: var(--content-tertiary);
+
+    @apply --kb-text-body-sm;
+  }
+
+  &:where(.kb-textarea-field-error) {
+    color: var(--content-negative);
+
+    .kb-textarea-field-hint-text {
+      color: var(--content-negative);
+    }
+  }
+}

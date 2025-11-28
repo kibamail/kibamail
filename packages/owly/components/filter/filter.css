@@ -1,0 +1,208 @@
+.kb-filter {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-md);
+  border: var(--width-px) solid var(--border-tertiary);
+  background: var(--background-secondary);
+  box-shadow: 0 -2px 0 0 var(--black-5) inset, 0 2px 0 0 var(--white-100) inset;
+  width: fit-content;
+}
+
+.kb-filter-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 var(--sp-sm);
+  font-size: var(--font-body-sm);
+  font-family: var(--default-font-family);
+  color: var(--content-tertiary);
+  border-right: var(--width-px) solid var(--border-tertiary);
+  white-space: nowrap;
+}
+
+.kb-filter-button {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 var(--sp-sm);
+  font-size: var(--font-body-sm);
+  font-family: var(--default-font-family);
+  color: var(--content-tertiary);
+  border-right: var(--width-px) solid var(--border-tertiary);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  @media (hover: hover) {
+    &:where(:hover) {
+      background-color: var(--background-hover);
+    }
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    outline-offset: calc(-1 * var(--sp-2xs));
+  }
+}
+
+.kb-filter-value {
+  color: var(--content-secondary);
+}
+
+.kb-filter-delete {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 0 var(--sp-md);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-right: none;
+  border-top-right-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+
+  @media (hover: hover) {
+    &:where(:hover) {
+      background-color: var(--background-hover);
+    }
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    outline-offset: calc(-1 * var(--sp-2xs));
+  }
+
+  svg {
+    flex-shrink: 0;
+  }
+}
+
+/* Dropdown styles */
+.kb-filter-dropdown {
+  width: 200px;
+  background: var(--background-primary);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 16px 24px -8px var(--black-10);
+  padding: var(--sp-xs);
+  z-index: 50;
+  animation: kb-filter-dropdown-fade-in 0.15s ease;
+}
+
+@keyframes kb-filter-dropdown-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--sp-xs)));
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.kb-filter-dropdown-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 28px;
+  padding: var(--sp-xs) var(--sp-md);
+  box-sizing: border-box;
+  color: var(--content-secondary);
+  font-family: var(--default-font-family);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-sm);
+  letter-spacing: var(--letter-spacing-none);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+
+  @media (hover: hover) {
+    &:where(:hover) {
+      background-color: var(--background-hover);
+    }
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    outline-offset: calc(-1 * var(--sp-2xs));
+  }
+
+  svg {
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+  }
+
+  /* Multi-select with checkbox */
+  .kb-checkbox-root {
+    margin-right: var(--sp-xs);
+  }
+}
+
+.kb-filter-dropdown-item-label {
+  flex: 1;
+}
+
+/* Value input styles */
+.kb-filter-value-input {
+  padding: var(--sp-md);
+  min-width: 200px;
+  width: fit-content;
+}
+
+.kb-filter-value-input .kb-text-field-root {
+  min-width: 200px;
+  width: 100%;
+}
+
+/* Text/Number input wrapper with apply button */
+.kb-filter-text-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  min-width: 340px;
+  align-items: flex-end;
+  padding: var(--sp-sm);
+}
+
+.kb-filter-text-input-wrapper .kb-text-field-root {
+  min-width: 340px;
+  width: 100%;
+}
+
+.kb-filter-value-calendar {
+  padding: 0;
+  min-width: auto;
+  width: auto;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* Group label for categorized fields */
+.kb-filter-dropdown-group-label {
+  padding: var(--sp-2xs) var(--sp-md);
+  color: var(--content-tertiary);
+  font-family: var(--default-font-family);
+  font-size: 10px;
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-sm);
+  letter-spacing: var(--letter-spacing-none);
+  text-transform: uppercase;
+}
+
+/* Separator between field groups */
+.kb-filter-dropdown-separator {
+  height: var(--width-px);
+  background: var(--border-tertiary);
+  margin: var(--sp-2xs) 0;
+}

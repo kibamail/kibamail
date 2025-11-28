@@ -1,0 +1,302 @@
+@import "react-cmdk/dist/cmdk.css";
+
+.kb-command-search {
+  width: 100%;
+  cursor: pointer;
+
+  .kb-text-field-input,
+  .kb-side-right,
+  .kb-side-left {
+    cursor: pointer;
+  }
+
+  .kb-text-field-slot.kb-side-right {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-md);
+
+      font-family: var(--default-font-family-body);
+      font-size: var(--font-body-md);
+      font-weight: var(--font-weight-medium);
+
+      border: 1px solid var(--border-tertiary);
+
+      color: var(--content-tertiary);
+    }
+  }
+}
+
+.kb-command-search-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 17, 17, 0.2);
+  backdrop-filter: blur(4px);
+  z-index: 49;
+  animation: kb-command-search-overlay-fade-in 0.2s ease;
+}
+
+.kb-command-search-dialog-overlay[data-state="closing"] {
+  animation: kb-command-search-overlay-fade-out 0.15s ease;
+}
+
+@keyframes kb-command-search-overlay-fade-in {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+}
+
+@keyframes kb-command-search-overlay-fade-out {
+  from {
+    opacity: 1;
+    backdrop-filter: blur(4px);
+  }
+  to {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+}
+
+.kb-command-search-dialog {
+  width: 100%;
+  max-width: 720px;
+  height: 100vh;
+  background: var(--background-primary);
+
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 50;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  border-width: var(--width-px);
+  border-color: var(--border-tertiary);
+  border-style: solid;
+  box-shadow: 0px 16px 24px -8px var(--black-10);
+  animation: kb-command-search-dialog-zoom-in 0.15s ease;
+}
+
+.kb-command-search-dialog[data-state="closing"] {
+  animation: kb-command-search-dialog-zoom-out 0.15s ease;
+}
+
+@keyframes kb-command-search-dialog-zoom-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+}
+
+@keyframes kb-command-search-dialog-zoom-out {
+  from {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.96);
+  }
+}
+
+@md {
+  .kb-command-search-dialog {
+    height: 396px;
+    max-height: 396px;
+    border-radius: var(--radius-xl);
+    top: 50%;
+    bottom: auto;
+    transform: translate(-50%, -50%);
+    animation: kb-command-search-dialog-zoom-in-desktop 0.15s ease;
+  }
+
+  .kb-command-search-dialog[data-state="closing"] {
+    animation: kb-command-search-dialog-zoom-out-desktop 0.15s ease;
+  }
+
+  @keyframes kb-command-search-dialog-zoom-in-desktop {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes kb-command-search-dialog-zoom-out-desktop {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.96);
+    }
+  }
+}
+
+.kb-command-search-dialog-input-wrapper {
+  height: 60px;
+  padding: var(--sp-2xl) var(--sp-xl);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  background: var(--background-secondary);
+  border-bottom: 0.75px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-sizing: border-box;
+
+  svg {
+    flex-shrink: 0;
+
+    path {
+      fill: var(--content-tertiary-inverse);
+    }
+  }
+}
+
+.kb-command-search-dialog-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  @apply --kb-text-body-md;
+  color: var(--content-primary);
+
+  &::placeholder {
+    color: var(--content-tertiary-inverse);
+  }
+}
+
+.kb-command-search-dialog-content {
+  padding: var(--sp-md);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.kb-command-search-dialog-list {
+  /* overflow-y: auto;
+  overflow-x: hidden;
+  max-height: 400px; */
+}
+
+.kb-command-search-dialog-footer {
+  height: 60px;
+  padding: var(--sp-2xl) var(--sp-xl);
+  border-top: var(--width-px) solid var(--border-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+.kb-command-search-dialog-footer-left,
+.kb-command-search-dialog-footer-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+
+  span {
+    @apply --kb-text-body-md;
+    color: var(--content-tertiary);
+  }
+}
+
+.kb-command-search-dialog-group {
+  &:not(:first-child) {
+    margin-top: var(--sp-lg);
+  }
+
+  [cmdk-group-heading] {
+    height: 20px;
+    display: flex;
+    align-items: center;
+    margin-bottom: var(--sp-md);
+    padding-left: var(--sp-lg);
+    padding-right: var(--sp-lg);
+    @apply --kb-text-body-md;
+    color: var(--content-tertiary);
+  }
+
+  [cmdk-group-items] {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: var(--sp-md);
+  }
+}
+
+.kb-command-search-dialog-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding-left: var(--sp-lg);
+  padding-right: var(--sp-lg);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  @apply --kb-text-body-md;
+  color: var(--content-secondary);
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+
+    path {
+      stroke: var(--content-tertiary);
+    }
+  }
+
+  &[aria-selected="true"] {
+    background: var(--background-secondary);
+  }
+
+  @media (hover: hover) {
+    &:where(:hover) {
+      background: var(--background-secondary);
+    }
+  }
+}
+
+.kb-command-search-dialog-separator {
+  height: var(--width-px);
+  background: var(--border-tertiary);
+  margin: var(--sp-sm) 0;
+}
+
+.kb-command-search-dialog-empty {
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  svg {
+    margin-left: calc(var(--sp-3xl) + var(--sp-xs));
+  }
+
+  gap: var(--sp-md);
+  color: var(--content-secondary);
+
+  font-family: var(--default-font-family-body);
+}

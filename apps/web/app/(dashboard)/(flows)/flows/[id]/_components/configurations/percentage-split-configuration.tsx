@@ -97,7 +97,7 @@ export function PercentageSplitConfiguration() {
         <TextField.Root
           type="number"
           value={branchAPercentage.toString()}
-          onChange={(e) =>
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             handlePercentageChange("branch-a", Number(e.target.value))
           }
           min="0"
@@ -109,7 +109,7 @@ export function PercentageSplitConfiguration() {
         <TextField.Root
           type="number"
           value={branchBPercentage.toString()}
-          onChange={(e) =>
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             handlePercentageChange("branch-b", Number(e.target.value))
           }
           min="0"

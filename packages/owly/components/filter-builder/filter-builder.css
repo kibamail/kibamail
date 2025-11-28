@@ -1,0 +1,51 @@
+.kb-filter-builder {
+  /* display: flex;
+  flex-direction: column;
+  gap: var(--sp-md); */
+}
+
+.kb-filter-builder-trigger {
+}
+
+.kb-filter-builder-trigger:disabled {
+}
+
+.kb-filter-builder-filters {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+}
+
+.kb-filter-builder-filter-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+/* Responsive layout for filters */
+@media (min-width: 768px) {
+  .kb-filter-builder-filters {
+    gap: var(--sp-md);
+  }
+
+  .kb-filter-builder-filter-item {
+    gap: var(--sp-md);
+  }
+}
+
+/* Animation for adding/removing filters */
+.kb-filter-builder-filter-item {
+  animation: kb-filter-builder-fade-in 0.2s ease-out;
+}
+
+@keyframes kb-filter-builder-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

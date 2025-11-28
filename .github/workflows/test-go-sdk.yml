@@ -4,13 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "packages/go-sdk/**"
+      - "sdks/go/**"
       - "test-sdk-infra/**"
       - "apps/web/public/openapi.v1.json"
       - ".github/workflows/test-go-sdk.yml"
   pull_request:
     paths:
-      - "packages/go-sdk/**"
+      - "sdks/go/**"
       - "test-sdk-infra/**"
       - "apps/web/public/openapi.v1.json"
       - ".github/workflows/test-go-sdk.yml"
@@ -32,10 +32,10 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
-          cache-dependency-path: packages/go-sdk/go.sum
+          cache-dependency-path: sdks/go/go.sum
 
       - name: install dependencies
-        working-directory: packages/go-sdk
+        working-directory: sdks/go
         run: go mod download
 
       - name: start test infrastructure (prism)
@@ -47,7 +47,7 @@ jobs:
           echo "Prism is ready"
 
       - name: run tests
-        working-directory: packages/go-sdk
+        working-directory: sdks/go
         run: go test -v -race ./...
 
       - name: stop test infrastructure

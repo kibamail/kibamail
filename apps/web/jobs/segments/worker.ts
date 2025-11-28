@@ -23,7 +23,6 @@ configureWorker("segments", {
   concurrency: 3,
 });
 
-// Start the worker
 queue("segments").start();
 
 logger.info(
@@ -31,10 +30,9 @@ logger.info(
     jobs: ["compute-contacts-count"],
     concurrency: 3,
   },
-  "Segments worker started",
+  "Segments worker started"
 );
 
-// Graceful shutdown
 const shutdown = async (signal: string) => {
   logger.info({ signal }, "Shutting down segments worker");
   await queue("segments").close();

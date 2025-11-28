@@ -1,0 +1,100 @@
+.kb-dropdown-menu-content {
+  background-color: var(--background-primary);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-xs);
+  min-width: 220px;
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  animation: kb-dropdown-menu-zoom-in 0.15s ease;
+  transform-origin: var(--radix-dropdown-menu-content-transform-origin);
+  z-index: 50;
+}
+
+@keyframes kb-dropdown-menu-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kb-dropdown-menu-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-md);
+  border-radius: var(--radius-md);
+  min-height: 36px;
+  cursor: pointer;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  border: var(--width-px) solid transparent;
+  color: var(--content-primary);
+
+  @apply --kb-text-body-md;
+
+  &:where(:hover) {
+    background-color: var(--background-secondary);
+    color: var(--content-secondary);
+  }
+
+  &:where(:focus) {
+    background-color: var(--background-secondary);
+    color: var(--content-secondary);
+  }
+
+  &:where([data-disabled]) {
+    color: var(--content-tertiary-inverse);
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--content-tertiary);
+  }
+}
+
+.kb-dropdown-menu-label {
+  padding: var(--sp-md);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--content-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kb-dropdown-menu-separator {
+  width: 100%;
+  height: 1px;
+  background: var(--border-tertiary);
+  margin: var(--sp-xs) 0;
+  box-sizing: border-box;
+}
+
+.kb-dropdown-menu-item-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: var(--content-tertiary);
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.kb-dropdown-menu-checkbox-item,
+.kb-dropdown-menu-radio-item {
+  padding-left: var(--sp-lg);
+}

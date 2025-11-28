@@ -237,6 +237,7 @@ export async function updateForm(
     data: {
       ...data,
       ...(data.fields !== undefined && { fields: data.fields as never }),
+      ...(data.settings !== undefined && { settings: data.settings as never }),
     },
   });
 

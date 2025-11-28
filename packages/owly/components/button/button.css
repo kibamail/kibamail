@@ -1,0 +1,238 @@
+.kb-button {
+  @apply --kb-text-body-md;
+  --button-icon-default-width: 14px;
+  --button-icon-default-height: 14px;
+
+  --button-padding: var(--sp-md) var(--sp-lg);
+
+  border-radius: var(--radius-md);
+
+  border-top: var(--width-px) solid var(--button-border-color);
+  border-left: var(--width-px) solid var(--button-border-color);
+  border-right: var(--width-px) solid var(--button-border-color);
+  border-bottom: var(--width-2xs) solid var(--button-border-color);
+
+  background: var(--button-background-color);
+
+  box-shadow: var(--button-shadow);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: var(--sp-xs);
+  padding: var(--button-padding);
+
+  cursor: pointer;
+
+  color: var(--button-content-color);
+  font-family: var(--default-font-family);
+
+  /* TODO: Make this transition a semantic variable */
+  transition: outline 150ms ease-in-out, background-color 150ms ease-in-out;
+
+  width: fit-content;
+
+  &:where([data-kb-disabled="true"]) {
+    pointer-events: none;
+  }
+
+  svg {
+    width: var(--button-icon-default-width);
+    height: var(--button-icon-default-height);
+    flex-shrink: 0;
+  }
+
+  &:where(:focus) {
+    outline: none;
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    position: relative;
+  }
+}
+
+.kb-button {
+  &:where(.kb-loading) {
+    position: relative;
+  }
+
+  &:where(.kb-variant-primary) {
+    --button-border-color: var(--border-brand);
+    --button-background-color: var(--background-brand);
+    --button-content-color: var(--content-primary-inverse);
+
+    /* TODO: Make this box shadow a semantic variable */
+    --button-shadow: 0px 2px 0px 0px var(--white-5) inset,
+      0px 1px 0px 0px var(--black-10);
+
+    @media (hover: hover) {
+      &:where(:hover):where(:not([data-kb-disabled="true"])) {
+        --button-background-color: var(--background-brand-hover);
+      }
+    }
+
+    &:where(:active) {
+      --button-background-color: var(--background-brand-pressed);
+    }
+
+    &:where([data-kb-disabled="true"]) {
+      --button-border-color: var(--border-disabled);
+      --button-background-color: var(--background-brand-disabled);
+    }
+
+    &:where([data-kb-disabled="true"]:not(.kb-loading)) {
+      --button-content-color: var(--content-tertiary-inverse);
+    }
+
+    &:where([data-kb-disabled="true"].kb-loading) {
+      --button-content-color: var(--content-tertiary);
+    }
+  }
+
+  &:where(.kb-variant-secondary) {
+    --button-border-color: var(--border-tertiary);
+    --button-background-color: var(--background-primary);
+    --button-content-color: var(--content-secondary);
+
+    /* TODO: Make this box shadow a semantic variable */
+    --button-shadow: 0px 2px 0px 0px var(--white-5) inset,
+      0px 1px 0px 0px var(--black-10);
+
+    --button-background-active-color: transparent;
+
+    @media (hover: hover) {
+      &:where(:hover):where(:not([data-kb-disabled="true"])) {
+        --button-background-color: var(--background-secondary-hover);
+      }
+    }
+
+    &:where(:active) {
+      --button-background-color: var(--background-secondary-pressed);
+    }
+
+    &:where([data-kb-disabled="true"]) {
+      --button-border-color: var(--border-tertiary);
+      --button-background-color: var(--background-primary);
+    }
+
+    &:where([data-kb-disabled="true"]:not(.kb-loading)) {
+      --button-content-color: var(--content-disabled);
+    }
+
+    &:where([data-kb-disabled="true"].kb-loading) {
+      --button-content-color: var(--content-secondary);
+    }
+  }
+
+  &:where(.kb-variant-destructive) {
+    /* TODO: Make this box shadow a semantic variable */
+    --button-border-color: var(--black-20);
+    --button-background-color: var(--background-negative);
+    --button-content-color: var(--content-primary-inverse);
+
+    /* TODO: Make this box shadow a semantic variable */
+    --button-shadow: 0px 2px 0px 0px var(--white-5) inset,
+      0px 1px 0px 0px var(--black-10);
+
+    --button-background-active-color: transparent;
+
+    @media (hover: hover) {
+      &:where(:hover):where(:not([data-kb-disabled="true"])) {
+        --button-background-color: var(--background-negative-hover);
+      }
+    }
+
+    &:where(:active) {
+      --button-background-color: var(--background-negative-pressed);
+    }
+
+    &:where([data-kb-disabled="true"]) {
+      /* TODO: Make this box shadow a semantic variable */
+      --button-border-color: var(--black-5);
+      --button-background-color: var(--background-negative-subtle);
+    }
+
+    &:where([data-kb-disabled="true"]:not(.kb-loading)) {
+      --button-content-color: var(--content-primary-inverse);
+    }
+
+    &:where([data-kb-disabled="true"].kb-loading) {
+      --button-content-color: var(--content-tertiary);
+    }
+  }
+
+  &:where(.kb-variant-tertiary) {
+    --button-border-color: transparent;
+    --button-background-color: transparent;
+    --button-content-color: var(--content-secondary);
+
+    --button-shadow: none;
+
+    --button-background-active-color: transparent;
+
+    @media (hover: hover) {
+      &:where(:hover):where(:not([data-kb-disabled="true"])) {
+        --button-background-color: var(--background-hover);
+      }
+    }
+
+    &:where(:active) {
+      --button-background-color: var(--background-pressed);
+    }
+
+    &:where([data-kb-disabled="true"]) {
+      --button-border-color: transparent;
+      --button-content-color: var(--content-disabled);
+      --button-background-color: transparent;
+    }
+  }
+}
+
+@breakpoints {
+  .kb-button {
+    &:where(.kb-r-size-xs) {
+      --button-padding: 4px 8px;
+      font-size: 13px;
+    }
+
+    &:where(.kb-r-size-sm) {
+      --button-padding: var(--sp-sm) var(--sp-lg);
+    }
+
+    &:where(.kb-r-size-md) {
+      --button-padding: var(--sp-md) var(--sp-md);
+    }
+
+    &:where(.kb-r-size-lg) {
+      --button-padding: var(--sp-md) var(--sp-lg);
+    }
+  }
+}
+
+@breakpoints {
+  .kb-button {
+    &:where(.kb-r-width-fit) {
+      width: fit-content;
+    }
+
+    &:where(.kb-r-width-full) {
+      width: 100%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kb-button {
+    transition: none;
+  }
+}
+
+.kb-loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  inset: 0;
+}

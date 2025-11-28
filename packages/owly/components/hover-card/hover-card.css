@@ -1,0 +1,47 @@
+.kb-hover-card-trigger {
+  all: unset;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-md);
+  cursor: pointer;
+  box-sizing: border-box;
+  color: var(--content-primary);
+  transition: background-color 0.15s ease;
+
+  &:where(:hover) {
+    color: var(--content-secondary);
+  }
+
+  &:where(:focus-visible) {
+    outline: 2px solid var(--border-focus);
+    outline-offset: 2px;
+  }
+}
+
+.kb-hover-card-content {
+  background-color: var(--background-primary);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-md);
+  min-width: 220px;
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  animation: kb-hover-card-zoom-in 0.15s ease;
+  transform-origin: var(--radix-hover-card-content-transform-origin);
+  z-index: 50;
+}
+
+@keyframes kb-hover-card-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kb-hover-card-arrow {
+  fill: var(--background-primary);
+}

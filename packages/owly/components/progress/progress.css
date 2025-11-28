@@ -1,0 +1,64 @@
+.kb-progress {
+  width: 100%;
+  background: var(--border-tertiary);
+  border-radius: var(--radius-full);
+  pointer-events: none;
+  overflow: visible;
+  flex-grow: 1;
+}
+
+.kb-progress-indicator {
+  --kb-progress-value: 0;
+
+  height: 100%;
+  border-radius: var(--radius-full);
+
+  width: calc(var(--kb-progress-value) * 1%);
+
+  /* TODO: Make this a semantic variable */
+  box-shadow: 0px 2px 0px 0px var(--white-5) inset,
+    0px 1px 0px 0px var(--black-10);
+
+  /* TODO: Make this transition a semantic variable */
+  transition: width 150ms ease-in-out;
+}
+
+.kb-progress {
+  &:where(.kb-variant-success) {
+    .kb-progress-indicator {
+      background: var(--background-positive);
+    }
+  }
+
+  &:where(.kb-variant-error) {
+    .kb-progress-indicator {
+      background: var(--background-negative);
+    }
+  }
+
+  &:where(.kb-variant-warning) {
+    .kb-progress-indicator {
+      background: var(--background-notice);
+    }
+  }
+
+  &:where(.kb-variant-info) {
+    .kb-progress-indicator {
+      background: var(--background-info);
+    }
+  }
+}
+
+.kb-progress {
+  &:where(.kb-size-sm) {
+    height: var(--sp-xs);
+  }
+
+  &:where(.kb-size-md) {
+    height: var(--sp-sm);
+  }
+
+  &:where(.kb-size-lg) {
+    height: var(--sp-md);
+  }
+}

@@ -8487,7 +8487,11 @@
                       }
                     ]
                   },
-                  "fields": {}
+                  "fields": {},
+                  "settings": {
+                    "description": "Form settings configuration (e.g., redirectUrl, submitText, double opt-in)",
+                    "type": "object"
+                  }
                 }
               }
             }

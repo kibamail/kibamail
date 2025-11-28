@@ -28,8 +28,8 @@ export default async function ApiKeysPage({ searchParams }: ApiKeysPageProps) {
       ...(search
         ? {
             OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { keyPreview: { contains: search, mode: "insensitive" } },
+              { name: { contains: search } },
+              { keyPreview: { contains: search } },
             ],
           }
         : {}),
@@ -53,7 +53,13 @@ export default async function ApiKeysPage({ searchParams }: ApiKeysPageProps) {
         <SearchInput />
       </div>
 
-      <ApiKeysTable apiKeys={apiKeys} canManage={canManageApiKeys} />
+      <ApiKeysTable
+        apiKeys={apiKeys.map((key) => ({
+          ...key,
+          scopes: (key.scopes as string[]) || [],
+        }))}
+        canManage={canManageApiKeys}
+      />
     </div>
   );
 }

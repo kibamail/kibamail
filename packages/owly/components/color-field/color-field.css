@@ -1,0 +1,128 @@
+/* Color Field Root */
+.kb-color-field-root {
+  /* Inherits all styles from text-field */
+}
+
+/* Color Preview */
+.kb-color-field-preview {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  border: var(--width-px) solid var(--border-tertiary);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0px;
+  flex-shrink: 0;
+}
+
+/* Color Picker Trigger */
+.kb-color-field-trigger {
+  all: unset;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-sm);
+  color: var(--content-tertiary);
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.kb-color-field-trigger:hover {
+  color: var(--content-secondary);
+}
+
+.kb-color-field-trigger:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Popover Content */
+.kb-color-field-popover {
+  background-color: var(--background-primary);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-lg);
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  animation: kb-color-field-zoom-in 0.15s ease;
+  transform-origin: var(--radix-popover-content-transform-origin);
+  z-index: 50;
+  width: 280px;
+}
+
+@keyframes kb-color-field-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Picker Container */
+.kb-color-field-picker-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+/* Color Picker */
+.kb-color-field-picker {
+  width: 100% !important;
+  height: 180px !important;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.kb-color-field-picker .react-colorful__saturation {
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.kb-color-field-picker .react-colorful__hue {
+  height: 20px;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.kb-color-field-picker .react-colorful__pointer {
+  width: 16px;
+  height: 16px;
+}
+
+.kb-color-field-picker .react-colorful__saturation-pointer {
+  width: 16px;
+  height: 16px;
+}
+
+/* Input Container */
+.kb-color-field-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-md);
+}
+
+/* Hex Input */
+.kb-color-field-hex-input {
+  width: 100%;
+}
+
+/* RGB Inputs Container */
+.kb-color-field-rgb-inputs {
+  display: flex;
+  gap: var(--sp-sm);
+}
+
+.kb-color-field-rgb-input {
+  flex: 1;
+}
+
+/* Input Labels */
+.kb-color-field-input-label {
+  font-size: var(--font-body-xs);
+  color: var(--content-tertiary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

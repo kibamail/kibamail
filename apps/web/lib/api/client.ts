@@ -1194,6 +1194,26 @@ class FormsApi extends HttpClient {
       data
     );
   }
+
+  /**
+   * Publish a form
+   *
+   * @param formId - ID of the form to publish
+   * @returns Published form
+   *
+   * @example
+   * ```ts
+   * const form = await internalApi.forms().publish('form_123')
+   * ```
+   */
+  async publish(formId: string): Promise<FormResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/forms/${formId}/publish`,
+      null,
+      formResponseSchema
+    );
+  }
 }
 
 /**

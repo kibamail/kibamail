@@ -221,6 +221,59 @@ describe("PUT /api/v1/forms/[formId]", () => {
     expect(response.status).toBe(200);
   });
 
+  test("should update form settings", async () => {
+    // Create a form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Test Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await POST(createRequest);
+    const createdForm = await createResponse.json();
+
+    const newSettings = {
+      redirectUrl: "https://example.com/thank-you",
+      submitText: "Submit Form",
+      doubleOptIn: true,
+      customConfig: {
+        theme: "dark",
+        showProgressBar: true,
+      },
+    };
+
+    // Update the form settings
+    const updateRequest = put(
+      `/forms/${createdForm.id}`,
+      {
+        settings: newSettings,
+      },
+      fullAccessApiKey.key
+    );
+
+    const response = await PUT(updateRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+
+    expect(response.status).toBe(200);
+
+    // Verify settings were updated by fetching the form
+    const getRequest = apiRequest(`/forms/${createdForm.id}`)
+      .method("GET")
+      .auth(fullAccessApiKey.key)
+      .build();
+
+    const getResponse = await GET(getRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const formData = await getResponse.json();
+
+    expect(formData.settings).toEqual(newSettings);
+  });
+
   test("should not allow updating published forms", async () => {
     // Create a form
     const createRequest = post(

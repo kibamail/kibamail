@@ -1,0 +1,42 @@
+.kb-input-label {
+  @apply --kb-text-body-md;
+  color: var(--content-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+.kb-input-label-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+.kb-input-label-help-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--content-tertiary);
+  transition: color 150ms ease-in-out;
+
+  &:hover {
+    color: var(--content-secondary);
+  }
+
+  &:focus {
+    outline: none;
+    color: var(--content-primary);
+  }
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.kb-input-label-help-tooltip {
+  max-width: 250px;
+  text-align: left;
+}

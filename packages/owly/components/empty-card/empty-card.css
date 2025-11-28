@@ -1,0 +1,38 @@
+.kb-empty-card-root {
+  width: 100%;
+  background-color: var(--background-hover);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-3xl);
+  padding-top: var(--sp-8xl);
+  padding-bottom: var(--sp-8xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-sm);
+  box-sizing: border-box;
+}
+
+.kb-empty-card-title {
+  font-size: var(--font-body-lg);
+  font-weight: 600;
+  color: var(--content-primary);
+  font-family: var(--default-font-family);
+  margin: 0;
+  text-align: center;
+}
+
+.kb-empty-card-description {
+  font-size: var(--font-body-sm);
+  color: var(--content-secondary);
+  font-family: var(--default-font-family);
+  margin: 0;
+  text-align: center;
+}
+
+.kb-empty-card-action {
+  margin-top: var(--sp-xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-md);
+}

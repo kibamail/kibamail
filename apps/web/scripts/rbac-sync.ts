@@ -95,7 +95,7 @@ const log = {
   error: (msg: string) => console.log(`${colors.red}✗${colors.reset} ${msg}`),
   section: (msg: string) =>
     console.log(
-      `\n${colors.bright}${colors.cyan}${msg}${colors.reset}\n${"=".repeat(60)}`,
+      `\n${colors.bright}${colors.cyan}${msg}${colors.reset}\n${"=".repeat(60)}`
     ),
   step: (msg: string) =>
     console.log(`${colors.magenta}→${colors.reset} ${msg}`),
@@ -158,7 +158,7 @@ function validateConfig(): { valid: boolean; errors: string[] } {
     for (const permName of role.permissions) {
       if (!permissionNames.has(permName)) {
         errors.push(
-          `Role ${role.name} references unknown permission: ${permName}`,
+          `Role ${role.name} references unknown permission: ${permName}`
         );
       }
     }
@@ -178,7 +178,7 @@ function validateConfig(): { valid: boolean; errors: string[] } {
  * Fetch all organization permissions from Logto
  */
 async function fetchPermissions(
-  apiClient: ReturnType<typeof createManagementApi>["apiClient"],
+  apiClient: ReturnType<typeof createManagementApi>["apiClient"]
 ): Promise<LogtoPermission[]> {
   log.step("Fetching existing organization permissions from Logto...");
 
@@ -198,7 +198,7 @@ async function fetchPermissions(
  * Fetch all organization roles from Logto
  */
 async function fetchRoles(
-  apiClient: ReturnType<typeof createManagementApi>["apiClient"],
+  apiClient: ReturnType<typeof createManagementApi>["apiClient"]
 ): Promise<LogtoRole[]> {
   log.step("Fetching existing organization roles from Logto...");
 
@@ -220,7 +220,7 @@ async function fetchRoles(
 async function syncPermissions(
   apiClient: ReturnType<typeof createManagementApi>["apiClient"],
   dryRun: boolean,
-  force: boolean,
+  force: boolean
 ): Promise<{
   created: number;
   updated: number;
@@ -258,7 +258,7 @@ async function syncPermissions(
 
         if (response.error) {
           log.error(
-            `Failed to create permission ${permission.name}: ${response.error}`,
+            `Failed to create permission ${permission.name}: ${response.error}`
           );
           throw new Error(`Failed to create permission: ${response.error}`);
         }
@@ -287,12 +287,12 @@ async function syncPermissions(
               body: {
                 description: permission.description,
               },
-            },
+            }
           );
 
           if (response.error) {
             log.error(
-              `Failed to update permission ${permission.name}: ${response.error}`,
+              `Failed to update permission ${permission.name}: ${response.error}`
             );
             throw new Error(`Failed to update permission: ${response.error}`);
           }
@@ -322,12 +322,12 @@ async function syncPermissions(
             "/api/organization-scopes/{id}",
             {
               params: { path: { id: existing.id } },
-            },
+            }
           );
 
           if (response.error) {
             log.error(
-              `Failed to delete permission ${existing.name}: ${response.error}`,
+              `Failed to delete permission ${existing.name}: ${response.error}`
             );
             // Continue on delete errors (permission might be in use)
           } else {
@@ -352,7 +352,7 @@ async function syncRoles(
   apiClient: ReturnType<typeof createManagementApi>["apiClient"],
   permissionMap: Map<string, string>,
   dryRun: boolean,
-  force: boolean,
+  force: boolean
 ): Promise<{ created: number; updated: number; deleted: number }> {
   log.section("SYNCING ROLES");
 
@@ -376,8 +376,8 @@ async function syncRoles(
       const missing = role.permissions.filter((p) => !permissionMap.has(p));
       log.warn(
         `Role ${role.name} references missing permissions: ${missing.join(
-          ", ",
-        )}`,
+          ", "
+        )}`
       );
     }
 
@@ -429,7 +429,7 @@ async function syncRoles(
               body: {
                 description: role.description,
               },
-            },
+            }
           );
 
           if (response.error) {
@@ -459,15 +459,15 @@ async function syncRoles(
             body: {
               organizationScopeIds,
             },
-          },
+          }
         );
 
         if (response.error) {
           log.error(
-            `Failed to update role permissions ${role.name}: ${response.error}`,
+            `Failed to update role permissions ${role.name}: ${response.error}`
           );
           throw new Error(
-            `Failed to update role permissions: ${response.error}`,
+            `Failed to update role permissions: ${response.error}`
           );
         }
 
@@ -491,12 +491,12 @@ async function syncRoles(
             "/api/organization-roles/{id}",
             {
               params: { path: { id: existing.id } },
-            },
+            }
           );
 
           if (response.error) {
             log.error(
-              `Failed to delete role ${existing.name}: ${response.error}`,
+              `Failed to delete role ${existing.name}: ${response.error}`
             );
             // Continue on delete errors (role might be in use)
           } else {
@@ -524,15 +524,15 @@ async function main() {
   // Print header
   console.log("\n");
   console.log(
-    `${colors.bright}${colors.cyan}╔${"═".repeat(58)}╗${colors.reset}`,
+    `${colors.bright}${colors.cyan}╔${"═".repeat(58)}╗${colors.reset}`
   );
   console.log(
     `${colors.bright}${colors.cyan}║${" ".repeat(
-      18,
-    )}RBAC SYNC SCRIPT${" ".repeat(24)}║${colors.reset}`,
+      18
+    )}RBAC SYNC SCRIPT${" ".repeat(24)}║${colors.reset}`
   );
   console.log(
-    `${colors.bright}${colors.cyan}╚${"═".repeat(58)}╝${colors.reset}`,
+    `${colors.bright}${colors.cyan}╚${"═".repeat(58)}╝${colors.reset}`
   );
   console.log("\n");
 
@@ -580,7 +580,7 @@ async function main() {
   const permissionResults = await syncPermissions(
     apiClient,
     args.dryRun,
-    args.force,
+    args.force
   );
 
   // Sync roles
@@ -588,7 +588,7 @@ async function main() {
     apiClient,
     permissionResults.permissionMap,
     args.dryRun,
-    args.force,
+    args.force
   );
 
   // Print summary

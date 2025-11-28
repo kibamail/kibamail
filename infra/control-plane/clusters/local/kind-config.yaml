@@ -1,0 +1,30 @@
+# Kind cluster configuration for local development
+# Optimized for Cilium CNI with Gateway API support
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: kibamail-local
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # HTTP traffic for Gateway API
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      # HTTPS traffic for Gateway API
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+  - role: worker
+  - role: worker
+networking:
+  # Disable default CNI to use Cilium
+  disableDefaultCNI: true
+  # Use custom pod subnet for Cilium
+  podSubnet: "10.244.0.0/16"
+  serviceSubnet: "10.96.0.0/12"

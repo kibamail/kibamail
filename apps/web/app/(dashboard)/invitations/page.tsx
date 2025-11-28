@@ -10,11 +10,11 @@ import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 
-import { Button, Heading } from "@kibamail/owly";
-import { Invitations } from "./_components/invitations";
+import { Button } from "@kibamail/owly";
 import Image from "next/image";
 import { ArrowRight } from "iconoir-react";
 import { InvitationCard } from "./_components/invitation-card";
+
 export default async function InvitationsPage() {
   const ctx = await getSession();
 
@@ -29,7 +29,7 @@ export default async function InvitationsPage() {
   }
 
   const workspaces = await Promise.allSettled(
-    invitations.map((invite) => logto.workspaces().get(invite.workspaceId)),
+    invitations.map((invite) => logto.workspaces().get(invite.workspaceId))
   );
 
   const knownWorkspaces: Record<string, LogtoWorkspace> = {};

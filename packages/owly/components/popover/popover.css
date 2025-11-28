@@ -1,0 +1,29 @@
+.kb-popover-content {
+  background-color: var(--background-primary);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-xs);
+  min-width: 220px;
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  animation: kb-popover-zoom-in 0.15s ease;
+  transform-origin: var(--radix-popover-content-transform-origin);
+  z-index: 50;
+}
+
+@keyframes kb-popover-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kb-popover-arrow {
+  fill: var(--background-primary);
+  stroke: var(--border-tertiary);
+  stroke-width: var(--width-px);
+}

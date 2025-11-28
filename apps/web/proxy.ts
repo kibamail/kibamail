@@ -11,7 +11,9 @@ export default async function proxy(request: NextRequest) {
 
   const { isAuthenticated } = await getLogtoContext(logtoConfig);
 
-  if (isAuthenticated) return NextResponse.next({ headers });
+  if (isAuthenticated) {
+    return NextResponse.next({ headers });
+  }
 
   await Cookies.set(CookieKey.ROUTE_INTENDED, request.url);
 

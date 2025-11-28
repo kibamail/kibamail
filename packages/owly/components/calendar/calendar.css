@@ -1,0 +1,444 @@
+.kb-calendar-root {
+  display: flex;
+  flex-direction: column;
+  max-width: 340px;
+  height: 356px;
+  max-height: 356px;
+  border-radius: var(--radius-2xl);
+  padding: var(--sp-xl);
+  background-color: var(--background-primary);
+  box-shadow: 0px 16px 24px -8px var(--black-10);
+  border: 1px solid var(--border-tertiary);
+}
+
+/* Small size calendar - 75% of regular size */
+.kb-calendar-root-sm {
+  max-width: 255px;
+  height: 267px;
+  max-height: 267px;
+  border-radius: var(--radius-xl);
+  padding: var(--sp-lg);
+}
+
+.kb-calendar-root-sm .kb-calendar-header {
+  height: 27px;
+  padding: var(--sp-xs);
+  border-radius: var(--radius-md);
+}
+
+.kb-calendar-root-sm .kb-calendar-header-button {
+  width: 20px;
+  height: 20px;
+  padding: var(--sp-2xs);
+  min-width: 20px;
+}
+
+.kb-calendar-root-sm .kb-calendar-header-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+.kb-calendar-root-sm .kb-calendar-header-label {
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-root-sm .kb-calendar-week-days {
+  gap: calc(var(--sp-xs) * 0.75);
+}
+
+.kb-calendar-root-sm .kb-calendar-week-day {
+  width: calc(var(--sp-5xl) * 0.75);
+  height: calc(var(--sp-5xl) * 0.75);
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-root-sm .kb-calendar-days-grid {
+  gap: calc(var(--sp-xs) * 0.75);
+}
+
+.kb-calendar-root-sm .kb-calendar-day {
+  width: calc(var(--sp-5xl) * 0.75);
+  height: calc(var(--sp-5xl) * 0.75);
+  border-radius: var(--radius-sm);
+}
+
+.kb-calendar-root-sm .kb-calendar-day .kb-text {
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-header {
+  height: 36px;
+  box-sizing: border-box;
+  padding: var(--sp-xs);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-lg);
+}
+
+.kb-calendar-header-button {
+  color: var(--content-secondary);
+}
+
+.kb-calendar-week-days {
+  display: grid;
+  align-items: center;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--sp-xs);
+}
+
+.kb-calendar-week-day {
+  text-transform: uppercase;
+  color: var(--content-tertiary);
+  font-size: var(--font-body-md);
+  width: var(--sp-5xl);
+  height: var(--sp-5xl);
+  font-family: var(--default-font-family-body);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.kb-calendar-days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: var(--sp-xs);
+}
+
+.kb-calendar-day {
+  width: var(--sp-5xl);
+  height: var(--sp-5xl);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border-width: var(--width-px);
+  border-color: transparent;
+  border-radius: var(--radius-md);
+  background-color: transparent;
+
+  @media (hover: hover) {
+    &:where(:hover:not(.kb-calendar-day-disabled)) {
+      background-color: var(--background-hover);
+      cursor: pointer;
+    }
+  }
+
+  &:where(.kb-calendar-day-in-current-month) {
+    color: var(--content-secondary);
+  }
+
+  &:where(:not(.kb-calendar-day-in-current-month)) {
+    color: var(--content-disabled);
+  }
+
+  &:where(.kb-calendar-day-selected) {
+    background-color: var(--background-brand);
+    color: var(--white-100);
+  }
+
+  &:where(.kb-calendar-day-disabled) {
+    color: var(--content-disabled);
+    cursor: not-allowed;
+  }
+
+  &:where(.kb-calendar-day-now) {
+    border-color: var(--border-brand);
+  }
+
+  /* Range states */
+  &:where(.kb-calendar-day-in-range) {
+    background-color: var(--background-secondary);
+    border-radius: 0;
+  }
+
+  &:where(.kb-calendar-day-range-start) {
+    background-color: var(--background-brand);
+    color: var(--white-100);
+  }
+
+  &:where(.kb-calendar-day-range-end) {
+    background-color: var(--background-brand);
+    color: var(--white-100);
+  }
+
+  /* Will-be states (hover preview) */
+  &:where(.kb-calendar-day-will-be-in-range) {
+    background-color: var(--background-secondary);
+    border-radius: 0;
+  }
+
+  &:where(.kb-calendar-day-will-be-range-start) {
+    background-color: var(--background-brand);
+    color: var(--white-100);
+  }
+
+  &:where(.kb-calendar-day-will-be-range-end) {
+    background-color: var(--background-brand);
+    color: var(--white-100);
+  }
+
+  /* Handle edge cases for 7-column grid */
+  &:where(.kb-calendar-day-in-range:nth-child(7n)) {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  }
+
+  &:where(.kb-calendar-day-in-range:nth-child(7n + 1)) {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+  }
+
+  &:where(.kb-calendar-day-range-start:nth-child(7n)) {
+    border-radius: var(--radius-md);
+  }
+
+  &:where(.kb-calendar-day-range-end:nth-child(7n + 1)) {
+    border-radius: var(--radius-md);
+  }
+}
+
+.kb-calendar-header-label {
+  color: var(--content-secondary);
+}
+
+/* Calendar Range - Three Column Layout */
+.kb-calendar-range-wrapper {
+  display: flex;
+  width: fit-content;
+  border-radius: var(--radius-2xl);
+  background-color: var(--background-primary);
+  box-shadow: 0px 16px 24px -8px var(--black-10);
+  border: 1px solid var(--border-tertiary);
+  overflow: hidden;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Presets Column */
+.kb-calendar-range-presets {
+  width: 200px;
+  border-right: 1px solid var(--border-tertiary);
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-xl);
+  gap: var(--sp-xs);
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.kb-calendar-range-preset-item {
+  all: unset;
+  display: flex;
+  align-items: center;
+  padding: var(--sp-md) var(--sp-lg);
+  font-size: var(--font-body-md);
+  font-family: var(--default-font-family);
+  color: var(--content-secondary);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  box-sizing: border-box;
+
+  @media (hover: hover) {
+    &:where(:hover) {
+      background-color: var(--background-hover);
+    }
+  }
+
+  &:where(:focus-visible) {
+    outline: var(--width-2xs) solid var(--border-focus);
+    outline-offset: calc(-1 * var(--sp-2xs));
+  }
+}
+
+/* Calendars Section */
+.kb-calendar-range-calendars {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.kb-calendar-range-months {
+  display: flex;
+  border-bottom: 1px solid var(--border-tertiary);
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.kb-calendar-range-month-container {
+  padding: var(--sp-xl);
+  flex: 1;
+
+  @media (max-width: 768px) {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.kb-calendar-range-divider {
+  width: 1px;
+  background-color: var(--border-tertiary);
+  align-self: stretch;
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 1px;
+  }
+}
+
+.kb-calendar-range-month {
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  height: auto;
+  max-height: none;
+}
+
+.kb-calendar-range-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.kb-calendar-header-spacer {
+  width: 24px; /* Same width as the button to balance the layout */
+}
+
+/* Footer */
+.kb-calendar-range-footer {
+  height: 68px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--sp-xl);
+
+  @media (max-width: 768px) {
+    height: auto;
+    padding: var(--sp-md) var(--sp-xl);
+  }
+}
+
+.kb-calendar-range-footer-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--sp-md);
+  }
+}
+
+.kb-calendar-range-footer-label {
+  color: var(--content-secondary);
+}
+
+.kb-calendar-range-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+
+  @media (max-width: 768px) {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+/* Small size calendar range - 75% of regular size */
+.kb-calendar-range-wrapper-sm .kb-calendar-range-presets {
+  width: 150px;
+  padding: calc(var(--sp-xl) * 0.75);
+  gap: calc(var(--sp-xs) * 0.75);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-range-preset-item {
+  padding: calc(var(--sp-md) * 0.75) calc(var(--sp-lg) * 0.75);
+  font-size: var(--font-body-sm);
+  line-height: var(--line-height-sm);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-range-month-container {
+  padding: calc(var(--sp-xl) * 0.75);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-root {
+  max-width: 255px;
+  height: auto;
+  max-height: none;
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-header {
+  height: 27px;
+  padding: var(--sp-xs);
+  border-radius: var(--radius-md);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-header-button {
+  width: 20px;
+  height: 20px;
+  padding: var(--sp-2xs);
+  min-width: 20px;
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-header-button svg {
+  width: 12px;
+  height: 12px;
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-header-label {
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-header-spacer {
+  width: 18px;
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-week-days {
+  gap: calc(var(--sp-xs) * 0.75);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-week-day {
+  width: calc(var(--sp-5xl) * 0.75);
+  height: calc(var(--sp-5xl) * 0.75);
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-days-grid {
+  gap: calc(var(--sp-xs) * 0.75);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-day {
+  width: calc(var(--sp-5xl) * 0.75);
+  height: calc(var(--sp-5xl) * 0.75);
+  border-radius: var(--radius-sm);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-day .kb-text {
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-range-footer {
+  height: 51px;
+  padding: 0 calc(var(--sp-xl) * 0.75);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-range-footer-label {
+  font-size: var(--font-body-sm);
+}
+
+.kb-calendar-range-wrapper-sm .kb-calendar-range-footer-actions {
+  gap: calc(var(--sp-sm) * 0.75);
+}

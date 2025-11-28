@@ -81,6 +81,7 @@ export const updateFormSchema = z.object({
     .optional()
     .nullable(),
   fields: z.any().optional(),
+  settings: z.any().optional(),
 });
 
 /**

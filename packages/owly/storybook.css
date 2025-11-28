@@ -1,0 +1,105 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Manrope:wght@200..800&display=swap");
+
+@font-face {
+  font-family: "RocaTwo";
+  src: url("../static/fonts/roca-two-rg.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.gap-4 {
+  gap: 4px;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-6 {
+  gap: 6px;
+}
+
+.gap-12 {
+  gap: 12px;
+}
+
+.max-w-md {
+  max-width: 320px;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.text-field-custom-hint {
+  svg {
+    display: none;
+  }
+
+  .kb-input-hint-text {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+  }
+}
+
+.mr-auto {
+  margin-right: auto;
+}
+
+.ml-auto {
+  margin-left: auto;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.sb-show-main.sb-main-padded {
+  padding: 0 !important;
+}
+
+#storybook-root {
+  padding: 40px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  margin: 0;
+}
+
+[data-theme="dark"] #storybook-root {
+  background: var(--gray-900);
+}
+
+#storybook-root .box h5 {
+  font-family: var(--default-font-family);
+  font-weight: 400;
+}
+
+[data-theme="dark"] #storybook-root .box h5 {
+  color: #fff;
+  font-family: var(--default-font-family);
+}

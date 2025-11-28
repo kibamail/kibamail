@@ -5,9 +5,9 @@ import "./globals.css";
 const manrope = Manrope();
 
 export const metadata: Metadata = {
-  title: "control-plane.kibaship.com",
+  title: "kibamail",
   description:
-    "Starterkit for building applications for the kibamail organisation.",
+    "The open source aws ses alternative. $0.1/1k emails, 10x the features.",
 };
 
 export default function RootLayout({

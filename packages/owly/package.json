@@ -1,0 +1,387 @@
+{
+  "name": "@kibamail/owly",
+  "version": "1.1.26",
+  "description": "The Open-source messaging platform for transactional and marketing email.",
+  "type": "module",
+  "main": "./dist/cjs/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "module": "./dist/esm/index.js",
+  "files": [
+    "dist",
+    "index.css",
+    "tokens.css",
+    "components.css",
+    "tailwind.css",
+    "styles",
+    "semantic-classes.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./dist/esm/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./accordion": {
+      "types": "./dist/esm/accordion/index.d.ts",
+      "import": "./dist/esm/accordion/index.js",
+      "require": "./dist/cjs/accordion/index.js"
+    },
+    "./badge": {
+      "types": "./dist/esm/badge/index.d.ts",
+      "import": "./dist/esm/badge/index.js",
+      "require": "./dist/cjs/badge/index.js"
+    },
+    "./calendar": {
+      "types": "./dist/esm/calendar/index.d.ts",
+      "import": "./dist/esm/calendar/index.js",
+      "require": "./dist/cjs/calendar/index.js"
+    },
+    "./date-field": {
+      "types": "./dist/esm/date-field/index.d.ts",
+      "import": "./dist/esm/date-field/index.js",
+      "require": "./dist/cjs/date-field/index.js"
+    },
+    "./dialog": {
+      "types": "./dist/esm/dialog/index.d.ts",
+      "import": "./dist/esm/dialog/index.js",
+      "require": "./dist/cjs/dialog/index.js"
+    },
+    "./text": {
+      "types": "./dist/esm/text/index.d.ts",
+      "import": "./dist/esm/text/index.js",
+      "require": "./dist/cjs/text/index.js"
+    },
+    "./alert": {
+      "types": "./dist/esm/alert/index.d.ts",
+      "import": "./dist/esm/alert/index.js",
+      "require": "./dist/cjs/alert/index.js"
+    },
+    "./heading": {
+      "types": "./dist/esm/heading/index.d.ts",
+      "import": "./dist/esm/heading/index.js",
+      "require": "./dist/cjs/heading/index.js"
+    },
+    "./button": {
+      "types": "./dist/esm/button/index.d.ts",
+      "import": "./dist/esm/button/index.js",
+      "require": "./dist/cjs/button/index.js"
+    },
+    "./checkbox": {
+      "types": "./dist/esm/checkbox/index.d.ts",
+      "import": "./dist/esm/checkbox/index.js",
+      "require": "./dist/cjs/checkbox/index.js"
+    },
+    "./color-field": {
+      "types": "./dist/esm/color-field/index.d.ts",
+      "import": "./dist/esm/color-field/index.js",
+      "require": "./dist/cjs/color-field/index.js"
+    },
+    "./code-input": {
+      "types": "./dist/esm/code-input/index.d.ts",
+      "import": "./dist/esm/code-input/index.js",
+      "require": "./dist/cjs/code-input/index.js"
+    },
+    "./input-hint": {
+      "types": "./dist/esm/input-hint/index.d.ts",
+      "import": "./dist/esm/input-hint/index.js",
+      "require": "./dist/cjs/input-hint/index.js"
+    },
+    "./input-label": {
+      "types": "./dist/esm/input-label/index.d.ts",
+      "import": "./dist/esm/input-label/index.js",
+      "require": "./dist/cjs/input-label/index.js"
+    },
+    "./radio-group": {
+      "types": "./dist/esm/radio-group/index.d.ts",
+      "import": "./dist/esm/radio-group/index.js",
+      "require": "./dist/cjs/radio-group/index.js"
+    },
+    "./progress": {
+      "types": "./dist/esm/progress/index.d.ts",
+      "import": "./dist/esm/progress/index.js",
+      "require": "./dist/cjs/progress/index.js"
+    },
+    "./skeleton": {
+      "types": "./dist/esm/skeleton/index.d.ts",
+      "import": "./dist/esm/skeleton/index.js",
+      "require": "./dist/cjs/skeleton/index.js"
+    },
+    "./spinner": {
+      "types": "./dist/esm/spinner/index.d.ts",
+      "import": "./dist/esm/spinner/index.js",
+      "require": "./dist/cjs/spinner/index.js"
+    },
+    "./styles/accordion.css": "./dist/styles/accordion.css",
+    "./styles/alert.css": "./dist/styles/alert.css",
+    "./styles/badge.css": "./dist/styles/badge.css",
+    "./styles/button.css": "./dist/styles/button.css",
+    "./styles/calendar.css": "./dist/styles/calendar.css",
+    "./styles/date-field.css": "./dist/styles/date-field.css",
+    "./styles/checkbox.css": "./dist/styles/checkbox.css",
+    "./styles/color-field.css": "./dist/styles/color-field.css",
+    "./styles/code-input.css": "./dist/styles/code-input.css",
+    "./styles/command-search.css": "./dist/styles/command-search.css",
+    "./styles/dashboard-layout.css": "./dist/styles/dashboard-layout.css",
+    "./styles/dialog.css": "./dist/styles/dialog.css",
+    "./styles/filter.css": "./dist/styles/filter.css",
+    "./styles/heading.css": "./dist/styles/heading.css",
+    "./styles/input-hint.css": "./dist/styles/input-hint.css",
+    "./styles/input-label.css": "./dist/styles/input-label.css",
+    "./styles/letter-avatar.css": "./dist/styles/letter-avatar.css",
+    "./styles/multi-select.css": "./dist/styles/multi-select.css",
+    "./styles/progress.css": "./dist/styles/progress.css",
+    "./styles/radio-group.css": "./dist/styles/radio-group.css",
+    "./styles/select-field.css": "./dist/styles/select-field.css",
+    "./styles/skeleton.css": "./dist/styles/skeleton.css",
+    "./styles/spinner.css": "./dist/styles/spinner.css",
+    "./styles/table.css": "./dist/styles/table.css",
+    "./styles/tabs.css": "./dist/styles/tabs.css",
+    "./styles/text.css": "./dist/styles/text.css",
+    "./styles/text-field.css": "./dist/styles/text-field.css",
+    "./styles/textarea-field.css": "./dist/styles/textarea-field.css",
+    "./styles/switch.css": "./dist/styles/switch.css",
+    "./styles/tooltip.css": "./dist/styles/tooltip.css",
+    "./styles/toast.css": "./dist/styles/toast.css",
+    "./styles/user-dropdown.css": "./dist/styles/user-dropdown.css",
+    "./styles/settings-card.css": "./dist/styles/settings-card.css",
+    "./styles/dropdown-menu.css": "./dist/styles/dropdown-menu.css",
+    "./styles/empty-card.css": "./dist/styles/empty-card.css",
+    "./styles/filter-builder.css": "./dist/styles/filter-builder.css",
+    "./styles/hover-card.css": "./dist/styles/hover-card.css",
+    "./styles/popover.css": "./dist/styles/popover.css",
+    "./styles/tokens.css": "./tokens.css",
+    "./styles/components.css": "./components.css",
+    "./styles/index.css": "./index.css",
+    "./styles/semantic-classes.css": "./dist/styles/semantic-classes.css",
+    "./styles/tailwind.css": "./tailwind.css",
+    "./tabs": {
+      "types": "./dist/cjs/tabs/index.d.ts",
+      "import": "./dist/esm/tabs/index.js",
+      "require": "./dist/cjs/tabs/index.js"
+    },
+    "./text-field": {
+      "types": "./dist/cjs/text-field/index.d.ts",
+      "import": "./dist/esm/text-field/index.js",
+      "require": "./dist/cjs/text-field/index.js"
+    },
+    "./textarea-field": {
+      "types": "./dist/cjs/textarea-field/index.d.ts",
+      "import": "./dist/esm/textarea-field/index.js",
+      "require": "./dist/cjs/textarea-field/index.js"
+    },
+    "./switch": {
+      "types": "./dist/cjs/switch/index.d.ts",
+      "import": "./dist/esm/switch/index.js",
+      "require": "./dist/cjs/switch/index.js"
+    },
+    "./tooltip": {
+      "types": "./dist/cjs/tooltip/index.d.ts",
+      "import": "./dist/esm/tooltip/index.js",
+      "require": "./dist/cjs/tooltip/index.js"
+    },
+    "./select-field": {
+      "types": "./dist/cjs/select-field/index.d.ts",
+      "import": "./dist/esm/select-field/index.js",
+      "require": "./dist/cjs/select-field/index.js"
+    },
+    "./multi-select": {
+      "types": "./dist/cjs/multi-select/index.d.ts",
+      "import": "./dist/esm/multi-select/index.js",
+      "require": "./dist/cjs/multi-select/index.js"
+    },
+    "./command-search": {
+      "types": "./dist/cjs/command-search/index.d.ts",
+      "import": "./dist/esm/command-search/index.js",
+      "require": "./dist/cjs/command-search/index.js"
+    },
+    "./dashboard-layout": {
+      "types": "./dist/cjs/dashboard-layout/index.d.ts",
+      "import": "./dist/esm/dashboard-layout/index.js",
+      "require": "./dist/cjs/dashboard-layout/index.js"
+    },
+    "./filter": {
+      "types": "./dist/cjs/filter/index.d.ts",
+      "import": "./dist/esm/filter/index.js",
+      "require": "./dist/cjs/filter/index.js"
+    },
+    "./filter-builder": {
+      "types": "./dist/cjs/filter-builder/index.d.ts",
+      "import": "./dist/esm/filter-builder/index.js",
+      "require": "./dist/cjs/filter-builder/index.js"
+    },
+    "./letter-avatar": {
+      "types": "./dist/cjs/letter-avatar/index.d.ts",
+      "import": "./dist/esm/letter-avatar/index.js",
+      "require": "./dist/cjs/letter-avatar/index.js"
+    },
+    "./table": {
+      "types": "./dist/cjs/table/index.d.ts",
+      "import": "./dist/esm/table/index.js",
+      "require": "./dist/cjs/table/index.js"
+    },
+    "./user-dropdown": {
+      "types": "./dist/cjs/user-dropdown/index.d.ts",
+      "import": "./dist/esm/user-dropdown/index.js",
+      "require": "./dist/cjs/user-dropdown/index.js"
+    },
+    "./toast": {
+      "types": "./dist/cjs/toast/index.d.ts",
+      "import": "./dist/esm/toast/index.js",
+      "require": "./dist/cjs/toast/index.js"
+    },
+    "./settings-card": {
+      "types": "./dist/cjs/settings-card/index.d.ts",
+      "import": "./dist/esm/settings-card/index.js",
+      "require": "./dist/cjs/settings-card/index.js"
+    },
+    "./dropdown-menu": {
+      "types": "./dist/cjs/dropdown-menu/index.d.ts",
+      "import": "./dist/esm/dropdown-menu/index.js",
+      "require": "./dist/cjs/dropdown-menu/index.js"
+    },
+    "./empty-card": {
+      "types": "./dist/cjs/empty-card/index.d.ts",
+      "import": "./dist/esm/empty-card/index.js",
+      "require": "./dist/cjs/empty-card/index.js"
+    },
+    "./hover-card": {
+      "types": "./dist/cjs/hover-card/index.d.ts",
+      "import": "./dist/esm/hover-card/index.js",
+      "require": "./dist/cjs/hover-card/index.js"
+    },
+    "./popover": {
+      "types": "./dist/cjs/popover/index.d.ts",
+      "import": "./dist/esm/popover/index.js",
+      "require": "./dist/cjs/popover/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "storybook dev -p 6006",
+    "build": "pnpm build:clean && pnpm build:css && pnpm build:components && pnpm build:storybook",
+    "build:storybook": "storybook build",
+    "build:components": "tsx scripts/build-components.ts && pnpm build:components:types",
+    "build:components:types": "tsc --emitDeclarationOnly --outdir dist/types && tsx scripts/copy-component-types.ts",
+    "build:semantic-classes": "tsx scripts/generate-semantic-classes.ts",
+    "build:css:index": "postcss styles/index.css -o index.css",
+    "build:css:tokens": "postcss styles/tokens/index.css -o tokens.css",
+    "build:css:components": "postcss components/index.css -o components.css",
+    "build:css:individual": "tsx scripts/build-individual-component-css.ts",
+    "build:css": "pnpm build:css:index && pnpm build:css:components && pnpm build:css:tokens && pnpm build:css:individual && pnpm build:semantic-classes",
+    "build:clean": "rimraf dist",
+    "clean": "rm -rf dist .turbo node_modules storybook-static coverage",
+    "test": "vitest --run --coverage",
+    "test:watch": "vitest"
+  },
+  "keywords": [
+    "owly",
+    "design-system",
+    "react",
+    "typescript"
+  ],
+  "contributors": [
+    "Frantz Kati <frantz@kibamail.com>"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@kibamail/colors": "^1.0.0",
+    "@radix-ui/primitive": "^1.1.0",
+    "@radix-ui/react-accordion": "^1.2.12",
+    "@radix-ui/react-checkbox": "^1.1.2",
+    "@radix-ui/react-compose-refs": "^1.1.0",
+    "@radix-ui/react-context": "^1.1.1",
+    "@radix-ui/react-dialog": "^1.1.4",
+    "@radix-ui/react-direction": "^1.1.0",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-hover-card": "^1.1.15",
+    "@radix-ui/react-id": "^1.1.0",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@radix-ui/react-presence": "^1.1.1",
+    "@radix-ui/react-primitive": "^2.0.0",
+    "@radix-ui/react-progress": "^1.1.0",
+    "@radix-ui/react-radio-group": "^1.2.1",
+    "@radix-ui/react-roving-focus": "^1.1.0",
+    "@radix-ui/react-scroll-area": "^1.2.2",
+    "@radix-ui/react-select": "^2.1.4",
+    "@radix-ui/react-slot": "^1.1.0",
+    "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.1",
+    "@radix-ui/react-toast": "^1.2.15",
+    "@radix-ui/react-tooltip": "^1.2.8",
+    "@radix-ui/react-use-controllable-state": "^1.1.0",
+    "@rehookify/datepicker": "^6.6.8",
+    "@tanstack/react-query": "^5.90.7",
+    "classnames": "^2.5.1",
+    "cmdk": "^1.1.1",
+    "input-otp": "^1.4.1",
+    "react-cmdk": "^1.3.9",
+    "react-colorful": "^5.6.1",
+    "react-day-picker": "^9.5.1",
+    "storybook-addon-responsive-views": "^2.3.0"
+  },
+  "peerDependencies": {
+    "@types/react": "*",
+    "@types/react-dom": "*",
+    "react": "16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc",
+    "react-dom": "16.8 || ^17.0 || ^18.0 || ^19.0 || ^19.0.0-rc"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    },
+    "@types/react-dom": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://owly.kibamail.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kibamail/owly.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kibamail/owly/issues"
+  },
+  "devDependencies": {
+    "@radix-ui/themes": "^3.1.6",
+    "@storybook/addon-essentials": "^8.4.2",
+    "@storybook/addon-interactions": "^8.4.2",
+    "@storybook/addon-onboarding": "^8.4.2",
+    "@storybook/addon-themes": "^8.6.14",
+    "@storybook/blocks": "^8.4.2",
+    "@storybook/react": "^8.4.2",
+    "@storybook/react-vite": "^8.4.2",
+    "@storybook/test": "^8.4.2",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
+    "@testing-library/user-event": "^14.5.2",
+    "@types/node": "^22.9.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitest/coverage-v8": "2.1.5",
+    "autoprefixer": "^10.4.20",
+    "esbuild": "^0.24.0",
+    "glob": "^11.0.0",
+    "iconoir-react": "^7.10.1",
+    "jsdom": "^25.0.1",
+    "postcss": "^8.4.49",
+    "postcss-apply": "^0.12.0",
+    "postcss-cli": "^11.0.0",
+    "postcss-combine-duplicated-selectors": "^10.0.3",
+    "postcss-custom-media": "^11.0.5",
+    "postcss-discard-empty": "^7.0.0",
+    "postcss-import": "^16.1.0",
+    "postcss-nested": "^7.0.2",
+    "postcss-nesting": "^13.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "rimraf": "^6.0.1",
+    "storybook": "^8.4.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.5"
+  }
+}

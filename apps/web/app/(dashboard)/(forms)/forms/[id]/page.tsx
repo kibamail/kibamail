@@ -3,6 +3,7 @@ import { Xmark } from "iconoir-react";
 import { FormCanvas } from "./_components/form-canvas";
 import { FormHelpPopover } from "./_components/form-help-popover";
 import { FormHeader } from "./_components/form-header";
+import { PublishFormDialog } from "./_components/publish-form-dialog";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
@@ -41,7 +42,7 @@ export default async function FormPage({
   }
 
   return (
-    <div className="w-full h-screen flex box-border flex-col px-2 pb-2">
+    <div className="w-full h-screen flex box-border flex-col px-2 pb-2 bg-kb-bg-layout">
       <div className="h-[60px] w-full flex items-center justify-between px-3 shrink-0">
         <div className="flex items-center gap-4">
           <Button variant="tertiary" asChild>
@@ -60,17 +61,17 @@ export default async function FormPage({
               form.status === "PUBLISHED"
                 ? "success"
                 : form.status === "DRAFT"
-                  ? "neutral"
-                  : "warning"
+                ? "neutral"
+                : "warning"
             }
           >
             {form.status === "PUBLISHED"
               ? "Live"
               : form.status === "DRAFT"
-                ? "Draft"
-                : "Archived"}
+              ? "Draft"
+              : "Archived"}
           </Badge>
-          <Button>Publish</Button>
+          <PublishFormDialog formId={form.id} formName={form.name} />
         </div>
       </div>
 

@@ -1,0 +1,416 @@
+/**
+ * Owly Design System - Tailwind CSS v4 Integration
+ *
+ * This file exposes Owly design tokens as Tailwind utilities.
+ * Import this file in your Next.js app to use Owly tokens with Tailwind.
+ *
+ * Usage in Next.js:
+ * import "@kibamail/owly/styles/tailwind.css"
+ */
+
+@import "tailwindcss";
+
+/* Import Owly design tokens */
+@import "./tokens.css";
+
+/**
+ * Define custom theme values that map to Owly design tokens
+ * These will be available as standard Tailwind utilities
+ */
+@theme {
+  /* ===== COLORS ===== */
+
+  /* Primitives - Full color palette */
+  --color-kb-blue-0: var(--blue-0);
+  --color-kb-blue-100: var(--blue-100);
+  --color-kb-blue-200: var(--blue-200);
+  --color-kb-blue-300: var(--blue-300);
+  --color-kb-blue-400: var(--blue-400);
+  --color-kb-blue-500: var(--blue-500);
+  --color-kb-blue-600: var(--blue-600);
+  --color-kb-blue-700: var(--blue-700);
+  --color-kb-blue-800: var(--blue-800);
+  --color-kb-blue-900: var(--blue-900);
+
+  --color-kb-gray-0: var(--gray-0);
+  --color-kb-gray-10: var(--gray-10);
+  --color-kb-gray-20: var(--gray-20);
+  --color-kb-gray-30: var(--gray-30);
+  --color-kb-gray-40: var(--gray-40);
+  --color-kb-gray-50: var(--gray-50);
+  --color-kb-gray-60: var(--gray-60);
+  --color-kb-gray-70: var(--gray-70);
+  --color-kb-gray-80: var(--gray-80);
+  --color-kb-gray-90: var(--gray-90);
+  --color-kb-gray-100: var(--gray-100);
+  --color-kb-gray-200: var(--gray-200);
+  --color-kb-gray-300: var(--gray-300);
+  --color-kb-gray-400: var(--gray-400);
+  --color-kb-gray-500: var(--gray-500);
+  --color-kb-gray-600: var(--gray-600);
+  --color-kb-gray-700: var(--gray-700);
+  --color-kb-gray-800: var(--gray-800);
+  --color-kb-gray-900: var(--gray-900);
+
+  --color-kb-green-0: var(--green-0);
+  --color-kb-green-100: var(--green-100);
+  --color-kb-green-200: var(--green-200);
+  --color-kb-green-300: var(--green-300);
+  --color-kb-green-400: var(--green-400);
+  --color-kb-green-500: var(--green-500);
+  --color-kb-green-600: var(--green-600);
+  --color-kb-green-700: var(--green-700);
+  --color-kb-green-800: var(--green-800);
+  --color-kb-green-900: var(--green-900);
+
+  --color-kb-red-0: var(--red-0);
+  --color-kb-red-100: var(--red-100);
+  --color-kb-red-200: var(--red-200);
+  --color-kb-red-300: var(--red-300);
+  --color-kb-red-400: var(--red-400);
+  --color-kb-red-500: var(--red-500);
+  --color-kb-red-600: var(--red-600);
+  --color-kb-red-700: var(--red-700);
+  --color-kb-red-800: var(--red-800);
+  --color-kb-red-900: var(--red-900);
+
+  --color-kb-orange-0: var(--orange-0);
+  --color-kb-orange-100: var(--orange-100);
+  --color-kb-orange-200: var(--orange-200);
+  --color-kb-orange-300: var(--orange-300);
+  --color-kb-orange-400: var(--orange-400);
+  --color-kb-orange-500: var(--orange-500);
+  --color-kb-orange-600: var(--orange-600);
+  --color-kb-orange-700: var(--orange-700);
+  --color-kb-orange-800: var(--orange-800);
+  --color-kb-orange-900: var(--orange-900);
+
+  --color-kb-yellow-100: var(--yellow-100);
+  --color-kb-yellow-200: var(--yellow-200);
+  --color-kb-yellow-300: var(--yellow-300);
+  --color-kb-yellow-400: var(--yellow-400);
+  --color-kb-yellow-500: var(--yellow-500);
+  --color-kb-yellow-600: var(--yellow-600);
+  --color-kb-yellow-700: var(--yellow-700);
+  --color-kb-yellow-800: var(--yellow-800);
+  --color-kb-yellow-900: var(--yellow-900);
+
+  --color-kb-purple-100: var(--purple-100);
+  --color-kb-purple-200: var(--purple-200);
+  --color-kb-purple-300: var(--purple-300);
+  --color-kb-purple-400: var(--purple-400);
+  --color-kb-purple-500: var(--purple-500);
+  --color-kb-purple-600: var(--purple-600);
+  --color-kb-purple-700: var(--purple-700);
+  --color-kb-purple-800: var(--purple-800);
+  --color-kb-purple-900: var(--purple-900);
+
+  --color-kb-brown-0: var(--brown-0);
+  --color-kb-brown-100: var(--brown-100);
+  --color-kb-brown-200: var(--brown-200);
+  --color-kb-brown-300: var(--brown-300);
+  --color-kb-brown-400: var(--brown-400);
+  --color-kb-brown-500: var(--brown-500);
+  --color-kb-brown-600: var(--brown-600);
+  --color-kb-brown-700: var(--brown-700);
+  --color-kb-brown-800: var(--brown-800);
+  --color-kb-brown-900: var(--brown-900);
+
+  /* Semantic Colors - Backgrounds */
+  --color-kb-bg-primary: var(--background-primary);
+  --color-kb-bg-hover: var(--background-hover);
+  --color-kb-bg-pressed: var(--background-pressed);
+  --color-kb-bg-selected: var(--background-selected);
+  --color-kb-bg-disabled: var(--background-disabled);
+  --color-kb-bg-inverse: var(--background-inverse);
+  --color-kb-bg-brand: var(--background-brand);
+  --color-kb-bg-brand-hover: var(--background-brand-hover);
+  --color-kb-bg-brand-pressed: var(--background-brand-pressed);
+  --color-kb-bg-brand-disabled: var(--background-brand-disabled);
+  --color-kb-bg-secondary: var(--background-secondary);
+  --color-kb-bg-secondary-hover: var(--background-secondary-hover);
+  --color-kb-bg-secondary-pressed: var(--background-secondary-pressed);
+  --color-kb-bg-info: var(--background-info);
+  --color-kb-bg-info-subtle: var(--background-info-subtle);
+  --color-kb-bg-positive: var(--background-positive);
+  --color-kb-bg-positive-subtle: var(--background-positive-subtle);
+  --color-kb-bg-negative: var(--background-negative);
+  --color-kb-bg-negative-hover: var(--background-negative-hover);
+  --color-kb-bg-negative-pressed: var(--background-negative-pressed);
+  --color-kb-bg-negative-subtle: var(--background-negative-subtle);
+  --color-kb-bg-notice: var(--background-notice);
+  --color-kb-bg-notice-subtle: var(--background-notice-subtle);
+  --color-kb-bg-highlight: var(--background-highlight);
+
+  /* Semantic Colors - Borders */
+  --color-kb-border-primary: var(--border-primary);
+  --color-kb-border-secondary: var(--border-secondary);
+  --color-kb-border-tertiary: var(--border-tertiary);
+  --color-kb-border-disabled: var(--border-disabled);
+  --color-kb-border-focus: var(--border-focus);
+  --color-kb-border-brand: var(--border-brand);
+  --color-kb-border-inverse: var(--border-inverse);
+  --color-kb-border-info: var(--border-info);
+  --color-kb-border-notice: var(--border-notice);
+  --color-kb-border-negative: var(--border-negative);
+  --color-kb-border-positive: var(--border-positive);
+  --color-kb-border-highlight: var(--border-highlight);
+
+  /* Semantic Colors - Content/Text */
+  --color-kb-content-primary: var(--content-primary);
+  --color-kb-content-secondary: var(--content-secondary);
+  --color-kb-content-tertiary: var(--content-tertiary);
+  --color-kb-content-primary-inverse: var(--content-primary-inverse);
+  --color-kb-content-secondary-inverse: var(--content-secondary-inverse);
+  --color-kb-content-tertiary-inverse: var(--content-tertiary-inverse);
+  --color-kb-content-brand: var(--content-brand);
+  --color-kb-content-link: var(--content-link);
+  --color-kb-content-link-hover: var(--content-link-hover);
+  --color-kb-content-link-pressed: var(--content-link-pressed);
+  --color-kb-content-notice: var(--content-notice);
+  --color-kb-content-notice-bold: var(--content-notice-bold);
+  --color-kb-content-negative: var(--content-negative);
+  --color-kb-content-negative-bold: var(--content-negative-bold);
+  --color-kb-content-positive: var(--content-positive);
+  --color-kb-content-positive-bold: var(--content-positive-bold);
+  --color-kb-content-highlight: var(--content-highlight);
+  --color-kb-content-highlight-bold: var(--content-highlight-bold);
+  --color-kb-content-disabled: var(--content-disabled);
+  --color-kb-content-info: var(--content-info);
+  --color-kb-content-info-bold: var(--content-info-bold);
+
+  /* ===== SPACING ===== */
+  --spacing-2xs: var(--sp-2xs);
+  --spacing-xs: var(--sp-xs);
+  --spacing-sm: var(--sp-sm);
+  --spacing-md: var(--sp-md);
+  --spacing-lg: var(--sp-lg);
+  --spacing-xl: var(--sp-xl);
+  --spacing-2xl: var(--sp-2xl);
+  --spacing-3xl: var(--sp-3xl);
+  --spacing-4xl: var(--sp-4xl);
+  --spacing-5xl: var(--sp-5xl);
+  --spacing-6xl: var(--sp-6xl);
+  --spacing-7xl: var(--sp-7xl);
+  --spacing-8xl: var(--sp-8xl);
+  --spacing-9xl: var(--sp-9xl);
+
+  /* ===== BORDER RADIUS ===== */
+  --radius-2xs: 2px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+  --radius-3xl: 24px;
+  --radius-full: 9999px;
+
+  /* ===== SHADOWS ===== */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 8px 10px -6px rgb(0 0 0 / 0.1);
+}
+
+/**
+ * Custom utility classes with kb- prefix
+ * These match Owly's semantic class naming
+ */
+
+/* Background utilities using semantic tokens */
+@utility bg-kb-primary {
+  background-color: var(--background-primary);
+}
+
+@utility bg-kb-hover {
+  background-color: var(--background-hover);
+}
+
+@utility bg-kb-pressed {
+  background-color: var(--background-pressed);
+}
+
+@utility bg-kb-selected {
+  background-color: var(--background-selected);
+}
+
+@utility bg-kb-disabled {
+  background-color: var(--background-disabled);
+}
+
+@utility bg-kb-inverse {
+  background-color: var(--background-inverse);
+}
+
+@utility bg-kb-brand {
+  background-color: var(--background-brand);
+}
+
+@utility bg-kb-secondary {
+  background-color: var(--background-secondary);
+}
+
+@utility bg-kb-info {
+  background-color: var(--background-info);
+}
+
+@utility bg-kb-info-subtle {
+  background-color: var(--background-info-subtle);
+}
+
+@utility bg-kb-positive {
+  background-color: var(--background-positive);
+}
+
+@utility bg-kb-positive-subtle {
+  background-color: var(--background-positive-subtle);
+}
+
+@utility bg-kb-negative {
+  background-color: var(--background-negative);
+}
+
+@utility bg-kb-negative-subtle {
+  background-color: var(--background-negative-subtle);
+}
+
+@utility bg-kb-notice {
+  background-color: var(--background-notice);
+}
+
+@utility bg-kb-notice-subtle {
+  background-color: var(--background-notice-subtle);
+}
+
+@utility bg-kb-highlight {
+  background-color: var(--background-highlight);
+}
+
+/* Border utilities using semantic tokens */
+@utility border-kb-primary {
+  border-color: var(--border-primary);
+}
+
+@utility border-kb-secondary {
+  border-color: var(--border-secondary);
+}
+
+@utility border-kb-tertiary {
+  border-color: var(--border-tertiary);
+}
+
+@utility border-kb-disabled {
+  border-color: var(--border-disabled);
+}
+
+@utility border-kb-focus {
+  border-color: var(--border-focus);
+}
+
+@utility border-kb-brand {
+  border-color: var(--border-brand);
+}
+
+@utility border-kb-inverse {
+  border-color: var(--border-inverse);
+}
+
+@utility border-kb-info {
+  border-color: var(--border-info);
+}
+
+@utility border-kb-notice {
+  border-color: var(--border-notice);
+}
+
+@utility border-kb-negative {
+  border-color: var(--border-negative);
+}
+
+@utility border-kb-positive {
+  border-color: var(--border-positive);
+}
+
+@utility border-kb-highlight {
+  border-color: var(--border-highlight);
+}
+
+/* Text color utilities using semantic tokens */
+@utility text-kb-primary {
+  color: var(--content-primary);
+}
+
+@utility text-kb-secondary {
+  color: var(--content-secondary);
+}
+
+@utility text-kb-tertiary {
+  color: var(--content-tertiary);
+}
+
+@utility text-kb-primary-inverse {
+  color: var(--content-primary-inverse);
+}
+
+@utility text-kb-secondary-inverse {
+  color: var(--content-secondary-inverse);
+}
+
+@utility text-kb-tertiary-inverse {
+  color: var(--content-tertiary-inverse);
+}
+
+@utility text-kb-brand {
+  color: var(--content-brand);
+}
+
+@utility text-kb-link {
+  color: var(--content-link);
+}
+
+@utility text-kb-notice {
+  color: var(--content-notice);
+}
+
+@utility text-kb-notice-bold {
+  color: var(--content-notice-bold);
+}
+
+@utility text-kb-negative {
+  color: var(--content-negative);
+}
+
+@utility text-kb-negative-bold {
+  color: var(--content-negative-bold);
+}
+
+@utility text-kb-positive {
+  color: var(--content-positive);
+}
+
+@utility text-kb-positive-bold {
+  color: var(--content-positive-bold);
+}
+
+@utility text-kb-highlight {
+  color: var(--content-highlight);
+}
+
+@utility text-kb-highlight-bold {
+  color: var(--content-highlight-bold);
+}
+
+@utility text-kb-disabled {
+  color: var(--content-disabled);
+}
+
+@utility text-kb-info {
+  color: var(--content-info);
+}
+
+@utility text-kb-info-bold {
+  color: var(--content-info-bold);
+}

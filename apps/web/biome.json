@@ -23,6 +23,9 @@
       },
       "security": {
         "noDangerouslySetInnerHtml": "info"
+      },
+      "correctness": {
+        "useUniqueElementIds": "off"
       }
     },
     "domains": {

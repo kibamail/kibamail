@@ -1,0 +1,33 @@
+{
+  "name": "@repo/marketing",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 18093",
+    "build": "next build",
+    "start": "next start",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo node_modules"
+  },
+  "dependencies": {
+    "@kibamail/owly": "workspace:*",
+    "@radix-ui/react-navigation-menu": "^1.2.14",
+    "classnames": "^2.5.1",
+    "clsx": "^2.1.1",
+    "iconoir-react": "^7.11.0",
+    "next": "16.0.1",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.2.0",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4",
+    "typescript": "^5.9.3"
+  }
+}

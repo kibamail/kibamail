@@ -1,0 +1,31 @@
+/* * * * * * * * * * * * * * * * * * * */
+/*                                     */
+/*              Shadows                */
+/*                                     */
+/* * * * * * * * * * * * * * * * * * * */
+:root {
+  --shadow-inner-sm: 0px 2px 0px 0px var(--black-5) inset,
+    0px -2px 0px 0px var(--white-100) inset;
+  --shadow-sm: 0px 2px 4px 0px var(--black-5);
+  --shadow-indicator: 0px 2px 0px 0px var(--white-5) inset,
+    0px 1px 0px 0px var(--black-10);
+}
+
+/* Dark mode shadows */
+[data-theme="dark"] {
+  --shadow-inner-sm: 0px 2px 0px 0px var(--black-20) inset,
+    0px -2px 0px 0px var(--white-5) inset;
+  --shadow-sm: 0px 2px 4px 0px var(--black-20);
+  --shadow-indicator: 0px 2px 0px 0px var(--white-10) inset,
+    0px 1px 0px 0px var(--black-20);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --shadow-inner-sm: 0px 2px 0px 0px var(--black-20) inset,
+      0px -2px 0px 0px var(--white-5) inset;
+    --shadow-sm: 0px 2px 4px 0px var(--black-20);
+    --shadow-indicator: 0px 2px 0px 0px var(--white-10) inset,
+      0px 1px 0px 0px var(--black-20);
+  }
+}

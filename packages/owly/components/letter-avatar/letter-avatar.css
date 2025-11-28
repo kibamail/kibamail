@@ -1,0 +1,78 @@
+.kb-letter-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--white-100);
+  box-sizing: border-box;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1) inset;
+  border: none;
+  font-family: var(--default-font-family);
+}
+
+@breakpoints {
+  .kb-letter-avatar {
+    /* Extra Small - 20px */
+    &:where(.kb-r-size-xs) {
+      width: 20px;
+      height: 20px;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    /* Small - 40px */
+    &:where(.kb-r-size-sm) {
+      width: 40px;
+      height: 40px;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    /* Medium - 60px (default) */
+    &:where(.kb-r-size-md) {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    /* Large - 80px */
+    &:where(.kb-r-size-lg) {
+      width: 80px;
+      height: 80px;
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    /* Extra Large - 100px */
+    &:where(.kb-r-size-xl) {
+      width: 100px;
+      height: 100px;
+      font-size: 40px;
+      line-height: 1;
+    }
+  }
+}
+
+.kb-letter-avatar {
+  &:where(.kb-color-notice) {
+    background-color: var(--background-notice);
+  }
+
+  &:where(.kb-color-negative) {
+    background-color: var(--background-negative);
+  }
+
+  &:where(.kb-color-highlight) {
+    background-color: var(--background-highlight);
+  }
+
+  &:where(.kb-color-positive) {
+    background-color: var(--background-positive);
+  }
+
+  &:where(.kb-color-info) {
+    background-color: var(--background-info);
+  }
+}

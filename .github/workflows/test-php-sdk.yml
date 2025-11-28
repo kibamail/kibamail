@@ -4,13 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "packages/php-sdk/**"
+      - "sdks/php/**"
       - "test-sdk-infra/**"
       - "apps/web/public/openapi.v1.json"
       - ".github/workflows/test-php-sdk.yml"
   pull_request:
     paths:
-      - "packages/php-sdk/**"
+      - "sdks/php/**"
       - "test-sdk-infra/**"
       - "apps/web/public/openapi.v1.json"
       - ".github/workflows/test-php-sdk.yml"
@@ -47,7 +47,7 @@ jobs:
           restore-keys: ${{ runner.os }}-composer-
 
       - name: install dependencies
-        working-directory: packages/php-sdk
+        working-directory: sdks/php
         run: composer install --prefer-dist --no-progress --no-interaction
 
       - name: start test infrastructure (prism)
@@ -59,7 +59,7 @@ jobs:
           echo "Prism is ready"
 
       - name: run tests
-        working-directory: packages/php-sdk
+        working-directory: sdks/php
         run: vendor/bin/pest --colors=always
 
       - name: stop test infrastructure

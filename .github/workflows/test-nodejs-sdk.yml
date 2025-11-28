@@ -4,13 +4,13 @@ on:
   push:
     branches: [main, develop]
     paths:
-      - "packages/nodejs-sdk/**"
+      - "sdks/nodejs/**"
       - "test-sdk-infra/**"
       - "apps/web/public/openapi.v1.json"
       - ".github/workflows/test-nodejs-sdk.yml"
   pull_request:
     paths:
-      - "packages/nodejs-sdk/**"
+      - "sdks/nodejs/**"
       - "test-sdk-infra/**"
       - "apps/web/public/openapi.v1.json"
       - ".github/workflows/test-nodejs-sdk.yml"

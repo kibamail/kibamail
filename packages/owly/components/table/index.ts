@@ -1,0 +1,18 @@
+export {
+  TableContainer,
+  TableRoot,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableRow,
+  TableHead,
+  TableCell,
+  Container,
+  Root,
+  Header,
+  Body,
+  Footer,
+  Row,
+  Head,
+  Cell,
+} from "./table";

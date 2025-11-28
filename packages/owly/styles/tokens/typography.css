@@ -1,0 +1,226 @@
+/* * * * * * * * * * * * * * * * * * * */
+/*                                     */
+/*             Font sizes              */
+/*                                     */
+/* * * * * * * * * * * * * * * * * * * */
+:root {
+  --font-display-xl: calc(64px * var(--scaling));
+  --font-display-lg: calc(56px * var(--scaling));
+  --font-display-md: calc(48px * var(--scaling));
+  --font-display-sm: calc(40px * var(--scaling));
+  --font-display-xs: calc(32px * var(--scaling));
+
+  --font-body-2xl: calc(24px * var(--scaling));
+  --font-body-xl: calc(20px * var(--scaling));
+  --font-body-lg: calc(16px * var(--scaling));
+  --font-body-md: calc(14px * var(--scaling));
+  --font-body-sm: calc(12px * var(--scaling));
+  --font-body-xs: calc(10px * var(--scaling));
+}
+
+/* * * * * * * * * * * * * * * * * * * */
+/*                                     */
+/*             Font family             */
+/*                                     */
+/* * * * * * * * * * * * * * * * * * * */
+:root {
+  --default-font-family: "Manrope", -apple-system, BlinkMacSystemFont,
+    "Segoe UI (Custom)", Roboto, "Helvetica Neue", "Open Sans (Custom)",
+    system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji";
+
+  --default-font-family-display: "RocaTwo", "Manrope", -apple-system,
+    BlinkMacSystemFont, "Segoe UI (Custom)", Roboto, "Helvetica Neue",
+    "Open Sans (Custom)", system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+
+  --default-font-family-body: var(--default-font-family);
+  --default-font-family-heading: var(--default-font-family);
+}
+
+/* * * * * * * * * * * * * * * * * * * */
+/*                                     */
+/*             Font weights            */
+/*                                     */
+/* * * * * * * * * * * * * * * * * * * */
+:root {
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+
+/* * * * * * * * * * * * * * * * * * * */
+/*                                     */
+/*             Line heights            */
+/*                                     */
+/* * * * * * * * * * * * * * * * * * * */
+:root {
+  --line-height-9xl: 80px;
+  --line-height-8xl: 72px;
+  --line-height-7xl: 64px;
+  --line-height-6xl: 56px;
+  --line-height-5xl: 48px;
+  --line-height-4xl: 44px;
+  --line-height-3xl: 40px;
+  --line-height-2xl: 32px;
+  --line-height-xl: 28px;
+  --line-height-lg: 24px;
+  --line-height-md: 20px;
+  --line-height-sm: 16px;
+  --line-height-xs: 14px;
+}
+
+/* * * * * * * * * * * * * * * * * * * */
+/*                                     */
+/*           Letter spacing            */
+/*                                     */
+/* * * * * * * * * * * * * * * * * * * */
+:root {
+  --letter-spacing-none: 0px;
+  --letter-spacing-small: -0.2px;
+  --letter-spacing-xsmall: -0.5px;
+}
+
+:root {
+  /* * * * * * * * * * * * * * * * * * * */
+  /*                                     */
+  /*      Display text semantics         */
+  /*                                     */
+  /* * * * * * * * * * * * * * * * * * * */
+
+  --apply-kb-text-display-xl {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-display-xl);
+    line-height: var(--line-height-8xl);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-display);
+    color: var(--content-brand);
+  }
+
+  --apply-kb-text-display-lg {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-display-lg);
+    line-height: var(--line-height-7xl);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-display);
+    color: var(--content-brand);
+  }
+
+  --apply-kb-text-display-md {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-display-md);
+    line-height: var(--line-height-6xl);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-display);
+    color: var(--content-brand);
+  }
+
+  --apply-kb-text-display-sm {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-display-sm);
+    line-height: var(--line-height-5xl);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-display);
+    color: var(--content-brand);
+  }
+
+  --apply-kb-text-display-xs {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-display-xs);
+    line-height: var(--line-height-3xl);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-display);
+    color: var(--content-brand);
+  }
+
+  /* * * * * * * * * * * * * * * * * * * */
+  /*                                     */
+  /*      Heading text semantics         */
+  /*                                     */
+  /* * * * * * * * * * * * * * * * * * * */
+
+  --apply-kb-text-heading-xl {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-display-sm);
+    line-height: var(--line-height-2xl);
+    letter-spacing: var(--letter-spacing-xsmall);
+    font-family: var(--default-font-family-heading);
+  }
+
+  --apply-kb-text-heading-lg {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-display-xs);
+    line-height: var(--line-height-3xl);
+    letter-spacing: var(--letter-spacing-xsmall);
+    font-family: var(--default-font-family-heading);
+  }
+
+  --apply-kb-text-heading-md {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-body-2xl);
+    line-height: var(--line-height-2xl);
+    letter-spacing: var(--letter-spacing-small);
+    font-family: var(--default-font-family-heading);
+  }
+
+  --apply-kb-text-heading-sm {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-body-xl);
+    line-height: var(--line-height-xl);
+    letter-spacing: var(--letter-spacing-small);
+    font-family: var(--default-font-family-heading);
+  }
+
+  --apply-kb-text-heading-xs {
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-body-lg);
+    line-height: var(--line-height-lg);
+    letter-spacing: var(--letter-spacing-small);
+    font-family: var(--default-font-family-heading);
+  }
+
+  /* * * * * * * * * * * * * * * * * * * */
+  /*                                     */
+  /*         Body text semantics         */
+  /*                                     */
+  /* * * * * * * * * * * * * * * * * * * */
+  --apply-kb-text-body-xl {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-body-xl);
+    line-height: var(--line-height-xl);
+    letter-spacing: var(--letter-spacing-small);
+    font-family: var(--default-font-family-body);
+  }
+
+  --apply-kb-text-body-lg {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-body-lg);
+    line-height: var(--line-height-lg);
+    letter-spacing: var(--letter-spacing-small);
+    font-family: var(--default-font-family-body);
+  }
+
+  --apply-kb-text-body-md {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-body-md);
+    line-height: var(--line-height-md);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-body);
+  }
+
+  --apply-kb-text-body-sm {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-body-sm);
+    line-height: var(--line-height-sm);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-body);
+  }
+
+  --apply-kb-text-body-xs {
+    font-weight: var(--font-weight-regular);
+    font-size: var(--font-body-xs);
+    line-height: var(--line-height-xs);
+    letter-spacing: var(--letter-spacing-none);
+    font-family: var(--default-font-family-body);
+  }
+}

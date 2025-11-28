@@ -1,0 +1,110 @@
+@import "../input-label/input-label.css";
+@import "../input-hint/input-hint.css";
+
+.kb-code-input-root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+
+  &:where([data-invalid="true"]) {
+    .kb-code-input-slot {
+      border-color: var(--border-negative);
+    }
+  }
+}
+
+.kb-code-input {
+  display: flex;
+  gap: var(--sp-md);
+}
+
+.kb-code-input-slots-6 :nth-child(4) {
+  margin-left: var(--sp-md);
+}
+
+.kb-code-input-slot {
+  width: var(--sp-5xl);
+  height: 25px;
+  border: 1px solid red;
+
+  width: 50px;
+  height: 52px;
+  padding: 10px 0px;
+  position: relative;
+  box-sizing: border-box;
+
+  color: var(--content-primary);
+  @apply --kb-text-body-lg;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: var(--Radius-M, 8px);
+  border: var(--width-px) solid var(--border-tertiary);
+  background: var(--background-hover);
+
+  /* Inner small */
+  box-shadow: 0px 2px 0px 0px var(--Color-Black-5, rgba(0, 0, 0, 0.05)) inset,
+    0px -2px 0px 0px var(--Color-White-100, #fff) inset;
+
+  transition: border-color 150ms ease-in-out;
+
+  &:where([data-active="true"]) {
+    border-color: var(--border-focus);
+  }
+}
+
+@keyframes caret-blink {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  50% {
+    opacity: 0;
+  }
+}
+
+.kb-code-input-caret {
+  position: absolute;
+  pointer-events: none;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  > div {
+    width: var(--width-px);
+    height: var(--sp-3xl);
+    background: var(--content-primary);
+    animation: caret-blink 1s ease-out infinite;
+  }
+}
+
+.kb-code-input-hint {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+  color: var(--content-tertiary);
+
+  svg {
+    width: var(--sp-xl);
+    height: var(--sp-xl);
+  }
+
+  .kb-text-field-hint-text {
+    color: var(--content-tertiary);
+
+    @apply --kb-text-body-sm;
+  }
+
+  &:where(.kb-code-input-error) {
+    color: var(--content-negative);
+
+    .kb-code-input-hint-text {
+      color: var(--content-negative);
+    }
+  }
+}

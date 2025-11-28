@@ -1,0 +1,41 @@
+.kb-settings-card {
+  background-color: var(--background-primary);
+  border: var(--width-px) solid var(--border-tertiary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  font-family: var(--default-font-family);
+}
+
+.kb-settings-card-header {
+  padding: var(--sp-xl);
+  border-bottom: var(--width-px) solid var(--border-tertiary);
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-lg);
+}
+
+.kb-settings-card-content {
+  padding: var(--sp-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+}
+
+.kb-settings-card-footer {
+  padding: var(--sp-xl);
+  border-top: var(--width-px) solid var(--border-tertiary);
+  background-color: var(--background-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-lg);
+}
+
+.kb-settings-card-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-left: auto;
+}

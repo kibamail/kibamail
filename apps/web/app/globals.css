@@ -120,6 +120,7 @@
 
   /* Semantic Colors - Backgrounds */
   --color-kb-bg-primary: var(--background-primary);
+  --color-kb-bg-layout: var(--background-layout);
   --color-kb-bg-hover: var(--background-hover);
   --color-kb-bg-pressed: var(--background-pressed);
   --color-kb-bg-selected: var(--background-selected);

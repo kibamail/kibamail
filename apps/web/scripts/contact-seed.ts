@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 
 /**
  * Contact Seeding Script
@@ -10,9 +10,10 @@
  * - Varied dates for subscriptions/unsubscriptions
  *
  * Usage:
- *   bun run scripts/contact-seed.ts
+ *   npx tsx scripts/contact-seed.ts
  */
 
+import * as readline from "readline";
 import { faker } from "@faker-js/faker";
 import type { ContactStatus, TopicSubscriptionStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -22,20 +23,22 @@ import { getSegmentContactsKey } from "@/lib/storage/redis-keys";
 const CONTACT_COUNT = 1000;
 const BATCH_SIZE = 100; // Insert contacts in batches for better performance
 
-// Prompt for workspace ID
-console.log("Contact Seeding Script");
-console.log("=====================\n");
+/**
+ * Prompt for user input using Node.js readline
+ */
+function promptUser(question: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
 
-const workspaceIdInput = prompt("Enter workspace ID:");
-
-if (!workspaceIdInput) {
-  console.error("❌ Workspace ID is required");
-  process.exit(1);
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+  });
 }
-
-const workspaceId: string = workspaceIdInput;
-
-console.log(`✓ Using workspace: ${workspaceId}\n`);
 
 /**
  * Clean up existing data
@@ -578,6 +581,19 @@ async function seedContacts(workspaceId: string, topicIds: string[]) {
  * Main function
  */
 async function main() {
+  // Prompt for workspace ID
+  console.log("Contact Seeding Script");
+  console.log("=====================\n");
+
+  const workspaceId = await promptUser("Enter workspace ID: ");
+
+  if (!workspaceId) {
+    console.error("❌ Workspace ID is required");
+    process.exit(1);
+  }
+
+  console.log(`✓ Using workspace: ${workspaceId}\n`);
+
   try {
     // Clean up existing data
     await cleanupExistingData(workspaceId);
