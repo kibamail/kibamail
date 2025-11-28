@@ -9,7 +9,7 @@ export function EngageIcon(props: SVGProps<SVGSVGElement>) {
       aria-labelledby="engage-icon-title"
       {...props}
     >
-      <title id="engage-icon-title">Engage</title>
+      <title>Engage</title>
       <g>
         <path
           fill="currentColor"

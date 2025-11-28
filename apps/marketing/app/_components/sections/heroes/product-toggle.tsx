@@ -36,7 +36,7 @@ export function ProductToggle() {
   }, [activeProduct]);
 
   return (
-    <div className="w-full flex items-center justify-center box-border mb-12 md:mb-32 z-100">
+    <div className="w-full flex items-center justify-center box-border mb-12 md:mb-16 z-100">
       <div
         ref={containerRef}
         className="relative flex items-center border border-kb-border-tertiary rounded-[44px] bg-kb-bg-layout h-11 box-border p-1"
