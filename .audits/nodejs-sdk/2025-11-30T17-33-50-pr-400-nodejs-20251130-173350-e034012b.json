@@ -1,0 +1,638 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-400-nodejs-20251130-173350-e034012b",
+    "sdkName": "kibamail",
+    "sdkLanguage": "typescript",
+    "sdkVersion": "0.0.1-alpha.0",
+    "nodeVersion": ">=18",
+    "openApiVersion": "3.1.0",
+    "openApiTitle": "Kibamail API",
+    "openApiApiVersion": "1.0.0",
+    "auditTimestamp": "2025-11-30T17:33:50.000Z",
+    "reportPath": ".audits/nodejs-sdk/2025-11-30T17-33-50-pr-400-nodejs-20251130-173350-e034012b.json",
+    "sdkDirectory": "sdks/nodejs",
+    "openApiPath": "apps/web/public/openapi.v1.json"
+  },
+  "coverage": {
+    "totalEndpointsInSpec": 26,
+    "totalMethodsInSdk": 22,
+    "endpointsCovered": 22,
+    "endpointsMissing": 4,
+    "coveragePercentage": 84.62,
+    "extraSdkMethods": 0
+  },
+  "sdkStructure": {
+    "filesAnalyzed": [
+      "index.ts",
+      "kibamail.ts",
+      "client.ts",
+      "schema.d.ts",
+      "resources/api-keys.ts",
+      "resources/contacts.ts",
+      "resources/topics.ts",
+      "resources/segments.ts",
+      "resources/contact-properties.ts",
+      "resources/forms.ts"
+    ],
+    "entryPoint": "index.ts",
+    "mainClass": "Kibamail",
+    "resourcesDiscovered": [
+      {
+        "name": "apiKeys",
+        "className": "ApiKeys",
+        "file": "resources/api-keys.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateApiKeyBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/api-keys/"
+          }
+        ]
+      },
+      {
+        "name": "contacts",
+        "className": "Contacts",
+        "file": "resources/contacts.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateContactBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/contacts"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListContactsQuery"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contacts"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["contactId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contacts/{contactId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["contactId: string", "params: UpdateContactBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/contacts/{contactId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["contactId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/contacts/{contactId}"
+          },
+          {
+            "name": "search",
+            "async": false,
+            "parameters": ["params: SearchContactsBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/contacts/search"
+          }
+        ]
+      },
+      {
+        "name": "topics",
+        "className": "Topics",
+        "file": "resources/topics.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateTopicBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/topics"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListTopicsQuery"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/topics"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["topicId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/topics/{topicId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["topicId: string", "params: UpdateTopicBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/topics/{topicId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["topicId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/topics/{topicId}"
+          }
+        ]
+      },
+      {
+        "name": "segments",
+        "className": "Segments",
+        "file": "resources/segments.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateSegmentBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/segments"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListSegmentsQuery"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/segments"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["segmentId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/segments/{segmentId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["segmentId: string", "params: UpdateSegmentBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/segments/{segmentId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["segmentId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/segments/{segmentId}"
+          },
+          {
+            "name": "listContacts",
+            "async": false,
+            "parameters": ["segmentId: string", "params?: ListSegmentContactsQuery"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/segments/{segmentId}/contacts"
+          }
+        ]
+      },
+      {
+        "name": "contactProperties",
+        "className": "ContactProperties",
+        "file": "resources/contact-properties.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateContactPropertyBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/contact-properties"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListContactPropertiesQuery"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contact-properties"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["contactPropertyId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contact-properties/{contactPropertyId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["contactPropertyId: string", "params: UpdateContactPropertyBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/contact-properties/{contactPropertyId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["contactPropertyId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/contact-properties/{contactPropertyId}"
+          }
+        ]
+      },
+      {
+        "name": "forms",
+        "className": "Forms",
+        "file": "resources/forms.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateFormBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/forms"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListFormsQuery"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/forms"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/forms/{formId}"
+          },
+          {
+            "name": "listVersions",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "GET",
+            "endpoint": "/v1/forms/{formId}/versions"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["formId: string", "params: UpdateFormBody"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/forms/{formId}"
+          },
+          {
+            "name": "publish",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "POST",
+            "endpoint": "/v1/forms/{formId}/publish"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "openapi-fetch response",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/forms/{formId}"
+          }
+        ]
+      }
+    ],
+    "typesDiscovered": [
+      "paths",
+      "components",
+      "CreateContactBody",
+      "UpdateContactBody",
+      "ListContactsQuery",
+      "SearchContactsBody",
+      "CreateTopicBody",
+      "UpdateTopicBody",
+      "ListTopicsQuery",
+      "CreateSegmentBody",
+      "UpdateSegmentBody",
+      "ListSegmentsQuery",
+      "ListSegmentContactsQuery",
+      "CreateContactPropertyBody",
+      "UpdateContactPropertyBody",
+      "ListContactPropertiesQuery",
+      "CreateFormBody",
+      "UpdateFormBody",
+      "ListFormsQuery",
+      "CreateApiKeyBody",
+      "KibamailConfiguration",
+      "HttpClient",
+      "HttpClientConfig"
+    ],
+    "schemaFile": "schema.d.ts",
+    "schemaInSync": false,
+    "totalClasses": 7,
+    "totalMethods": 29,
+    "totalTypes": 23
+  },
+  "summary": {
+    "totalIssues": 8,
+    "critical": 2,
+    "major": 4,
+    "minor": 2,
+    "suggestions": 2,
+    "passedChecks": 22
+  },
+  "missingEndpoints": [
+    {
+      "path": "/v1/api-keys",
+      "method": "GET",
+      "operationId": "listApiKeys",
+      "description": "Retrieve a paginated list of all API keys in your workspace. Returns key metadata without actual key values.",
+      "specLocation": "paths./v1/api-keys.get",
+      "recommendation": "Add list() method to ApiKeys resource",
+      "suggestedCode": "list(params?: ListApiKeysQuery) {\n  return this.client.GET('/v1/api-keys', {\n    params: { query: params }\n  });\n}"
+    },
+    {
+      "path": "/v1/api-keys/{keyId}",
+      "method": "DELETE",
+      "operationId": "deleteApiKey",
+      "description": "Delete an API key permanently. Cannot delete the currently authenticated key.",
+      "specLocation": "paths./v1/api-keys/{keyId}.delete",
+      "recommendation": "Add delete(keyId: string) method to ApiKeys resource",
+      "suggestedCode": "delete(keyId: string) {\n  return this.client.DELETE('/v1/api-keys/{keyId}', {\n    params: { path: { keyId } }\n  });\n}"
+    },
+    {
+      "path": "/v1/topics/{topicId}/contacts",
+      "method": "GET",
+      "operationId": "listTopicContacts",
+      "description": "Retrieve a paginated list of contacts subscribed to a specific topic.",
+      "specLocation": "paths./v1/topics/{topicId}/contacts.get",
+      "recommendation": "Add listContacts(topicId: string, params?) method to Topics resource",
+      "suggestedCode": "listContacts(topicId: string, params?: ListTopicContactsQuery) {\n  return this.client.GET('/v1/topics/{topicId}/contacts', {\n    params: {\n      path: { topicId },\n      query: params\n    }\n  });\n}"
+    },
+    {
+      "path": "/v1/forms/{formId}/versions",
+      "method": "POST",
+      "operationId": "createFormVersion",
+      "description": "Create a new version of an existing form. Creates a DRAFT version that can be published later.",
+      "specLocation": "paths./v1/forms/{formId}/versions.post",
+      "recommendation": "Add createVersion(formId: string, params?) method to Forms resource",
+      "suggestedCode": "createVersion(formId: string, params?: CreateFormVersionBody) {\n  return this.client.POST('/v1/forms/{formId}/versions', {\n    params: { path: { formId } },\n    body: params\n  });\n}"
+    }
+  ],
+  "extraSdkMethods": [],
+  "inconsistencies": [
+    {
+      "id": "INC-001",
+      "severity": "critical",
+      "category": "path",
+      "resource": "apiKeys",
+      "sdkMethod": "create",
+      "sdkFile": "resources/api-keys.ts",
+      "sdkLine": 93,
+      "openApiPath": "/v1/api-keys",
+      "openApiOperation": "createApiKey",
+      "issue": "SDK uses path with trailing slash '/v1/api-keys/' but OpenAPI spec defines '/v1/api-keys' without trailing slash",
+      "expected": "/v1/api-keys",
+      "actual": "/v1/api-keys/",
+      "impact": "May cause 404 errors or routing issues depending on server configuration. The trailing slash inconsistency could lead to failed API requests.",
+      "recommendation": "Update the SDK to use '/v1/api-keys' without trailing slash, or regenerate schema.d.ts from OpenAPI spec after fixing the spec",
+      "codeExample": "// In resources/api-keys.ts line 93\nreturn this.client.POST('/v1/api-keys', {\n  body: params,\n});"
+    },
+    {
+      "id": "INC-002",
+      "severity": "critical",
+      "category": "missing_field",
+      "resource": "apiKeys",
+      "sdkMethod": "create",
+      "sdkFile": "schema.d.ts",
+      "sdkLine": 68,
+      "openApiPath": "/v1/api-keys",
+      "openApiOperation": "createApiKey",
+      "issue": "SDK schema response type is missing the 'id' field that is required in OpenAPI spec",
+      "expected": "Response should include: { object: 'api_key', id: string, key: string }",
+      "actual": "Response only includes: { object: 'api_key', key: string }",
+      "impact": "Users cannot retrieve the API key ID after creation, which is needed for deletion operations",
+      "recommendation": "Regenerate schema.d.ts from the OpenAPI spec to include the 'id' field in the response type",
+      "codeExample": "// Expected schema response type:\n{\n  object: 'api_key';\n  id: string;  // Missing!\n  key: string;\n}"
+    },
+    {
+      "id": "INC-003",
+      "severity": "major",
+      "category": "completeness",
+      "resource": "apiKeys",
+      "sdkMethod": "N/A",
+      "sdkFile": "resources/api-keys.ts",
+      "sdkLine": 0,
+      "openApiPath": "/v1/api-keys",
+      "openApiOperation": "listApiKeys",
+      "issue": "ApiKeys resource is missing the list() method to retrieve all API keys",
+      "expected": "SDK should provide a list() method for GET /v1/api-keys",
+      "actual": "Only create() method is implemented",
+      "impact": "Users cannot list their existing API keys programmatically, limiting key management capabilities",
+      "recommendation": "Add list(params?) method to ApiKeys class that calls GET /v1/api-keys",
+      "codeExample": "list(params?: ListApiKeysQuery) {\n  return this.client.GET('/v1/api-keys', {\n    params: { query: params }\n  });\n}"
+    },
+    {
+      "id": "INC-004",
+      "severity": "major",
+      "category": "completeness",
+      "resource": "apiKeys",
+      "sdkMethod": "N/A",
+      "sdkFile": "resources/api-keys.ts",
+      "sdkLine": 0,
+      "openApiPath": "/v1/api-keys/{keyId}",
+      "openApiOperation": "deleteApiKey",
+      "issue": "ApiKeys resource is missing the delete() method to delete API keys",
+      "expected": "SDK should provide a delete(keyId) method for DELETE /v1/api-keys/{keyId}",
+      "actual": "Method is not implemented",
+      "impact": "Users cannot revoke or delete API keys programmatically, which is critical for security (rotating compromised keys)",
+      "recommendation": "Add delete(keyId: string) method to ApiKeys class",
+      "codeExample": "delete(keyId: string) {\n  return this.client.DELETE('/v1/api-keys/{keyId}', {\n    params: { path: { keyId } }\n  });\n}"
+    },
+    {
+      "id": "INC-005",
+      "severity": "major",
+      "category": "completeness",
+      "resource": "topics",
+      "sdkMethod": "N/A",
+      "sdkFile": "resources/topics.ts",
+      "sdkLine": 0,
+      "openApiPath": "/v1/topics/{topicId}/contacts",
+      "openApiOperation": "listTopicContacts",
+      "issue": "Topics resource is missing the listContacts() method to retrieve contacts subscribed to a topic",
+      "expected": "SDK should provide a listContacts(topicId, params?) method for GET /v1/topics/{topicId}/contacts",
+      "actual": "Method is not implemented",
+      "impact": "Users cannot retrieve the list of subscribers for a specific topic, limiting audience management",
+      "recommendation": "Add listContacts(topicId: string, params?) method to Topics class",
+      "codeExample": "listContacts(topicId: string, params?: ListTopicContactsQuery) {\n  return this.client.GET('/v1/topics/{topicId}/contacts', {\n    params: {\n      path: { topicId },\n      query: params\n    }\n  });\n}"
+    },
+    {
+      "id": "INC-006",
+      "severity": "major",
+      "category": "completeness",
+      "resource": "forms",
+      "sdkMethod": "N/A",
+      "sdkFile": "resources/forms.ts",
+      "sdkLine": 0,
+      "openApiPath": "/v1/forms/{formId}/versions",
+      "openApiOperation": "createFormVersion",
+      "issue": "Forms resource is missing the createVersion() method to create new form versions",
+      "expected": "SDK should provide a createVersion(formId, params?) method for POST /v1/forms/{formId}/versions",
+      "actual": "Only listVersions() is implemented for the versions endpoint",
+      "impact": "Users cannot create new versions of forms programmatically, limiting form A/B testing and iteration workflows",
+      "recommendation": "Add createVersion(formId: string, params?) method to Forms class",
+      "codeExample": "createVersion(formId: string, params?: CreateFormVersionBody) {\n  return this.client.POST('/v1/forms/{formId}/versions', {\n    params: { path: { formId } },\n    body: params\n  });\n}"
+    }
+  ],
+  "typeDiscrepancies": [
+    {
+      "id": "TYPE-001",
+      "severity": "minor",
+      "resource": "apiKeys",
+      "field": "response.id",
+      "sdkType": "undefined (missing)",
+      "openApiType": "string",
+      "openApiFormat": null,
+      "schemaType": "missing from schema.d.ts",
+      "location": "response",
+      "file": "schema.d.ts",
+      "line": 68,
+      "recommendation": "Regenerate schema.d.ts to include 'id' field in API key creation response",
+      "codeExample": "// schema.d.ts should include:\nid: string; // API key identifier"
+    }
+  ],
+  "schemaIssues": [
+    {
+      "id": "SCHEMA-001",
+      "severity": "major",
+      "schemaFile": "schema.d.ts",
+      "issue": "Schema path '/v1/api-keys/' has trailing slash but OpenAPI spec defines '/v1/api-keys' without trailing slash",
+      "openApiDefinition": "/v1/api-keys",
+      "schemaDefinition": "/v1/api-keys/",
+      "affectedTypes": ["paths['/v1/api-keys/']"],
+      "recommendation": "Either fix the OpenAPI spec to include trailing slash, or regenerate schema after ensuring spec uses '/v1/api-keys'",
+      "regenerateCommand": "pnpm run schema:generate"
+    },
+    {
+      "id": "SCHEMA-002",
+      "severity": "major",
+      "schemaFile": "schema.d.ts",
+      "issue": "Missing paths for API key list and delete operations in schema.d.ts",
+      "openApiDefinition": "paths./v1/api-keys.get and paths./v1/api-keys/{keyId}.delete exist",
+      "schemaDefinition": "Only paths./v1/api-keys/.post exists",
+      "affectedTypes": ["ListApiKeysQuery", "DeleteApiKeyResponse"],
+      "recommendation": "Regenerate schema.d.ts from the current OpenAPI spec to include all API key operations",
+      "regenerateCommand": "pnpm run schema:generate"
+    }
+  ],
+  "jsdocIssues": [
+    {
+      "id": "DOC-001",
+      "severity": "minor",
+      "file": "resources/api-keys.ts",
+      "method": "create",
+      "line": 31,
+      "issue": "JSDoc mentions session authentication requirement but SDK uses Bearer token authentication",
+      "currentDoc": "**Required Scope:** This endpoint requires session authentication (not API key)",
+      "expectedDoc": "This documentation may confuse users as the SDK is designed for API key authentication, but the OpenAPI spec indicates this endpoint requires session auth",
+      "recommendation": "Clarify in the documentation that this endpoint may have different authentication requirements"
+    }
+  ],
+  "schemaCompleteness": [
+    {
+      "schemaName": "ApiKeyCreateResponse",
+      "sdkType": "paths['/v1/api-keys/']['post']['responses']['200']['content']['application/json']",
+      "file": "schema.d.ts",
+      "missingFields": [
+        {
+          "field": "id",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "schema_regeneration",
+      "title": "Regenerate schema.d.ts from OpenAPI spec",
+      "description": "The schema.d.ts file appears to be out of sync with the current OpenAPI specification. Missing API key list/delete operations and response type discrepancies.",
+      "rationale": "Schema synchronization is critical for type safety. Current schema is missing endpoints and has path inconsistencies.",
+      "affectedFiles": ["schema.d.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Run 'pnpm run schema:generate' to regenerate from apps/web/public/openapi.v1.json"
+    },
+    {
+      "priority": "high",
+      "category": "completeness",
+      "title": "Implement missing ApiKeys methods (list, delete)",
+      "description": "The ApiKeys resource only exposes create() but the API supports listing and deleting API keys. These are essential for key management and security rotation.",
+      "rationale": "API key management is critical for security. Users need to list keys to audit access and delete keys to revoke compromised credentials.",
+      "affectedFiles": ["resources/api-keys.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add list() and delete() methods similar to other resources"
+    },
+    {
+      "priority": "medium",
+      "category": "completeness",
+      "title": "Implement Topics.listContacts() method",
+      "description": "Add method to retrieve contacts subscribed to a specific topic, matching the OpenAPI endpoint GET /v1/topics/{topicId}/contacts.",
+      "rationale": "Provides parity with Segments.listContacts() and enables users to see topic subscribers.",
+      "affectedFiles": ["resources/topics.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add listContacts(topicId, params?) method following the pattern in Segments resource"
+    },
+    {
+      "priority": "medium",
+      "category": "completeness",
+      "title": "Implement Forms.createVersion() method",
+      "description": "Add method to create new form versions, matching the OpenAPI endpoint POST /v1/forms/{formId}/versions.",
+      "rationale": "Enables form versioning and A/B testing workflows. listVersions() is already implemented but createVersion() is missing.",
+      "affectedFiles": ["resources/forms.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add createVersion(formId, params?) method using POST to /v1/forms/{formId}/versions"
+    },
+    {
+      "priority": "low",
+      "category": "consistency",
+      "title": "Fix trailing slash inconsistency in API keys path",
+      "description": "The SDK/schema uses '/v1/api-keys/' with trailing slash but OpenAPI spec uses '/v1/api-keys'. This may cause routing issues.",
+      "rationale": "Path consistency prevents potential 404 errors and ensures reliable API communication.",
+      "affectedFiles": ["schema.d.ts", "resources/api-keys.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "After regenerating schema, update api-keys.ts to use the correct path without trailing slash"
+    },
+    {
+      "priority": "low",
+      "category": "documentation",
+      "title": "Add type aliases for common response types",
+      "description": "Consider exporting type aliases for common response types (Contact, Topic, Segment, Form, etc.) for better developer experience.",
+      "rationale": "Makes it easier for users to type their variables and function parameters without deep schema path access.",
+      "affectedFiles": ["index.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Export type aliases like: export type Contact = components['schemas']['Contact'];"
+    }
+  ],
+  "newEndpointsInSpec": []
+}

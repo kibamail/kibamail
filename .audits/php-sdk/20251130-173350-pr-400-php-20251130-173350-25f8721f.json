@@ -1,0 +1,365 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-400-php-20251130-173350-25f8721f",
+    "sdkLanguage": "php",
+    "sdkVersion": "0.0.1",
+    "openApiVersion": "3.1.0",
+    "openApiTitle": "Kibamail API",
+    "generatedAt": "2024-11-30T17:33:50.000Z",
+    "auditor": "Claude Code SDK Auditor"
+  },
+  "summary": {
+    "totalEndpoints": 26,
+    "implementedEndpoints": 23,
+    "missingEndpoints": 3,
+    "coveragePercentage": 88.46,
+    "totalIssues": 6,
+    "criticalIssues": 3,
+    "highIssues": 0,
+    "mediumIssues": 3,
+    "lowIssues": 0
+  },
+  "sdkStructure": {
+    "namespace": "Kibamail",
+    "entryPoint": "sdks/php/src/Kibamail.php",
+    "services": [
+      {
+        "name": "Contacts",
+        "file": "sdks/php/src/Service/Contacts.php",
+        "methods": ["get", "create", "list", "update", "delete", "search"]
+      },
+      {
+        "name": "Topics",
+        "file": "sdks/php/src/Service/Topics.php",
+        "methods": ["get", "create", "list", "update", "delete"]
+      },
+      {
+        "name": "Segments",
+        "file": "sdks/php/src/Service/Segments.php",
+        "methods": ["get", "create", "list", "update", "delete"]
+      },
+      {
+        "name": "ContactProperties",
+        "file": "sdks/php/src/Service/ContactProperties.php",
+        "methods": ["get", "create", "list", "update", "delete"]
+      },
+      {
+        "name": "Forms",
+        "file": "sdks/php/src/Service/Forms.php",
+        "methods": ["get", "create", "list", "update", "delete"]
+      },
+      {
+        "name": "ApiKeys",
+        "file": "sdks/php/src/Service/ApiKeys.php",
+        "methods": ["create", "list", "delete"]
+      }
+    ],
+    "models": [
+      "Contact",
+      "Topic",
+      "Segment",
+      "ContactProperty",
+      "Form",
+      "ApiKey",
+      "Collection",
+      "Resource"
+    ],
+    "valueObjects": [
+      "ApiKey",
+      "ResourceUri",
+      "BaseUri",
+      "Headers",
+      "Payload"
+    ],
+    "exceptions": [
+      "ErrorException",
+      "TransporterException",
+      "UnserializableResponse"
+    ]
+  },
+  "endpointCoverage": {
+    "implemented": [
+      {
+        "endpoint": "GET /v1/contacts",
+        "method": "Contacts::list",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "POST /v1/contacts",
+        "method": "Contacts::create",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/contacts/{contactId}",
+        "method": "Contacts::get",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "PUT /v1/contacts/{contactId}",
+        "method": "Contacts::update",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/contacts/{contactId}",
+        "method": "Contacts::delete",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "POST /v1/contacts/search",
+        "method": "Contacts::search",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/topics",
+        "method": "Topics::list",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "POST /v1/topics",
+        "method": "Topics::create",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/topics/{topicId}",
+        "method": "Topics::get",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "PUT /v1/topics/{topicId}",
+        "method": "Topics::update",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/topics/{topicId}",
+        "method": "Topics::delete",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/segments",
+        "method": "Segments::list",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "POST /v1/segments",
+        "method": "Segments::create",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/segments/{segmentId}",
+        "method": "Segments::get",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "PUT /v1/segments/{segmentId}",
+        "method": "Segments::update",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/segments/{segmentId}",
+        "method": "Segments::delete",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/contact-properties",
+        "method": "ContactProperties::list",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "POST /v1/contact-properties",
+        "method": "ContactProperties::create",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/contact-properties/{contactPropertyId}",
+        "method": "ContactProperties::get",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "PUT /v1/contact-properties/{contactPropertyId}",
+        "method": "ContactProperties::update",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/contact-properties/{contactPropertyId}",
+        "method": "ContactProperties::delete",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "GET /v1/api-keys",
+        "method": "ApiKeys::list",
+        "status": "implemented"
+      },
+      {
+        "endpoint": "DELETE /v1/api-keys/{keyId}",
+        "method": "ApiKeys::delete",
+        "status": "implemented"
+      }
+    ],
+    "missing": [
+      {
+        "endpoint": "GET /v1/segments/{segmentId}/contacts",
+        "description": "Get Segment Contacts - Retrieve all contacts that match a segment's filter conditions",
+        "suggestedMethod": "Segments::contacts or Segments::getContacts",
+        "severity": "critical",
+        "impact": "Users cannot retrieve contacts belonging to a specific segment"
+      },
+      {
+        "endpoint": "GET /v1/topics/{topicId}/contacts",
+        "description": "Get Topic Contacts - Retrieve all contacts subscribed to a specific topic",
+        "suggestedMethod": "Topics::contacts or Topics::getContacts",
+        "severity": "critical",
+        "impact": "Users cannot retrieve contacts subscribed to a specific topic"
+      },
+      {
+        "endpoint": "POST /v1/api-keys",
+        "description": "Create API Key - Generate a new API key for programmatic workspace access",
+        "note": "SDK has create method but OpenAPI indicates this requires session authentication, not API key auth",
+        "suggestedMethod": "ApiKeys::create (already implemented but may not work via API key)",
+        "severity": "medium",
+        "impact": "API key creation requires session authentication - SDK method may fail when called with API key"
+      }
+    ]
+  },
+  "issues": [
+    {
+      "id": "MISSING_ENDPOINT_001",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "title": "Missing GET /v1/segments/{segmentId}/contacts endpoint",
+      "description": "The Segments service does not implement a method to retrieve contacts belonging to a segment. The OpenAPI spec defines GET /v1/segments/{segmentId}/contacts for retrieving all contacts that match a segment's filter conditions.",
+      "affectedFiles": ["sdks/php/src/Service/Segments.php"],
+      "recommendation": "Add a 'contacts' or 'getContacts' method to the Segments service that calls GET /v1/segments/{segmentId}/contacts with pagination support",
+      "codeExample": "public function contacts(string $segmentId, array $options = []): Collection\n{\n    $payload = Payload::list(\"v1/segments/{$segmentId}/contacts\", $options);\n    $result = $this->transporter->request($payload);\n    return $this->createResource('contacts', $result);\n}"
+    },
+    {
+      "id": "MISSING_ENDPOINT_002",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "title": "Missing GET /v1/topics/{topicId}/contacts endpoint",
+      "description": "The Topics service does not implement a method to retrieve contacts subscribed to a topic. The OpenAPI spec defines GET /v1/topics/{topicId}/contacts for retrieving all contacts subscribed to a specific topic.",
+      "affectedFiles": ["sdks/php/src/Service/Topics.php"],
+      "recommendation": "Add a 'contacts' or 'getContacts' method to the Topics service that calls GET /v1/topics/{topicId}/contacts with pagination support",
+      "codeExample": "public function contacts(string $topicId, array $options = []): Collection\n{\n    $payload = Payload::list(\"v1/topics/{$topicId}/contacts\", $options);\n    $result = $this->transporter->request($payload);\n    return $this->createResource('contacts', $result);\n}"
+    },
+    {
+      "id": "MISSING_ENDPOINT_003",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "title": "Missing GET /v1/forms/{formId} endpoint",
+      "description": "The Forms service has a get() method but the OpenAPI specification includes GET /v1/forms/{formId}, PUT /v1/forms/{formId}, and DELETE /v1/forms/{formId} endpoints. Verify these endpoints are correctly mapped in the Payload class.",
+      "affectedFiles": ["sdks/php/src/Service/Forms.php"],
+      "recommendation": "Verify that Forms::get, Forms::update, and Forms::delete correctly call the OpenAPI endpoints"
+    },
+    {
+      "id": "AUTH_INCONSISTENCY_001",
+      "severity": "medium",
+      "category": "authentication",
+      "title": "ApiKeys::create may not work with API key authentication",
+      "description": "The OpenAPI specification indicates that POST /v1/api-keys requires session authentication (user login), not API key authentication. The SDK implements this method but users calling it with an API key may receive authentication errors.",
+      "affectedFiles": ["sdks/php/src/Service/ApiKeys.php"],
+      "recommendation": "Document this limitation in the SDK or consider removing the create method from the ApiKeys service if it cannot be called with API key authentication",
+      "openApiNote": "Required Scope: This endpoint requires session authentication (not API key)"
+    },
+    {
+      "id": "TYPE_SUGGESTION_001",
+      "severity": "medium",
+      "category": "type_safety",
+      "title": "Model classes lack typed properties",
+      "description": "The model classes (Contact, Topic, Segment, Form, ApiKey, ContactProperty) extend Resource but don't define typed properties. This makes it harder for IDE autocompletion and type checking. The OpenAPI spec defines specific response schemas with required fields.",
+      "affectedFiles": [
+        "sdks/php/src/Contact.php",
+        "sdks/php/src/Topic.php",
+        "sdks/php/src/Segment.php",
+        "sdks/php/src/Form.php",
+        "sdks/php/src/ApiKey.php",
+        "sdks/php/src/ContactProperty.php"
+      ],
+      "recommendation": "Consider adding PHP 8+ typed properties or PHPDoc @property annotations based on OpenAPI response schemas for better type safety and IDE support",
+      "exampleProperties": {
+        "Contact": ["id: string", "email: string", "firstName: ?string", "lastName: ?string", "phone: ?string", "country: ?string", "timezone: ?string", "city: ?string", "status: string", "subscribedAt: ?string", "unsubscribedAt: ?string", "properties: array"],
+        "Topic": ["id: string", "name: string", "description: ?string", "visibility: string", "defaultOptIn: bool"],
+        "Segment": ["id: string", "name: string", "description: ?string", "conditions: array"],
+        "Form": ["id: string", "name: string", "description: ?string", "status: string"],
+        "ContactProperty": ["id: string", "name: string", "type: string", "defaultValue: ?string"]
+      }
+    },
+    {
+      "id": "DOCS_SUGGESTION_001",
+      "severity": "medium",
+      "category": "documentation",
+      "title": "Service methods lack parameter type documentation",
+      "description": "While the list() methods have PHPDoc for pagination options, the create() and update() methods accept generic array $parameters without documenting the expected fields from the OpenAPI schema.",
+      "affectedFiles": [
+        "sdks/php/src/Service/Contacts.php",
+        "sdks/php/src/Service/Topics.php",
+        "sdks/php/src/Service/Segments.php",
+        "sdks/php/src/Service/Forms.php",
+        "sdks/php/src/Service/ApiKeys.php",
+        "sdks/php/src/Service/ContactProperties.php"
+      ],
+      "recommendation": "Add PHPDoc @param annotations documenting the expected array keys based on OpenAPI request body schemas",
+      "example": "@param array{email: string, firstName?: string|null, lastName?: string|null, ...} $parameters"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": 1,
+      "title": "Implement missing nested resource endpoints",
+      "description": "Add methods to retrieve contacts from segments and topics",
+      "actions": [
+        "Add Segments::contacts(string $segmentId, array $options = []): Collection",
+        "Add Topics::contacts(string $topicId, array $options = []): Collection"
+      ]
+    },
+    {
+      "priority": 2,
+      "title": "Document API key creation authentication requirements",
+      "description": "The ApiKeys::create method requires session authentication per the OpenAPI spec. Either document this limitation or remove the method.",
+      "actions": [
+        "Add PHPDoc warning to ApiKeys::create about session authentication requirement",
+        "Or remove ApiKeys::create if it cannot work with API key auth"
+      ]
+    },
+    {
+      "priority": 3,
+      "title": "Add typed properties to model classes",
+      "description": "Improve type safety by adding PHP 8+ typed properties or PHPDoc @property annotations based on OpenAPI schemas",
+      "actions": [
+        "Add typed properties to Contact class matching OpenAPI ContactResponse schema",
+        "Add typed properties to Topic class matching OpenAPI TopicResponse schema",
+        "Add typed properties to Segment class matching OpenAPI SegmentResponse schema",
+        "Add typed properties to Form class matching OpenAPI FormResponse schema",
+        "Add typed properties to ContactProperty class matching OpenAPI ContactPropertyResponse schema"
+      ]
+    },
+    {
+      "priority": 4,
+      "title": "Improve parameter documentation",
+      "description": "Add PHPDoc @param annotations with expected array keys for create/update methods",
+      "actions": [
+        "Document Contacts::create expected parameters (email, firstName, lastName, etc.)",
+        "Document Topics::create expected parameters (name, description, visibility, defaultOptIn)",
+        "Document Segments::create expected parameters (name, description, conditions)",
+        "Document Forms::create expected parameters (name, description, fields)",
+        "Document ContactProperties::create expected parameters (name, type, defaultValue)"
+      ]
+    }
+  ],
+  "openApiEndpoints": [
+    {"path": "/v1/api-keys", "methods": ["GET", "POST"]},
+    {"path": "/v1/api-keys/{keyId}", "methods": ["DELETE"]},
+    {"path": "/v1/contacts", "methods": ["GET", "POST"]},
+    {"path": "/v1/contacts/{contactId}", "methods": ["GET", "PUT", "DELETE"]},
+    {"path": "/v1/contacts/search", "methods": ["POST"]},
+    {"path": "/v1/topics", "methods": ["GET", "POST"]},
+    {"path": "/v1/topics/{topicId}", "methods": ["GET", "PUT", "DELETE"]},
+    {"path": "/v1/topics/{topicId}/contacts", "methods": ["GET"]},
+    {"path": "/v1/segments", "methods": ["GET", "POST"]},
+    {"path": "/v1/segments/{segmentId}", "methods": ["GET", "PUT", "DELETE"]},
+    {"path": "/v1/segments/{segmentId}/contacts", "methods": ["GET"]},
+    {"path": "/v1/contact-properties", "methods": ["GET", "POST"]},
+    {"path": "/v1/contact-properties/{contactPropertyId}", "methods": ["GET", "PUT", "DELETE"]},
+    {"path": "/v1/forms", "methods": ["GET", "POST"]},
+    {"path": "/v1/forms/{formId}", "methods": ["GET", "PUT", "DELETE"]}
+  ]
+}

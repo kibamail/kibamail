@@ -14,11 +14,14 @@
   "dependencies": {
     "@kibamail/owly": "workspace:*",
     "@radix-ui/react-navigation-menu": "^1.2.14",
+    "@radix-ui/react-slider": "^1.3.6",
     "classnames": "^2.5.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "iconoir-react": "^7.11.0",
     "next": "16.0.1",
     "react": "19.2.0",
+    "react-countup": "^6.5.3",
     "react-dom": "19.2.0"
   },
   "devDependencies": {
@@ -27,6 +30,7 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "shiki": "^3.17.0",
     "tailwindcss": "^4",
     "typescript": "^5.9.3"
   }

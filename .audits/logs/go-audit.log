@@ -1,0 +1,65 @@
+[0;34m[INFO][0m Starting audit for go SDK with ID: pr-400-go-20251130-173350-014ca580
+^D## Go SDK Audit Complete
+
+**Audit ID:** `pr-400-go-20251130-173350-014ca580`  
+**Report Location:** `.audits/go-sdk/2025-11-30T17-33-50-pr-400-go-20251130-173350-014ca580.json`
+
+---
+
+### Summary
+
+| Metric | Value |
+|--------|-------|
+| **Total Issues** | 14 |
+| **Critical** | 3 |
+| **Major** | 5 |
+| **Minor** | 4 |
+| **Suggestions** | 2 |
+| **Coverage** | 88.46% (23/26 endpoints) |
+
+---
+
+### Top 3 Critical Issues
+
+1. **INC-001 to INC-003**: All response structs (`Contact`, `Topic`, `Segment`, `ContactProperty`, `Form`) are missing the required `object` field that the API returns in every response. This field identifies the resource type (e.g., `"contact"`, `"topic"`).
+
+2. **INC-004 & INC-005**: `CreateContactParams.Properties` and `UpdateContactParams.Properties` use `map[string]string` but the OpenAPI spec allows both string AND number values (`string|number`). This prevents setting numeric custom properties.
+
+3. **Missing Endpoints**: The SDK is missing 3 endpoints:
+   - `PUT /v1/forms/{formId}` - Update form
+   - `DELETE /v1/forms/{formId}` - Delete form
+   - `GET /v1/api-keys` - List API keys
+
+---
+
+### Top 3 Recommendations
+
+1. **Add 'object' field to all response structs** (High Priority)
+   - Affected: `Contact`, `Topic`, `Segment`, `ContactProperty`, `Form`, and all list structs
+   - Effort: Small
+
+2. **Fix Properties type for contacts** (High Priority)
+   - Change from `map[string]string` to `map[string]interface{}`
+   - Affected: `contacts.go`
+   - Effort: Small
+
+3. **Add missing Forms CRUD operations** (High Priority)
+   - Implement `Update` and `Delete` methods for `FormsSvc`
+   - Affected: `forms.go`
+   - Effort: Medium
+
+---
+
+### Files Analyzed
+
+- `client.go` - Main client struct and HTTP helpers
+- `contacts.go` - ContactsSvc (12 methods)
+- `topics.go` - TopicsSvc (12 methods)
+- `segments.go` - SegmentsSvc (12 methods)
+- `api_keys.go` - ApiKeysSvc (2 methods)
+- `contact_properties.go` - ContactPropertiesSvc (10 methods)
+- `forms.go` - FormsSvc (6 methods)
+- `errors.go` - Error types
+- `utils.go` - Utility functions
+[?25h[?25h[0;32m[SUCCESS][0m Completed audit for go SDK
+  Audit ID: pr-400-go-20251130-173350-014ca580

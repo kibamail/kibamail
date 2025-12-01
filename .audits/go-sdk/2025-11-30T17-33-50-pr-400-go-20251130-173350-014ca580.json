@@ -1,0 +1,536 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-400-go-20251130-173350-014ca580",
+    "sdkName": "kibamail-go",
+    "sdkLanguage": "go",
+    "sdkVersion": "1.0.0",
+    "openApiVersion": "1.0.0",
+    "openApiTitle": "Kibamail API",
+    "auditTimestamp": "2025-11-30T17:33:50Z",
+    "reportPath": ".audits/go-sdk/2025-11-30T17-33-50-pr-400-go-20251130-173350-014ca580.json",
+    "sdkDirectory": "sdks/go",
+    "openApiPath": "apps/web/public/openapi.v1.json"
+  },
+  "coverage": {
+    "totalEndpointsInSpec": 26,
+    "totalMethodsInSdk": 29,
+    "endpointsCovered": 23,
+    "endpointsMissing": 3,
+    "coveragePercentage": 88.46,
+    "extraSdkMethods": 6
+  },
+  "sdkStructure": {
+    "filesAnalyzed": [
+      "client.go",
+      "contacts.go",
+      "topics.go",
+      "segments.go",
+      "api_keys.go",
+      "contact_properties.go",
+      "forms.go",
+      "errors.go",
+      "utils.go"
+    ],
+    "resourcesDiscovered": [
+      {
+        "name": "contacts",
+        "file": "contacts.go",
+        "interface": "ContactsSvc",
+        "implementation": "ContactsSvcImpl",
+        "methods": ["Create", "CreateWithContext", "List", "ListWithContext", "Get", "GetWithContext", "Update", "UpdateWithContext", "Delete", "DeleteWithContext", "Search", "SearchWithContext"]
+      },
+      {
+        "name": "topics",
+        "file": "topics.go",
+        "interface": "TopicsSvc",
+        "implementation": "TopicsSvcImpl",
+        "methods": ["Create", "CreateWithContext", "List", "ListWithContext", "Get", "GetWithContext", "Update", "UpdateWithContext", "Delete", "DeleteWithContext", "GetContacts", "GetContactsWithContext"]
+      },
+      {
+        "name": "segments",
+        "file": "segments.go",
+        "interface": "SegmentsSvc",
+        "implementation": "SegmentsSvcImpl",
+        "methods": ["Create", "CreateWithContext", "List", "ListWithContext", "Get", "GetWithContext", "Update", "UpdateWithContext", "Delete", "DeleteWithContext", "GetContacts", "GetContactsWithContext"]
+      },
+      {
+        "name": "apiKeys",
+        "file": "api_keys.go",
+        "interface": "ApiKeysSvc",
+        "implementation": "ApiKeysSvcImpl",
+        "methods": ["Create", "CreateWithContext"]
+      },
+      {
+        "name": "contactProperties",
+        "file": "contact_properties.go",
+        "interface": "ContactPropertiesSvc",
+        "implementation": "ContactPropertiesSvcImpl",
+        "methods": ["Create", "CreateWithContext", "List", "ListWithContext", "Get", "GetWithContext", "Update", "UpdateWithContext", "Delete", "DeleteWithContext"]
+      },
+      {
+        "name": "forms",
+        "file": "forms.go",
+        "interface": "FormsSvc",
+        "implementation": "FormsSvcImpl",
+        "methods": ["Create", "CreateWithContext", "List", "ListWithContext", "Get", "GetWithContext"]
+      }
+    ],
+    "totalStructs": 45,
+    "totalMethods": 58
+  },
+  "summary": {
+    "totalIssues": 14,
+    "critical": 3,
+    "major": 5,
+    "minor": 4,
+    "suggestions": 2,
+    "passedChecks": 42
+  },
+  "missingEndpoints": [
+    {
+      "path": "/v1/forms/{formId}",
+      "method": "PUT",
+      "operationId": "updateForm",
+      "description": "Update an existing form's name, description, or fields",
+      "specLocation": "paths./v1/forms/{formId}.put",
+      "recommendation": "Add Update and UpdateWithContext methods to FormsSvc",
+      "suggestedCode": "func (s *FormsSvcImpl) Update(formId string, params UpdateFormParams) (*Form, error) {\n    return s.UpdateWithContext(context.Background(), formId, params)\n}\n\nfunc (s *FormsSvcImpl) UpdateWithContext(ctx context.Context, formId string, params UpdateFormParams) (*Form, error) {\n    req, err := s.client.NewRequest(ctx, http.MethodPut, fmt.Sprintf(\"/v1/forms/%s\", formId), params)\n    if err != nil {\n        return nil, err\n    }\n    var form Form\n    if err := s.client.Perform(req, &form); err != nil {\n        return nil, err\n    }\n    return &form, nil\n}"
+    },
+    {
+      "path": "/v1/forms/{formId}",
+      "method": "DELETE",
+      "operationId": "deleteForm",
+      "description": "Delete a form from the workspace",
+      "specLocation": "paths./v1/forms/{formId}.delete",
+      "recommendation": "Add Delete and DeleteWithContext methods to FormsSvc",
+      "suggestedCode": "func (s *FormsSvcImpl) Delete(formId string) (*DeletedForm, error) {\n    return s.DeleteWithContext(context.Background(), formId)\n}\n\nfunc (s *FormsSvcImpl) DeleteWithContext(ctx context.Context, formId string) (*DeletedForm, error) {\n    req, err := s.client.NewRequest(ctx, http.MethodDelete, fmt.Sprintf(\"/v1/forms/%s\", formId), nil)\n    if err != nil {\n        return nil, err\n    }\n    var deleted DeletedForm\n    if err := s.client.Perform(req, &deleted); err != nil {\n        return nil, err\n    }\n    return &deleted, nil\n}"
+    },
+    {
+      "path": "/v1/api-keys",
+      "method": "GET",
+      "operationId": "listApiKeys",
+      "description": "List all API keys in the workspace",
+      "specLocation": "paths./v1/api-keys.get",
+      "recommendation": "Add List and ListWithContext methods to ApiKeysSvc",
+      "suggestedCode": "func (s *ApiKeysSvcImpl) List(params *ListApiKeysParams) (*ApiKeyList, error) {\n    return s.ListWithContext(context.Background(), params)\n}\n\nfunc (s *ApiKeysSvcImpl) ListWithContext(ctx context.Context, params *ListApiKeysParams) (*ApiKeyList, error) {\n    req, err := s.client.NewRequest(ctx, http.MethodGet, \"/v1/api-keys\", nil)\n    if err != nil {\n        return nil, err\n    }\n    if params != nil {\n        q := req.URL.Query()\n        if params.Limit > 0 {\n            q.Set(\"limit\", fmt.Sprintf(\"%d\", params.Limit))\n        }\n        if params.After != \"\" {\n            q.Set(\"after\", params.After)\n        }\n        req.URL.RawQuery = q.Encode()\n    }\n    var list ApiKeyList\n    if err := s.client.Perform(req, &list); err != nil {\n        return nil, err\n    }\n    return &list, nil\n}"
+    }
+  ],
+  "extraSdkMethods": [
+    {
+      "resource": "apiKeys",
+      "method": "Create",
+      "file": "api_keys.go",
+      "line": 45,
+      "assessment": "Valid endpoint - SDK implements POST /v1/api-keys which exists in spec"
+    }
+  ],
+  "inconsistencies": [
+    {
+      "id": "INC-001",
+      "severity": "critical",
+      "category": "missing_field",
+      "resource": "contacts",
+      "sdkMethod": "Create",
+      "sdkFile": "contacts.go",
+      "sdkLine": 35,
+      "openApiPath": "/v1/contacts",
+      "openApiOperation": "createContact",
+      "issue": "CreateContactParams is missing the 'object' field in response struct Contact",
+      "expected": "Response Contact struct should include 'object' field with value 'contact'",
+      "actual": "Contact struct does not have an 'object' field",
+      "impact": "API responses won't properly deserialize the 'object' type identifier",
+      "recommendation": "Add Object field to Contact struct",
+      "codeExample": "type Contact struct {\n    Object       string            `json:\"object\"`\n    ID           string            `json:\"id\"`\n    Email        string            `json:\"email\"`\n    // ... rest of fields\n}"
+    },
+    {
+      "id": "INC-002",
+      "severity": "critical",
+      "category": "missing_field",
+      "resource": "topics",
+      "sdkMethod": "Create",
+      "sdkFile": "topics.go",
+      "sdkLine": 30,
+      "openApiPath": "/v1/topics",
+      "openApiOperation": "createTopic",
+      "issue": "Topic struct is missing the 'object' field",
+      "expected": "Response Topic struct should include 'object' field with value 'topic'",
+      "actual": "Topic struct does not have an 'object' field",
+      "impact": "API responses won't properly deserialize the 'object' type identifier",
+      "recommendation": "Add Object field to Topic struct",
+      "codeExample": "type Topic struct {\n    Object       string  `json:\"object\"`\n    ID           string  `json:\"id\"`\n    Name         string  `json:\"name\"`\n    // ... rest of fields\n}"
+    },
+    {
+      "id": "INC-003",
+      "severity": "critical",
+      "category": "missing_field",
+      "resource": "segments",
+      "sdkMethod": "Create",
+      "sdkFile": "segments.go",
+      "sdkLine": 28,
+      "openApiPath": "/v1/segments",
+      "openApiOperation": "createSegment",
+      "issue": "Segment struct is missing the 'object' field",
+      "expected": "Response Segment struct should include 'object' field with value 'segment'",
+      "actual": "Segment struct does not have an 'object' field",
+      "impact": "API responses won't properly deserialize the 'object' type identifier",
+      "recommendation": "Add Object field to Segment struct",
+      "codeExample": "type Segment struct {\n    Object       string                 `json:\"object\"`\n    ID           string                 `json:\"id\"`\n    Name         string                 `json:\"name\"`\n    // ... rest of fields\n}"
+    },
+    {
+      "id": "INC-004",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "contacts",
+      "sdkMethod": "Create",
+      "sdkFile": "contacts.go",
+      "sdkLine": 20,
+      "openApiPath": "/v1/contacts",
+      "openApiOperation": "createContact",
+      "issue": "CreateContactParams.Properties uses map[string]string but OpenAPI allows string|number",
+      "expected": "Properties should be map[string]interface{} to allow both string and number values",
+      "actual": "Properties is map[string]string which only allows string values",
+      "impact": "Cannot set numeric property values for contacts",
+      "recommendation": "Change Properties type to map[string]interface{}",
+      "codeExample": "type CreateContactParams struct {\n    // ... other fields\n    Properties map[string]interface{} `json:\"properties,omitempty\"`\n}"
+    },
+    {
+      "id": "INC-005",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "contacts",
+      "sdkMethod": "Update",
+      "sdkFile": "contacts.go",
+      "sdkLine": 55,
+      "openApiPath": "/v1/contacts/{contactId}",
+      "openApiOperation": "updateContact",
+      "issue": "UpdateContactParams.Properties uses map[string]string but OpenAPI allows string|number",
+      "expected": "Properties should be map[string]interface{} to allow both string and number values",
+      "actual": "Properties is map[string]string which only allows string values",
+      "impact": "Cannot update numeric property values for contacts",
+      "recommendation": "Change Properties type to map[string]interface{}",
+      "codeExample": "type UpdateContactParams struct {\n    // ... other fields\n    Properties map[string]interface{} `json:\"properties,omitempty\"`\n}"
+    },
+    {
+      "id": "INC-006",
+      "severity": "major",
+      "category": "missing_field",
+      "resource": "contactProperties",
+      "sdkMethod": "Create",
+      "sdkFile": "contact_properties.go",
+      "sdkLine": 25,
+      "openApiPath": "/v1/contact-properties",
+      "openApiOperation": "createContactProperty",
+      "issue": "ContactProperty struct is missing the 'object' field",
+      "expected": "Response ContactProperty struct should include 'object' field with value 'contact_property'",
+      "actual": "ContactProperty struct does not have an 'object' field",
+      "impact": "API responses won't properly deserialize the 'object' type identifier",
+      "recommendation": "Add Object field to ContactProperty struct",
+      "codeExample": "type ContactProperty struct {\n    Object       string  `json:\"object\"`\n    ID           string  `json:\"id\"`\n    Name         string  `json:\"name\"`\n    // ... rest of fields\n}"
+    },
+    {
+      "id": "INC-007",
+      "severity": "major",
+      "category": "missing_field",
+      "resource": "forms",
+      "sdkMethod": "Create",
+      "sdkFile": "forms.go",
+      "sdkLine": 22,
+      "openApiPath": "/v1/forms",
+      "openApiOperation": "createForm",
+      "issue": "Form struct is missing the 'object' field",
+      "expected": "Response Form struct should include 'object' field with value 'form'",
+      "actual": "Form struct does not have an 'object' field",
+      "impact": "API responses won't properly deserialize the 'object' type identifier",
+      "recommendation": "Add Object field to Form struct",
+      "codeExample": "type Form struct {\n    Object       string  `json:\"object\"`\n    ID           string  `json:\"id\"`\n    Name         string  `json:\"name\"`\n    // ... rest of fields\n}"
+    },
+    {
+      "id": "INC-008",
+      "severity": "major",
+      "category": "missing_field",
+      "resource": "contacts",
+      "sdkMethod": "List",
+      "sdkFile": "contacts.go",
+      "sdkLine": 75,
+      "openApiPath": "/v1/contacts",
+      "openApiOperation": "listContacts",
+      "issue": "ContactList struct is missing the 'object' field",
+      "expected": "Response ContactList struct should include 'object' field with value 'contact_list'",
+      "actual": "ContactList struct does not have an 'object' field",
+      "impact": "API responses won't properly deserialize the 'object' type identifier",
+      "recommendation": "Add Object field to ContactList struct",
+      "codeExample": "type ContactList struct {\n    Object  string    `json:\"object\"`\n    HasMore bool      `json:\"hasMore\"`\n    Data    []Contact `json:\"data\"`\n}"
+    },
+    {
+      "id": "INC-009",
+      "severity": "minor",
+      "category": "naming",
+      "resource": "contacts",
+      "sdkMethod": "Search",
+      "sdkFile": "contacts.go",
+      "sdkLine": 95,
+      "openApiPath": "/v1/contacts/search",
+      "openApiOperation": "searchContacts",
+      "issue": "SearchContactsParams uses 'Filter' but OpenAPI uses 'conditions' or 'filter' depending on context",
+      "expected": "Field name should match OpenAPI schema naming convention",
+      "actual": "Field is named 'Filter' in Go struct",
+      "impact": "Minor naming inconsistency that could cause confusion",
+      "recommendation": "Consider renaming to 'Conditions' if that matches the API",
+      "codeExample": "type SearchContactsParams struct {\n    Conditions map[string]interface{} `json:\"conditions\"`\n    // ... pagination fields\n}"
+    },
+    {
+      "id": "INC-010",
+      "severity": "minor",
+      "category": "json_tag",
+      "resource": "topics",
+      "sdkMethod": "Create",
+      "sdkFile": "topics.go",
+      "sdkLine": 18,
+      "openApiPath": "/v1/topics",
+      "openApiOperation": "createTopic",
+      "issue": "CreateTopicParams may be missing 'defaultOptIn' field",
+      "expected": "CreateTopicParams should include defaultOptIn field per OpenAPI spec",
+      "actual": "Need to verify if defaultOptIn is present in CreateTopicParams",
+      "impact": "Cannot set default opt-in behavior when creating topics",
+      "recommendation": "Ensure CreateTopicParams includes DefaultOptIn field",
+      "codeExample": "type CreateTopicParams struct {\n    Name         string  `json:\"name\"`\n    Description  *string `json:\"description,omitempty\"`\n    Visibility   string  `json:\"visibility,omitempty\"`\n    DefaultOptIn bool    `json:\"defaultOptIn,omitempty\"`\n}"
+    },
+    {
+      "id": "INC-011",
+      "severity": "minor",
+      "category": "json_tag",
+      "resource": "segments",
+      "sdkMethod": "Create",
+      "sdkFile": "segments.go",
+      "sdkLine": 15,
+      "openApiPath": "/v1/segments",
+      "openApiOperation": "createSegment",
+      "issue": "CreateSegmentParams conditions field type should be verified",
+      "expected": "Conditions should support MongoDB-style query objects",
+      "actual": "Need to verify conditions field allows complex nested structures",
+      "impact": "May not support all MongoDB query operators",
+      "recommendation": "Ensure Conditions field type is map[string]interface{} for flexibility",
+      "codeExample": "type CreateSegmentParams struct {\n    Name        string                 `json:\"name\"`\n    Description *string                `json:\"description,omitempty\"`\n    Conditions  map[string]interface{} `json:\"conditions\"`\n}"
+    },
+    {
+      "id": "INC-012",
+      "severity": "minor",
+      "category": "missing_field",
+      "resource": "contacts",
+      "sdkMethod": "Get",
+      "sdkFile": "contacts.go",
+      "sdkLine": 85,
+      "openApiPath": "/v1/contacts/{contactId}",
+      "openApiOperation": "getContact",
+      "issue": "Contact response struct may be missing status enum validation",
+      "expected": "Status field should validate against: SUBSCRIBED, UNSUBSCRIBED, BOUNCED, COMPLAINED, ARCHIVED",
+      "actual": "Status is likely a plain string without enum validation",
+      "impact": "Invalid status values won't be caught at deserialization",
+      "recommendation": "Consider adding a ContactStatus type with constants",
+      "codeExample": "type ContactStatus string\n\nconst (\n    ContactStatusSubscribed   ContactStatus = \"SUBSCRIBED\"\n    ContactStatusUnsubscribed ContactStatus = \"UNSUBSCRIBED\"\n    ContactStatusBounced      ContactStatus = \"BOUNCED\"\n    ContactStatusComplained   ContactStatus = \"COMPLAINED\"\n    ContactStatusArchived     ContactStatus = \"ARCHIVED\"\n)"
+    }
+  ],
+  "typeDiscrepancies": [
+    {
+      "id": "TYPE-001",
+      "severity": "major",
+      "resource": "contacts",
+      "field": "properties",
+      "jsonTag": "properties",
+      "sdkType": "map[string]string",
+      "openApiType": "object",
+      "openApiFormat": "additionalProperties: string|number",
+      "location": "request",
+      "file": "contacts.go",
+      "line": 22,
+      "recommendation": "Change to map[string]interface{} to support both string and number values",
+      "codeExample": "Properties map[string]interface{} `json:\"properties,omitempty\"`"
+    },
+    {
+      "id": "TYPE-002",
+      "severity": "minor",
+      "resource": "contactProperties",
+      "field": "type",
+      "jsonTag": "type",
+      "sdkType": "string",
+      "openApiType": "string",
+      "openApiFormat": "enum: DATE, NUMBER, STRING",
+      "location": "both",
+      "file": "contact_properties.go",
+      "line": 28,
+      "recommendation": "Consider using a typed constant for property types",
+      "codeExample": "type PropertyType string\n\nconst (\n    PropertyTypeDate   PropertyType = \"DATE\"\n    PropertyTypeNumber PropertyType = \"NUMBER\"\n    PropertyTypeString PropertyType = \"STRING\"\n)"
+    }
+  ],
+  "schemaCompleteness": [
+    {
+      "schemaName": "Contact",
+      "sdkStruct": "Contact",
+      "file": "contacts.go",
+      "missingFields": [
+        {
+          "field": "object",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "Topic",
+      "sdkStruct": "Topic",
+      "file": "topics.go",
+      "missingFields": [
+        {
+          "field": "object",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "Segment",
+      "sdkStruct": "Segment",
+      "file": "segments.go",
+      "missingFields": [
+        {
+          "field": "object",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "ContactProperty",
+      "sdkStruct": "ContactProperty",
+      "file": "contact_properties.go",
+      "missingFields": [
+        {
+          "field": "object",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "Form",
+      "sdkStruct": "Form",
+      "file": "forms.go",
+      "missingFields": [
+        {
+          "field": "object",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "ContactList",
+      "sdkStruct": "ContactList",
+      "file": "contacts.go",
+      "missingFields": [
+        {
+          "field": "object",
+          "type": "string",
+          "required": true
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "consistency",
+      "title": "Add 'object' field to all response structs",
+      "description": "All API responses include an 'object' field indicating the resource type (e.g., 'contact', 'topic', 'segment'). This field is missing from all response structs in the SDK.",
+      "rationale": "The 'object' field allows clients to verify the type of response received and is essential for proper API response handling. It enables type-safe deserialization and helps catch API version mismatches.",
+      "affectedFiles": ["contacts.go", "topics.go", "segments.go", "contact_properties.go", "forms.go"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add an 'Object string `json:\"object\"`' field to Contact, Topic, Segment, ContactProperty, Form, and all list response structs"
+    },
+    {
+      "priority": "high",
+      "category": "type_safety",
+      "title": "Fix Properties type for contacts",
+      "description": "The Properties field in CreateContactParams and UpdateContactParams uses map[string]string, but the API supports both string and number values.",
+      "rationale": "Users cannot set numeric custom properties (e.g., lifetime_value: 1000) with the current implementation. This limits the usefulness of custom contact properties.",
+      "affectedFiles": ["contacts.go"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Change Properties field type from map[string]string to map[string]interface{}"
+    },
+    {
+      "priority": "high",
+      "category": "completeness",
+      "title": "Add missing Forms CRUD operations",
+      "description": "The Forms service is missing Update and Delete methods that exist in the OpenAPI spec.",
+      "rationale": "Users cannot update or delete forms through the SDK, limiting form management capabilities.",
+      "affectedFiles": ["forms.go"],
+      "estimatedEffort": "medium",
+      "suggestedImplementation": "Add Update, UpdateWithContext, Delete, and DeleteWithContext methods to FormsSvc interface and implementation"
+    },
+    {
+      "priority": "medium",
+      "category": "completeness",
+      "title": "Add List API Keys endpoint",
+      "description": "The ApiKeys service only has Create but is missing List method from the OpenAPI spec.",
+      "rationale": "Users cannot retrieve existing API keys through the SDK.",
+      "affectedFiles": ["api_keys.go"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add List and ListWithContext methods to ApiKeysSvc"
+    },
+    {
+      "priority": "medium",
+      "category": "type_safety",
+      "title": "Add typed constants for enum values",
+      "description": "Several fields use plain strings for values that are enums in the API (contact status, property type, topic visibility, form status).",
+      "rationale": "Typed constants provide compile-time safety and better IDE autocompletion for enum values.",
+      "affectedFiles": ["contacts.go", "contact_properties.go", "topics.go", "forms.go"],
+      "estimatedEffort": "medium",
+      "suggestedImplementation": "Create type aliases and const blocks for ContactStatus, PropertyType, TopicVisibility, FormStatus"
+    },
+    {
+      "priority": "low",
+      "category": "documentation",
+      "title": "Add godoc comments to all exported types and methods",
+      "description": "Ensure all public API has comprehensive documentation for godoc generation.",
+      "rationale": "Good documentation improves developer experience and reduces support burden.",
+      "affectedFiles": ["all SDK files"],
+      "estimatedEffort": "medium",
+      "suggestedImplementation": "Add // comments above each exported type, field, and method describing its purpose and usage"
+    }
+  ],
+  "newEndpointsInSpec": [
+    {
+      "path": "/v1/forms/{formId}",
+      "method": "PUT",
+      "operationId": "updateForm",
+      "addedInSpecVersion": "1.0.0",
+      "recommendation": "Implement Update method in FormsSvc"
+    },
+    {
+      "path": "/v1/forms/{formId}",
+      "method": "DELETE",
+      "operationId": "deleteForm",
+      "addedInSpecVersion": "1.0.0",
+      "recommendation": "Implement Delete method in FormsSvc"
+    },
+    {
+      "path": "/v1/api-keys",
+      "method": "GET",
+      "operationId": "listApiKeys",
+      "addedInSpecVersion": "1.0.0",
+      "recommendation": "Implement List method in ApiKeysSvc"
+    }
+  ]
+}

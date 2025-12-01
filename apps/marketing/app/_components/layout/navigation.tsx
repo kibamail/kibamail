@@ -12,11 +12,12 @@ import {
 } from "iconoir-react";
 import { Badge } from "@kibamail/owly";
 import type { ReactNode } from "react";
-import { EngageIcon } from "../_icons/engage.svg";
-import { GithubIcon } from "../_icons/github.svg";
-import { InboundIcon } from "../_icons/inbound.svg";
-import { SendIcon } from "../_icons/send.svg";
-import { ValidateIcon } from "../_icons/validate.svg";
+import { EngageIcon } from "@/app/_components/_icons/engage.svg";
+import { GithubIcon } from "@/app/_components/_icons/github.svg";
+import { InboundIcon } from "@/app/_components/_icons/inbound.svg";
+import { SendIcon } from "@/app/_components/_icons/send.svg";
+import { ValidateIcon } from "@/app/_components/_icons/validate.svg";
+import Link from "next/link";
 
 interface NavMenuLinkProps {
   href: string;
@@ -30,14 +31,14 @@ function NavMenuLink({ href, icon, title, description }: NavMenuLinkProps) {
     <NavigationMenu.Link asChild>
       <a
         href={href}
-        className="flex items-center group gap-4 py-1 px-2 rounded-md hover:bg-kb-bg-secondary transition-colors"
+        className="flex  items-center group gap-4 py-1 px-2 rounded-md hover:bg-kb-bg-secondary transition-colors"
       >
         {icon}
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-kb-content-primary">
+          <span className="text-sm font-sans font-medium text-kb-content-primary">
             {title}
           </span>
-          <span className="text-xs text-kb-content-tertiary dark:text-kb-content-secondary leading-relaxed">
+          <span className="text-xs font-sans text-kb-content-tertiary dark:text-kb-content-secondary leading-relaxed">
             {description}
           </span>
         </div>
@@ -166,7 +167,7 @@ export function Navigation() {
     >
       <NavigationMenu.List className="flex items-center list-none m-0">
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="flex items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
+          <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
             Products
             <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
           </NavigationMenu.Trigger>
@@ -206,10 +207,10 @@ export function Navigation() {
                     <Spark />
                   </Badge>
                   <div className="relative z-10">
-                    <h3 className="text-sm font-semibold text-white dark:text-kb-content-primary mb-1">
+                    <h3 className="text-sm font-sans font-semibold text-white dark:text-kb-content-primary mb-1">
                       Automations
                     </h3>
-                    <p className="text-xs text-white dark:ext-kb-content-primary leading-relaxed font-medium">
+                    <p className="text-xs font-sans text-white dark:ext-kb-content-primary leading-relaxed font-medium">
                       Unlimited email sequences at no additional cost
                     </p>
                   </div>
@@ -220,7 +221,7 @@ export function Navigation() {
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="flex items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
+          <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
             Resources
             <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
           </NavigationMenu.Trigger>
@@ -235,7 +236,7 @@ export function Navigation() {
         </NavigationMenu.Item>
 
         <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="flex items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
+          <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
             Community
             <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
           </NavigationMenu.Trigger>
@@ -253,10 +254,10 @@ export function Navigation() {
                       <Community className="w-6 h-6 text-kb-content-highlight" />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-semibold text-kb-content-primary">
+                      <span className="text-sm font-sans font-semibold text-kb-content-primary">
                         Visit the open forum
                       </span>
-                      <span className="text-xs text-kb-content-tertiary dark:text-kb-content-secondary">
+                      <span className="text-xs font-sans text-kb-content-tertiary dark:text-kb-content-secondary">
                         Ask questions, share ideas
                       </span>
                     </div>
@@ -272,10 +273,10 @@ export function Navigation() {
                       <Donate className="w-6 h-6 text-kb-content-positive" />
                     </div>
                     <div className="flex flex-col gap-1">
-                      <span className="text-sm font-semibold text-kb-content-primary">
+                      <span className="text-sm font-sans font-semibold text-kb-content-primary">
                         Become a contributor
                       </span>
-                      <span className="text-xs text-kb-content-tertiary dark:text-kb-content-secondary">
+                      <span className="text-xs font-sans text-kb-content-tertiary dark:text-kb-content-secondary">
                         Help shape kibamail
                       </span>
                     </div>
@@ -283,7 +284,6 @@ export function Navigation() {
                 </NavigationMenu.Link>
               </div>
 
-              {/* Social links */}
               <div className="flex flex-col gap-1">
                 {communityLinks.map((link) => (
                   <NavMenuLink key={link.href} {...link} />
@@ -293,12 +293,15 @@ export function Navigation() {
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
-        <NavigationMenu.Item className="flex items-center rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm">
-          Pricing
+        <NavigationMenu.Item
+          asChild
+          className="flex font-sans items-center rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm"
+        >
+          <Link href="/pricing">Pricing</Link>
         </NavigationMenu.Item>
         <NavigationMenu.Item
           asChild
-          className="flex gap-2 items-center rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm"
+          className="flex font-sans gap-2 items-center rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm"
         >
           <a
             target="_blank"

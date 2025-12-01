@@ -1,0 +1,53 @@
+[0;34m[INFO][0m Starting audit for php SDK with ID: pr-400-php-20251130-173350-25f8721f
+^D## PHP SDK Audit Complete
+
+**Audit ID:** `pr-400-php-20251130-173350-25f8721f`
+
+**Report saved to:** `.audits/php-sdk/20251130-173350-pr-400-php-20251130-173350-25f8721f.json`
+
+---
+
+### Summary
+
+| Metric | Value |
+|--------|-------|
+| Total API Endpoints | 26 |
+| Implemented | 23 |
+| Missing | 3 |
+| **Coverage** | **88.46%** |
+| Critical Issues | 3 |
+| Medium Issues | 3 |
+
+---
+
+### Critical Issues
+
+1. **Missing `GET /v1/segments/{segmentId}/contacts`**
+   - The Segments service lacks a method to retrieve contacts matching a segment
+   - **Impact:** Users cannot get contacts belonging to a specific segment
+
+2. **Missing `GET /v1/topics/{topicId}/contacts`**
+   - The Topics service lacks a method to retrieve contacts subscribed to a topic
+   - **Impact:** Users cannot get contacts subscribed to a specific topic
+
+3. **Missing `GET /v1/forms/{formId}` verification needed**
+   - Forms service has methods but endpoint mapping should be verified
+
+---
+
+### Top Recommendations
+
+1. **Add nested resource methods:**
+   ```php
+   // Segments::contacts()
+   public function contacts(string $segmentId, array $options = []): Collection
+   
+   // Topics::contacts()
+   public function contacts(string $topicId, array $options = []): Collection
+   ```
+
+2. **Document ApiKeys::create authentication limitation** - requires session auth, not API key
+
+3. **Add typed properties to model classes** for better IDE support and type safety
+[?25h[?25h[0;32m[SUCCESS][0m Completed audit for php SDK
+  Audit ID: pr-400-php-20251130-173350-25f8721f

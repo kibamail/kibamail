@@ -182,10 +182,3 @@
   --color-kb-content-info: var(--content-info);
   --color-kb-content-info-bold: var(--content-info-bold);
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}

@@ -175,8 +175,8 @@
 
   /* Content colors */
   --content-primary: var(--gray-0);
-  --content-secondary: var(--gray-80);
-  --content-tertiary: var(--gray-200);
+  --content-secondary: var(--gray-50);
+  --content-tertiary: var(--gray-80);
   --content-tertiary-inverse: var(--gray-200);
 
   --content-primary-inverse: var(--gray-0);
@@ -266,8 +266,8 @@
 
     /* Content colors */
     --content-primary: var(--gray-0);
-    --content-secondary: var(--gray-80);
-    --content-tertiary: var(--gray-200);
+    --content-secondary: var(--gray-50);
+    --content-tertiary: var(--gray-80);
     --content-tertiary-inverse: var(--gray-200);
 
     --content-primary-inverse: var(--gray-0);
