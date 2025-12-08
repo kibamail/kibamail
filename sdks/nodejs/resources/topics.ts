@@ -7,6 +7,7 @@ type HttpClient = ReturnType<typeof createHttpClient>;
 type CreateTopicBody = paths["/v1/topics"]["post"]["requestBody"]["content"]["application/json"];
 type UpdateTopicBody = paths["/v1/topics/{topicId}"]["put"]["requestBody"]["content"]["application/json"];
 type ListTopicsQuery = paths["/v1/topics"]["get"]["parameters"]["query"];
+type ListTopicContactsQuery = paths["/v1/topics/{topicId}/contacts"]["get"]["parameters"]["query"];
 
 /**
  * Topics Resource
@@ -309,6 +310,68 @@ export class Topics {
     return this.client.DELETE("/v1/topics/{topicId}", {
       params: {
         path: { topicId },
+      },
+    });
+  }
+
+  /**
+   * Retrieve a paginated list of contacts subscribed to a specific topic.
+   *
+   * Returns all contacts that are actively subscribed to the topic.
+   *
+   * **Use Cases:**
+   * - Export subscribers for a specific newsletter topic
+   * - Send targeted communications to topic subscribers
+   * - Analyze subscriber demographics by topic
+   * - Build topic-specific reports
+   * - Verify subscription lists before campaigns
+   *
+   * **Behavior:**
+   * - Returns only actively subscribed contacts (not unsubscribed)
+   * - Contacts are returned in reverse chronological order (newest first)
+   * - Uses cursor-based pagination for efficient data retrieval
+   * - Includes all contact properties (default and custom)
+   * - Maximum 100 contacts per request
+   *
+   * **Required Scope:** `read:topics`, `read:contacts`
+   *
+   * @param topicId - The unique identifier of the topic
+   * @param params - Optional pagination parameters
+   * @param params.limit - Number of contacts to return (default: 20, max: 100)
+   * @param params.after - Cursor for pagination - ID of the last item from the previous page
+   * @param params.before - Cursor for reverse pagination - ID of the first item from the next page
+   *
+   * @returns Promise containing paginated list of contacts subscribed to the topic
+   *
+   * @throws {NotFoundError} Topic not found or doesn't belong to your workspace
+   * @throws {UnauthorizedError} Invalid API key or missing required scopes
+   *
+   * @example
+   * ```ts
+   * // Get contacts subscribed to a topic
+   * const { data, error } = await kibamail.topics.listContacts("topic_abc123", {
+   *   limit: 100
+   * });
+   *
+   * // Count subscribers to a topic
+   * let totalSubscribers = 0;
+   * let cursor = undefined;
+   * do {
+   *   const page = await kibamail.topics.listContacts("topic_abc123", {
+   *     limit: 100,
+   *     after: cursor
+   *   });
+   *   totalSubscribers += page.data.data.length;
+   *   cursor = page.data.hasMore ? page.data.data[page.data.data.length - 1].id : undefined;
+   * } while (cursor);
+   * console.log(`Topic has ${totalSubscribers} subscribers`);
+   * ```
+   */
+  listContacts(topicId: string, params?: ListTopicContactsQuery) {
+    return this.client.GET("/v1/topics/{topicId}/contacts", {
+      params: {
+        path: { topicId },
+        query: params,
       },
     });
   }

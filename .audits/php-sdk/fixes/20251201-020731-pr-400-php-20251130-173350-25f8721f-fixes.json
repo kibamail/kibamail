@@ -1,0 +1,219 @@
+{
+  "fixMetadata": {
+    "auditReportPath": ".audits/php-sdk/20251130-173350-pr-400-php-20251130-173350-25f8721f.json",
+    "auditId": "pr-400-php-20251130-173350-25f8721f",
+    "fixTimestamp": "2025-12-01T02:07:31Z",
+    "sdkName": "kibamail-php",
+    "sdkDirectory": "sdks/php"
+  },
+  "summary": {
+    "totalIssuesInAudit": 6,
+    "issuesFixed": 6,
+    "issuesSkipped": 0,
+    "issuesFailed": 0
+  },
+  "fixesApplied": [
+    {
+      "issueId": "MISSING_ENDPOINT_001",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "file": "sdks/php/src/Service/Segments.php",
+      "description": "Added contacts() method to retrieve contacts that match a segment's filter conditions",
+      "changesMade": [
+        {
+          "file": "sdks/php/src/Service/Segments.php",
+          "line": 68,
+          "change": "Added new contacts(string $segmentId, array $options = []): Collection method"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "MISSING_ENDPOINT_002",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "file": "sdks/php/src/Service/Topics.php",
+      "description": "Added contacts() method to retrieve contacts subscribed to a topic",
+      "changesMade": [
+        {
+          "file": "sdks/php/src/Service/Topics.php",
+          "line": 68,
+          "change": "Added new contacts(string $topicId, array $options = []): Collection method"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "MISSING_ENDPOINT_003",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "file": "sdks/php/src/Service/Forms.php",
+      "description": "Verified Forms service correctly maps GET/PUT/DELETE endpoints for /v1/forms/{formId}",
+      "changesMade": [],
+      "status": "verified",
+      "note": "Forms service already correctly implements all endpoints via Payload class"
+    },
+    {
+      "issueId": "AUTH_INCONSISTENCY_001",
+      "severity": "medium",
+      "category": "authentication",
+      "file": "sdks/php/src/Service/ApiKeys.php",
+      "description": "Added PHPDoc warning about session authentication requirement for ApiKeys::create",
+      "changesMade": [
+        {
+          "file": "sdks/php/src/Service/ApiKeys.php",
+          "line": 11,
+          "change": "Added PHPDoc comment warning that this endpoint requires session authentication"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "TYPE_SUGGESTION_001",
+      "severity": "medium",
+      "category": "type_safety",
+      "file": "sdks/php/src/Contact.php",
+      "description": "Added @property-read PHPDoc annotations to model classes for IDE support and type safety",
+      "changesMade": [
+        {
+          "file": "sdks/php/src/Contact.php",
+          "change": "Added @property-read annotations for id, email, firstName, lastName, phone, country, timezone, city, status, subscribedAt, unsubscribedAt, properties, createdAt, updatedAt"
+        },
+        {
+          "file": "sdks/php/src/Topic.php",
+          "change": "Added @property-read annotations for id, name, description, visibility, defaultOptIn, createdAt, updatedAt"
+        },
+        {
+          "file": "sdks/php/src/Segment.php",
+          "change": "Added @property-read annotations for id, name, description, conditions, createdAt, updatedAt"
+        },
+        {
+          "file": "sdks/php/src/Form.php",
+          "change": "Added @property-read annotations for id, name, description, status, createdAt, updatedAt"
+        },
+        {
+          "file": "sdks/php/src/ContactProperty.php",
+          "change": "Added @property-read annotations for id, name, type, defaultValue, createdAt, updatedAt"
+        },
+        {
+          "file": "sdks/php/src/ApiKey.php",
+          "change": "Added @property-read annotations for id, name, key, createdAt"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "DOCS_SUGGESTION_001",
+      "severity": "medium",
+      "category": "documentation",
+      "file": "sdks/php/src/Service/Contacts.php",
+      "description": "Added PHPDoc @param annotations with array shapes for create/update/search methods across all services",
+      "changesMade": [
+        {
+          "file": "sdks/php/src/Service/Contacts.php",
+          "change": "Added @param array shapes for create(), update(), and search() methods"
+        },
+        {
+          "file": "sdks/php/src/Service/Topics.php",
+          "change": "Added @param array shapes for create() and update() methods"
+        },
+        {
+          "file": "sdks/php/src/Service/Segments.php",
+          "change": "Added @param array shapes for create() and update() methods"
+        },
+        {
+          "file": "sdks/php/src/Service/Forms.php",
+          "change": "Added @param array shapes for create() and update() methods"
+        },
+        {
+          "file": "sdks/php/src/Service/ContactProperties.php",
+          "change": "Added @param array shapes for create() and update() methods"
+        },
+        {
+          "file": "sdks/php/src/Service/ApiKeys.php",
+          "change": "Added @param array shape for create() method"
+        }
+      ],
+      "status": "fixed"
+    }
+  ],
+  "endpointsAdded": [
+    {
+      "endpoint": "GET /v1/segments/{segmentId}/contacts",
+      "service": "Segments",
+      "method": "contacts",
+      "file": "sdks/php/src/Service/Segments.php",
+      "returnType": "Collection<Contact>"
+    },
+    {
+      "endpoint": "GET /v1/topics/{topicId}/contacts",
+      "service": "Topics",
+      "method": "contacts",
+      "file": "sdks/php/src/Service/Topics.php",
+      "returnType": "Collection<Contact>"
+    }
+  ],
+  "modelsModified": [
+    {
+      "name": "Contact",
+      "file": "sdks/php/src/Contact.php",
+      "propertiesAdded": [],
+      "propertiesDocumented": ["id", "email", "firstName", "lastName", "phone", "country", "timezone", "city", "status", "subscribedAt", "unsubscribedAt", "properties", "createdAt", "updatedAt"]
+    },
+    {
+      "name": "Topic",
+      "file": "sdks/php/src/Topic.php",
+      "propertiesAdded": [],
+      "propertiesDocumented": ["id", "name", "description", "visibility", "defaultOptIn", "createdAt", "updatedAt"]
+    },
+    {
+      "name": "Segment",
+      "file": "sdks/php/src/Segment.php",
+      "propertiesAdded": [],
+      "propertiesDocumented": ["id", "name", "description", "conditions", "createdAt", "updatedAt"]
+    },
+    {
+      "name": "Form",
+      "file": "sdks/php/src/Form.php",
+      "propertiesAdded": [],
+      "propertiesDocumented": ["id", "name", "description", "status", "createdAt", "updatedAt"]
+    },
+    {
+      "name": "ContactProperty",
+      "file": "sdks/php/src/ContactProperty.php",
+      "propertiesAdded": [],
+      "propertiesDocumented": ["id", "name", "type", "defaultValue", "createdAt", "updatedAt"]
+    },
+    {
+      "name": "ApiKey",
+      "file": "sdks/php/src/ApiKey.php",
+      "propertiesAdded": [],
+      "propertiesDocumented": ["id", "name", "key", "createdAt"]
+    }
+  ],
+  "modelsCreated": [],
+  "skippedIssues": [],
+  "failedFixes": [],
+  "verificationResults": {
+    "phpSyntax": {
+      "success": true,
+      "filesChecked": 31,
+      "errors": []
+    }
+  },
+  "filesModified": [
+    "sdks/php/src/Service/Segments.php",
+    "sdks/php/src/Service/Topics.php",
+    "sdks/php/src/Service/ApiKeys.php",
+    "sdks/php/src/Service/Contacts.php",
+    "sdks/php/src/Service/Forms.php",
+    "sdks/php/src/Service/ContactProperties.php",
+    "sdks/php/src/Contact.php",
+    "sdks/php/src/Topic.php",
+    "sdks/php/src/Segment.php",
+    "sdks/php/src/Form.php",
+    "sdks/php/src/ContactProperty.php",
+    "sdks/php/src/ApiKey.php"
+  ],
+  "filesCreated": []
+}

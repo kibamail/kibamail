@@ -4,47 +4,59 @@ import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
-import { EditPencil, MoreHoriz, Trash, Eye, Copy } from "iconoir-react";
+import { MoreHoriz, Trash, Eye, Copy } from "iconoir-react";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import Link from "next/link";
-import type { Form } from "@prisma/client";
+import type { FormStatus } from "@prisma/client";
+import { EditFormButton } from "./edit-form-button";
 
-type FormWithSubmissions = Form & {
+type FormListItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  status: FormStatus;
+  effectiveStatus: string;
   submissions: number;
+  draftVersionId?: string;
 };
 
-function FormActionsDropdown({ form }: { form: FormWithSubmissions }) {
+function FormActionsDropdown({ form }: { form: FormListItem }) {
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <Button variant="secondary" size="sm">
-          <MoreHoriz className="w-4 h-4" />
-        </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item>
-          <EditPencil className="w-4 h-4" />
-          Edit
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Eye className="w-4 h-4" />
-          Preview
-        </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          <Copy className="w-4 h-4" />
-          Duplicate
-        </DropdownMenu.Item>
-        <DropdownMenu.Separator />
-        <DropdownMenu.Item className="text-kb-content-error">
-          <Trash className="w-4 h-4" />
-          Delete
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+    <div className="flex items-center gap-2">
+      <EditFormButton
+        formId={form.id}
+        formName={form.name}
+        formStatus={form.status}
+        draftVersionId={form.draftVersionId}
+        showLabel={false}
+      />
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <Button variant="secondary" size="sm">
+            <MoreHoriz className="w-4 h-4" />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end" className="w-48">
+          <DropdownMenu.Item>
+            <Eye className="w-4 h-4" />
+            Preview
+          </DropdownMenu.Item>
+          <DropdownMenu.Item>
+            <Copy className="w-4 h-4" />
+            Duplicate
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator />
+          <DropdownMenu.Item className="text-kb-content-error">
+            <Trash className="w-4 h-4" />
+            Delete
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+    </div>
   );
 }
 
-export function FormsTable({ forms }: { forms: FormWithSubmissions[] }) {
+export function FormsTable({ forms }: { forms: FormListItem[] }) {
   if (forms.length === 0) {
     return (
       <EmptyCard.Root>
@@ -73,7 +85,7 @@ export function FormsTable({ forms }: { forms: FormWithSubmissions[] }) {
             <Table.Row key={form.id}>
               <Table.Cell>
                 <Link
-                  href={`/forms/${form.id}`}
+                  href={`/w/forms/${form.id}`}
                   className="font-medium underline underline-offset-4 cursor-pointer hover:text-kb-content-tertiary transition ease-linear"
                 >
                   {form.name}
@@ -82,17 +94,17 @@ export function FormsTable({ forms }: { forms: FormWithSubmissions[] }) {
               <Table.Cell>
                 <Badge
                   variant={
-                    form.status === "PUBLISHED"
+                    form.effectiveStatus === "PUBLISHED"
                       ? "success"
-                      : form.status === "DRAFT"
+                      : form.effectiveStatus === "DRAFT"
                         ? "neutral"
                         : "warning"
                   }
                   size="sm"
                 >
-                  {form.status === "PUBLISHED"
+                  {form.effectiveStatus === "PUBLISHED"
                     ? "Live"
-                    : form.status === "DRAFT"
+                    : form.effectiveStatus === "DRAFT"
                       ? "Draft"
                       : "Archived"}
                 </Badge>

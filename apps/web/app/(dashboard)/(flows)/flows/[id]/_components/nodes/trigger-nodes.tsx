@@ -37,11 +37,11 @@ export function ContactPropertyUpdatedNode(props: NodeProps) {
   );
 }
 
-export function WebhookTriggerNode(props: NodeProps) {
+export function EventTriggeredNode(props: NodeProps) {
   return (
     <BaseFlowNode
       icon={<Server className="w-5 h-5" />}
-      label="Webhook trigger"
+      label="Event triggered"
       type="trigger"
       selected={props.selected}
     />

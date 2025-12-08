@@ -21,6 +21,7 @@ import {
   type CreatedApiKey,
 } from "@/tests/utils";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -213,5 +214,26 @@ describe("POST /api/v1/contacts", () => {
     expect(responseData.error.code).toBe(ErrorCode.INSUFFICIENT_SCOPE);
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
+  });
+});
+
+describe("POST /api/v1/contacts - Source Type", () => {
+  test("should set sourceType to API when creating via external API", async () => {
+    const contactData = fakeContact();
+    const request = post("/contacts", contactData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+
+    // Verify the contact has sourceType = API
+    const contact = await prisma.contact.findUnique({
+      where: { id: responseData.id },
+    });
+
+    expect(contact).not.toBeNull();
+    expect(contact?.sourceType).toBe("API");
+    expect(contact?.sourceId).toBeNull();
   });
 });

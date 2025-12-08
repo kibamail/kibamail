@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-import { publishForm } from "../../handler";
+import { publishForm } from "@/app/api/v1/forms/handler";
 
 /**
  * POST /api/v1/forms/[formId]/publish

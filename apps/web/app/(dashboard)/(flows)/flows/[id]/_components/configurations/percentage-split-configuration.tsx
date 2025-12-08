@@ -1,7 +1,7 @@
 "use client";
 
 import * as TextField from "@kibamail/owly/text-field";
-import { useFlowStore } from "../../state/flow-store";
+import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
 import { useCallback } from "react";
 
 export function PercentageSplitConfiguration() {

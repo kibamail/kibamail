@@ -1,0 +1,35 @@
+[0;34m[INFO][0m Starting fix for nodejs SDK
+[0;34m[INFO][0m Using report: .audits/nodejs-sdk/2025-11-30T17-33-50-pr-400-nodejs-20251130-173350-e034012b.json
+^D## Summary
+
+I've successfully implemented all fixes for the Node.js SDK audit report. Here's what was done:
+
+### Issues Fixed: 8/8
+
+**Schema Regeneration (resolved 4 issues)**
+- Regenerated `schema.d.ts` from OpenAPI spec using `pnpm run schema:generate`
+- This fixed SCHEMA-001, SCHEMA-002, INC-002, and TYPE-001
+
+**Critical Issues Fixed (2)**
+1. **INC-001**: Fixed trailing slash in `apiKeys.create()` - changed `/v1/api-keys/` to `/v1/api-keys`
+2. **INC-002**: Fixed missing `id` field in API key response (resolved by schema regeneration)
+
+**Major Issues Fixed (4)**
+3. **INC-003**: Added `list()` method to ApiKeys resource
+4. **INC-004**: Added `delete()` method to ApiKeys resource  
+5. **INC-005**: Added `listContacts()` method to Topics resource
+6. **INC-006**: Added `createVersion()` method to Forms resource
+
+### Files Modified
+- `resources/api-keys.ts` - Fixed path + added 2 methods
+- `resources/topics.ts` - Added `listContacts()` method
+- `resources/forms.ts` - Added `createVersion()` method
+- `schema.d.ts` - Regenerated from OpenAPI spec
+
+### Verification
+- SDK source files compile successfully with TypeScript
+- Pre-existing test file errors in `tests/forms.test.ts:86-87` are unrelated to these fixes (test references properties not in the OpenAPI schema)
+
+### Fix Report
+Created at: `.audits/nodejs-sdk/fixes/2025-12-01T00-00-00-pr-400-nodejs-20251130-173350-e034012b-fixes.json`
+[?25h[?25h[0;32m[SUCCESS][0m Completed fixes for nodejs SDK

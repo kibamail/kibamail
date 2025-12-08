@@ -150,23 +150,87 @@ For each entry in `recommendations`:
 - **documentation**: Improve JSDoc comments
 - **new_feature**: Add new functionality
 
-### Step 4: Verify Changes
+### Step 4: Start Mock Server and Run Tests
 
-After implementing all fixes:
+**CRITICAL: All tests MUST pass at 100% before fixes are considered complete.**
 
-1. **Check TypeScript compilation**:
-   ```bash
-   cd sdks/nodejs && pnpm tsc --noEmit
-   ```
+#### 4.1 Check if Mock Server is Running
 
-2. **Run tests** (if they exist):
-   ```bash
-   cd sdks/nodejs && pnpm test
-   ```
+The SDK tests require the Prism mock server. Check if it's already running:
 
-3. **Verify no regressions**:
-   - Ensure existing methods still work
-   - Check that new methods follow patterns
+```bash
+# Check if container is running
+docker ps | grep kibamail-test-sdk-prism
+```
+
+#### 4.2 Start Mock Server if Not Running
+
+If the mock server is not running, start it:
+
+```bash
+# Option 1: Using the ensure script (recommended - idempotent)
+./test-sdk-infra/scripts/ensure-test-sdk-infra.sh
+
+# Option 2: Using docker-compose directly
+cd test-sdk-infra && docker-compose up -d
+
+# Option 3: Using make (from repo root)
+make test-sdk-infra-start
+```
+
+**Wait for health check to pass:**
+```bash
+# Check health status (should show "healthy")
+docker inspect kibamail-test-sdk-prism --format='{{.State.Health.Status}}'
+
+# Or test connectivity
+curl -s http://localhost:4010 > /dev/null && echo "Mock server ready"
+```
+
+**Mock Server Details:**
+- **URL:** `http://localhost:4010`
+- **Container:** `kibamail-test-sdk-prism`
+- **Image:** `stoplight/prism:5`
+- **OpenAPI Spec:** `apps/web/public/openapi.v1.json`
+
+#### 4.3 Verify TypeScript Compilation
+
+```bash
+cd sdks/nodejs && pnpm tsc --noEmit
+```
+
+If compilation fails, fix the TypeScript errors before proceeding.
+
+#### 4.4 Run All Tests
+
+```bash
+cd sdks/nodejs && pnpm test
+```
+
+**Test Configuration:**
+- Test framework: Vitest
+- Test files: `tests/**/*.test.ts`
+- Mock API URL: `http://localhost:4010`
+- Mock API Key: `kb_test_mock_api_key_12345`
+
+#### 4.5 Ensure 100% Test Pass Rate
+
+**ALL tests must pass before marking fixes as complete.**
+
+If tests fail:
+1. Analyze the failure output
+2. Determine if it's related to your fixes or pre-existing
+3. If related to your fixes, update the code to fix the test
+4. Re-run tests until 100% pass
+5. If a pre-existing test fails, document it but continue
+
+**Do NOT mark fixes as complete if any tests fail due to your changes.**
+
+#### 4.6 Run Tests with Coverage (Optional)
+
+```bash
+cd sdks/nodejs && pnpm test:coverage
+```
 
 ### Step 5: Generate Fix Report
 
@@ -241,14 +305,24 @@ Create a fix report at:
     }
   ],
   "verificationResults": {
+    "mockServerStarted": {
+      "wasRunning": false,
+      "startedByAgent": true,
+      "url": "http://localhost:4010",
+      "healthStatus": "healthy"
+    },
     "typescriptCompilation": {
       "success": true,
       "errors": []
     },
     "testsRun": {
       "success": true,
-      "passed": 10,
-      "failed": 0
+      "totalTests": 25,
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0,
+      "passRate": "100%",
+      "duration": "5.2s"
     }
   },
   "filesModified": [

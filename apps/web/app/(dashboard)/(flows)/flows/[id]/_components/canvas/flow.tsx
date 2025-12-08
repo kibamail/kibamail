@@ -8,16 +8,14 @@ import {
   applyEdgeChanges,
   applyNodeChanges,
 } from "@xyflow/react";
-import type {
-  OnConnect,
-  OnEdgesChange,
-  OnNodesChange,
-} from "@xyflow/react";
+import type { OnConnect, OnEdgesChange, OnNodesChange } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
+import { RuleNodeType } from "@/app/(dashboard)/(flows)/flows/[id]/types/node-types";
+import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
 import { edgeTypes } from "../edges";
 import { nodeTypes } from "../nodes";
-import { useFlowStore } from "../../state/flow-store";
+import { FlowToolbar } from "./flow-toolbar";
 import "./flow.css";
 
 export function FlowCanvas() {
@@ -47,12 +45,12 @@ export function FlowCanvas() {
       let edgeType = "custom-edge";
       let edgeData = {};
 
-      if (sourceNode?.type === "if-else") {
+      if (sourceNode?.type === RuleNodeType.IF_ELSE) {
         edgeType =
           connection.sourceHandle === "true"
             ? "if-else-true-edge"
             : "if-else-false-edge";
-      } else if (sourceNode?.type === "percentage-split") {
+      } else if (sourceNode?.type === RuleNodeType.PERCENTAGE_SPLIT) {
         edgeType =
           connection.sourceHandle === "branch-a"
             ? "percentage-split-a-edge"
@@ -89,7 +87,7 @@ export function FlowCanvas() {
   );
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full bg-kb-bg-hover relative">
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -104,6 +102,7 @@ export function FlowCanvas() {
         <Background />
         <Controls />
       </ReactFlow>
+      <FlowToolbar />
     </div>
   );
 }

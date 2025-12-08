@@ -2,11 +2,11 @@
 
 import { Button } from "@kibamail/owly";
 import {
+  ArrowLeft,
   Clock,
   DataTransferBoth,
   Mail,
   MinusCircle,
-  NavArrowLeft,
   NetworkReverse,
   Percentage,
   PlusCircle,
@@ -14,28 +14,56 @@ import {
   UserXmark,
 } from "iconoir-react";
 import { useCallback } from "react";
-import { useFlowStore } from "../state/flow-store";
+import {
+  ActionNodeType,
+  RuleNodeType,
+  isTriggerNodeType,
+} from "@/app/(dashboard)/(flows)/flows/[id]/types/node-types";
+import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
 import { AddNodeCard } from "./add-node-card";
 import { TriggerConfiguration } from "./configurations/trigger-configuration";
 import { PercentageSplitConfiguration } from "./configurations/percentage-split-configuration";
+import { UpdateContactConfig } from "./configurations/update-contact-config";
+import {
+  AddToTopicConfig,
+  RemoveFromTopicConfig,
+} from "./configurations/topic-config";
+import { TimeDelayConfig } from "./configurations/time-delay-config";
+import { IfElseConfig } from "./configurations/if-else-config";
 
 const actionNodes = [
-  { id: "send-email", label: "Send email", icon: Mail },
-  { id: "send-webhook", label: "Send webhook", icon: DataTransferBoth },
-  { id: "update-contact", label: "Update contact", icon: User },
-  { id: "unsubscribe-contact", label: "Unsubscribe contact", icon: UserXmark },
-  { id: "add-to-topic", label: "Add contact to topic", icon: PlusCircle },
+  { id: ActionNodeType.SEND_EMAIL, label: "Send email", icon: Mail },
   {
-    id: "remove-from-topic",
+    id: ActionNodeType.SEND_WEBHOOK,
+    label: "Send webhook",
+    icon: DataTransferBoth,
+  },
+  { id: ActionNodeType.UPDATE_CONTACT, label: "Update contact", icon: User },
+  {
+    id: ActionNodeType.UNSUBSCRIBE_CONTACT,
+    label: "Unsubscribe contact",
+    icon: UserXmark,
+  },
+  {
+    id: ActionNodeType.ADD_TO_TOPIC,
+    label: "Add contact to topic",
+    icon: PlusCircle,
+  },
+  {
+    id: ActionNodeType.REMOVE_FROM_TOPIC,
     label: "Remove contact from topic",
     icon: MinusCircle,
   },
 ];
 
 const ruleNodes = [
-  { id: "if-else", label: "If/else", icon: NetworkReverse },
-  { id: "percentage-split", label: "Percentage split", icon: Percentage },
-  { id: "time-delay", label: "Time delay", icon: Clock },
+  { id: RuleNodeType.IF_ELSE, label: "If/else", icon: NetworkReverse },
+  {
+    id: RuleNodeType.PERCENTAGE_SPLIT,
+    label: "Percentage split",
+    icon: Percentage,
+  },
+  { id: RuleNodeType.TIME_DELAY, label: "Time delay", icon: Clock },
 ];
 
 export function FlowComposerSidebar() {
@@ -50,13 +78,12 @@ export function FlowComposerSidebar() {
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
   const isConfigurationMode = sidebarScreen === "node-configuration";
 
-  const handleAddNode = useCallback(
+  const onAddNode = useCallback(
     (nodeType: string) => {
       const nodeId = `${nodeType}-${Date.now()}`;
 
-      // Set default data based on node type
       let data = {};
-      if (nodeType === "percentage-split") {
+      if (nodeType === RuleNodeType.PERCENTAGE_SPLIT) {
         data = {
           splits: [
             { id: "branch-a", name: "A", percentage: 50 },
@@ -78,43 +105,43 @@ export function FlowComposerSidebar() {
   );
 
   if (isConfigurationMode && selectedNode) {
-    // Determine which configuration to show based on node type
-    const isTriggerNode =
-      selectedNode.type === "form-filled" ||
-      selectedNode.type === "contact-subscribed" ||
-      selectedNode.type === "contact-property-updated" ||
-      selectedNode.type === "webhook-trigger";
-
-    const isPercentageSplitNode = selectedNode.type === "percentage-split";
+    const nodeType = selectedNode.type as string;
+    const isTriggerNode = isTriggerNodeType(nodeType);
+    const isPercentageSplitNode = nodeType === RuleNodeType.PERCENTAGE_SPLIT;
+    const isUpdateContactNode = nodeType === ActionNodeType.UPDATE_CONTACT;
+    const isAddToTopicNode = nodeType === ActionNodeType.ADD_TO_TOPIC;
+    const isRemoveFromTopicNode = nodeType === ActionNodeType.REMOVE_FROM_TOPIC;
+    const isTimeDelayNode = nodeType === RuleNodeType.TIME_DELAY;
+    const isIfElseNode = nodeType === RuleNodeType.IF_ELSE;
 
     return (
-      <div className="w-[360px] box-border p-4 shrink-0 h-full border-l border-kb-border-tertiary flex flex-col gap-6">
-        {/* Header with back button */}
-        <div className="flex items-center gap-3">
+      <div className="w-[390px] box-border shrink-0 h-full border-l border-kb-border-tertiary flex flex-col bg-kb-bg-layout">
+        <div className="flex items-center gap-3 h-12 px-3 border-b border-kb-border-tertiary">
           <Button
             variant="tertiary"
             size="sm"
             onClick={closeNodeConfiguration}
             className="shrink-0"
           >
-            <NavArrowLeft className="w-5 h-5" />
+            <ArrowLeft className="w-4 h-4" />
           </Button>
-          <h2 className="text-base font-semibold text-kb-content-primary">
-            Configure Node
-          </h2>
         </div>
 
-        {/* Configuration content based on node type */}
-        {isTriggerNode && <TriggerConfiguration />}
-        {isPercentageSplitNode && <PercentageSplitConfiguration />}
+        <div className="p-4">
+          {isTriggerNode && <TriggerConfiguration />}
+          {isPercentageSplitNode && <PercentageSplitConfiguration />}
+          {isUpdateContactNode && <UpdateContactConfig />}
+          {isAddToTopicNode && <AddToTopicConfig />}
+          {isRemoveFromTopicNode && <RemoveFromTopicConfig />}
+          {isTimeDelayNode && <TimeDelayConfig />}
+          {isIfElseNode && <IfElseConfig />}
+        </div>
       </div>
     );
   }
 
-  // Node selector mode (default)
   return (
-    <div className="w-[360px] box-border p-4 shrink-0 h-full border-l border-kb-border-tertiary flex flex-col gap-6">
-      {/* Actions Group */}
+    <div className="w-[390px] box-border p-4 shrink-0 h-full border-l border-kb-border-tertiary flex flex-col gap-6 bg-kb-bg-layout">
       <div className="flex flex-col gap-3">
         <h3 className="text-xs font-semibold text-kb-content-tertiary uppercase tracking-wider">
           Actions
@@ -125,13 +152,12 @@ export function FlowComposerSidebar() {
               key={node.id}
               icon={<node.icon className="w-5 h-5" />}
               label={node.label}
-              onClick={() => handleAddNode(node.id)}
+              onClick={() => onAddNode(node.id)}
             />
           ))}
         </div>
       </div>
 
-      {/* Rules Group */}
       <div className="flex flex-col gap-3">
         <h3 className="text-xs font-semibold text-kb-content-tertiary uppercase tracking-wider">
           Rules
@@ -142,7 +168,7 @@ export function FlowComposerSidebar() {
               key={node.id}
               icon={<node.icon className="w-5 h-5" />}
               label={node.label}
-              onClick={() => handleAddNode(node.id)}
+              onClick={() => onAddNode(node.id)}
             />
           ))}
         </div>

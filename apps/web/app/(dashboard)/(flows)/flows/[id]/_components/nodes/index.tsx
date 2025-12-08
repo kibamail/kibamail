@@ -1,5 +1,11 @@
 import type { NodeTypes } from "@xyflow/react";
 import {
+  ActionNodeType,
+  RuleNodeType,
+  SpecialNodeType,
+  TriggerNodeType,
+} from "@/app/(dashboard)/(flows)/flows/[id]/types/node-types";
+import {
   AddToTopicNode,
   RemoveFromTopicNode,
   SendEmailNode,
@@ -12,28 +18,32 @@ import {
   ContactPropertyUpdatedNode,
   ContactSubscribedNode,
   FormFilledNode,
-  WebhookTriggerNode,
+  EventTriggeredNode,
 } from "./trigger-nodes";
+import { EmptyNode } from "./empty-node";
 
 export const nodeTypes: NodeTypes = {
   // Trigger nodes
-  "form-filled": FormFilledNode,
-  "contact-subscribed": ContactSubscribedNode,
-  "contact-property-updated": ContactPropertyUpdatedNode,
-  "webhook-trigger": WebhookTriggerNode,
+  [TriggerNodeType.FORM_FILLED]: FormFilledNode,
+  [TriggerNodeType.CONTACT_SUBSCRIBED]: ContactSubscribedNode,
+  [TriggerNodeType.CONTACT_PROPERTY_UPDATED]: ContactPropertyUpdatedNode,
+  [TriggerNodeType.EVENT_TRIGGERED]: EventTriggeredNode,
 
   // Action nodes
-  "send-email": SendEmailNode,
-  "send-webhook": SendWebhookNode,
-  "update-contact": UpdateContactNode,
-  "unsubscribe-contact": UnsubscribeContactNode,
-  "add-to-topic": AddToTopicNode,
-  "remove-from-topic": RemoveFromTopicNode,
+  [ActionNodeType.SEND_EMAIL]: SendEmailNode,
+  [ActionNodeType.SEND_WEBHOOK]: SendWebhookNode,
+  [ActionNodeType.UPDATE_CONTACT]: UpdateContactNode,
+  [ActionNodeType.UNSUBSCRIBE_CONTACT]: UnsubscribeContactNode,
+  [ActionNodeType.ADD_TO_TOPIC]: AddToTopicNode,
+  [ActionNodeType.REMOVE_FROM_TOPIC]: RemoveFromTopicNode,
 
   // Rule nodes
-  "if-else": IfElseNode,
-  "percentage-split": PercentageSplitNode,
-  "time-delay": TimeDelayNode,
+  [RuleNodeType.IF_ELSE]: IfElseNode,
+  [RuleNodeType.PERCENTAGE_SPLIT]: PercentageSplitNode,
+  [RuleNodeType.TIME_DELAY]: TimeDelayNode,
+
+  // Special nodes
+  [SpecialNodeType.EMPTY]: EmptyNode,
 };
 
 // Export individual components for direct use if needed
@@ -41,6 +51,8 @@ export {
   AddToTopicNode,
   ContactPropertyUpdatedNode,
   ContactSubscribedNode,
+  EmptyNode,
+  EventTriggeredNode,
   FormFilledNode,
   IfElseNode,
   PercentageSplitNode,
@@ -50,5 +62,4 @@ export {
   TimeDelayNode,
   UnsubscribeContactNode,
   UpdateContactNode,
-  WebhookTriggerNode,
 };

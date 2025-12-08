@@ -1,0 +1,407 @@
+{
+  "auditId": "pr-456-go-20251201-030854-bb3c57cb",
+  "timestamp": "2025-12-01T03:11:56Z",
+  "sdkType": "go",
+  "sdkVersion": "0.0.1-alpha.0",
+  "goModule": "github.com/kibamail/kibamail/packages/go-sdk",
+  "goVersion": "1.23",
+  "summary": {
+    "totalOpenApiEndpoints": 17,
+    "totalSdkMethods": 31,
+    "implementedEndpoints": 14,
+    "missingEndpoints": 3,
+    "extraEndpoints": 0,
+    "coveragePercentage": 82.35,
+    "totalIssues": 15,
+    "criticalIssues": 3,
+    "majorIssues": 6,
+    "minorIssues": 6
+  },
+  "openApiEndpoints": [
+    {"path": "/v1/api-keys", "method": "GET", "summary": "List API Keys"},
+    {"path": "/v1/api-keys", "method": "POST", "summary": "Create API Key"},
+    {"path": "/v1/api-keys/{keyId}", "method": "DELETE", "summary": "Delete API Key"},
+    {"path": "/v1/contacts", "method": "GET", "summary": "List Contacts"},
+    {"path": "/v1/contacts", "method": "POST", "summary": "Create Contact"},
+    {"path": "/v1/contacts/{contactId}", "method": "GET", "summary": "Get Contact"},
+    {"path": "/v1/contacts/{contactId}", "method": "PUT", "summary": "Update Contact"},
+    {"path": "/v1/contacts/{contactId}", "method": "DELETE", "summary": "Delete Contact"},
+    {"path": "/v1/contacts/search", "method": "POST", "summary": "Search Contacts"},
+    {"path": "/v1/topics", "method": "GET", "summary": "List Topics"},
+    {"path": "/v1/topics", "method": "POST", "summary": "Create Topic"},
+    {"path": "/v1/topics/{topicId}", "method": "GET", "summary": "Get Topic"},
+    {"path": "/v1/topics/{topicId}", "method": "PUT", "summary": "Update Topic"},
+    {"path": "/v1/topics/{topicId}", "method": "DELETE", "summary": "Delete Topic"},
+    {"path": "/v1/topics/{topicId}/contacts", "method": "GET", "summary": "Get Topic Contacts"},
+    {"path": "/v1/segments", "method": "GET", "summary": "List Segments"},
+    {"path": "/v1/segments", "method": "POST", "summary": "Create Segment"},
+    {"path": "/v1/segments/{segmentId}", "method": "GET", "summary": "Get Segment"},
+    {"path": "/v1/segments/{segmentId}", "method": "PUT", "summary": "Update Segment"},
+    {"path": "/v1/segments/{segmentId}", "method": "DELETE", "summary": "Delete Segment"},
+    {"path": "/v1/segments/{segmentId}/contacts", "method": "GET", "summary": "List Segment Contacts"},
+    {"path": "/v1/contact-properties", "method": "GET", "summary": "List Contact Properties"},
+    {"path": "/v1/contact-properties", "method": "POST", "summary": "Create Contact Property"},
+    {"path": "/v1/contact-properties/{contactPropertyId}", "method": "GET", "summary": "Get Contact Property"},
+    {"path": "/v1/contact-properties/{contactPropertyId}", "method": "PUT", "summary": "Update Contact Property"},
+    {"path": "/v1/contact-properties/{contactPropertyId}", "method": "DELETE", "summary": "Delete Contact Property"},
+    {"path": "/v1/forms", "method": "GET", "summary": "List Forms"},
+    {"path": "/v1/forms", "method": "POST", "summary": "Create Form"},
+    {"path": "/v1/forms/{formId}", "method": "GET", "summary": "Get Form"},
+    {"path": "/v1/forms/{formId}", "method": "PUT", "summary": "Update Form"},
+    {"path": "/v1/forms/{formId}", "method": "DELETE", "summary": "Delete Form"},
+    {"path": "/v1/forms/{formId}/versions", "method": "GET", "summary": "List Form Versions"},
+    {"path": "/v1/forms/{formId}/versions", "method": "POST", "summary": "Create Form Version"},
+    {"path": "/v1/forms/{formId}/publish", "method": "POST", "summary": "Publish Form"}
+  ],
+  "sdkMethods": {
+    "ApiKeys": {
+      "service": "ApiKeysSvc",
+      "implementation": "ApiKeysSvcImpl",
+      "methods": [
+        {"name": "Create", "contextVariant": "CreateWithContext", "endpoint": "POST /v1/api-keys", "implemented": true},
+        {"name": "List", "contextVariant": "ListWithContext", "endpoint": "GET /v1/api-keys", "implemented": true},
+        {"name": "Delete", "contextVariant": "DeleteWithContext", "endpoint": "DELETE /v1/api-keys/{id}", "implemented": true}
+      ]
+    },
+    "Contacts": {
+      "service": "ContactsSvc",
+      "implementation": "ContactsSvcImpl",
+      "methods": [
+        {"name": "Create", "contextVariant": "CreateWithContext", "endpoint": "POST /v1/contacts", "implemented": true},
+        {"name": "List", "contextVariant": "ListWithContext", "endpoint": "GET /v1/contacts", "implemented": true},
+        {"name": "Get", "contextVariant": "GetWithContext", "endpoint": "GET /v1/contacts/{id}", "implemented": true},
+        {"name": "Update", "contextVariant": "UpdateWithContext", "endpoint": "PUT /v1/contacts/{id}", "implemented": true},
+        {"name": "Delete", "contextVariant": "DeleteWithContext", "endpoint": "DELETE /v1/contacts/{id}", "implemented": true},
+        {"name": "Search", "contextVariant": "SearchWithContext", "endpoint": "POST /v1/contacts/search", "implemented": true}
+      ]
+    },
+    "Topics": {
+      "service": "TopicsSvc",
+      "implementation": "TopicsSvcImpl",
+      "methods": [
+        {"name": "Create", "contextVariant": "CreateWithContext", "endpoint": "POST /v1/topics", "implemented": true},
+        {"name": "List", "contextVariant": "ListWithContext", "endpoint": "GET /v1/topics", "implemented": true},
+        {"name": "Get", "contextVariant": "GetWithContext", "endpoint": "GET /v1/topics/{id}", "implemented": true},
+        {"name": "Update", "contextVariant": "UpdateWithContext", "endpoint": "PUT /v1/topics/{id}", "implemented": true},
+        {"name": "Delete", "contextVariant": "DeleteWithContext", "endpoint": "DELETE /v1/topics/{id}", "implemented": true}
+      ]
+    },
+    "Segments": {
+      "service": "SegmentsSvc",
+      "implementation": "SegmentsSvcImpl",
+      "methods": [
+        {"name": "Create", "contextVariant": "CreateWithContext", "endpoint": "POST /v1/segments", "implemented": true},
+        {"name": "List", "contextVariant": "ListWithContext", "endpoint": "GET /v1/segments", "implemented": true},
+        {"name": "Get", "contextVariant": "GetWithContext", "endpoint": "GET /v1/segments/{id}", "implemented": true},
+        {"name": "Update", "contextVariant": "UpdateWithContext", "endpoint": "PUT /v1/segments/{id}", "implemented": true},
+        {"name": "Delete", "contextVariant": "DeleteWithContext", "endpoint": "DELETE /v1/segments/{id}", "implemented": true},
+        {"name": "ListContacts", "contextVariant": "ListContactsWithContext", "endpoint": "GET /v1/segments/{id}/contacts", "implemented": true}
+      ]
+    },
+    "ContactProperties": {
+      "service": "ContactPropertiesSvc",
+      "implementation": "ContactPropertiesSvcImpl",
+      "methods": [
+        {"name": "Create", "contextVariant": "CreateWithContext", "endpoint": "POST /v1/contact-properties", "implemented": true},
+        {"name": "List", "contextVariant": "ListWithContext", "endpoint": "GET /v1/contact-properties", "implemented": true},
+        {"name": "Get", "contextVariant": "GetWithContext", "endpoint": "GET /v1/contact-properties/{id}", "implemented": true},
+        {"name": "Update", "contextVariant": "UpdateWithContext", "endpoint": "PUT /v1/contact-properties/{id}", "implemented": true},
+        {"name": "Delete", "contextVariant": "DeleteWithContext", "endpoint": "DELETE /v1/contact-properties/{id}", "implemented": true}
+      ]
+    },
+    "Forms": {
+      "service": "FormsSvc",
+      "implementation": "FormsSvcImpl",
+      "methods": [
+        {"name": "Create", "contextVariant": "CreateWithContext", "endpoint": "POST /v1/forms", "implemented": true},
+        {"name": "List", "contextVariant": "ListWithContext", "endpoint": "GET /v1/forms", "implemented": true},
+        {"name": "Get", "contextVariant": "GetWithContext", "endpoint": "GET /v1/forms/{id}", "implemented": true},
+        {"name": "Update", "contextVariant": "UpdateWithContext", "endpoint": "PUT /v1/forms/{id}", "implemented": true},
+        {"name": "Delete", "contextVariant": "DeleteWithContext", "endpoint": "DELETE /v1/forms/{id}", "implemented": true}
+      ]
+    }
+  },
+  "missingEndpoints": [
+    {
+      "path": "/v1/topics/{topicId}/contacts",
+      "method": "GET",
+      "summary": "Get Topic Contacts",
+      "severity": "critical",
+      "description": "SDK is missing the ListContacts method for Topics service to retrieve contacts subscribed to a specific topic"
+    },
+    {
+      "path": "/v1/forms/{formId}/versions",
+      "method": "GET",
+      "summary": "List Form Versions",
+      "severity": "major",
+      "description": "SDK is missing the ListVersions method for Forms service to retrieve all versions of a form"
+    },
+    {
+      "path": "/v1/forms/{formId}/versions",
+      "method": "POST",
+      "summary": "Create Form Version",
+      "severity": "major",
+      "description": "SDK is missing the CreateVersion method for Forms service to create a new version of an existing form"
+    },
+    {
+      "path": "/v1/forms/{formId}/publish",
+      "method": "POST",
+      "summary": "Publish Form",
+      "severity": "critical",
+      "description": "SDK is missing the Publish method for Forms service to publish a form"
+    }
+  ],
+  "issues": [
+    {
+      "id": "GO-001",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "resource": "Topics",
+      "title": "Missing ListContacts method for Topics",
+      "description": "The TopicsSvc interface and TopicsSvcImpl do not implement the ListContacts method which is required to retrieve contacts subscribed to a specific topic",
+      "file": "sdks/go/topics.go",
+      "recommendation": "Add ListContacts and ListContactsWithContext methods to TopicsSvc interface and implement them in TopicsSvcImpl. The endpoint is GET /v1/topics/{topicId}/contacts",
+      "openApiRef": "/v1/topics/{topicId}/contacts"
+    },
+    {
+      "id": "GO-002",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "resource": "Forms",
+      "title": "Missing ListVersions method for Forms",
+      "description": "The FormsSvc interface and FormsSvcImpl do not implement the ListVersions method which is required to retrieve all versions of a form",
+      "file": "sdks/go/forms.go",
+      "recommendation": "Add ListVersions and ListVersionsWithContext methods to FormsSvc interface and implement them in FormsSvcImpl. The endpoint is GET /v1/forms/{formId}/versions",
+      "openApiRef": "/v1/forms/{formId}/versions"
+    },
+    {
+      "id": "GO-003",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "resource": "Forms",
+      "title": "Missing CreateVersion method for Forms",
+      "description": "The FormsSvc interface and FormsSvcImpl do not implement the CreateVersion method which is required to create a new version of an existing form",
+      "file": "sdks/go/forms.go",
+      "recommendation": "Add CreateVersion and CreateVersionWithContext methods to FormsSvc interface and implement them in FormsSvcImpl. The endpoint is POST /v1/forms/{formId}/versions",
+      "openApiRef": "/v1/forms/{formId}/versions"
+    },
+    {
+      "id": "GO-004",
+      "severity": "critical",
+      "category": "missing_endpoint",
+      "resource": "Forms",
+      "title": "Missing Publish method for Forms",
+      "description": "The FormsSvc interface and FormsSvcImpl do not implement the Publish method which is required to publish a form",
+      "file": "sdks/go/forms.go",
+      "recommendation": "Add Publish and PublishWithContext methods to FormsSvc interface and implement them in FormsSvcImpl. The endpoint is POST /v1/forms/{formId}/publish",
+      "openApiRef": "/v1/forms/{formId}/publish"
+    },
+    {
+      "id": "GO-005",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "Contacts",
+      "title": "Missing subscribedAt and unsubscribedAt fields in Contact struct",
+      "description": "The Contact struct in contacts.go is missing subscribedAt and unsubscribedAt fields which are returned by the API according to the OpenAPI spec",
+      "file": "sdks/go/contacts.go",
+      "line": 42,
+      "recommendation": "Add SubscribedAt and UnsubscribedAt string fields with json tags to the Contact struct",
+      "openApiRef": "Contact schema in response"
+    },
+    {
+      "id": "GO-006",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "Contacts",
+      "title": "Missing status field in CreateContactRequest struct",
+      "description": "The CreateContactRequest struct is missing the status field which is supported by the API for setting initial contact status",
+      "file": "sdks/go/contacts.go",
+      "line": 8,
+      "recommendation": "Add Status string field with json tag to CreateContactRequest struct. Valid values: SUBSCRIBED, UNSUBSCRIBED, BOUNCED, COMPLAINED, ARCHIVED",
+      "openApiRef": "CreateContact request schema"
+    },
+    {
+      "id": "GO-007",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "ContactProperties",
+      "title": "Missing defaultValue field in CreateContactPropertyRequest",
+      "description": "The CreateContactPropertyRequest struct is missing the optional defaultValue field which is supported by the API",
+      "file": "sdks/go/contact_properties.go",
+      "line": 8,
+      "recommendation": "Add DefaultValue *string field with json tag 'defaultValue,omitempty' to CreateContactPropertyRequest struct",
+      "openApiRef": "CreateContactProperty request schema"
+    },
+    {
+      "id": "GO-008",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "ContactProperties",
+      "title": "Missing defaultValue field in ContactProperty struct",
+      "description": "The ContactProperty struct is missing the defaultValue field which is returned by the API",
+      "file": "sdks/go/contact_properties.go",
+      "line": 20,
+      "recommendation": "Add DefaultValue *string field with json tag to ContactProperty struct",
+      "openApiRef": "ContactProperty schema in response"
+    },
+    {
+      "id": "GO-009",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "Topics",
+      "title": "Topic struct missing object field",
+      "description": "The Topic struct has an Object field but the List response schema in OpenAPI does not include object in individual topic items",
+      "file": "sdks/go/topics.go",
+      "line": 24,
+      "recommendation": "Verify if the object field is returned in Topic items from the API. If not, consider making it optional",
+      "openApiRef": "Topic schema in list response"
+    },
+    {
+      "id": "GO-010",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "Forms",
+      "title": "Form struct missing version field",
+      "description": "The Form struct is missing the version field which is returned when getting form versions",
+      "file": "sdks/go/forms.go",
+      "line": 22,
+      "recommendation": "Add Version *int field with json tag 'version,omitempty' to Form struct",
+      "openApiRef": "Form version schema"
+    },
+    {
+      "id": "GO-011",
+      "severity": "minor",
+      "category": "schema_inconsistency",
+      "resource": "ApiKeys",
+      "title": "ListApiKeysResponse missing hasPrevious field alignment",
+      "description": "The ListApiKeysResponse includes hasPrevious but the OpenAPI spec for api-keys list response may not include it consistently",
+      "file": "sdks/go/api_keys.go",
+      "line": 32,
+      "recommendation": "Verify that hasPrevious is actually returned by the API for consistency",
+      "openApiRef": "/v1/api-keys list response"
+    },
+    {
+      "id": "GO-012",
+      "severity": "minor",
+      "category": "schema_inconsistency",
+      "resource": "ApiKeys",
+      "title": "ApiKey struct has updatedAt but OpenAPI list response doesn't include it",
+      "description": "The ApiKey struct includes updatedAt field but the OpenAPI spec for list API keys response only shows createdAt",
+      "file": "sdks/go/api_keys.go",
+      "line": 15,
+      "recommendation": "Verify if updatedAt is returned by the API. If not, remove it or make it optional",
+      "openApiRef": "/v1/api-keys list response schema"
+    },
+    {
+      "id": "GO-013",
+      "severity": "minor",
+      "category": "schema_inconsistency",
+      "resource": "Contacts",
+      "title": "Properties field type uses map[string]interface{} instead of string|number",
+      "description": "The Contact.Properties field uses map[string]interface{} but OpenAPI spec indicates values should be string or number only",
+      "file": "sdks/go/contacts.go",
+      "line": 54,
+      "recommendation": "Consider using a more specific type or adding validation to ensure only string and number values are used",
+      "openApiRef": "Contact properties schema"
+    },
+    {
+      "id": "GO-014",
+      "severity": "minor",
+      "category": "naming_convention",
+      "resource": "All",
+      "title": "Inconsistent error naming pattern",
+      "description": "Error variable names use pattern ErrFailedToCreate{Resource}{Action}Request which is verbose",
+      "file": "sdks/go/errors.go",
+      "recommendation": "Consider simplifying to Err{Resource}{Action} pattern for consistency with Go conventions",
+      "openApiRef": "N/A"
+    },
+    {
+      "id": "GO-015",
+      "severity": "minor",
+      "category": "missing_field",
+      "resource": "Forms",
+      "title": "CreateFormRequest.Fields uses interface{} instead of []interface{}",
+      "description": "CreateFormRequest.Fields uses interface{} type but UpdateFormRequest.Fields uses []interface{} - these should be consistent",
+      "file": "sdks/go/forms.go",
+      "line": 12,
+      "recommendation": "Update CreateFormRequest.Fields to use []interface{} for consistency with UpdateFormRequest",
+      "openApiRef": "CreateForm request schema"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "missing_functionality",
+      "description": "Implement the missing Topics.ListContacts method to retrieve contacts subscribed to a topic",
+      "effort": "low"
+    },
+    {
+      "priority": "high",
+      "category": "missing_functionality",
+      "description": "Implement the missing Forms.ListVersions, Forms.CreateVersion, and Forms.Publish methods for complete form management",
+      "effort": "medium"
+    },
+    {
+      "priority": "medium",
+      "category": "type_alignment",
+      "description": "Add missing fields to Contact struct: subscribedAt, unsubscribedAt",
+      "effort": "low"
+    },
+    {
+      "priority": "medium",
+      "category": "type_alignment",
+      "description": "Add missing status field to CreateContactRequest for setting initial contact status",
+      "effort": "low"
+    },
+    {
+      "priority": "medium",
+      "category": "type_alignment",
+      "description": "Add defaultValue field to CreateContactPropertyRequest and ContactProperty structs",
+      "effort": "low"
+    },
+    {
+      "priority": "medium",
+      "category": "type_alignment",
+      "description": "Add version field to Form struct for version tracking",
+      "effort": "low"
+    },
+    {
+      "priority": "low",
+      "category": "consistency",
+      "description": "Align CreateFormRequest.Fields type with UpdateFormRequest.Fields for consistency",
+      "effort": "low"
+    }
+  ],
+  "resourceCoverage": {
+    "ApiKeys": {
+      "implemented": ["Create", "List", "Delete"],
+      "missing": [],
+      "coverage": 100
+    },
+    "Contacts": {
+      "implemented": ["Create", "List", "Get", "Update", "Delete", "Search"],
+      "missing": [],
+      "coverage": 100
+    },
+    "Topics": {
+      "implemented": ["Create", "List", "Get", "Update", "Delete"],
+      "missing": ["ListContacts"],
+      "coverage": 83.33
+    },
+    "Segments": {
+      "implemented": ["Create", "List", "Get", "Update", "Delete", "ListContacts"],
+      "missing": [],
+      "coverage": 100
+    },
+    "ContactProperties": {
+      "implemented": ["Create", "List", "Get", "Update", "Delete"],
+      "missing": [],
+      "coverage": 100
+    },
+    "Forms": {
+      "implemented": ["Create", "List", "Get", "Update", "Delete"],
+      "missing": ["ListVersions", "CreateVersion", "Publish"],
+      "coverage": 62.5
+    }
+  }
+}

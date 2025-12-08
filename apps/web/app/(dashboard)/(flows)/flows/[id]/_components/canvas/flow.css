@@ -1,3 +1,18 @@
 .react-flow__attribution {
   display: none;
 }
+
+/* Smooth transitions for node movements */
+.react-flow__node {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Disable transition during drag to keep it responsive */
+.react-flow__node.dragging {
+  transition: none;
+}
+
+/* Smooth edge path transitions */
+.react-flow__edge path {
+  transition: d 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

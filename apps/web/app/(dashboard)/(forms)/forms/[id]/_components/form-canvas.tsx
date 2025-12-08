@@ -1,14 +1,14 @@
 "use client";
 
-import { ITheme, SurveyModel } from "survey-core";
+import { type ITheme, SurveyModel } from "survey-core";
 import { Survey } from "survey-react-ui";
 import Editor from "@monaco-editor/react";
-import { useState } from "react";
-import { defaultForm, defaultTheme } from "./default-form";
+import { useState, useEffect, useRef } from "react";
 
 import "survey-core/survey-core.css";
 import { Button } from "@kibamail/owly";
 import { Refresh } from "iconoir-react";
+import { useFormEditor } from "./form-editor-context";
 
 // Monaco Editor options for customization
 const editorOptions = {
@@ -49,26 +49,34 @@ const editorOptions = {
 };
 
 export function FormCanvas() {
+  const { schema, theme, setSchema, setTheme } = useFormEditor();
+  const initializedRef = useRef(false);
+
   const [model, setModel] = useState(() => {
-    const model = new SurveyModel(defaultForm);
-
-    model.applyTheme(defaultTheme as ITheme);
-
-    return model;
+    const surveyModel = new SurveyModel(schema);
+    surveyModel.applyTheme(theme as ITheme);
+    return surveyModel;
   });
-  const [theme, setTheme] = useState<object>(defaultTheme);
-  const [schema, setSchema] = useState<object>(defaultForm);
+
+  useEffect(() => {
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      const surveyModel = new SurveyModel(schema);
+      surveyModel.applyTheme(theme as ITheme);
+      setModel(surveyModel);
+    }
+  }, [schema, theme]);
 
   function onThemeChange(value: string | undefined) {
     if (!value) {
       return;
     }
 
-    const parsedTheme = JSON.parse(value);
-
-    setTheme(parsedTheme);
-
-    model.applyTheme(parsedTheme as ITheme);
+    try {
+      const parsedTheme = JSON.parse(value);
+      setTheme(parsedTheme);
+      model.applyTheme(parsedTheme as ITheme);
+    } catch {}
   }
 
   function onSchemaChange(value: string | undefined) {
@@ -76,23 +84,20 @@ export function FormCanvas() {
       return;
     }
 
-    const parsedSchema = JSON.parse(value);
+    try {
+      const parsedSchema = JSON.parse(value);
+      setSchema(parsedSchema);
 
-    setSchema(parsedSchema);
-
-    const model = new SurveyModel(parsedSchema);
-
-    model.applyTheme(theme);
-
-    setModel(model);
+      const surveyModel = new SurveyModel(parsedSchema);
+      surveyModel.applyTheme(theme as ITheme);
+      setModel(surveyModel);
+    } catch {}
   }
 
   function onRefresh() {
-    const model = new SurveyModel(schema);
-
-    model.applyTheme(theme);
-
-    setModel(model);
+    const surveyModel = new SurveyModel(schema);
+    surveyModel.applyTheme(theme as ITheme);
+    setModel(surveyModel);
   }
 
   return (
@@ -103,7 +108,7 @@ export function FormCanvas() {
             height="100%"
             theme="vs-dark"
             defaultLanguage="json"
-            defaultValue={JSON.stringify(defaultForm, null, 3)}
+            defaultValue={JSON.stringify(schema, null, 3)}
             options={editorOptions}
             onChange={onSchemaChange}
           />
@@ -121,7 +126,7 @@ export function FormCanvas() {
             theme="vs-dark"
             defaultLanguage="json"
             options={editorOptions}
-            defaultValue={JSON.stringify(defaultTheme, null, 3)}
+            defaultValue={JSON.stringify(theme, null, 3)}
             onChange={onThemeChange}
           />
         </div>

@@ -21,6 +21,7 @@ type UpdateSegmentRequest struct {
 
 // Segment provides the structure for a segment object.
 type Segment struct {
+	Object      string      `json:"object"`
 	ID          string      `json:"id"`
 	Name        string      `json:"name"`
 	Description string      `json:"description"`
@@ -36,6 +37,7 @@ type SegmentResponse struct {
 
 // ListSegmentsResponse is the response from the List call.
 type ListSegmentsResponse struct {
+	Object      string    `json:"object"`
 	Data        []Segment `json:"data"`
 	HasMore     bool      `json:"hasMore"`
 	HasPrevious bool      `json:"hasPrevious"`
@@ -43,6 +45,7 @@ type ListSegmentsResponse struct {
 
 // ListSegmentContactsResponse is the response from the ListContacts call.
 type ListSegmentContactsResponse struct {
+	Object      string    `json:"object"`
 	Data        []Contact `json:"data"`
 	HasMore     bool      `json:"hasMore"`
 	HasPrevious bool      `json:"hasPrevious"`

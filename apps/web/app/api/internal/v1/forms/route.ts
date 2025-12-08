@@ -4,6 +4,7 @@
  * REST endpoint: /api/internal/v1/forms
  *
  * Supported Methods:
+ * - GET    List all forms
  * - POST   Create a new form
  *
  * Reuses external API handlers with session-based authentication
@@ -11,7 +12,29 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { createForm } from "@/app/api/v1/forms/handler";
+import { createForm, listForms } from "@/app/api/v1/forms/handler";
+
+/**
+ * GET /api/internal/v1/forms
+ *
+ * List all forms with cursor-based pagination
+ * Requires: read:forms permission
+ * Uses session-based authentication and gets workspaceId from session
+ */
+export async function GET(request: NextRequest) {
+  return withErrorHandling(request, () =>
+    withSession(
+      request,
+      (session, request) => {
+        if (!session.currentOrganization) {
+          throw new Error("No active workspace found");
+        }
+        return listForms(session.currentOrganization.id, request);
+      },
+      ["read:forms"]
+    )
+  );
+}
 
 /**
  * POST /api/internal/v1/forms

@@ -1,31 +1,35 @@
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { PublicFormRenderer } from "./_components/public-form-renderer";
+import { QueryProvider } from "@/lib/providers/query-provider";
 
 async function getPublicForm(formId: string) {
-  // Find the root form (regardless of its status)
   const rootForm = await prisma.form.findFirst({
     where: {
       id: formId,
-      parentId: null, // Must be a root form
-      deletedAt: null, // Only show non-deleted forms
+      parentId: null,
+      deletedAt: null,
     },
   });
 
-  // If no root form found or not published yet, return null
   if (!rootForm || !rootForm.publishedVersionId) {
     return null;
   }
 
-  // Get the currently published version using publishedVersionId
-  // This is the source of truth for which version is published
   const publishedForm = await prisma.form.findUnique({
     where: {
       id: rootForm.publishedVersionId,
     },
   });
 
-  return publishedForm;
+  if (!publishedForm) {
+    return null;
+  }
+
+  return {
+    rootFormId: rootForm.id,
+    publishedForm,
+  };
 }
 
 export default async function PublicFormPage({
@@ -34,11 +38,18 @@ export default async function PublicFormPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const form = await getPublicForm(id);
+  const result = await getPublicForm(id);
 
-  if (!form) {
+  if (!result) {
     notFound();
   }
 
-  return <PublicFormRenderer form={form} />;
+  return (
+    <QueryProvider>
+      <PublicFormRenderer
+        form={result.publishedForm}
+        formId={result.rootFormId}
+      />
+    </QueryProvider>
+  );
 }

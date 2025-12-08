@@ -6,8 +6,12 @@ import * as Tabs from "@kibamail/owly/tabs";
 import { SendIcon } from "@/app/_components/_icons/send.svg";
 import { EngageIcon } from "@/app/_components/_icons/engage.svg";
 import { TransactionalPricing } from "@/app/_components/pricing/transactional-pricing";
+import { MarketingPricing } from "@/app/_components/pricing/marketing-pricing";
+import { InboundPricing } from "@/app/_components/pricing/inbound-pricing";
+import { PricingProvider } from "@/app/_components/pricing/pricing-context";
+import { InboundIcon } from "@/app/_components/_icons/inbound.svg";
 
-type PricingTab = "transactional" | "marketing";
+type PricingTab = "transactional" | "marketing" | "inbound";
 
 export default function Pricing() {
   const [activeTab, setActiveTab] = useState<PricingTab>("transactional");
@@ -20,9 +24,10 @@ export default function Pricing() {
             Pricing
           </Heading>
 
-          <div className="max-w-md mx-auto w-full mt-4">
+          <div className="max-w-lg mx-auto w-full mt-4">
             <Text className="text-center w-full inline-block">
-              No subscriptions. Pay only for emails we successfully delivered.
+              No subscriptions. No lock in. Pay only for emails we successfully
+              delivered.
             </Text>
           </div>
         </div>
@@ -34,7 +39,7 @@ export default function Pricing() {
             className="w-full!"
           >
             <div className="w-full flex items-center justify-center">
-              <Tabs.List className="h-12! w-full flex max-w-md">
+              <Tabs.List className="h-12! w-full flex max-w-xl mx-auto">
                 <Tabs.Trigger value="transactional" className="cursor-pointer">
                   <SendIcon className="text-kb-content-negative" />
                   Transactional
@@ -43,23 +48,26 @@ export default function Pricing() {
                   <EngageIcon className="text-kb-content-positive" />
                   Marketing
                 </Tabs.Trigger>
-                {/* <Tabs.Trigger value="inbound" className="cursor-pointer">
-                <InboundIcon />
-                Inbound
-              </Tabs.Trigger>
-              <Tabs.Trigger value="validation" className="cursor-pointer">
-                <ValidateIcon />
-                Email&nbsp;validation
-              </Tabs.Trigger> */}
+                <Tabs.Trigger value="inbound" className="cursor-pointer">
+                  <InboundIcon className="text-kb-content-brand" />
+                  Inbound
+                </Tabs.Trigger>
 
                 <Tabs.Indicator />
               </Tabs.List>
             </div>
 
-            <Tabs.Content value="transactional">
-              <TransactionalPricing />
-            </Tabs.Content>
-            <Tabs.Content value="marketing"></Tabs.Content>
+            <PricingProvider defaultEmailCount={50_000}>
+              <Tabs.Content value="transactional">
+                <TransactionalPricing />
+              </Tabs.Content>
+              <Tabs.Content value="marketing">
+                <MarketingPricing />
+              </Tabs.Content>
+              <Tabs.Content value="inbound">
+                <InboundPricing />
+              </Tabs.Content>
+            </PricingProvider>
           </Tabs.Root>
         </div>
       </div>

@@ -16,7 +16,6 @@ import { EngageIcon } from "@/app/_components/_icons/engage.svg";
 import { GithubIcon } from "@/app/_components/_icons/github.svg";
 import { InboundIcon } from "@/app/_components/_icons/inbound.svg";
 import { SendIcon } from "@/app/_components/_icons/send.svg";
-import { ValidateIcon } from "@/app/_components/_icons/validate.svg";
 import Link from "next/link";
 
 interface NavMenuLinkProps {
@@ -29,7 +28,7 @@ interface NavMenuLinkProps {
 function NavMenuLink({ href, icon, title, description }: NavMenuLinkProps) {
   return (
     <NavigationMenu.Link asChild>
-      <a
+      <Link
         href={href}
         className="flex  items-center group gap-4 py-1 px-2 rounded-md hover:bg-kb-bg-secondary transition-colors"
       >
@@ -42,7 +41,7 @@ function NavMenuLink({ href, icon, title, description }: NavMenuLinkProps) {
             {description}
           </span>
         </div>
-      </a>
+      </Link>
     </NavigationMenu.Link>
   );
 }
@@ -77,16 +76,6 @@ const productLinks = [
     ),
     title: "Inbound emails",
     description: "Automate user replies, or let ai take care of your inbox.",
-  },
-  {
-    href: "/products/validation",
-    icon: (
-      <div className="w-10 h-10 flex items-center justify-center rounded-md bg-kb-bg-secondary border border-kb-border-tertiary dark:border-transparent group-hover:border-kb-border-tertiary">
-        <ValidateIcon className="w-5 h-5 shrink-0 text-kb-content-highlight" />
-      </div>
-    ),
-    title: "Email validation",
-    description: "Clean your lists, boost deliverability",
   },
 ];
 
@@ -166,7 +155,7 @@ export function Navigation() {
       }}
     >
       <NavigationMenu.List className="flex items-center list-none m-0">
-        <NavigationMenu.Item>
+        <NavigationMenu.Item value="products">
           <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
             Products
             <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
@@ -220,22 +209,7 @@ export function Navigation() {
           </NavigationMenu.Content>
         </NavigationMenu.Item>
 
-        <NavigationMenu.Item>
-          <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
-            Resources
-            <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
-          </NavigationMenu.Trigger>
-
-          <NavigationMenu.Content className="NavigationMenuContent absolute top-0 left-0 w-full sm:w-auto">
-            <div className="flex flex-col gap-1 p-4 min-w-[440px]">
-              {resourceLinks.map((link) => (
-                <NavMenuLink key={link.href} {...link} />
-              ))}
-            </div>
-          </NavigationMenu.Content>
-        </NavigationMenu.Item>
-
-        <NavigationMenu.Item>
+        <NavigationMenu.Item value="community">
           <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
             Community
             <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
@@ -289,6 +263,20 @@ export function Navigation() {
                   <NavMenuLink key={link.href} {...link} />
                 ))}
               </div>
+            </div>
+          </NavigationMenu.Content>
+        </NavigationMenu.Item>
+        <NavigationMenu.Item value="resources">
+          <NavigationMenu.Trigger className="flex font-sans items-center gap-0.5 rounded-md cursor-pointer h-8 px-4 text-white hover:bg-(--brown-600) dark:hover:bg-(--gray-400) dark:text-kb-content-primary text-sm outline-none select-none">
+            Resources
+            <NavArrowDown className="NavigationMenuCaret w-4 h-4 mt-0.5 transition-transform duration-250 ease-in-out" />
+          </NavigationMenu.Trigger>
+
+          <NavigationMenu.Content className="NavigationMenuContent absolute top-0 left-0 w-full sm:w-auto">
+            <div className="flex flex-col gap-3 p-4 min-w-[400px]">
+              {resourceLinks.map((link) => (
+                <NavMenuLink key={link.href} {...link} />
+              ))}
             </div>
           </NavigationMenu.Content>
         </NavigationMenu.Item>

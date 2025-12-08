@@ -1,0 +1,208 @@
+{
+  "fixMetadata": {
+    "auditReportPath": ".audits/nodejs-sdk/2025-11-30T17-33-50-pr-400-nodejs-20251130-173350-e034012b.json",
+    "auditId": "pr-400-nodejs-20251130-173350-e034012b",
+    "fixTimestamp": "2025-12-01T00:00:00.000Z",
+    "sdkName": "kibamail-nodejs",
+    "sdkDirectory": "sdks/nodejs"
+  },
+  "summary": {
+    "totalIssuesInAudit": 8,
+    "issuesFixed": 8,
+    "issuesSkipped": 0,
+    "issuesFailed": 0
+  },
+  "schemaRegeneration": {
+    "performed": true,
+    "command": "pnpm run schema:generate",
+    "success": true,
+    "issuesResolved": ["SCHEMA-001", "SCHEMA-002", "INC-002", "TYPE-001"]
+  },
+  "fixesApplied": [
+    {
+      "issueId": "INC-001",
+      "severity": "critical",
+      "category": "path",
+      "file": "resources/api-keys.ts",
+      "description": "Fixed trailing slash in API keys path",
+      "changesMade": [
+        {
+          "file": "resources/api-keys.ts",
+          "line": 93,
+          "before": "return this.client.POST(\"/v1/api-keys/\", {",
+          "after": "return this.client.POST(\"/v1/api-keys\", {"
+        },
+        {
+          "file": "resources/api-keys.ts",
+          "line": 8,
+          "before": "paths[\"/v1/api-keys/\"][\"post\"]",
+          "after": "paths[\"/v1/api-keys\"][\"post\"]"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "INC-002",
+      "severity": "critical",
+      "category": "missing_field",
+      "file": "schema.d.ts",
+      "description": "Fixed missing 'id' field in API key creation response by regenerating schema",
+      "changesMade": [
+        {
+          "file": "schema.d.ts",
+          "description": "Regenerated from OpenAPI spec - response now includes id field"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "INC-003",
+      "severity": "major",
+      "category": "completeness",
+      "file": "resources/api-keys.ts",
+      "description": "Added list() method to ApiKeys resource for GET /v1/api-keys",
+      "changesMade": [
+        {
+          "file": "resources/api-keys.ts",
+          "line": "151-155",
+          "description": "Added list(params?: ListApiKeysQuery) method"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "INC-004",
+      "severity": "major",
+      "category": "completeness",
+      "file": "resources/api-keys.ts",
+      "description": "Added delete() method to ApiKeys resource for DELETE /v1/api-keys/{keyId}",
+      "changesMade": [
+        {
+          "file": "resources/api-keys.ts",
+          "line": "207-211",
+          "description": "Added delete(keyId: string) method"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "INC-005",
+      "severity": "major",
+      "category": "completeness",
+      "file": "resources/topics.ts",
+      "description": "Added listContacts() method to Topics resource for GET /v1/topics/{topicId}/contacts",
+      "changesMade": [
+        {
+          "file": "resources/topics.ts",
+          "line": "370-377",
+          "description": "Added listContacts(topicId: string, params?: ListTopicContactsQuery) method"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "INC-006",
+      "severity": "major",
+      "category": "completeness",
+      "file": "resources/forms.ts",
+      "description": "Added createVersion() method to Forms resource for POST /v1/forms/{formId}/versions",
+      "changesMade": [
+        {
+          "file": "resources/forms.ts",
+          "line": "531-536",
+          "description": "Added createVersion(formId: string, params?: CreateFormVersionBody) method"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "SCHEMA-001",
+      "severity": "major",
+      "category": "schema",
+      "file": "schema.d.ts",
+      "description": "Fixed schema path inconsistency - removed trailing slash from /v1/api-keys/",
+      "changesMade": [
+        {
+          "file": "schema.d.ts",
+          "description": "Regenerated schema with correct path /v1/api-keys"
+        }
+      ],
+      "status": "fixed"
+    },
+    {
+      "issueId": "SCHEMA-002",
+      "severity": "major",
+      "category": "schema",
+      "file": "schema.d.ts",
+      "description": "Added missing API key list and delete operations to schema",
+      "changesMade": [
+        {
+          "file": "schema.d.ts",
+          "description": "Regenerated schema now includes GET /v1/api-keys and DELETE /v1/api-keys/{keyId}"
+        }
+      ],
+      "status": "fixed"
+    }
+  ],
+  "endpointsAdded": [
+    {
+      "endpoint": "GET /v1/api-keys",
+      "resource": "ApiKeys",
+      "method": "list",
+      "file": "resources/api-keys.ts",
+      "linesAdded": 57
+    },
+    {
+      "endpoint": "DELETE /v1/api-keys/{keyId}",
+      "resource": "ApiKeys",
+      "method": "delete",
+      "file": "resources/api-keys.ts",
+      "linesAdded": 56
+    },
+    {
+      "endpoint": "GET /v1/topics/{topicId}/contacts",
+      "resource": "Topics",
+      "method": "listContacts",
+      "file": "resources/topics.ts",
+      "linesAdded": 62
+    },
+    {
+      "endpoint": "POST /v1/forms/{formId}/versions",
+      "resource": "Forms",
+      "method": "createVersion",
+      "file": "resources/forms.ts",
+      "linesAdded": 88
+    }
+  ],
+  "skippedIssues": [],
+  "failedFixes": [],
+  "verificationResults": {
+    "typescriptCompilation": {
+      "success": true,
+      "errors": [],
+      "notes": "SDK source files compile successfully. Pre-existing test file errors (tests/forms.test.ts:86-87) are unrelated to fixes - they reference `settings` properties not defined in the OpenAPI schema."
+    },
+    "testsRun": {
+      "success": null,
+      "notes": "Tests not executed - test infrastructure requires external setup (test-sdk-infra)"
+    }
+  },
+  "filesModified": [
+    "resources/api-keys.ts",
+    "resources/topics.ts",
+    "resources/forms.ts",
+    "schema.d.ts"
+  ],
+  "recommendations": [
+    {
+      "priority": "medium",
+      "description": "Fix tests/forms.test.ts type errors - test uses settings.redirectUrl and settings.submitText but schema defines settings as Record<string, never>",
+      "affectedMethods": ["Forms.update"]
+    },
+    {
+      "priority": "low",
+      "description": "Consider adding integration tests for new methods",
+      "affectedMethods": ["ApiKeys.list", "ApiKeys.delete", "Topics.listContacts", "Forms.createVersion"]
+    }
+  ]
+}

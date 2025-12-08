@@ -13,6 +13,7 @@ type CreateApiKeyRequest struct {
 
 // ApiKey provides the structure for an API key object.
 type ApiKey struct {
+	Object    string   `json:"object"`
 	ID        string   `json:"id"`
 	Name      string   `json:"name"`
 	Key       string   `json:"key,omitempty"`
@@ -29,6 +30,7 @@ type ApiKeyResponse struct {
 
 // ListApiKeysResponse is the response from the List call.
 type ListApiKeysResponse struct {
+	Object      string   `json:"object"`
 	Data        []ApiKey `json:"data"`
 	HasMore     bool     `json:"hasMore"`
 	HasPrevious bool     `json:"hasPrevious"`

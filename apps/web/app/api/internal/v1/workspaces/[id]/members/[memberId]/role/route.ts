@@ -10,7 +10,7 @@
 import type { NextRequest } from "next/server";
 
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { changeMemberRole } from "../../handler";
+import { changeMemberRole } from "@/app/api/internal/v1/workspaces/[id]/members/handler";
 
 /**
  * PATCH /api/internal/v1/workspaces/[id]/members/[memberId]/role

@@ -5,7 +5,8 @@ type HttpClient = ReturnType<typeof createHttpClient>;
 
 // Extract types from schema
 type CreateApiKeyBody =
-  paths["/v1/api-keys/"]["post"]["requestBody"]["content"]["application/json"];
+  paths["/v1/api-keys"]["post"]["requestBody"]["content"]["application/json"];
+type ListApiKeysQuery = paths["/v1/api-keys"]["get"]["parameters"]["query"];
 
 /**
  * API Keys Resource
@@ -90,8 +91,122 @@ export class ApiKeys {
    * ```
    */
   create(params: CreateApiKeyBody) {
-    return this.client.POST("/v1/api-keys/", {
+    return this.client.POST("/v1/api-keys", {
       body: params,
+    });
+  }
+
+  /**
+   * Retrieve a paginated list of all API keys in your workspace.
+   *
+   * Returns API key metadata without actual key values (keys are hashed for security).
+   *
+   * **Use Cases:**
+   * - View all active API keys
+   * - Audit API key usage
+   * - Manage workspace integrations
+   * - Identify keys for rotation or deletion
+   *
+   * **Behavior:**
+   * - Returns all API keys for the workspace
+   * - Keys are returned in reverse chronological order (newest first)
+   * - Actual key values are NOT included (only metadata)
+   * - Includes key name, scopes, and creation date
+   * - Uses cursor-based pagination
+   *
+   * **Required Scope:** Requires API key authentication
+   *
+   * **Security Note:**
+   * - Full key values are never returned (they're hashed)
+   * - Only the key prefix and metadata are shown
+   * - Use this to audit and manage your keys
+   *
+   * @param params - Optional pagination parameters
+   * @param params.limit - Number of keys to return (default: 20, max: 100)
+   * @param params.after - Cursor for pagination - ID of the last item from the previous page
+   * @param params.before - Cursor for reverse pagination - ID of the first item from the next page
+   *
+   * @returns Promise containing paginated list of API keys (metadata only)
+   *
+   * @throws {UnauthorizedError} Invalid or missing API key authentication
+   *
+   * @example
+   * ```ts
+   * // List all API keys
+   * const { data, error } = await kibamail.apiKeys.list();
+   *
+   * // With pagination
+   * const { data, error } = await kibamail.apiKeys.list({ limit: 50 });
+   *
+   * // Paginate through all keys
+   * let cursor = undefined;
+   * let allKeys = [];
+   * do {
+   *   const page = await kibamail.apiKeys.list({ limit: 50, after: cursor });
+   *   allKeys.push(...page.data.data);
+   *   cursor = page.data.hasMore ? page.data.data[page.data.data.length - 1].id : undefined;
+   * } while (cursor);
+   * ```
+   */
+  list(params?: ListApiKeysQuery) {
+    return this.client.GET("/v1/api-keys", {
+      params: { query: params },
+    });
+  }
+
+  /**
+   * Delete an API key permanently.
+   *
+   * Revokes an API key so it can no longer be used for authentication.
+   * This action is immediate and cannot be undone.
+   *
+   * **Use Cases:**
+   * - Revoke compromised or leaked API keys
+   * - Remove unused API keys
+   * - Clean up keys after decommissioning integrations
+   * - Rotate API keys for security
+   *
+   * **Behavior:**
+   * - API key is permanently deleted
+   * - Key can no longer be used for authentication
+   * - Cannot delete the currently authenticated API key
+   * - Operation is immediate and cannot be undone
+   *
+   * **Required Scope:** Requires API key authentication
+   *
+   * **Important:**
+   * - You cannot delete the API key you're currently using
+   * - Deleted keys cannot be recovered
+   * - Any integrations using the deleted key will stop working immediately
+   * - Update all services using the key before deletion
+   *
+   * @param keyId - The unique identifier of the API key to delete
+   *
+   * @returns Promise containing the deleted API key ID
+   *
+   * @throws {NotFoundError} API key not found or doesn't belong to your workspace
+   * @throws {BadRequestError} Cannot delete the currently authenticated API key
+   * @throws {UnauthorizedError} Invalid or missing API key authentication
+   *
+   * @example
+   * ```ts
+   * // Delete an API key
+   * const { data, error } = await kibamail.apiKeys.delete("api_key_abc123");
+   *
+   * // Delete with error handling
+   * try {
+   *   await kibamail.apiKeys.delete("api_key_abc123");
+   *   console.log("API key revoked successfully");
+   * } catch (error) {
+   *   if (error.code === "CANNOT_DELETE_CURRENT_KEY") {
+   *     console.log("Cannot delete the API key you're currently using");
+   *   }
+   * }
+   * ```
+   */
+  delete(keyId: string) {
+    return this.client.DELETE("/v1/api-keys/{keyId}", {
+      params: { path: { keyId } },
     });
   }
 }

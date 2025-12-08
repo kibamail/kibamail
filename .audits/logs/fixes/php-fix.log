@@ -1,0 +1,26 @@
+[0;34m[INFO][0m Starting fix for php SDK
+[0;34m[INFO][0m Using report: .audits/php-sdk/20251130-173350-pr-400-php-20251130-173350-25f8721f.json
+^D## PHP SDK Fix Summary
+
+All 6 issues from the audit report have been fixed:
+
+### Critical Issues Fixed (3)
+1. **MISSING_ENDPOINT_001** - Added `Segments::contacts()` method to retrieve contacts matching a segment's filter conditions
+2. **MISSING_ENDPOINT_002** - Added `Topics::contacts()` method to retrieve contacts subscribed to a topic  
+3. **MISSING_ENDPOINT_003** - Verified Forms service correctly maps all endpoints
+
+### Medium Issues Fixed (3)
+4. **AUTH_INCONSISTENCY_001** - Added PHPDoc warning to `ApiKeys::create()` about session authentication requirement
+5. **TYPE_SUGGESTION_001** - Added `@property-read` PHPDoc annotations to all 6 model classes for IDE support and type safety
+6. **DOCS_SUGGESTION_001** - Added PHPDoc `@param` array shapes to create/update methods in all services
+
+### Files Modified (12)
+- Service files: `Segments.php`, `Topics.php`, `ApiKeys.php`, `Contacts.php`, `Forms.php`, `ContactProperties.php`
+- Model files: `Contact.php`, `Topic.php`, `Segment.php`, `Form.php`, `ContactProperty.php`, `ApiKey.php`
+
+### Verification
+- All 31 PHP files pass syntax check
+
+### Fix Report
+Generated at: `.audits/php-sdk/fixes/20251201-020731-pr-400-php-20251130-173350-25f8721f-fixes.json`
+[?25h[?25h[0;32m[SUCCESS][0m Completed fixes for php SDK

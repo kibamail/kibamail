@@ -46,29 +46,54 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
     where: { contact: { workspaceId } },
   });
 
-  // 2. Delete suppression list entries
+  // 2. Delete form submissions (references forms and contacts)
+  await prisma.formSubmission.deleteMany({
+    where: { workspaceId },
+  });
+
+  // 3. Delete forms (handle self-referencing parentId)
+  // First delete child forms (versions), then root forms
+  await prisma.form.deleteMany({
+    where: { workspaceId, parentId: { not: null } },
+  });
+  await prisma.form.deleteMany({
+    where: { workspaceId },
+  });
+
+  // 4. Delete automation runs first, then automations
+  await prisma.automationRun.deleteMany({
+    where: { automation: { workspaceId } },
+  });
+  await prisma.automation.deleteMany({
+    where: { workspaceId },
+  });
+
+  // 5. Delete suppression list entries
   await prisma.suppressionList.deleteMany({
     where: { workspaceId },
   });
 
-  // 3. Delete main entities
+  // 6. Delete contacts
   await prisma.contact.deleteMany({
     where: { workspaceId },
   });
 
+  // 7. Delete contact properties
   await prisma.contactProperty.deleteMany({
     where: { workspaceId },
   });
 
+  // 8. Delete topics
   await prisma.topic.deleteMany({
     where: { workspaceId },
   });
 
+  // 9. Delete segments
   await prisma.segment.deleteMany({
     where: { workspaceId },
   });
 
-  // 4. Delete API keys last
+  // 10. Delete API keys last
   await prisma.apiKey.deleteMany({
     where: { workspaceId },
   });

@@ -1,9 +1,9 @@
-[0;34m[INFO][0m Starting audit for php SDK with ID: pr-400-php-20251130-173350-25f8721f
+[0;34m[INFO][0m Starting audit for php SDK with ID: pr-456-php-20251206-054403-07e9500f
 ^D## PHP SDK Audit Complete
 
-**Audit ID:** `pr-400-php-20251130-173350-25f8721f`
+**Audit ID:** `pr-456-php-20251206-054403-07e9500f`
 
-**Report saved to:** `.audits/php-sdk/20251130-173350-pr-400-php-20251130-173350-25f8721f.json`
+**Report Location:** `.audits/php-sdk/2025-12-06T05-44-03-pr-456-php-20251206-054403-07e9500f.json`
 
 ---
 
@@ -11,43 +11,59 @@
 
 | Metric | Value |
 |--------|-------|
-| Total API Endpoints | 26 |
-| Implemented | 23 |
-| Missing | 3 |
-| **Coverage** | **88.46%** |
-| Critical Issues | 3 |
-| Medium Issues | 3 |
+| **Total Issues** | 14 |
+| **Critical** | 3 |
+| **Major** | 6 |
+| **Minor** | 5 |
+| **Coverage** | 88.89% (24/27 endpoints) |
 
 ---
 
-### Critical Issues
+### Top 3 Critical Issues
 
-1. **Missing `GET /v1/segments/{segmentId}/contacts`**
-   - The Segments service lacks a method to retrieve contacts matching a segment
-   - **Impact:** Users cannot get contacts belonging to a specific segment
+1. **Missing `publish()` method** (SVC-001)
+   - Forms service lacks `POST /v1/forms/{formId}/publish` endpoint
+   - Impact: Cannot publish forms programmatically
 
-2. **Missing `GET /v1/topics/{topicId}/contacts`**
-   - The Topics service lacks a method to retrieve contacts subscribed to a topic
-   - **Impact:** Users cannot get contacts subscribed to a specific topic
+2. **Missing `versions()` method** (SVC-002)
+   - Forms service lacks `GET /v1/forms/{formId}/versions` endpoint
+   - Impact: Cannot list form versions
 
-3. **Missing `GET /v1/forms/{formId}` verification needed**
-   - Forms service has methods but endpoint mapping should be verified
+3. **Missing `createVersion()` method** (SVC-003)
+   - Forms service lacks `POST /v1/forms/{formId}/versions` endpoint
+   - Impact: Cannot create form versions for updates
 
 ---
 
-### Top Recommendations
+### Top 3 Recommendations
 
-1. **Add nested resource methods:**
-   ```php
-   // Segments::contacts()
-   public function contacts(string $segmentId, array $options = []): Collection
-   
-   // Topics::contacts()
-   public function contacts(string $topicId, array $options = []): Collection
-   ```
+1. **Implement missing Forms version management methods** (High Priority)
+   - Add `versions()`, `createVersion()`, and `publish()` to Forms service
+   - Essential for form versioning workflow
 
-2. **Document ApiKeys::create authentication limitation** - requires session auth, not API key
+2. **Fix PHPDoc parameter documentation** (High Priority)
+   - `Contacts::search()` uses wrong parameter names (`query`/`filters` vs `conditions`)
+   - `ContactProperties::update()` shows mutable fields that are immutable
 
-3. **Add typed properties to model classes** for better IDE support and type safety
+3. **Update model PHPDoc enum values** (Medium Priority)
+   - Form status: Change from `active/inactive` to `DRAFT/PUBLISHED/ARCHIVED`
+   - ContactProperty type: Change from `text/number/date` to `DATE/NUMBER/STRING`
+
+---
+
+### Key Findings
+
+**Covered Endpoints (24/27):**
+- Contacts: 6/6 endpoints 
+- Topics: 6/6 endpoints 
+- Segments: 6/6 endpoints 
+- Forms: 5/8 endpoints (missing 3 version-related)
+- API Keys: 3/3 endpoints 
+- Contact Properties: 5/5 endpoints 
+
+**Missing Endpoints (3):**
+- `GET /v1/forms/{formId}/versions` - List form versions
+- `POST /v1/forms/{formId}/versions` - Create form version
+- `POST /v1/forms/{formId}/publish` - Publish form
 [?25h[?25h[0;32m[SUCCESS][0m Completed audit for php SDK
-  Audit ID: pr-400-php-20251130-173350-25f8721f
+  Audit ID: pr-456-php-20251206-054403-07e9500f

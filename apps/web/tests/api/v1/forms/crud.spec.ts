@@ -61,13 +61,15 @@ afterAll(async () => {
 });
 
 describe("GET /api/v1/forms/[formId]", () => {
-  test("should get a form by ID", async () => {
+  test("should get a form by ID with type and display", async () => {
     // Create a form first
     const createRequest = post(
       "/forms",
       {
         name: "Contact Form",
         description: "Get in touch",
+        type: "SURVEY",
+        display: "POPUP",
         fields: validFormFields,
       },
       fullAccessApiKey.key
@@ -92,8 +94,40 @@ describe("GET /api/v1/forms/[formId]", () => {
     expect(responseData.id).toBe(createdForm.id);
     expect(responseData.name).toBe("Contact Form");
     expect(responseData.description).toBe("Get in touch");
+    expect(responseData.type).toBe("SURVEY");
+    expect(responseData.display).toBe("POPUP");
     expect(responseData.status).toBe("DRAFT");
     expect(responseData.fields).toEqual(validFormFields);
+  });
+
+  test("should return default type and display values", async () => {
+    // Create a form without specifying type and display
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Default Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await POST(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Get the form
+    const getRequest = apiRequest(`/forms/${createdForm.id}`)
+      .method("GET")
+      .auth(fullAccessApiKey.key)
+      .build();
+
+    const response = await GET(getRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.type).toBe("SIGN_UP");
+    expect(responseData.display).toBe("INLINE_EMBED");
   });
 
   test("should return 404 for non-existent form", async () => {
@@ -169,6 +203,83 @@ describe("PUT /api/v1/forms/[formId]", () => {
     expect(response.status).toBe(200);
     expect(responseData.object).toBe("form");
     expect(responseData.id).toBe(createdForm.id);
+  });
+
+  test("should update form type and display", async () => {
+    // Create a form with default type and display
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Type Test Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await POST(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Update type and display
+    const updateRequest = put(
+      `/forms/${createdForm.id}`,
+      {
+        type: "SURVEY",
+        display: "POPUP",
+      },
+      fullAccessApiKey.key
+    );
+
+    const response = await PUT(updateRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+
+    expect(response.status).toBe(200);
+
+    // Verify type and display were updated
+    const getRequest = apiRequest(`/forms/${createdForm.id}`)
+      .method("GET")
+      .auth(fullAccessApiKey.key)
+      .build();
+
+    const getResponse = await GET(getRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const formData = await getResponse.json();
+
+    expect(formData.type).toBe("SURVEY");
+    expect(formData.display).toBe("POPUP");
+  });
+
+  test("should reject invalid type value on update", async () => {
+    // Create a form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Test Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await POST(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Try to update with invalid type
+    const updateRequest = put(
+      `/forms/${createdForm.id}`,
+      {
+        type: "INVALID_TYPE",
+      },
+      fullAccessApiKey.key
+    );
+
+    const response = await PUT(updateRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
   });
 
   test("should update form fields", async () => {

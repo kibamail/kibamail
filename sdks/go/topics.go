@@ -23,6 +23,7 @@ type UpdateTopicRequest struct {
 
 // Topic provides the structure for a topic object.
 type Topic struct {
+	Object       string `json:"object"`
 	ID           string `json:"id"`
 	Name         string `json:"name"`
 	Description  string `json:"description"`
@@ -39,6 +40,7 @@ type TopicResponse struct {
 
 // ListTopicsResponse is the response from the List call.
 type ListTopicsResponse struct {
+	Object      string  `json:"object"`
 	Data        []Topic `json:"data"`
 	HasMore     bool    `json:"hasMore"`
 	HasPrevious bool    `json:"hasPrevious"`

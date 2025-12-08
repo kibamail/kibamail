@@ -1,0 +1,642 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-456-nodejs-20251201-030854-42795e86",
+    "sdkName": "kibamail",
+    "sdkLanguage": "typescript",
+    "sdkVersion": "0.0.1-alpha.0",
+    "nodeVersion": ">=18",
+    "openApiVersion": "3.1.0",
+    "openApiTitle": "Kibamail API",
+    "auditTimestamp": "2025-12-01T03:08:54Z",
+    "reportPath": ".audits/nodejs-sdk/2025-12-01T03-08-54-pr-456-nodejs-20251201-030854-42795e86.json",
+    "sdkDirectory": "sdks/nodejs",
+    "openApiPath": "apps/web/public/openapi.v1.json"
+  },
+  "coverage": {
+    "totalEndpointsInSpec": 25,
+    "totalMethodsInSdk": 25,
+    "endpointsCovered": 25,
+    "endpointsMissing": 0,
+    "coveragePercentage": 100.0,
+    "extraSdkMethods": 0
+  },
+  "sdkStructure": {
+    "filesAnalyzed": [
+      "index.ts",
+      "kibamail.ts",
+      "client.ts",
+      "schema.d.ts",
+      "resources/api-keys.ts",
+      "resources/contacts.ts",
+      "resources/topics.ts",
+      "resources/segments.ts",
+      "resources/contact-properties.ts",
+      "resources/forms.ts"
+    ],
+    "entryPoint": "index.ts",
+    "mainClass": "Kibamail",
+    "resourcesDiscovered": [
+      {
+        "name": "apiKeys",
+        "className": "ApiKeys",
+        "file": "resources/api-keys.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateApiKeyBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/api-keys"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListApiKeysQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/api-keys"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["keyId: string"],
+            "returnType": "Promise",
+            "endpoint": "DELETE /v1/api-keys/{keyId}"
+          }
+        ]
+      },
+      {
+        "name": "contacts",
+        "className": "Contacts",
+        "file": "resources/contacts.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateContactBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/contacts"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListContactsQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/contacts"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["contactId: string"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/contacts/{contactId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["contactId: string", "params: UpdateContactBody"],
+            "returnType": "Promise",
+            "endpoint": "PUT /v1/contacts/{contactId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["contactId: string"],
+            "returnType": "Promise",
+            "endpoint": "DELETE /v1/contacts/{contactId}"
+          },
+          {
+            "name": "search",
+            "async": false,
+            "parameters": ["params: SearchContactsBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/contacts/search"
+          }
+        ]
+      },
+      {
+        "name": "topics",
+        "className": "Topics",
+        "file": "resources/topics.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateTopicBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/topics"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListTopicsQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/topics"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["topicId: string"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/topics/{topicId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["topicId: string", "params: UpdateTopicBody"],
+            "returnType": "Promise",
+            "endpoint": "PUT /v1/topics/{topicId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["topicId: string"],
+            "returnType": "Promise",
+            "endpoint": "DELETE /v1/topics/{topicId}"
+          },
+          {
+            "name": "listContacts",
+            "async": false,
+            "parameters": ["topicId: string", "params?: ListTopicContactsQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/topics/{topicId}/contacts"
+          }
+        ]
+      },
+      {
+        "name": "segments",
+        "className": "Segments",
+        "file": "resources/segments.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateSegmentBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/segments"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListSegmentsQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/segments"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["segmentId: string"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/segments/{segmentId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["segmentId: string", "params: UpdateSegmentBody"],
+            "returnType": "Promise",
+            "endpoint": "PUT /v1/segments/{segmentId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["segmentId: string"],
+            "returnType": "Promise",
+            "endpoint": "DELETE /v1/segments/{segmentId}"
+          },
+          {
+            "name": "listContacts",
+            "async": false,
+            "parameters": ["segmentId: string", "params?: ListSegmentContactsQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/segments/{segmentId}/contacts"
+          }
+        ]
+      },
+      {
+        "name": "contactProperties",
+        "className": "ContactProperties",
+        "file": "resources/contact-properties.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateContactPropertyBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/contact-properties"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListContactPropertiesQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/contact-properties"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["contactPropertyId: string"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/contact-properties/{contactPropertyId}"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["contactPropertyId: string", "params: UpdateContactPropertyBody"],
+            "returnType": "Promise",
+            "endpoint": "PUT /v1/contact-properties/{contactPropertyId}"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["contactPropertyId: string"],
+            "returnType": "Promise",
+            "endpoint": "DELETE /v1/contact-properties/{contactPropertyId}"
+          }
+        ]
+      },
+      {
+        "name": "forms",
+        "className": "Forms",
+        "file": "resources/forms.ts",
+        "methods": [
+          {
+            "name": "create",
+            "async": false,
+            "parameters": ["params: CreateFormBody"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/forms"
+          },
+          {
+            "name": "list",
+            "async": false,
+            "parameters": ["params?: ListFormsQuery"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/forms"
+          },
+          {
+            "name": "get",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/forms/{formId}"
+          },
+          {
+            "name": "listVersions",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "Promise",
+            "endpoint": "GET /v1/forms/{formId}/versions"
+          },
+          {
+            "name": "update",
+            "async": false,
+            "parameters": ["formId: string", "params: UpdateFormBody"],
+            "returnType": "Promise",
+            "endpoint": "PUT /v1/forms/{formId}"
+          },
+          {
+            "name": "publish",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/forms/{formId}/publish"
+          },
+          {
+            "name": "delete",
+            "async": false,
+            "parameters": ["formId: string"],
+            "returnType": "Promise",
+            "endpoint": "DELETE /v1/forms/{formId}"
+          },
+          {
+            "name": "createVersion",
+            "async": false,
+            "parameters": ["formId: string", "params: CreateFormVersionBody = {}"],
+            "returnType": "Promise",
+            "endpoint": "POST /v1/forms/{formId}/versions"
+          }
+        ]
+      }
+    ],
+    "typesDiscovered": [
+      "paths",
+      "components",
+      "CreateApiKeyBody",
+      "ListApiKeysQuery",
+      "CreateContactBody",
+      "UpdateContactBody",
+      "ListContactsQuery",
+      "SearchContactsBody",
+      "CreateTopicBody",
+      "UpdateTopicBody",
+      "ListTopicsQuery",
+      "ListTopicContactsQuery",
+      "CreateSegmentBody",
+      "UpdateSegmentBody",
+      "ListSegmentsQuery",
+      "ListSegmentContactsQuery",
+      "CreateContactPropertyBody",
+      "UpdateContactPropertyBody",
+      "ListContactPropertiesQuery",
+      "CreateFormBody",
+      "UpdateFormBody",
+      "ListFormsQuery",
+      "CreateFormVersionBody"
+    ],
+    "schemaFile": "schema.d.ts",
+    "schemaInSync": true,
+    "totalClasses": 7,
+    "totalMethods": 25,
+    "totalTypes": 23
+  },
+  "summary": {
+    "totalIssues": 0,
+    "critical": 0,
+    "major": 0,
+    "minor": 0,
+    "suggestions": 2,
+    "passedChecks": 25
+  },
+  "missingEndpoints": [],
+  "extraSdkMethods": [],
+  "inconsistencies": [],
+  "typeDiscrepancies": [],
+  "schemaIssues": [],
+  "jsdocIssues": [],
+  "schemaCompleteness": [],
+  "recommendations": [
+    {
+      "priority": "low",
+      "category": "documentation",
+      "title": "Add explicit async keywords to methods",
+      "description": "While the SDK methods correctly return Promises via the openapi-fetch client, adding explicit 'async' keywords would improve code clarity and make the asynchronous nature immediately visible.",
+      "rationale": "Modern TypeScript conventions recommend explicitly marking async functions for better readability and IDE support.",
+      "affectedFiles": [
+        "resources/api-keys.ts",
+        "resources/contacts.ts",
+        "resources/topics.ts",
+        "resources/segments.ts",
+        "resources/contact-properties.ts",
+        "resources/forms.ts"
+      ],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Change 'create(params: CreateApiKeyBody) {' to 'async create(params: CreateApiKeyBody) {' and add 'return await' before client calls"
+    },
+    {
+      "priority": "low",
+      "category": "type_safety",
+      "title": "Export individual request/response types",
+      "description": "Consider exporting individual request and response types from the SDK for users who need to type their own variables or function parameters.",
+      "rationale": "Some SDK users may want to declare variables with specific request/response types outside of the SDK method calls.",
+      "affectedFiles": ["index.ts"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add type exports like 'export type { CreateContactBody, ContactResponse } from \"./resources/contacts\"'"
+    }
+  ],
+  "newEndpointsInSpec": [],
+  "endpointMapping": {
+    "apiKeys": {
+      "GET /v1/api-keys": {
+        "sdkMethod": "list",
+        "status": "implemented",
+        "file": "resources/api-keys.ts",
+        "line": 151
+      },
+      "POST /v1/api-keys": {
+        "sdkMethod": "create",
+        "status": "implemented",
+        "file": "resources/api-keys.ts",
+        "line": 93
+      },
+      "DELETE /v1/api-keys/{keyId}": {
+        "sdkMethod": "delete",
+        "status": "implemented",
+        "file": "resources/api-keys.ts",
+        "line": 207
+      }
+    },
+    "contacts": {
+      "GET /v1/contacts": {
+        "sdkMethod": "list",
+        "status": "implemented",
+        "file": "resources/contacts.ts",
+        "line": 196
+      },
+      "POST /v1/contacts": {
+        "sdkMethod": "create",
+        "status": "implemented",
+        "file": "resources/contacts.ts",
+        "line": 121
+      },
+      "GET /v1/contacts/{contactId}": {
+        "sdkMethod": "get",
+        "status": "implemented",
+        "file": "resources/contacts.ts",
+        "line": 237
+      },
+      "PUT /v1/contacts/{contactId}": {
+        "sdkMethod": "update",
+        "status": "implemented",
+        "file": "resources/contacts.ts",
+        "line": 313
+      },
+      "DELETE /v1/contacts/{contactId}": {
+        "sdkMethod": "delete",
+        "status": "implemented",
+        "file": "resources/contacts.ts",
+        "line": 367
+      },
+      "POST /v1/contacts/search": {
+        "sdkMethod": "search",
+        "status": "implemented",
+        "file": "resources/contacts.ts",
+        "line": 468
+      }
+    },
+    "topics": {
+      "GET /v1/topics": {
+        "sdkMethod": "list",
+        "status": "implemented",
+        "file": "resources/topics.ts",
+        "line": 157
+      },
+      "POST /v1/topics": {
+        "sdkMethod": "create",
+        "status": "implemented",
+        "file": "resources/topics.ts",
+        "line": 108
+      },
+      "GET /v1/topics/{topicId}": {
+        "sdkMethod": "get",
+        "status": "implemented",
+        "file": "resources/topics.ts",
+        "line": 196
+      },
+      "PUT /v1/topics/{topicId}": {
+        "sdkMethod": "update",
+        "status": "implemented",
+        "file": "resources/topics.ts",
+        "line": 256
+      },
+      "DELETE /v1/topics/{topicId}": {
+        "sdkMethod": "delete",
+        "status": "implemented",
+        "file": "resources/topics.ts",
+        "line": 309
+      },
+      "GET /v1/topics/{topicId}/contacts": {
+        "sdkMethod": "listContacts",
+        "status": "implemented",
+        "file": "resources/topics.ts",
+        "line": 370
+      }
+    },
+    "segments": {
+      "GET /v1/segments": {
+        "sdkMethod": "list",
+        "status": "implemented",
+        "file": "resources/segments.ts",
+        "line": 186
+      },
+      "POST /v1/segments": {
+        "sdkMethod": "create",
+        "status": "implemented",
+        "file": "resources/segments.ts",
+        "line": 137
+      },
+      "GET /v1/segments/{segmentId}": {
+        "sdkMethod": "get",
+        "status": "implemented",
+        "file": "resources/segments.ts",
+        "line": 224
+      },
+      "PUT /v1/segments/{segmentId}": {
+        "sdkMethod": "update",
+        "status": "implemented",
+        "file": "resources/segments.ts",
+        "line": 283
+      },
+      "DELETE /v1/segments/{segmentId}": {
+        "sdkMethod": "delete",
+        "status": "implemented",
+        "file": "resources/segments.ts",
+        "line": 323
+      },
+      "GET /v1/segments/{segmentId}/contacts": {
+        "sdkMethod": "listContacts",
+        "status": "implemented",
+        "file": "resources/segments.ts",
+        "line": 384
+      }
+    },
+    "contactProperties": {
+      "GET /v1/contact-properties": {
+        "sdkMethod": "list",
+        "status": "implemented",
+        "file": "resources/contact-properties.ts",
+        "line": 181
+      },
+      "POST /v1/contact-properties": {
+        "sdkMethod": "create",
+        "status": "implemented",
+        "file": "resources/contact-properties.ts",
+        "line": 132
+      },
+      "GET /v1/contact-properties/{contactPropertyId}": {
+        "sdkMethod": "get",
+        "status": "implemented",
+        "file": "resources/contact-properties.ts",
+        "line": 221
+      },
+      "PUT /v1/contact-properties/{contactPropertyId}": {
+        "sdkMethod": "update",
+        "status": "implemented",
+        "file": "resources/contact-properties.ts",
+        "line": 276
+      },
+      "DELETE /v1/contact-properties/{contactPropertyId}": {
+        "sdkMethod": "delete",
+        "status": "implemented",
+        "file": "resources/contact-properties.ts",
+        "line": 332
+      }
+    },
+    "forms": {
+      "GET /v1/forms": {
+        "sdkMethod": "list",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 178
+      },
+      "POST /v1/forms": {
+        "sdkMethod": "create",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 133
+      },
+      "GET /v1/forms/{formId}": {
+        "sdkMethod": "get",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 221
+      },
+      "PUT /v1/forms/{formId}": {
+        "sdkMethod": "update",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 328
+      },
+      "DELETE /v1/forms/{formId}": {
+        "sdkMethod": "delete",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 443
+      },
+      "GET /v1/forms/{formId}/versions": {
+        "sdkMethod": "listVersions",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 264
+      },
+      "POST /v1/forms/{formId}/versions": {
+        "sdkMethod": "createVersion",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 531
+      },
+      "POST /v1/forms/{formId}/publish": {
+        "sdkMethod": "publish",
+        "status": "implemented",
+        "file": "resources/forms.ts",
+        "line": 388
+      }
+    }
+  },
+  "qualityMetrics": {
+    "httpClientIntegration": {
+      "library": "openapi-fetch",
+      "version": "^0.12.2",
+      "properlyConfigured": true,
+      "usesGeneratedTypes": true
+    },
+    "typeGeneration": {
+      "tool": "openapi-typescript",
+      "version": "^7.10.1",
+      "schemaFile": "schema.d.ts",
+      "generationCommand": "openapi-typescript ../../apps/web/public/openapi.v1.json -o ./schema.d.ts",
+      "inSync": true
+    },
+    "documentation": {
+      "jsdocCoverage": "100%",
+      "examplesProvided": true,
+      "parameterDescriptions": true,
+      "returnTypeDocumented": true,
+      "throwsDocumented": true
+    },
+    "codeOrganization": {
+      "resourceBasedStructure": true,
+      "singleResponsibility": true,
+      "consistentNaming": true,
+      "properExports": true
+    }
+  }
+}

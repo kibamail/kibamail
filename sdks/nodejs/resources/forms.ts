@@ -7,6 +7,7 @@ type HttpClient = ReturnType<typeof createHttpClient>;
 type CreateFormBody = paths["/v1/forms"]["post"]["requestBody"]["content"]["application/json"];
 type UpdateFormBody = paths["/v1/forms/{formId}"]["put"]["requestBody"]["content"]["application/json"];
 type ListFormsQuery = paths["/v1/forms"]["get"]["parameters"]["query"];
+type CreateFormVersionBody = paths["/v1/forms/{formId}/versions"]["post"]["requestBody"]["content"]["application/json"];
 
 /**
  * Forms Resource
@@ -444,6 +445,93 @@ export class Forms {
       params: {
         path: { formId },
       },
+    });
+  }
+
+  /**
+   * Create a new version of an existing form.
+   *
+   * Creates a new DRAFT version that inherits configuration from the parent form.
+   * This enables zero-downtime form updates - edit in draft, test, then publish when ready.
+   *
+   * **Use Cases:**
+   * - Update a published form without breaking the live version
+   * - Test changes before deploying to production
+   * - Create A/B test variants
+   * - Roll back to previous versions
+   * - Maintain form version history
+   *
+   * **Behavior:**
+   * - New version inherits all fields from parent if not provided
+   * - Created in DRAFT status (can be edited)
+   * - Parent can be root form or any existing version
+   * - Only one DRAFT version allowed per root form
+   * - All fields are optional (defaults to parent values)
+   * - New version gets unique ID but shares root form lineage
+   *
+   * **Required Scope:** `write:forms`
+   *
+   * **Version Inheritance:**
+   * - If no fields provided, copies all from parent
+   * - Specify only fields you want to change
+   * - Omitted fields default to parent values
+   * - Creates independent copy (changes don't affect parent)
+   *
+   * **Versioning Workflow:**
+   * 1. Published form is live on website
+   * 2. Create new version (inherits configuration)
+   * 3. Modify new DRAFT version as needed
+   * 4. Test new version
+   * 5. Publish new version
+   * 6. Previous published version becomes ARCHIVED
+   * 7. Form URL remains constant across versions
+   *
+   * **Important:**
+   * - Cannot create version if DRAFT already exists for this root form
+   * - Only one DRAFT version per form family
+   * - Publish or delete existing DRAFT before creating new version
+   * - Versions share the same root form ID
+   *
+   * @param formId - The unique identifier of the form (can be root or any version)
+   * @param params - Optional version parameters (defaults to parent values)
+   * @param params.name - Override the form name for this version
+   * @param params.description - Override the form description for this version
+   * @param params.fields - Override the form fields for this version
+   *
+   * @returns Promise containing the created version ID
+   *
+   * @throws {NotFoundError} Form not found or doesn't belong to your workspace
+   * @throws {BadRequestError} A DRAFT version already exists for this form's root
+   * @throws {UnauthorizedError} Invalid API key or missing write:forms scope
+   *
+   * @example
+   * ```ts
+   * // Create a new version of a form (inherits all settings)
+   * const { data, error } = await kibamail.forms.createVersion("form_abc123");
+   *
+   * // Create a version with modified name
+   * const { data, error } = await kibamail.forms.createVersion("form_abc123", {
+   *   name: "Newsletter Signup v2"
+   * });
+   *
+   * // Create a version with updated fields
+   * const { data, error } = await kibamail.forms.createVersion("form_abc123", {
+   *   name: "Newsletter Signup v2",
+   *   fields: [
+   *     { name: "email", type: "email", required: true },
+   *     { name: "firstName", type: "text", required: false },
+   *     { name: "phone", type: "tel", required: false } // New field
+   *   ]
+   * });
+   *
+   * // Then publish the new version when ready
+   * await kibamail.forms.publish(data.id);
+   * ```
+   */
+  createVersion(formId: string, params: CreateFormVersionBody = {}) {
+    return this.client.POST("/v1/forms/{formId}/versions", {
+      params: { path: { formId } },
+      body: params,
     });
   }
 }

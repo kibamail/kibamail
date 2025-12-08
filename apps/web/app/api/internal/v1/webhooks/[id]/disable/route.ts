@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { disableWebhookDestination } from "../../handler";
+import { disableWebhookDestination } from "@/app/api/internal/v1/webhooks/handler";
 
 /**
  * PUT /api/internal/v1/webhooks/[id]/disable

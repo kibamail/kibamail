@@ -61,9 +61,14 @@ import {
   type CreateWebhookDestinationInput,
   type UpdateWebhookDestinationInput,
   type ListEventsResponse,
+  type WebhookDestinationResponse,
+  type WebhookEventDeliveriesResponse,
   createWebhookDestinationSchema,
   updateWebhookDestinationSchema,
   listEventsResponseSchema,
+  webhookDestinationResponseSchema,
+  webhookEventDeliveriesResponseSchema,
+  emptyResponseSchema,
 } from "@/app/api/internal/v1/webhooks/schema";
 import {
   type UpdateLogoResponse,
@@ -102,14 +107,22 @@ import {
 import {
   type CreateContactRequest,
   type UpdateContactRequest,
+  type ContactResponse,
+  type ContactDeleteResponse,
   createContactSchema,
   updateContactSchema,
+  contactResponseSchema,
+  contactDeleteResponseSchema,
 } from "@/app/api/v1/contacts/schema";
 import {
   type CreateFormRequest,
   type FormResponse,
+  type FormListResponse,
+  type FormSubmissionResponse,
   createFormSchema,
   formResponseSchema,
+  formListResponseSchema,
+  formSubmissionResponseSchema,
 } from "@/app/api/v1/forms/schema";
 
 type ApiErrorResponse = {
@@ -227,9 +240,12 @@ class WorkspaceInvitationsApi extends HttpClient {
    * ```
    */
   async cancel(invitationId: string): Promise<void> {
-    await fetch(`/api/internal/v1/invitations/${invitationId}`, {
-      method: "DELETE",
-    });
+    await this.request(
+      "DELETE",
+      `/api/internal/v1/invitations/${invitationId}`,
+      null,
+      emptyResponseSchema
+    );
   }
 }
 
@@ -465,12 +481,12 @@ class WebhooksApi extends HttpClient {
    * })
    * ```
    */
-  async create(data: CreateWebhookDestinationInput): Promise<any> {
+  async create(data: CreateWebhookDestinationInput): Promise<WebhookDestinationResponse> {
     return this.request(
       "POST",
       "/api/internal/v1/webhooks",
       createWebhookDestinationSchema,
-      {} as any,
+      webhookDestinationResponseSchema,
       data
     );
   }
@@ -493,12 +509,12 @@ class WebhooksApi extends HttpClient {
   async update(
     webhookId: string,
     data: UpdateWebhookDestinationInput
-  ): Promise<any> {
+  ): Promise<WebhookDestinationResponse> {
     return this.request(
       "PATCH",
       `/api/internal/v1/webhooks/${webhookId}`,
       updateWebhookDestinationSchema,
-      {} as any,
+      webhookDestinationResponseSchema,
       data
     );
   }
@@ -515,9 +531,12 @@ class WebhooksApi extends HttpClient {
    * ```
    */
   async delete(webhookId: string): Promise<void> {
-    await fetch(`/api/internal/v1/webhooks/${webhookId}`, {
-      method: "DELETE",
-    });
+    await this.request(
+      "DELETE",
+      `/api/internal/v1/webhooks/${webhookId}`,
+      null,
+      emptyResponseSchema
+    );
   }
 
   /**
@@ -531,12 +550,12 @@ class WebhooksApi extends HttpClient {
    * await internalApi.webhooks().enable('dest_123')
    * ```
    */
-  async enable(webhookId: string): Promise<any> {
+  async enable(webhookId: string): Promise<WebhookDestinationResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/webhooks/${webhookId}/enable`,
       null,
-      {} as any
+      webhookDestinationResponseSchema
     );
   }
 
@@ -551,12 +570,12 @@ class WebhooksApi extends HttpClient {
    * await internalApi.webhooks().disable('dest_123')
    * ```
    */
-  async disable(webhookId: string): Promise<void> {
+  async disable(webhookId: string): Promise<WebhookDestinationResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/webhooks/${webhookId}/disable`,
       null,
-      {} as any
+      webhookDestinationResponseSchema
     );
   }
 
@@ -618,22 +637,13 @@ class WebhooksApi extends HttpClient {
   async listEventDeliveries(
     webhookId: string,
     eventId: string
-  ): Promise<{ deliveries: unknown }> {
-    const url = `/api/internal/v1/webhooks/${webhookId}/events/${eventId}/deliveries`;
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to fetch deliveries: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data;
+  ): Promise<WebhookEventDeliveriesResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/webhooks/${webhookId}/events/${eventId}/deliveries`,
+      null,
+      webhookEventDeliveriesResponseSchema
+    );
   }
 }
 
@@ -1074,12 +1084,12 @@ class ContactsApi extends HttpClient {
    * })
    * ```
    */
-  async create(data: CreateContactRequest): Promise<any> {
+  async create(data: CreateContactRequest): Promise<ContactResponse> {
     return this.request(
       "POST",
       "/api/internal/v1/contacts",
       createContactSchema,
-      {} as any,
+      contactResponseSchema,
       data
     );
   }
@@ -1103,12 +1113,12 @@ class ContactsApi extends HttpClient {
   async update(
     contactId: string,
     data: UpdateContactRequest
-  ): Promise<any> {
+  ): Promise<ContactResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/contacts/${contactId}`,
       updateContactSchema,
-      {} as any,
+      contactResponseSchema,
       data
     );
   }
@@ -1117,19 +1127,19 @@ class ContactsApi extends HttpClient {
    * Delete a contact
    *
    * @param contactId - ID of the contact to delete
-   * @returns Empty response on success
+   * @returns Deleted contact info
    *
    * @example
    * ```ts
    * await internalApi.contacts().delete('contact_123')
    * ```
    */
-  async delete(contactId: string): Promise<any> {
+  async delete(contactId: string): Promise<ContactDeleteResponse> {
     return this.request(
       "DELETE",
       `/api/internal/v1/contacts/${contactId}`,
-      {} as any,
-      {} as any
+      null,
+      contactDeleteResponseSchema
     );
   }
 }
@@ -1140,6 +1150,25 @@ class ContactsApi extends HttpClient {
  * Internal API for form management.
  */
 class FormsApi extends HttpClient {
+  /**
+   * List all forms
+   *
+   * @returns List of forms with pagination info
+   *
+   * @example
+   * ```ts
+   * const { data: forms, hasMore } = await internalApi.forms().list()
+   * ```
+   */
+  async list(): Promise<FormListResponse> {
+    return this.request(
+      "GET",
+      "/api/internal/v1/forms",
+      null,
+      formListResponseSchema
+    );
+  }
+
   /**
    * Create a new form
    *
@@ -1213,6 +1242,73 @@ class FormsApi extends HttpClient {
       null,
       formResponseSchema
     );
+  }
+
+  /**
+   * Create a new version (draft) of a form
+   *
+   * @param formId - ID of the form to create a version from
+   * @returns Created form version
+   *
+   * @example
+   * ```ts
+   * const newVersion = await internalApi.forms().createVersion('form_123')
+   * ```
+   */
+  async createVersion(formId: string): Promise<FormResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/forms/${formId}/versions`,
+      null,
+      formResponseSchema,
+      {}
+    );
+  }
+
+  /**
+   * Submit data to a public form (no authentication required)
+   *
+   * @param formId - ID of the root form to submit to
+   * @param data - Form submission data
+   * @returns Submission result with ID
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.forms().submitPublic('form_123', {
+   *   email: 'user@example.com',
+   *   firstName: 'John'
+   * })
+   * console.log(result.data.id) // Submission ID
+   * ```
+   */
+  async submitPublic(
+    formId: string,
+    data: Record<string, unknown>
+  ): Promise<FormSubmissionResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/forms/${formId}/submissions`,
+      null,
+      formSubmissionResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Track a page view for a public form (no authentication required)
+   *
+   * @param formId - ID of the root form being viewed
+   * @returns Page view result with ID
+   *
+   * @example
+   * ```ts
+   * await internalApi.forms().trackView('form_123')
+   * ```
+   */
+  async trackView(formId: string): Promise<void> {
+    await fetch(`/api/internal/v1/forms/${formId}/views`, {
+      method: "POST",
+    });
   }
 }
 

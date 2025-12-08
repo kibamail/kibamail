@@ -66,6 +66,8 @@ beforeAll(async () => {
       workspaceId: testWorkspace.id,
       name: "Newsletter Signup",
       description: "Subscribe to our newsletter",
+      type: "SIGN_UP",
+      display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
       fields: validFormFields as never,
@@ -78,6 +80,8 @@ beforeAll(async () => {
       workspaceId: testWorkspace.id,
       name: "Contact Form",
       description: null,
+      type: "SURVEY",
+      display: "POPUP",
       status: "DRAFT",
       version: 1,
       fields: validFormFields as never,
@@ -90,6 +94,8 @@ beforeAll(async () => {
       workspaceId: testWorkspace.id,
       name: "Feedback Form",
       description: "Share your feedback",
+      type: "SURVEY",
+      display: "INLINE_EMBED",
       status: "ARCHIVED",
       version: 1,
       fields: validFormFields as never,
@@ -222,6 +228,8 @@ describe("GET /api/v1/forms - List Forms", () => {
     expect(form.id).toBeDefined();
     expect(form.name).toBeDefined();
     expect(form.description).toBeDefined();
+    expect(form.type).toBeDefined();
+    expect(form.display).toBeDefined();
     expect(form.status).toBeDefined();
 
     // Should NOT have these internal fields
@@ -233,6 +241,28 @@ describe("GET /api/v1/forms - List Forms", () => {
     expect(form.version).toBeUndefined();
     expect(form.fields).toBeUndefined();
     expect(form.settings).toBeUndefined();
+  });
+
+  test("should return type and display values correctly", async () => {
+    const request = get("/forms", fullAccessApiKey.key);
+
+    const response = await GET(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+
+    // Find specific forms and check their type/display
+    const signupForm = responseData.data.find(
+      (f: any) => f.id === rootForm1Id
+    );
+    expect(signupForm.type).toBe("SIGN_UP");
+    expect(signupForm.display).toBe("INLINE_EMBED");
+
+    const contactForm = responseData.data.find(
+      (f: any) => f.id === rootForm2Id
+    );
+    expect(contactForm.type).toBe("SURVEY");
+    expect(contactForm.display).toBe("POPUP");
   });
 
   test("should return forms in all statuses (DRAFT, PUBLISHED, ARCHIVED)", async () => {

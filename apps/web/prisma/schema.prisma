@@ -93,6 +93,10 @@ model Contact {
   city             String?
   /// Contact subscription status
   status           ContactStatus     @default(SUBSCRIBED)
+  /// Source type indicating how the contact was created
+  sourceType       ContactSourceType @default(MANUAL)
+  /// Source ID (form ID for FORM source, import ID for IMPORT source, null for MANUAL/API)
+  sourceId         String?
   /// When the contact was subscribed
   subscribedAt     DateTime?
   /// When the contact was unsubscribed
@@ -192,6 +196,7 @@ model Contact {
   topics           ContactTopic[]
   suppressions     SuppressionList[]
   automationRuns   AutomationRun[]
+  formSubmissions  FormSubmission[]
 
   @@unique([workspaceId, email])
   @@index([workspaceId])
@@ -219,6 +224,8 @@ model Contact {
   @@index([workspaceId, propertyString7])
   @@index([workspaceId, propertyString8])
   @@index([workspaceId, propertyString9])
+  @@index([sourceType])
+  @@index([sourceId])
   @@map("contacts")
 }
 
@@ -434,6 +441,14 @@ enum ContactStatus {
   BOUNCED
   COMPLAINED
   ARCHIVED
+}
+
+/// Source type indicating how a contact was created
+enum ContactSourceType {
+  MANUAL  // Created manually via dashboard
+  IMPORT  // Created via CSV/file import
+  FORM    // Created via form submission
+  API     // Created via API call
 }
 
 enum ContactPropertyType {
@@ -658,6 +673,10 @@ model Form {
   name            String
   /// Form description
   description     String?
+  /// Form type (sign-up for collecting subscribers, survey for collecting information)
+  type            FormType           @default(SIGN_UP)
+  /// Form display mode (how the form is presented to users)
+  display         FormDisplay        @default(INLINE_EMBED)
   /// Form status
   status          FormStatus         @default(DRAFT)
   /// Version number (increments with each new version)
@@ -675,6 +694,10 @@ model Form {
   /// Form settings (success message, redirect URL, double opt-in, etc.)
   /// @example {"successMessage": "Thank you!", "redirectUrl": "https://example.com/thank-you", "doubleOptIn": true, "createContact": true}
   settings        Json?
+  /// Field mapping for submission storage - maps form field names to database slots
+  /// Populated at publish time. Slot assignments are permanent per root form for data integrity.
+  /// @example {"email": {"slot": "fieldString0", "type": "string"}, "age": {"slot": "fieldNum0", "type": "number"}}
+  fieldMapping    Json?
 
   /// When this version was published (NULL if never published)
   publishedAt     DateTime?
@@ -694,6 +717,8 @@ model Form {
   referencedByAsPublished Form[]     @relation("PublishedVersion")
   /// Form submissions
   submissions     FormSubmission[]
+  /// Page views for this form
+  pageViews       PageView[]
 
   // Only enforce uniqueness for DRAFT and PUBLISHED status (allow multiple ARCHIVED)
   // This allows version rollback/rollforward without constraint violations
@@ -702,8 +727,6 @@ model Form {
   @@index([workspaceId, status])
   @@index([workspaceId, deletedAt])
   @@index([parentId])
-  @@index([status])
-  @@index([version])
   @@map("forms")
 }
 
@@ -736,7 +759,7 @@ model FormSubmission {
   createdAt      DateTime             @default(now())
   /// When the submission was last updated
   updatedAt      DateTime             @updatedAt
-  /// Custom field slots - String (30 slots)
+  /// Custom field slots - String (40 slots)
   fieldString0   String?              @db.VarChar(255)
   fieldString1   String?              @db.VarChar(255)
   fieldString2   String?              @db.VarChar(255)
@@ -767,7 +790,17 @@ model FormSubmission {
   fieldString27  String?              @db.VarChar(255)
   fieldString28  String?              @db.VarChar(255)
   fieldString29  String?              @db.VarChar(255)
-  /// Custom field slots - Numeric (30 slots for dates and numbers)
+  fieldString30  String?              @db.VarChar(255)
+  fieldString31  String?              @db.VarChar(255)
+  fieldString32  String?              @db.VarChar(255)
+  fieldString33  String?              @db.VarChar(255)
+  fieldString34  String?              @db.VarChar(255)
+  fieldString35  String?              @db.VarChar(255)
+  fieldString36  String?              @db.VarChar(255)
+  fieldString37  String?              @db.VarChar(255)
+  fieldString38  String?              @db.VarChar(255)
+  fieldString39  String?              @db.VarChar(255)
+  /// Custom field slots - Numeric (15 slots for dates and numbers)
   fieldNum0      Float?
   fieldNum1      Float?
   fieldNum2      Float?
@@ -783,19 +816,11 @@ model FormSubmission {
   fieldNum12     Float?
   fieldNum13     Float?
   fieldNum14     Float?
-  fieldNum15     Float?
-  fieldNum16     Float?
-  fieldNum17     Float?
-  fieldNum18     Float?
-  fieldNum19     Float?
-  fieldNum20     Float?
-  fieldNum21     Float?
-  fieldNum22     Float?
-  fieldNum23     Float?
-  fieldNum24     Float?
 
   /// Parent form
   form           Form                 @relation(fields: [formId], references: [id], onDelete: Cascade)
+  /// Contact associated with this submission (for SIGN_UP forms)
+  contact        Contact?             @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([formId])
@@ -815,11 +840,73 @@ model FormSubmission {
   @@map("form_submissions")
 }
 
+/// *
+///  * Page Views Schema
+///  *
+///  * Tracks page views for forms and landing pages.
+///  * Used to calculate conversion rates and analyze visitor behavior.
+model PageView {
+  /// Unique identifier for the page view
+  id          String        @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId String
+  /// Form ID (optional - for form page views)
+  formId      String?
+  /// Page type being viewed
+  pageType    PageViewType  @default(FORM)
+  /// IP address of the visitor
+  ipAddress   String?
+  /// Raw user agent string
+  userAgent   String?       @db.Text
+  /// Detected device type (desktop, mobile, tablet)
+  device      String?
+  /// Detected operating system
+  os          String?
+  /// Detected browser
+  browser     String?
+  /// Country (derived from IP)
+  country     String?
+  /// City (derived from IP)
+  city        String?
+  /// Referrer URL
+  referrerUrl String?       @db.Text
+  /// When the page was viewed
+  createdAt   DateTime      @default(now())
+
+  /// Parent form
+  form        Form?         @relation(fields: [formId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([formId])
+  @@index([createdAt])
+  @@index([workspaceId, formId])
+  @@index([workspaceId, createdAt])
+  @@map("page_views")
+}
+
+/// Page view type
+enum PageViewType {
+  FORM          // Form page view
+  LANDING_PAGE  // Landing page view (future)
+}
+
 /// Form status
 enum FormStatus {
   DRAFT      // Draft form being edited
   PUBLISHED  // Published form (active and accepting submissions)
   ARCHIVED   // Archived form (no longer accepting submissions)
+}
+
+/// Form type
+enum FormType {
+  SIGN_UP    // Sign-up form for collecting subscribers
+  SURVEY     // Survey form for collecting information
+}
+
+/// Form display mode
+enum FormDisplay {
+  POPUP        // Popup/modal form
+  INLINE_EMBED // Inline embedded form
 }
 
 /// Form submission status

@@ -21,6 +21,20 @@ class Contacts extends Service
 
     /**
      * Create a contact.
+     *
+     * @param array{
+     *     email: string,
+     *     firstName?: string|null,
+     *     lastName?: string|null,
+     *     phone?: string|null,
+     *     country?: string|null,
+     *     timezone?: string|null,
+     *     city?: string|null,
+     *     properties?: array<string, mixed>,
+     *     subscriptions?: array<array{topicId: string, status: string}>
+     * } $parameters Contact creation parameters
+     *
+     * @return Contact The created contact
      */
     public function create(array $parameters): Contact
     {
@@ -45,6 +59,21 @@ class Contacts extends Service
 
     /**
      * Update a contact by ID.
+     *
+     * @param string $id The contact ID
+     * @param array{
+     *     email?: string,
+     *     firstName?: string|null,
+     *     lastName?: string|null,
+     *     phone?: string|null,
+     *     country?: string|null,
+     *     timezone?: string|null,
+     *     city?: string|null,
+     *     properties?: array<string, mixed>,
+     *     subscriptions?: array<array{topicId: string, status: string}>
+     * } $parameters Contact update parameters
+     *
+     * @return Contact The updated contact
      */
     public function update(string $id, array $parameters): Contact
     {
@@ -67,6 +96,16 @@ class Contacts extends Service
 
     /**
      * Search contacts.
+     *
+     * @param array{
+     *     query?: string,
+     *     filters?: array,
+     *     limit?: int,
+     *     after?: string,
+     *     before?: string
+     * } $parameters Search parameters
+     *
+     * @return Collection<Contact> Paginated list of matching contacts
      */
     public function search(array $parameters): Collection
     {

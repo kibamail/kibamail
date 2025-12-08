@@ -19,6 +19,7 @@ type UpdateContactPropertyRequest struct {
 
 // ContactProperty provides the structure for a contact property object.
 type ContactProperty struct {
+	Object    string `json:"object"`
 	ID        string `json:"id"`
 	Name      string `json:"name"`
 	Type      string `json:"type"`
@@ -33,6 +34,7 @@ type ContactPropertyResponse struct {
 
 // ListContactPropertiesResponse is the response from the List call.
 type ListContactPropertiesResponse struct {
+	Object      string            `json:"object"`
 	Data        []ContactProperty `json:"data"`
 	HasMore     bool              `json:"hasMore"`
 	HasPrevious bool              `json:"hasPrevious"`

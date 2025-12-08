@@ -21,6 +21,14 @@ class Forms extends Service
 
     /**
      * Create a form.
+     *
+     * @param array{
+     *     name: string,
+     *     description?: string|null,
+     *     fields?: array
+     * } $parameters Form creation parameters
+     *
+     * @return Form The created form
      */
     public function create(array $parameters): Form
     {
@@ -45,6 +53,15 @@ class Forms extends Service
 
     /**
      * Update a form by ID.
+     *
+     * @param string $id The form ID
+     * @param array{
+     *     name?: string,
+     *     description?: string|null,
+     *     fields?: array
+     * } $parameters Form update parameters
+     *
+     * @return Form The updated form
      */
     public function update(string $id, array $parameters): Form
     {

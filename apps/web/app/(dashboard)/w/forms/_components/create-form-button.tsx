@@ -15,6 +15,8 @@ export function CreateFormButton() {
     mutationFn: async () => {
       return await internalApi.forms().create({
         name: "Untitled form",
+        type: "SIGN_UP",
+        display: "INLINE_EMBED",
         fields: { pages: [] },
       });
     },

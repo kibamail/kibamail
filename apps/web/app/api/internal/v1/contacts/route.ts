@@ -8,14 +8,16 @@
  */
 
 import type { NextRequest } from "next/server";
+import { ContactSourceType } from "@prisma/client";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { createContact as externalCreateContact } from "@/app/api/v1/contacts/handler";
+import { createContact } from "@/app/api/v1/contacts/handler";
 
 /**
  * POST /api/internal/v1/contacts
  *
  * Create a new contact with topic subscriptions
  * Requires session authentication
+ * Sets sourceType to MANUAL since contact is created via dashboard
  */
 export async function POST(request: NextRequest) {
   return withErrorHandling(request, async () =>
@@ -26,7 +28,9 @@ export async function POST(request: NextRequest) {
 
       const workspaceId = session.currentOrganization.id;
 
-      return externalCreateContact(workspaceId, request);
+      return createContact(workspaceId, request, {
+        sourceType: ContactSourceType.MANUAL,
+      });
     })
   );
 }

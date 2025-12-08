@@ -65,6 +65,8 @@ export enum ErrorCode {
   FORM_ALREADY_PUBLISHED = "FORM_ALREADY_PUBLISHED",
   FORM_NOT_EDITABLE = "FORM_NOT_EDITABLE",
   FORM_HAS_DRAFT_VERSION = "FORM_HAS_DRAFT_VERSION",
+  FORM_NO_FIELDS = "FORM_NO_FIELDS",
+  FORM_MISSING_EMAIL_FIELD = "FORM_MISSING_EMAIL_FIELD",
 
   // ============================================================================
   // CONTACT ERRORS

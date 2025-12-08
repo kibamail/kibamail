@@ -20,6 +20,11 @@ import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
+import {
+  extractFieldsFromSchema,
+  generateFieldMapping,
+  type FormFieldMapping,
+} from "@/lib/forms/field-mapping";
 
 /**
  * POST /api/v1/forms
@@ -36,6 +41,8 @@ export async function createForm(workspaceId: string, request: NextRequest) {
       workspaceId,
       name: data.name,
       description: data.description,
+      type: data.type,
+      display: data.display,
       fields: data.fields as never,
       status: "DRAFT",
       version: 1,
@@ -100,6 +107,8 @@ export async function listForms(workspaceId: string, request: NextRequest) {
     id: form.id,
     name: form.name,
     description: form.description,
+    type: form.type,
+    display: form.display,
     status: form.status,
   }));
 
@@ -132,6 +141,8 @@ export async function getForm(workspaceId: string, formId: string) {
       id: form.id,
       name: form.name,
       description: form.description,
+      type: form.type,
+      display: form.display,
       status: form.status,
       version: form.version,
       fields: form.fields,
@@ -183,6 +194,8 @@ export async function listFormVersions(workspaceId: string, formId: string) {
     id: version.id,
     name: version.name,
     description: version.description,
+    type: version.type,
+    display: version.display,
     status: version.status,
     version: version.version,
   }));
@@ -383,6 +396,8 @@ export async function createFormVersion(
       version: nextVersion,
       name: data.name ?? sourceForm.name,
       description: data.description ?? sourceForm.description,
+      type: data.type ?? sourceForm.type,
+      display: data.display ?? sourceForm.display,
       fields: (data.fields ?? sourceForm.fields) as never,
       settings: sourceForm.settings as never,
       status: "DRAFT",
@@ -403,6 +418,7 @@ export async function createFormVersion(
  * Publish a form.
  * - For root forms (parentId=null): Sets status to PUBLISHED and publishedVersionId to self
  * - For versions (parentId!=null): Archives old published version, publishes new version, updates root's publishedVersionId
+ * - Generates field mapping at publish time for form submissions
  * Workspace is determined from the authenticated API key.
  */
 export async function publishForm(workspaceId: string, formId: string) {
@@ -426,8 +442,30 @@ export async function publishForm(workspaceId: string, formId: string) {
     );
   }
 
+  // Check if form has at least one field
+  const fields = extractFieldsFromSchema(form.fields);
+  if (fields.length === 0) {
+    throw new BadRequestError(
+      "Cannot publish a form with no fields. Add at least one field before publishing.",
+      ErrorCode.FORM_NO_FIELDS
+    );
+  }
+
+  // Check for required email field with name "email"
+  const emailField = fields.find((field) => field.name === "email");
+  if (!emailField) {
+    throw new BadRequestError(
+      "Form must have an email field with the name 'email' to be published.",
+      ErrorCode.FORM_MISSING_EMAIL_FIELD
+    );
+  }
+
   // Root form (first publish)
   if (!form.parentId) {
+    // Generate field mapping for this form
+    // For root forms, we start with a fresh mapping
+    const fieldMapping = generateFieldMapping(form.fields, null);
+
     const updatedForm = await prisma.form.update({
       where: {
         id: formId,
@@ -437,6 +475,7 @@ export async function publishForm(workspaceId: string, formId: string) {
         status: "PUBLISHED",
         publishedVersionId: formId, // Self-reference
         publishedAt: new Date(),
+        fieldMapping: fieldMapping as never,
       },
     });
 
@@ -450,6 +489,20 @@ export async function publishForm(workspaceId: string, formId: string) {
 
   // Version form - need to handle publishing logic
   const rootParentId = form.parentId;
+
+  // Get the root form to access existing field mapping
+  const rootForm = await prisma.form.findUnique({
+    where: { id: rootParentId },
+  });
+
+  if (!rootForm) {
+    throw new NotFoundError("Parent form not found", ErrorCode.FORM_NOT_FOUND);
+  }
+
+  // Generate field mapping, preserving existing slot assignments from root form
+  // This ensures that existing fields keep their slots across versions
+  const existingMapping = rootForm.fieldMapping as FormFieldMapping | null;
+  const fieldMapping = generateFieldMapping(form.fields, existingMapping);
 
   // Find currently published version for this parent
   const currentlyPublished = await prisma.form.findFirst({
@@ -476,11 +529,7 @@ export async function publishForm(workspaceId: string, formId: string) {
 
     // Archive the root form if it's currently published
     // The root form is also version 1, so when we publish version 2+, version 1 should be archived
-    const rootForm = await tx.form.findUnique({
-      where: { id: rootParentId },
-    });
-
-    if (rootForm?.status === "PUBLISHED") {
+    if (rootForm.status === "PUBLISHED") {
       await tx.form.update({
         where: {
           id: rootParentId,
@@ -491,7 +540,7 @@ export async function publishForm(workspaceId: string, formId: string) {
       });
     }
 
-    // Publish the new version
+    // Publish the new version with field mapping
     await tx.form.update({
       where: {
         id: formId,
@@ -499,16 +548,19 @@ export async function publishForm(workspaceId: string, formId: string) {
       data: {
         status: "PUBLISHED",
         publishedAt: new Date(),
+        fieldMapping: fieldMapping as never,
       },
     });
 
-    // Update root form's publishedVersionId to point to this version
+    // Update root form's publishedVersionId and field mapping
+    // The root form always holds the latest/canonical field mapping
     await tx.form.update({
       where: {
         id: rootParentId,
       },
       data: {
         publishedVersionId: formId,
+        fieldMapping: fieldMapping as never,
       },
     });
   });

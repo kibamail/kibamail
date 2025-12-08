@@ -21,6 +21,7 @@ type UpdateFormRequest struct {
 
 // Form provides the structure for a form object.
 type Form struct {
+	Object      string        `json:"object"`
 	ID          string        `json:"id"`
 	Name        string        `json:"name"`
 	Description string        `json:"description"`
@@ -38,6 +39,7 @@ type FormResponse struct {
 
 // ListFormsResponse is the response from the List call.
 type ListFormsResponse struct {
+	Object      string `json:"object"`
 	Data        []Form `json:"data"`
 	HasMore     bool   `json:"hasMore"`
 	HasPrevious bool   `json:"hasPrevious"`

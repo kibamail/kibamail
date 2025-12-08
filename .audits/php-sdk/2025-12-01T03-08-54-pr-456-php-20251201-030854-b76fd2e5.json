@@ -1,0 +1,795 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-456-php-20251201-030854-b76fd2e5",
+    "sdkName": "kibamail-php",
+    "sdkLanguage": "php",
+    "sdkVersion": "0.1.0",
+    "phpVersion": "^8.1",
+    "openApiVersion": "3.1.0",
+    "openApiTitle": "Kibamail API",
+    "auditTimestamp": "2025-12-01T03:08:54Z",
+    "reportPath": ".audits/php-sdk/2025-12-01T03-08-54-pr-456-php-20251201-030854-b76fd2e5.json",
+    "sdkDirectory": "sdks/php",
+    "openApiPath": "apps/web/public/openapi.v1.json"
+  },
+  "coverage": {
+    "totalEndpointsInSpec": 18,
+    "totalMethodsInSdk": 30,
+    "endpointsCovered": 15,
+    "endpointsMissing": 3,
+    "coveragePercentage": 83.33,
+    "extraSdkMethods": 0
+  },
+  "sdkStructure": {
+    "filesAnalyzed": [
+      "src/Kibamail.php",
+      "src/Client.php",
+      "src/Resource.php",
+      "src/Collection.php",
+      "src/Contact.php",
+      "src/Topic.php",
+      "src/Segment.php",
+      "src/Form.php",
+      "src/ContactProperty.php",
+      "src/ApiKey.php",
+      "src/Service/Service.php",
+      "src/Service/ServiceFactory.php",
+      "src/Service/Contacts.php",
+      "src/Service/Topics.php",
+      "src/Service/Segments.php",
+      "src/Service/Forms.php",
+      "src/Service/ContactProperties.php",
+      "src/Service/ApiKeys.php",
+      "src/ValueObjects/Transporter/Payload.php",
+      "src/ValueObjects/Transporter/BaseUri.php",
+      "src/ValueObjects/Transporter/Headers.php",
+      "src/ValueObjects/ResourceUri.php",
+      "src/ValueObjects/ApiKey.php",
+      "src/Transporters/HttpTransporter.php",
+      "src/Contracts/Client.php",
+      "src/Contracts/Resource.php",
+      "src/Contracts/Transporter.php",
+      "src/Enums/Transporter/ContentType.php",
+      "src/Enums/Transporter/Method.php",
+      "src/Exceptions/ErrorException.php",
+      "src/Exceptions/TransporterException.php",
+      "src/Exceptions/UnserializableResponse.php"
+    ],
+    "namespace": "Kibamail",
+    "entryPoint": "Kibamail.php",
+    "clientClass": "Client",
+    "servicesDiscovered": [
+      {
+        "name": "contacts",
+        "className": "Contacts",
+        "namespace": "Kibamail\\Service",
+        "file": "src/Service/Contacts.php",
+        "methods": [
+          {
+            "name": "get",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Contact",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contacts/{contactId}"
+          },
+          {
+            "name": "create",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "Contact",
+            "httpMethod": "POST",
+            "endpoint": "/v1/contacts"
+          },
+          {
+            "name": "list",
+            "parameters": [{"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contacts"
+          },
+          {
+            "name": "update",
+            "parameters": [{"name": "id", "type": "string"}, {"name": "parameters", "type": "array"}],
+            "returnType": "Contact",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/contacts/{contactId}"
+          },
+          {
+            "name": "delete",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Contact",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/contacts/{contactId}"
+          },
+          {
+            "name": "search",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "POST",
+            "endpoint": "/v1/contacts/search"
+          }
+        ]
+      },
+      {
+        "name": "topics",
+        "className": "Topics",
+        "namespace": "Kibamail\\Service",
+        "file": "src/Service/Topics.php",
+        "methods": [
+          {
+            "name": "get",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Topic",
+            "httpMethod": "GET",
+            "endpoint": "/v1/topics/{topicId}"
+          },
+          {
+            "name": "create",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "Topic",
+            "httpMethod": "POST",
+            "endpoint": "/v1/topics"
+          },
+          {
+            "name": "list",
+            "parameters": [{"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/topics"
+          },
+          {
+            "name": "update",
+            "parameters": [{"name": "id", "type": "string"}, {"name": "parameters", "type": "array"}],
+            "returnType": "Topic",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/topics/{topicId}"
+          },
+          {
+            "name": "delete",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Topic",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/topics/{topicId}"
+          },
+          {
+            "name": "contacts",
+            "parameters": [{"name": "topicId", "type": "string"}, {"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/topics/{topicId}/contacts"
+          }
+        ]
+      },
+      {
+        "name": "segments",
+        "className": "Segments",
+        "namespace": "Kibamail\\Service",
+        "file": "src/Service/Segments.php",
+        "methods": [
+          {
+            "name": "get",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Segment",
+            "httpMethod": "GET",
+            "endpoint": "/v1/segments/{segmentId}"
+          },
+          {
+            "name": "create",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "Segment",
+            "httpMethod": "POST",
+            "endpoint": "/v1/segments"
+          },
+          {
+            "name": "list",
+            "parameters": [{"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/segments"
+          },
+          {
+            "name": "update",
+            "parameters": [{"name": "id", "type": "string"}, {"name": "parameters", "type": "array"}],
+            "returnType": "Segment",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/segments/{segmentId}"
+          },
+          {
+            "name": "delete",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Segment",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/segments/{segmentId}"
+          },
+          {
+            "name": "contacts",
+            "parameters": [{"name": "segmentId", "type": "string"}, {"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/segments/{segmentId}/contacts"
+          }
+        ]
+      },
+      {
+        "name": "forms",
+        "className": "Forms",
+        "namespace": "Kibamail\\Service",
+        "file": "src/Service/Forms.php",
+        "methods": [
+          {
+            "name": "get",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Form",
+            "httpMethod": "GET",
+            "endpoint": "/v1/forms/{formId}"
+          },
+          {
+            "name": "create",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "Form",
+            "httpMethod": "POST",
+            "endpoint": "/v1/forms"
+          },
+          {
+            "name": "list",
+            "parameters": [{"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/forms"
+          },
+          {
+            "name": "update",
+            "parameters": [{"name": "id", "type": "string"}, {"name": "parameters", "type": "array"}],
+            "returnType": "Form",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/forms/{formId}"
+          },
+          {
+            "name": "delete",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "Form",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/forms/{formId}"
+          }
+        ]
+      },
+      {
+        "name": "contactProperties",
+        "className": "ContactProperties",
+        "namespace": "Kibamail\\Service",
+        "file": "src/Service/ContactProperties.php",
+        "methods": [
+          {
+            "name": "get",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "ContactProperty",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contact-properties/{contactPropertyId}"
+          },
+          {
+            "name": "create",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "ContactProperty",
+            "httpMethod": "POST",
+            "endpoint": "/v1/contact-properties"
+          },
+          {
+            "name": "list",
+            "parameters": [{"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/contact-properties"
+          },
+          {
+            "name": "update",
+            "parameters": [{"name": "id", "type": "string"}, {"name": "parameters", "type": "array"}],
+            "returnType": "ContactProperty",
+            "httpMethod": "PUT",
+            "endpoint": "/v1/contact-properties/{contactPropertyId}"
+          },
+          {
+            "name": "delete",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "ContactProperty",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/contact-properties/{contactPropertyId}"
+          }
+        ]
+      },
+      {
+        "name": "apiKeys",
+        "className": "ApiKeys",
+        "namespace": "Kibamail\\Service",
+        "file": "src/Service/ApiKeys.php",
+        "methods": [
+          {
+            "name": "create",
+            "parameters": [{"name": "parameters", "type": "array"}],
+            "returnType": "ApiKey",
+            "httpMethod": "POST",
+            "endpoint": "/v1/api-keys"
+          },
+          {
+            "name": "list",
+            "parameters": [{"name": "options", "type": "array"}],
+            "returnType": "Collection",
+            "httpMethod": "GET",
+            "endpoint": "/v1/api-keys"
+          },
+          {
+            "name": "delete",
+            "parameters": [{"name": "id", "type": "string"}],
+            "returnType": "ApiKey",
+            "httpMethod": "DELETE",
+            "endpoint": "/v1/api-keys/{keyId}"
+          }
+        ]
+      }
+    ],
+    "modelsDiscovered": [
+      {
+        "name": "Contact",
+        "namespace": "Kibamail",
+        "file": "src/Contact.php",
+        "properties": [
+          {"name": "id", "type": "string"},
+          {"name": "email", "type": "string"},
+          {"name": "firstName", "type": "string|null"},
+          {"name": "lastName", "type": "string|null"},
+          {"name": "phone", "type": "string|null"},
+          {"name": "country", "type": "string|null"},
+          {"name": "timezone", "type": "string|null"},
+          {"name": "city", "type": "string|null"},
+          {"name": "status", "type": "string"},
+          {"name": "subscribedAt", "type": "string|null"},
+          {"name": "unsubscribedAt", "type": "string|null"},
+          {"name": "properties", "type": "array"},
+          {"name": "createdAt", "type": "string"},
+          {"name": "updatedAt", "type": "string"}
+        ]
+      },
+      {
+        "name": "Topic",
+        "namespace": "Kibamail",
+        "file": "src/Topic.php",
+        "properties": [
+          {"name": "id", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "description", "type": "string|null"},
+          {"name": "visibility", "type": "string"},
+          {"name": "defaultOptIn", "type": "bool"},
+          {"name": "createdAt", "type": "string"},
+          {"name": "updatedAt", "type": "string"}
+        ]
+      },
+      {
+        "name": "Segment",
+        "namespace": "Kibamail",
+        "file": "src/Segment.php",
+        "properties": [
+          {"name": "id", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "description", "type": "string|null"},
+          {"name": "conditions", "type": "array"},
+          {"name": "createdAt", "type": "string"},
+          {"name": "updatedAt", "type": "string"}
+        ]
+      },
+      {
+        "name": "Form",
+        "namespace": "Kibamail",
+        "file": "src/Form.php",
+        "properties": [
+          {"name": "id", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "description", "type": "string|null"},
+          {"name": "status", "type": "string"},
+          {"name": "createdAt", "type": "string"},
+          {"name": "updatedAt", "type": "string"}
+        ]
+      },
+      {
+        "name": "ContactProperty",
+        "namespace": "Kibamail",
+        "file": "src/ContactProperty.php",
+        "properties": [
+          {"name": "id", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "type", "type": "string"},
+          {"name": "defaultValue", "type": "string|null"},
+          {"name": "createdAt", "type": "string"},
+          {"name": "updatedAt", "type": "string"}
+        ]
+      },
+      {
+        "name": "ApiKey",
+        "namespace": "Kibamail",
+        "file": "src/ApiKey.php",
+        "properties": [
+          {"name": "id", "type": "string"},
+          {"name": "name", "type": "string"},
+          {"name": "key", "type": "string|null"},
+          {"name": "createdAt", "type": "string"}
+        ]
+      }
+    ],
+    "enumsDiscovered": [
+      {
+        "name": "ContentType",
+        "namespace": "Kibamail\\Enums\\Transporter",
+        "file": "src/Enums/Transporter/ContentType.php"
+      },
+      {
+        "name": "Method",
+        "namespace": "Kibamail\\Enums\\Transporter",
+        "file": "src/Enums/Transporter/Method.php"
+      }
+    ],
+    "valueObjectsDiscovered": [
+      {
+        "name": "Payload",
+        "namespace": "Kibamail\\ValueObjects\\Transporter",
+        "file": "src/ValueObjects/Transporter/Payload.php"
+      },
+      {
+        "name": "BaseUri",
+        "namespace": "Kibamail\\ValueObjects\\Transporter",
+        "file": "src/ValueObjects/Transporter/BaseUri.php"
+      },
+      {
+        "name": "Headers",
+        "namespace": "Kibamail\\ValueObjects\\Transporter",
+        "file": "src/ValueObjects/Transporter/Headers.php"
+      },
+      {
+        "name": "ResourceUri",
+        "namespace": "Kibamail\\ValueObjects",
+        "file": "src/ValueObjects/ResourceUri.php"
+      },
+      {
+        "name": "ApiKey",
+        "namespace": "Kibamail\\ValueObjects",
+        "file": "src/ValueObjects/ApiKey.php"
+      }
+    ],
+    "totalClasses": 32,
+    "totalMethods": 30,
+    "totalModels": 6
+  },
+  "summary": {
+    "totalIssues": 10,
+    "critical": 3,
+    "major": 4,
+    "minor": 3,
+    "suggestions": 5,
+    "passedChecks": 25
+  },
+  "missingEndpoints": [
+    {
+      "path": "/v1/forms/{formId}/versions",
+      "method": "GET",
+      "operationId": "listFormVersions",
+      "description": "List all versions of a specific form for version history and rollback",
+      "specLocation": "Line 9025 in openapi.v1.json",
+      "recommendation": "Add versions() method to Forms service",
+      "suggestedCode": "/**\n * List all versions of a form.\n *\n * @param string $formId The root form ID\n * @return Collection<Form> List of form versions\n */\npublic function versions(string $formId): Collection\n{\n    $payload = Payload::list(\"v1/forms/{$formId}/versions\");\n    $result = $this->transporter->request($payload);\n\n    return $this->createResource('forms', $result);\n}"
+    },
+    {
+      "path": "/v1/forms/{formId}/versions",
+      "method": "POST",
+      "operationId": "createFormVersion",
+      "description": "Create a new draft version of a form for updating published forms",
+      "specLocation": "Line 9025 in openapi.v1.json",
+      "recommendation": "Add createVersion() method to Forms service",
+      "suggestedCode": "/**\n * Create a new version of a form.\n *\n * @param string $formId The root form ID\n * @return Form The new draft form version\n */\npublic function createVersion(string $formId): Form\n{\n    $payload = Payload::create(\"v1/forms/{$formId}/versions\", []);\n    $result = $this->transporter->request($payload);\n\n    return $this->createResource('forms', $result);\n}"
+    },
+    {
+      "path": "/v1/forms/{formId}/publish",
+      "method": "POST",
+      "operationId": "publishForm",
+      "description": "Publish a draft form to make it live and accepting submissions",
+      "specLocation": "Line 9631 in openapi.v1.json",
+      "recommendation": "Add publish() method to Forms service",
+      "suggestedCode": "/**\n * Publish a draft form.\n *\n * @param string $formId The form ID to publish\n * @return Form The published form\n */\npublic function publish(string $formId): Form\n{\n    $payload = Payload::create(\"v1/forms/{$formId}/publish\", []);\n    $result = $this->transporter->request($payload);\n\n    return $this->createResource('forms', $result);\n}"
+    }
+  ],
+  "extraSdkMethods": [],
+  "inconsistencies": [
+    {
+      "id": "INC-001",
+      "severity": "critical",
+      "category": "missing_field",
+      "service": "apiKeys",
+      "sdkMethod": "create",
+      "sdkFile": "src/Service/ApiKeys.php",
+      "sdkLine": 24,
+      "openApiPath": "/v1/api-keys",
+      "openApiOperation": "POST",
+      "issue": "PHPDoc for create() method is missing the 'scopes' required parameter",
+      "expected": "Required fields: name (string), scopes (array of strings)",
+      "actual": "PHPDoc only documents 'name' parameter: @param array{'name': string}",
+      "impact": "Users may not know that scopes parameter is required, leading to API validation errors",
+      "recommendation": "Update PHPDoc to include scopes parameter",
+      "codeExample": "/**\n * @param array{'name': string, 'scopes': string[]} $parameters The API key creation parameters\n */"
+    },
+    {
+      "id": "INC-002",
+      "severity": "critical",
+      "category": "missing_field",
+      "service": "contacts",
+      "sdkMethod": "create",
+      "sdkFile": "src/Service/Contacts.php",
+      "sdkLine": 39,
+      "openApiPath": "/v1/contacts",
+      "openApiOperation": "POST",
+      "issue": "PHPDoc uses 'subscriptions' parameter but OpenAPI spec uses 'topics'",
+      "expected": "Parameter name: topics (array of topic IDs)",
+      "actual": "PHPDoc documents 'subscriptions' with different structure: array<array{topicId: string, status: string}>",
+      "impact": "Users following PHPDoc will send wrong parameter structure causing API errors",
+      "recommendation": "Update PHPDoc to use 'topics' parameter matching OpenAPI spec",
+      "codeExample": "/**\n * @param array{\n *     email: string,\n *     firstName?: string|null,\n *     lastName?: string|null,\n *     phone?: string|null,\n *     country?: string|null,\n *     timezone?: string|null,\n *     city?: string|null,\n *     status?: string,\n *     subscribedAt?: string|null,\n *     unsubscribedAt?: string|null,\n *     properties?: array<string, mixed>,\n *     topics?: string[]\n * } $parameters\n */"
+    },
+    {
+      "id": "INC-003",
+      "severity": "critical",
+      "category": "missing_field",
+      "service": "contacts",
+      "sdkMethod": "update",
+      "sdkFile": "src/Service/Contacts.php",
+      "sdkLine": 78,
+      "openApiPath": "/v1/contacts/{contactId}",
+      "openApiOperation": "PUT",
+      "issue": "PHPDoc uses 'subscriptions' parameter but OpenAPI spec uses 'topics'",
+      "expected": "Parameter name: topics (array of topic IDs)",
+      "actual": "PHPDoc documents 'subscriptions' with different structure",
+      "impact": "Users following PHPDoc will send wrong parameter structure causing API errors",
+      "recommendation": "Update PHPDoc to use 'topics' parameter matching OpenAPI spec",
+      "codeExample": "/**\n * @param array{\n *     email?: string,\n *     firstName?: string|null,\n *     lastName?: string|null,\n *     phone?: string|null,\n *     country?: string|null,\n *     timezone?: string|null,\n *     city?: string|null,\n *     status?: string,\n *     subscribedAt?: string|null,\n *     unsubscribedAt?: string|null,\n *     properties?: array<string, mixed>,\n *     topics?: string[]\n * } $parameters\n */"
+    },
+    {
+      "id": "INC-004",
+      "severity": "major",
+      "category": "missing_field",
+      "service": "contacts",
+      "sdkMethod": "create",
+      "sdkFile": "src/Service/Contacts.php",
+      "sdkLine": 39,
+      "openApiPath": "/v1/contacts",
+      "openApiOperation": "POST",
+      "issue": "PHPDoc is missing 'status', 'subscribedAt', and 'unsubscribedAt' optional parameters",
+      "expected": "Optional fields include: status, subscribedAt, unsubscribedAt",
+      "actual": "PHPDoc only documents: email, firstName, lastName, phone, country, timezone, city, properties",
+      "impact": "Users unaware of status parameter may not be able to set subscription status on creation",
+      "recommendation": "Add missing optional parameters to PHPDoc",
+      "codeExample": "See INC-002 for complete PHPDoc"
+    },
+    {
+      "id": "INC-005",
+      "severity": "major",
+      "category": "naming",
+      "service": "forms",
+      "sdkMethod": "create",
+      "sdkFile": "src/Service/Forms.php",
+      "sdkLine": 33,
+      "openApiPath": "/v1/forms",
+      "openApiOperation": "POST",
+      "issue": "PHPDoc documents 'fields' parameter but OpenAPI spec requires 'fields' as required",
+      "expected": "Required fields: name (string), fields (object/array)",
+      "actual": "PHPDoc shows 'fields' as optional",
+      "impact": "Users may not include required 'fields' parameter",
+      "recommendation": "Update PHPDoc to show 'fields' as required",
+      "codeExample": "/**\n * @param array{\n *     name: string,\n *     fields: array,\n *     description?: string|null\n * } $parameters\n */"
+    },
+    {
+      "id": "INC-006",
+      "severity": "major",
+      "category": "missing_field",
+      "service": "forms",
+      "sdkMethod": "update",
+      "sdkFile": "src/Service/Forms.php",
+      "sdkLine": 66,
+      "openApiPath": "/v1/forms/{formId}",
+      "openApiOperation": "PUT",
+      "issue": "PHPDoc is missing 'settings' optional parameter from OpenAPI spec",
+      "expected": "Optional fields include: name, description, fields, settings",
+      "actual": "PHPDoc only documents: name, description, fields",
+      "impact": "Users cannot discover settings parameter for form configuration",
+      "recommendation": "Add settings parameter to PHPDoc",
+      "codeExample": "/**\n * @param array{\n *     name?: string,\n *     description?: string|null,\n *     fields?: array,\n *     settings?: array\n * } $parameters\n */"
+    },
+    {
+      "id": "INC-007",
+      "severity": "major",
+      "category": "type_mismatch",
+      "service": "contactProperties",
+      "sdkMethod": "update",
+      "sdkFile": "src/Service/ContactProperties.php",
+      "sdkLine": 66,
+      "openApiPath": "/v1/contact-properties/{contactPropertyId}",
+      "openApiOperation": "PUT",
+      "issue": "PHPDoc shows 'type' as updatable but OpenAPI spec does not allow updating property type",
+      "expected": "Updatable fields: name, defaultValue only",
+      "actual": "PHPDoc includes type in updatable parameters",
+      "impact": "Users may attempt to update property type and receive unexpected errors",
+      "recommendation": "Remove 'type' from PHPDoc as it cannot be updated",
+      "codeExample": "/**\n * @param array{\n *     name?: string,\n *     defaultValue?: string|null\n * } $parameters\n */"
+    }
+  ],
+  "typeDiscrepancies": [
+    {
+      "id": "TYPE-001",
+      "severity": "minor",
+      "service": "topics",
+      "field": "visibility",
+      "sdkType": "string",
+      "openApiType": "string enum",
+      "openApiFormat": "PUBLIC | PRIVATE",
+      "openApiNullable": false,
+      "location": "model",
+      "file": "src/Topic.php",
+      "line": 12,
+      "recommendation": "Add enum constraint documentation for visibility values",
+      "codeExample": "@property-read string $visibility The topic visibility ('PUBLIC' or 'PRIVATE')"
+    },
+    {
+      "id": "TYPE-002",
+      "severity": "minor",
+      "service": "contacts",
+      "field": "status",
+      "sdkType": "string",
+      "openApiType": "string enum",
+      "openApiFormat": "SUBSCRIBED | UNSUBSCRIBED | BOUNCED | COMPLAINED | ARCHIVED",
+      "openApiNullable": false,
+      "location": "model",
+      "file": "src/Contact.php",
+      "line": 16,
+      "recommendation": "Add enum constraint documentation for status values",
+      "codeExample": "@property-read string $status The contact's subscription status (SUBSCRIBED, UNSUBSCRIBED, BOUNCED, COMPLAINED, ARCHIVED)"
+    },
+    {
+      "id": "TYPE-003",
+      "severity": "minor",
+      "service": "forms",
+      "field": "status",
+      "sdkType": "string",
+      "openApiType": "string enum",
+      "openApiFormat": "DRAFT | PUBLISHED | ARCHIVED",
+      "openApiNullable": false,
+      "location": "model",
+      "file": "src/Form.php",
+      "line": 11,
+      "recommendation": "Add enum constraint documentation for status values and fix description",
+      "codeExample": "@property-read string $status The form status ('DRAFT', 'PUBLISHED', or 'ARCHIVED')"
+    }
+  ],
+  "modelIssues": [
+    {
+      "id": "MODEL-001",
+      "severity": "minor",
+      "modelClass": "ApiKey",
+      "namespace": "Kibamail",
+      "file": "src/ApiKey.php",
+      "openApiSchema": "ApiKeyResponse",
+      "missingProperties": [
+        {
+          "property": "scopes",
+          "type": "array",
+          "nullable": false
+        }
+      ],
+      "extraProperties": [],
+      "typeIssues": [],
+      "recommendation": "Add 'scopes' property to ApiKey model PHPDoc for list response"
+    },
+    {
+      "id": "MODEL-002",
+      "severity": "minor",
+      "modelClass": "Contact",
+      "namespace": "Kibamail",
+      "file": "src/Contact.php",
+      "openApiSchema": "ContactResponse",
+      "missingProperties": [],
+      "extraProperties": [
+        {
+          "property": "createdAt",
+          "type": "string"
+        },
+        {
+          "property": "updatedAt",
+          "type": "string"
+        }
+      ],
+      "typeIssues": [],
+      "recommendation": "createdAt and updatedAt are documented but not in OpenAPI response schema - verify if API returns these"
+    }
+  ],
+  "serviceIssues": [],
+  "payloadIssues": [],
+  "phpdocIssues": [
+    {
+      "id": "DOC-001",
+      "severity": "minor",
+      "file": "src/Service/ApiKeys.php",
+      "method": "create",
+      "line": 12,
+      "issue": "PHPDoc warning about session authentication may confuse users using the SDK with API keys",
+      "currentDoc": "Warning: This endpoint requires session authentication (user login), not API key authentication",
+      "expectedDoc": "The warning should clarify that this method can still be called via SDK but requires appropriate authentication setup",
+      "recommendation": "Clarify documentation to explain authentication requirements more clearly"
+    },
+    {
+      "id": "DOC-002",
+      "severity": "minor",
+      "file": "src/Topic.php",
+      "method": "N/A",
+      "line": 12,
+      "issue": "Visibility property documentation uses lowercase values",
+      "currentDoc": "@property-read string $visibility The topic visibility ('public' or 'private')",
+      "expectedDoc": "@property-read string $visibility The topic visibility ('PUBLIC' or 'PRIVATE')",
+      "recommendation": "Use uppercase enum values to match OpenAPI spec"
+    },
+    {
+      "id": "DOC-003",
+      "severity": "minor",
+      "file": "src/Form.php",
+      "method": "N/A",
+      "line": 11,
+      "issue": "Form status property documentation uses lowercase values",
+      "currentDoc": "@property-read string $status The form status ('active' or 'inactive')",
+      "expectedDoc": "@property-read string $status The form status ('DRAFT', 'PUBLISHED', or 'ARCHIVED')",
+      "recommendation": "Fix status values to match OpenAPI spec"
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "completeness",
+      "title": "Implement missing Forms service methods",
+      "description": "The Forms service is missing 3 endpoints: versions(), createVersion(), and publish(). These are essential for the form versioning workflow.",
+      "rationale": "Forms require version management for updating published forms. Without these methods, users cannot list form versions, create new versions, or publish draft forms via the SDK.",
+      "affectedFiles": ["src/Service/Forms.php"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add versions(), createVersion(), and publish() methods as specified in missingEndpoints section"
+    },
+    {
+      "priority": "high",
+      "category": "consistency",
+      "title": "Fix contacts parameter name from 'subscriptions' to 'topics'",
+      "description": "PHPDoc uses 'subscriptions' but the API expects 'topics'. This mismatch will cause API errors for users following the SDK documentation.",
+      "rationale": "Parameter name mismatch is a critical issue that causes immediate API failures",
+      "affectedFiles": ["src/Service/Contacts.php"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Update PHPDoc to use 'topics: string[]' instead of 'subscriptions'"
+    },
+    {
+      "priority": "high",
+      "category": "consistency",
+      "title": "Add 'scopes' to ApiKeys create PHPDoc",
+      "description": "The create method for API keys requires both 'name' and 'scopes' parameters, but PHPDoc only documents 'name'",
+      "rationale": "Missing required parameter documentation leads to API validation errors",
+      "affectedFiles": ["src/Service/ApiKeys.php"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "@param array{'name': string, 'scopes': string[]} $parameters"
+    },
+    {
+      "priority": "medium",
+      "category": "documentation",
+      "title": "Add PHP 8.1 enums for status fields",
+      "description": "Create PHP enums for Contact status, Topic visibility, and Form status to provide type safety and IDE autocomplete",
+      "rationale": "PHP 8.1+ enums would provide compile-time type safety and better developer experience",
+      "affectedFiles": ["src/Enums/ContactStatus.php", "src/Enums/TopicVisibility.php", "src/Enums/FormStatus.php"],
+      "estimatedEffort": "medium",
+      "suggestedImplementation": "enum ContactStatus: string { case SUBSCRIBED = 'SUBSCRIBED'; case UNSUBSCRIBED = 'UNSUBSCRIBED'; ... }"
+    },
+    {
+      "priority": "low",
+      "category": "documentation",
+      "title": "Fix case inconsistencies in model PHPDoc",
+      "description": "Topic visibility and Form status properties use lowercase values but API returns uppercase",
+      "rationale": "Documentation accuracy helps users understand expected values",
+      "affectedFiles": ["src/Topic.php", "src/Form.php"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Update PHPDoc to use uppercase enum values"
+    }
+  ],
+  "newEndpointsInSpec": []
+}

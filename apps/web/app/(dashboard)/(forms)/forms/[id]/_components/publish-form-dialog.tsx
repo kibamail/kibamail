@@ -8,13 +8,17 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
+import { Text } from "@kibamail/owly";
 
 interface PublishFormDialogProps {
   formId: string;
   formName: string;
 }
 
-export function PublishFormDialog({ formId, formName }: PublishFormDialogProps) {
+export function PublishFormDialog({
+  formId,
+  formName,
+}: PublishFormDialogProps) {
   const router = useRouter();
   const { success: toast, error: errorToast } = useToast();
   const publishDialogState = useToggleState();
@@ -26,7 +30,7 @@ export function PublishFormDialog({ formId, formName }: PublishFormDialogProps) 
     onSuccess() {
       toast("Form published successfully.");
       publishDialogState.onOpenChange?.(false);
-      router.refresh();
+      router.push("/w/forms");
     },
     onError() {
       errorToast("Failed to publish form. Please try again.");
@@ -50,14 +54,21 @@ export function PublishFormDialog({ formId, formName }: PublishFormDialogProps) 
       <ConfirmDialog
         {...publishDialogState}
         title="Publish form"
-        description={`Are you sure you want to publish "${formName}"? Once published, the form will be live and accessible to your audience.`}
+        description={`Are you sure you want to publish "${formName}"?`}
         confirm={{
           children: "Publish",
           onClick: onConfirmPublish,
           loading: publishMutation.isPending,
           disabled: publishMutation.isPending,
         }}
-      />
+      >
+        <div className="p-6">
+          <Text>
+            Once published, the form will be live and accessible to your
+            audience.
+          </Text>
+        </div>
+      </ConfirmDialog>
     </>
   );
 }

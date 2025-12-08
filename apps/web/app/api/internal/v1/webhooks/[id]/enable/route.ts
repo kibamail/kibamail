@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { enableWebhookDestination } from "../../handler";
+import { enableWebhookDestination } from "@/app/api/internal/v1/webhooks/handler";
 
 /**
  * PUT /api/internal/v1/webhooks/[id]/enable

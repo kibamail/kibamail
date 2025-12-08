@@ -63,7 +63,6 @@ export function BaseFlowNode({
 
       <div className="h-[46px] px-3 flex items-center shrink-0">{children}</div>
 
-      {/* Output Handles */}
       {hasMultipleOutputs ? (
         <div className="absolute bottom-0 left-0 right-0 flex justify-around">
           {outputHandles.map((handle) => (

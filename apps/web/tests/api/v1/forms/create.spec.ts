@@ -179,6 +179,104 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
   });
 });
 
+describe("POST /api/v1/forms - Type and Display Fields", () => {
+  test("should create form with default type and display", async () => {
+    const formData = {
+      name: "Default Type Form",
+      fields: validFormFields,
+    };
+    const request = post("/forms", formData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("form");
+    expect(responseData.id).toBeDefined();
+  });
+
+  test("should create SURVEY type form", async () => {
+    const formData = {
+      name: "Customer Survey",
+      type: "SURVEY",
+      fields: validFormFields,
+    };
+    const request = post("/forms", formData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("form");
+    expect(responseData.id).toBeDefined();
+  });
+
+  test("should create POPUP display form", async () => {
+    const formData = {
+      name: "Popup Form",
+      display: "POPUP",
+      fields: validFormFields,
+    };
+    const request = post("/forms", formData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("form");
+    expect(responseData.id).toBeDefined();
+  });
+
+  test("should create form with custom type and display", async () => {
+    const formData = {
+      name: "Custom Survey Popup",
+      type: "SURVEY",
+      display: "POPUP",
+      fields: validFormFields,
+    };
+    const request = post("/forms", formData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("form");
+    expect(responseData.id).toBeDefined();
+  });
+
+  test("should reject invalid type value", async () => {
+    const formData = {
+      name: "Invalid Type Form",
+      type: "INVALID_TYPE",
+      fields: validFormFields,
+    };
+    const request = post("/forms", formData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+  });
+
+  test("should reject invalid display value", async () => {
+    const formData = {
+      name: "Invalid Display Form",
+      display: "INVALID_DISPLAY",
+      fields: validFormFields,
+    };
+    const request = post("/forms", formData, fullAccessApiKey.key);
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
+  });
+});
+
 describe("POST /api/v1/forms - Validation", () => {
   test("should reject form with empty name", async () => {
     const formData = {

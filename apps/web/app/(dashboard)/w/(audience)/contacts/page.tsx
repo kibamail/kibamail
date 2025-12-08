@@ -4,7 +4,7 @@ import type { ContactStatus, Prisma } from "@prisma/client";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { getRedisClient } from "@/lib/storage/redis-client";
-import { StatsCard, StatsCardItem } from "../../_components/stats-card";
+import { StatsCard, StatsCardItem } from "@/app/(dashboard)/w/_components/stats-card";
 import { ContactColumnsManager } from "./_components/contact-columns-manager";
 import { ContactStatusFilter } from "./_components/contact-status-filter";
 import { ContactsPagination } from "./_components/contacts-pagination";

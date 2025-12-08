@@ -2,20 +2,23 @@
 
 import * as Select from "@kibamail/owly/select-field";
 import { useCallback } from "react";
-import { useFlowStore } from "../../state/flow-store";
+import { TriggerNodeType } from "@/app/(dashboard)/(flows)/flows/[id]/types/node-types";
+import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
+import { FormFilledConfig } from "./form-filled-config";
+import { EventTriggeredConfig } from "./event-triggered-config";
 
 const triggerOptions = [
-  { value: "form-filled", label: "Form filled" },
-  { value: "contact-subscribed", label: "Contact subscribed" },
-  { value: "contact-property-updated", label: "Contact property updated" },
-  { value: "webhook-trigger", label: "Webhook trigger" },
+  { value: TriggerNodeType.FORM_FILLED, label: "Form filled" },
+  { value: TriggerNodeType.CONTACT_SUBSCRIBED, label: "Contact subscribed" },
+  { value: TriggerNodeType.EVENT_TRIGGERED, label: "Event triggered" },
 ];
 
 export function TriggerConfiguration() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
-  const currentTriggerType = selectedNode?.type || "contact-subscribed";
+  const currentTriggerType =
+    selectedNode?.type || TriggerNodeType.CONTACT_SUBSCRIBED;
 
   const handleTriggerTypeChange = useCallback(
     (value: string) => {
@@ -38,25 +41,27 @@ export function TriggerConfiguration() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h3 className="text-sm font-semibold text-kb-content-primary mb-4">
-          Trigger Configuration
-        </h3>
-        <Select.Root
-          value={currentTriggerType}
-          onValueChange={handleTriggerTypeChange}
-        >
-          <Select.Label>Trigger Type</Select.Label>
-          <Select.Trigger placeholder="Select trigger type" />
-          <Select.Content>
-            {triggerOptions.map((option) => (
-              <Select.Item key={option.value} value={option.value}>
-                {option.label}
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Root>
-      </div>
+      <Select.Root
+        value={currentTriggerType}
+        onValueChange={handleTriggerTypeChange}
+      >
+        <Select.Label>Trigger type</Select.Label>
+        <Select.Trigger placeholder="Select trigger type" />
+        <Select.Content>
+          {triggerOptions.map((option) => (
+            <Select.Item key={option.value} value={option.value}>
+              {option.label}
+            </Select.Item>
+          ))}
+        </Select.Content>
+      </Select.Root>
+
+      <div className="my-3 h-px w-full bg-kb-border-tertiary"></div>
+
+      {currentTriggerType === TriggerNodeType.FORM_FILLED && <FormFilledConfig />}
+      {currentTriggerType === TriggerNodeType.EVENT_TRIGGERED && (
+        <EventTriggeredConfig />
+      )}
     </div>
   );
 }

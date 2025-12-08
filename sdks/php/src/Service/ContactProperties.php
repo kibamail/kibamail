@@ -21,6 +21,14 @@ class ContactProperties extends Service
 
     /**
      * Create a contact property.
+     *
+     * @param array{
+     *     name: string,
+     *     type: string,
+     *     defaultValue?: string|null
+     * } $parameters Contact property creation parameters
+     *
+     * @return ContactProperty The created contact property
      */
     public function create(array $parameters): ContactProperty
     {
@@ -45,6 +53,15 @@ class ContactProperties extends Service
 
     /**
      * Update a contact property by ID.
+     *
+     * @param string $id The contact property ID
+     * @param array{
+     *     name?: string,
+     *     type?: string,
+     *     defaultValue?: string|null
+     * } $parameters Contact property update parameters
+     *
+     * @return ContactProperty The updated contact property
      */
     public function update(string $id, array $parameters): ContactProperty
     {

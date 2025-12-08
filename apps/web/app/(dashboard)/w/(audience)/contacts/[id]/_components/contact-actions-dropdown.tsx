@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
-import { CreateContactModal } from "../../_components/create-contact-modal";
+import { CreateContactModal } from "@/app/(dashboard)/w/(audience)/contacts/_components/create-contact-modal";
 
 interface ContactActionsDropdownProps {
   variant?: "icon" | "default";

@@ -2,30 +2,49 @@
 
 import type { Form } from "@prisma/client";
 import { Survey } from "survey-react-ui";
-import { Model } from "survey-core";
-import { useCallback } from "react";
+import { Model, type ITheme } from "survey-core";
+import { useState, useEffect, useRef } from "react";
+import { internalApi } from "@/lib/api/client";
 import "survey-core/survey-core.css";
+import { useMutation } from "@tanstack/react-query";
 
-export function PublicFormRenderer({ form }: { form: Form }) {
-  const survey = new Model(form.fields as object);
+interface PublicFormRendererProps {
+  form: Form;
+  formId: string;
+}
 
-  const handleComplete = useCallback((sender: Model) => {
-    const submissionData = sender.data;
+export function PublicFormRenderer({ form, formId }: PublicFormRendererProps) {
+  const mounted = useRef(false);
 
-    // TODO: Submit to the API endpoint
-    // POST /api/v1/forms/{form.id}/submissions
-    console.log("Form submitted:", submissionData);
-  }, []);
+  useEffect(() => {
+    if (mounted.current) {
+      return;
+    }
 
-  survey.onComplete.add(handleComplete);
+    mounted.current = true;
+    internalApi.forms().trackView(formId);
+  }, [formId]);
 
-  if (form.name) {
-    survey.title = form.name;
-  }
+  const { mutate: submitForm } = useMutation({
+    mutationFn: (data: Record<string, unknown>) =>
+      internalApi.forms().submitPublic(formId, data),
+    retry: 3,
+    retryDelay: 500,
+  });
 
-  if (form.description) {
-    survey.description = form.description;
-  }
+  const [survey] = useState(() => {
+    const model = new Model(form.fields as object);
+
+    if (form.settings && Object.keys(form.settings).length > 0) {
+      model.applyTheme(form.settings as ITheme);
+    }
+
+    model.onComplete.add((sender) => {
+      submitForm(sender.data);
+    });
+
+    return model;
+  });
 
   return <Survey model={survey} />;
 }

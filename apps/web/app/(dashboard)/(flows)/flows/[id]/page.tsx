@@ -6,7 +6,7 @@ import { FlowComposerSidebar } from "./_components/flow-composer-sidebar";
 export default function FlowPage() {
   return (
     <div className="w-full h-screen flex box-border flex-col px-2 pb-2">
-      <div className="h-[60px] w-full flex items-center justify-between px-3 shrink-0">
+      <div className="h-[60px] w-full flex items-center justify-between px-3 shrink-0 bg-kb-bg-layout">
         <div className="flex items-center gap-4">
           <Button variant="tertiary" asChild>
             <a href={"/w/automations"}>

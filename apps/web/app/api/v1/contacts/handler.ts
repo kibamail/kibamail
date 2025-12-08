@@ -8,17 +8,11 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { TopicSubscriptionStatus } from "@prisma/client";
+import { TopicSubscriptionStatus, ContactSourceType } from "@prisma/client";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
-import {
-  responseCreated,
-  responseOk,
-} from "@/lib/api/responses";
-import {
-  NotFoundError,
-  BadRequestError,
-} from "@/lib/api/errors";
+import { responseCreated, responseOk } from "@/lib/api/responses";
+import { NotFoundError, BadRequestError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
 import {
   createContactSchema,
@@ -115,6 +109,16 @@ function mapPropertiesToSlots(
 }
 
 /**
+ * Options for creating a contact
+ */
+export interface CreateContactOptions {
+  /** Source type indicating how the contact was created */
+  sourceType?: ContactSourceType;
+  /** Source ID (form ID for FORM source, import ID for IMPORT source) */
+  sourceId?: string;
+}
+
+/**
  * POST /api/v1/contacts
  *
  * Create a new contact for the workspace.
@@ -122,8 +126,18 @@ function mapPropertiesToSlots(
  * Global error handler will catch constraint violations.
  * Supports optional properties object that maps property names to values.
  * Supports optional topics array to subscribe contact to topics.
+ *
+ * @param workspaceId - Workspace ID
+ * @param request - Next.js request object
+ * @param options - Optional settings including sourceType (defaults to API for external, MANUAL for internal)
  */
-export async function createContact(workspaceId: string, request: NextRequest) {
+export async function createContact(
+  workspaceId: string,
+  request: NextRequest,
+  options: CreateContactOptions = {}
+) {
+  const { sourceType = ContactSourceType.API, sourceId } = options;
+
   const data = await validateRequestBody(createContactSchema, request);
 
   const { properties, topics, ...contactData } = data;
@@ -142,6 +156,8 @@ export async function createContact(workspaceId: string, request: NextRequest) {
   const contact = await prisma.contact.create({
     data: {
       workspaceId,
+      sourceType,
+      sourceId,
       ...contactData,
       ...slotData,
     },

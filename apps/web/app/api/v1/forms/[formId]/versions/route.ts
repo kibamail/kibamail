@@ -10,7 +10,7 @@
 
 import type { NextRequest } from "next/server";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-import { createFormVersion, listFormVersions } from "../../handler";
+import { createFormVersion, listFormVersions } from "@/app/api/v1/forms/handler";
 
 /**
  * GET /api/v1/forms/[formId]/versions

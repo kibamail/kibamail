@@ -6,7 +6,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getTopicContacts } from "../../handler";
+import { getTopicContacts } from "@/app/api/v1/topics/handler";
 
 /**
  * GET /api/v1/topics/[topicId]/contacts

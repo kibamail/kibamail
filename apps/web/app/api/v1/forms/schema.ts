@@ -46,6 +46,16 @@ export function validateFields(fields: unknown): {
 }
 
 /**
+ * Form type enum values
+ */
+export const formTypeEnum = z.enum(["SIGN_UP", "SURVEY"]);
+
+/**
+ * Form display enum values
+ */
+export const formDisplayEnum = z.enum(["POPUP", "INLINE_EMBED"]);
+
+/**
  * Create Form Request Schema
  */
 export const createFormSchema = z.object({
@@ -60,6 +70,8 @@ export const createFormSchema = z.object({
     .trim()
     .optional()
     .nullable(),
+  type: formTypeEnum.optional().default("SIGN_UP"),
+  display: formDisplayEnum.optional().default("INLINE_EMBED"),
   // Fields will be validated separately against SurveyJS schema
   fields: z.any(),
 });
@@ -80,6 +92,8 @@ export const updateFormSchema = z.object({
     .trim()
     .optional()
     .nullable(),
+  type: formTypeEnum.optional(),
+  display: formDisplayEnum.optional(),
   fields: z.any().optional(),
   settings: z.any().optional(),
 });
@@ -100,6 +114,8 @@ export const formListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  type: formTypeEnum,
+  display: formDisplayEnum,
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
 });
 
@@ -119,6 +135,8 @@ export const formVersionItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
+  type: formTypeEnum,
+  display: formDisplayEnum,
   status: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
   version: z.number(),
 });
@@ -140,6 +158,16 @@ export const formDeleteResponseSchema = z.object({
 });
 
 /**
+ * Form Submission Response Schema
+ */
+export const formSubmissionResponseSchema = z.object({
+  object: z.literal("form_submission"),
+  data: z.object({
+    id: z.string().describe("Unique form submission identifier"),
+  }),
+});
+
+/**
  * Type exports
  */
 export type CreateFormRequest = z.infer<typeof createFormSchema>;
@@ -147,3 +175,4 @@ export type UpdateFormRequest = z.infer<typeof updateFormSchema>;
 export type FormResponse = z.infer<typeof formResponseSchema>;
 export type FormListResponse = z.infer<typeof formListResponseSchema>;
 export type FormDeleteResponse = z.infer<typeof formDeleteResponseSchema>;
+export type FormSubmissionResponse = z.infer<typeof formSubmissionResponseSchema>;

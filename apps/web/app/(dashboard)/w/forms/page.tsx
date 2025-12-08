@@ -14,7 +14,7 @@ async function getForms(workspaceId: string) {
   const forms = await prisma.form.findMany({
     where: {
       workspaceId,
-      parentId: null, // Only root forms
+      parentId: null,
     },
     orderBy: {
       createdAt: "desc",
@@ -25,13 +25,39 @@ async function getForms(workspaceId: string) {
           submissions: true,
         },
       },
+      publishedVersion: true,
+      versions: {
+        where: { status: "DRAFT" },
+        take: 1,
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
-  return forms.map((form) => ({
-    ...form,
-    submissions: form._count.submissions,
-  }));
+  return forms.map((form) => {
+    const published = form.publishedVersion;
+    const draft = form.versions[0];
+
+    // Display the published version details, or fall back to root
+    const display = published ?? form;
+
+    // Determine status: published > draft > archived
+    const effectiveStatus = published
+      ? "PUBLISHED"
+      : form.status === "DRAFT" || draft
+        ? "DRAFT"
+        : "ARCHIVED";
+
+    return {
+      id: form.id,
+      name: display.name,
+      description: display.description,
+      status: form.status,
+      effectiveStatus,
+      submissions: form._count.submissions,
+      draftVersionId: draft?.id,
+    };
+  });
 }
 
 export default async function FormsPage() {

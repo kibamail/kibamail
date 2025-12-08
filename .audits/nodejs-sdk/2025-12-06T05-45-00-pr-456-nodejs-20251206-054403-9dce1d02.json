@@ -1,0 +1,445 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-456-nodejs-20251206-054403-9dce1d02",
+    "timestamp": "2025-12-06T05:45:00.000Z",
+    "sdkLanguage": "nodejs",
+    "sdkVersion": "1.0.0",
+    "openApiVersion": "3.1.0",
+    "apiVersion": "1.0.0",
+    "auditType": "comprehensive",
+    "auditor": "claude-code-agent"
+  },
+  "coverage": {
+    "totalEndpoints": 32,
+    "implementedEndpoints": 32,
+    "missingEndpoints": 0,
+    "coveragePercentage": 100,
+    "byResource": {
+      "apiKeys": {
+        "total": 3,
+        "implemented": 3,
+        "missing": 0
+      },
+      "contacts": {
+        "total": 6,
+        "implemented": 6,
+        "missing": 0
+      },
+      "topics": {
+        "total": 6,
+        "implemented": 6,
+        "missing": 0
+      },
+      "segments": {
+        "total": 6,
+        "implemented": 6,
+        "missing": 0
+      },
+      "contactProperties": {
+        "total": 5,
+        "implemented": 5,
+        "missing": 0
+      },
+      "forms": {
+        "total": 8,
+        "implemented": 8,
+        "missing": 0
+      }
+    }
+  },
+  "sdkStructure": {
+    "entryPoint": "sdks/nodejs/index.ts",
+    "mainClass": "sdks/nodejs/kibamail.ts",
+    "httpClient": "sdks/nodejs/client.ts",
+    "schemaFile": "sdks/nodejs/schema.d.ts",
+    "resources": [
+      {
+        "name": "ApiKeys",
+        "file": "sdks/nodejs/resources/api-keys.ts",
+        "methods": ["create", "list", "delete"],
+        "linesOfCode": 213
+      },
+      {
+        "name": "Contacts",
+        "file": "sdks/nodejs/resources/contacts.ts",
+        "methods": ["create", "list", "get", "update", "delete", "search"],
+        "linesOfCode": 474
+      },
+      {
+        "name": "Topics",
+        "file": "sdks/nodejs/resources/topics.ts",
+        "methods": ["create", "list", "get", "update", "delete", "listContacts"],
+        "linesOfCode": 379
+      },
+      {
+        "name": "Segments",
+        "file": "sdks/nodejs/resources/segments.ts",
+        "methods": ["create", "list", "get", "update", "delete", "listContacts"],
+        "linesOfCode": 393
+      },
+      {
+        "name": "ContactProperties",
+        "file": "sdks/nodejs/resources/contact-properties.ts",
+        "methods": ["create", "list", "get", "update", "delete"],
+        "linesOfCode": 340
+      },
+      {
+        "name": "Forms",
+        "file": "sdks/nodejs/resources/forms.ts",
+        "methods": ["create", "list", "get", "listVersions", "update", "publish", "delete", "createVersion"],
+        "linesOfCode": 538
+      }
+    ],
+    "architecture": {
+      "pattern": "openapi-fetch with typed paths",
+      "typeGeneration": "openapi-typescript",
+      "typeExtraction": "Direct path-based type extraction from schema"
+    }
+  },
+  "summary": {
+    "status": "PASS",
+    "overallScore": 100,
+    "criticalIssues": 0,
+    "warnings": 0,
+    "suggestions": 2,
+    "message": "SDK has 100% endpoint coverage with no critical issues detected."
+  },
+  "missingEndpoints": [],
+  "extraSdkMethods": [],
+  "inconsistencies": [],
+  "typeDiscrepancies": [],
+  "schemaIssues": [],
+  "jsdocIssues": [],
+  "endpointMapping": {
+    "apiKeys": {
+      "GET /v1/api-keys": {
+        "sdkMethod": "ApiKeys.list",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/api-keys": {
+        "sdkMethod": "ApiKeys.create",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "DELETE /v1/api-keys/{keyId}": {
+        "sdkMethod": "ApiKeys.delete",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      }
+    },
+    "contacts": {
+      "GET /v1/contacts": {
+        "sdkMethod": "Contacts.list",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/contacts": {
+        "sdkMethod": "Contacts.create",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/contacts/{contactId}": {
+        "sdkMethod": "Contacts.get",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "PUT /v1/contacts/{contactId}": {
+        "sdkMethod": "Contacts.update",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "DELETE /v1/contacts/{contactId}": {
+        "sdkMethod": "Contacts.delete",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/contacts/search": {
+        "sdkMethod": "Contacts.search",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      }
+    },
+    "topics": {
+      "GET /v1/topics": {
+        "sdkMethod": "Topics.list",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/topics": {
+        "sdkMethod": "Topics.create",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/topics/{topicId}": {
+        "sdkMethod": "Topics.get",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "PUT /v1/topics/{topicId}": {
+        "sdkMethod": "Topics.update",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "DELETE /v1/topics/{topicId}": {
+        "sdkMethod": "Topics.delete",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/topics/{topicId}/contacts": {
+        "sdkMethod": "Topics.listContacts",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      }
+    },
+    "segments": {
+      "GET /v1/segments": {
+        "sdkMethod": "Segments.list",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/segments": {
+        "sdkMethod": "Segments.create",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/segments/{segmentId}": {
+        "sdkMethod": "Segments.get",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "PUT /v1/segments/{segmentId}": {
+        "sdkMethod": "Segments.update",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "DELETE /v1/segments/{segmentId}": {
+        "sdkMethod": "Segments.delete",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/segments/{segmentId}/contacts": {
+        "sdkMethod": "Segments.listContacts",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      }
+    },
+    "contactProperties": {
+      "GET /v1/contact-properties": {
+        "sdkMethod": "ContactProperties.list",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/contact-properties": {
+        "sdkMethod": "ContactProperties.create",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/contact-properties/{contactPropertyId}": {
+        "sdkMethod": "ContactProperties.get",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "PUT /v1/contact-properties/{contactPropertyId}": {
+        "sdkMethod": "ContactProperties.update",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "DELETE /v1/contact-properties/{contactPropertyId}": {
+        "sdkMethod": "ContactProperties.delete",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      }
+    },
+    "forms": {
+      "GET /v1/forms": {
+        "sdkMethod": "Forms.list",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/forms": {
+        "sdkMethod": "Forms.create",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/forms/{formId}": {
+        "sdkMethod": "Forms.get",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "PUT /v1/forms/{formId}": {
+        "sdkMethod": "Forms.update",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "DELETE /v1/forms/{formId}": {
+        "sdkMethod": "Forms.delete",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/forms/{formId}/publish": {
+        "sdkMethod": "Forms.publish",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "GET /v1/forms/{formId}/versions": {
+        "sdkMethod": "Forms.listVersions",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      },
+      "POST /v1/forms/{formId}/versions": {
+        "sdkMethod": "Forms.createVersion",
+        "implemented": true,
+        "parametersMatch": true,
+        "responseTypeMatch": true,
+        "jsdocPresent": true,
+        "jsdocComplete": true
+      }
+    }
+  },
+  "schemaCompleteness": {
+    "status": "complete",
+    "typesGenerated": true,
+    "schemaFile": "sdks/nodejs/schema.d.ts",
+    "pathTypesAvailable": true,
+    "componentsTypesAvailable": true,
+    "typeExtractionPattern": "paths[\"/v1/...\"][\"method\"][\"requestBody\"|\"responses\"][\"content\"][\"application/json\"]"
+  },
+  "recommendations": [
+    {
+      "type": "suggestion",
+      "severity": "low",
+      "category": "documentation",
+      "message": "Consider adding a CHANGELOG.md to track SDK version changes against API changes",
+      "affectedFiles": []
+    },
+    {
+      "type": "suggestion",
+      "severity": "low",
+      "category": "testing",
+      "message": "Consider adding integration tests to verify SDK methods against live or mock API endpoints",
+      "affectedFiles": []
+    }
+  ],
+  "newEndpointsInSpec": [],
+  "deprecatedEndpoints": [],
+  "codeQuality": {
+    "consistentNaming": true,
+    "typeExtraction": "excellent",
+    "jsdocCoverage": "100%",
+    "errorHandling": "delegated to openapi-fetch",
+    "patterns": {
+      "resourceClass": "All resources follow consistent class pattern with HttpClient injection",
+      "methodSignatures": "Consistent parameter and return type patterns across all methods",
+      "typeAliases": "Types extracted from schema using path-based type extraction"
+    }
+  },
+  "auditConclusion": {
+    "status": "PASS",
+    "summary": "The Kibamail Node.js SDK is fully aligned with the OpenAPI specification. All 32 endpoints across 6 resources (API Keys, Contacts, Topics, Segments, Contact Properties, and Forms) are implemented with proper type safety, comprehensive JSDoc documentation, and consistent architectural patterns. No critical issues, type discrepancies, or missing endpoints were detected.",
+    "nextSteps": [
+      "Continue maintaining parity as new API endpoints are added",
+      "Consider adding automated schema synchronization workflow",
+      "Add integration tests for comprehensive coverage verification"
+    ]
+  }
+}

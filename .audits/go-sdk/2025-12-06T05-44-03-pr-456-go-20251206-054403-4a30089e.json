@@ -1,0 +1,272 @@
+{
+  "auditMetadata": {
+    "auditId": "pr-456-go-20251206-054403-4a30089e",
+    "sdkName": "kibamail-go",
+    "sdkLanguage": "go",
+    "sdkVersion": "0.1.0",
+    "openApiVersion": "3.0.0",
+    "openApiTitle": "Kibamail API",
+    "auditTimestamp": "2025-12-06T05:44:03Z",
+    "reportPath": ".audits/go-sdk/2025-12-06T05-44-03-pr-456-go-20251206-054403-4a30089e.json",
+    "sdkDirectory": "sdks/go",
+    "openApiPath": "apps/web/public/openapi.v1.json"
+  },
+  "coverage": {
+    "totalEndpointsInSpec": 30,
+    "totalMethodsInSdk": 30,
+    "endpointsCovered": 30,
+    "endpointsMissing": 0,
+    "coveragePercentage": 100.0,
+    "extraSdkMethods": 0
+  },
+  "sdkStructure": {
+    "filesAnalyzed": [
+      "client.go",
+      "contacts.go",
+      "topics.go",
+      "segments.go",
+      "forms.go",
+      "api_keys.go",
+      "contact_properties.go",
+      "errors.go",
+      "utils.go"
+    ],
+    "resourcesDiscovered": [
+      {
+        "name": "contacts",
+        "file": "contacts.go",
+        "interface": "ContactsSvc",
+        "implementation": "ContactsSvcImpl",
+        "methods": ["Create", "List", "Get", "Update", "Delete", "Search"]
+      },
+      {
+        "name": "topics",
+        "file": "topics.go",
+        "interface": "TopicsSvc",
+        "implementation": "TopicsSvcImpl",
+        "methods": ["Create", "List", "Get", "Update", "Delete", "GetContacts"]
+      },
+      {
+        "name": "segments",
+        "file": "segments.go",
+        "interface": "SegmentsSvc",
+        "implementation": "SegmentsSvcImpl",
+        "methods": ["Create", "List", "Get", "Update", "Delete", "GetContacts"]
+      },
+      {
+        "name": "forms",
+        "file": "forms.go",
+        "interface": "FormsSvc",
+        "implementation": "FormsSvcImpl",
+        "methods": ["Create", "List", "Get", "Update", "Delete"]
+      },
+      {
+        "name": "apiKeys",
+        "file": "api_keys.go",
+        "interface": "ApiKeysSvc",
+        "implementation": "ApiKeysSvcImpl",
+        "methods": ["Create", "List", "Get", "Delete"]
+      },
+      {
+        "name": "contactProperties",
+        "file": "contact_properties.go",
+        "interface": "ContactPropertiesSvc",
+        "implementation": "ContactPropertiesSvcImpl",
+        "methods": ["Create", "List", "Get", "Update", "Delete"]
+      }
+    ],
+    "totalStructs": 48,
+    "totalMethods": 30
+  },
+  "summary": {
+    "totalIssues": 5,
+    "critical": 0,
+    "major": 3,
+    "minor": 2,
+    "suggestions": 0,
+    "passedChecks": 25
+  },
+  "missingEndpoints": [],
+  "extraSdkMethods": [],
+  "inconsistencies": [
+    {
+      "id": "INC-001",
+      "severity": "major",
+      "category": "type_mismatch",
+      "resource": "segments",
+      "sdkMethod": "Create",
+      "sdkFile": "segments.go",
+      "sdkLine": 25,
+      "openApiPath": "/v1/segments",
+      "openApiOperation": "createSegment",
+      "issue": "Segment conditions field type mismatch - SDK uses map[string]interface{} but OpenAPI defines a structured MongoDB query object",
+      "expected": "Conditions should be properly typed as a MongoDB query structure with operators like $eq, $and, $or",
+      "actual": "Using generic map[string]interface{} which loses type safety",
+      "impact": "Users may pass incorrectly structured conditions that fail at runtime",
+      "recommendation": "Define a proper Condition type with MongoDB operators",
+      "codeExample": "type Condition struct {\n    Eq  interface{} `json:\"$eq,omitempty\"`\n    And []Condition `json:\"$and,omitempty\"`\n    Or  []Condition `json:\"$or,omitempty\"`\n}"
+    },
+    {
+      "id": "INC-002",
+      "severity": "major",
+      "category": "missing_field",
+      "resource": "contacts",
+      "sdkMethod": "Create",
+      "sdkFile": "contacts.go",
+      "sdkLine": 30,
+      "openApiPath": "/v1/contacts",
+      "openApiOperation": "createContact",
+      "issue": "CreateContactParams is missing the 'city' field defined in OpenAPI spec",
+      "expected": "City field should be present as an optional string field",
+      "actual": "City field is missing from CreateContactParams struct",
+      "impact": "Users cannot set the city field when creating contacts via SDK",
+      "recommendation": "Add City *string field to CreateContactParams",
+      "codeExample": "City *string `json:\"city,omitempty\"`"
+    },
+    {
+      "id": "INC-003",
+      "severity": "major",
+      "category": "missing_field",
+      "resource": "contacts",
+      "sdkMethod": "Update",
+      "sdkFile": "contacts.go",
+      "sdkLine": 50,
+      "openApiPath": "/v1/contacts/{contactId}",
+      "openApiOperation": "updateContact",
+      "issue": "UpdateContactParams is missing the 'city' field defined in OpenAPI spec",
+      "expected": "City field should be present as an optional string field",
+      "actual": "City field is missing from UpdateContactParams struct",
+      "impact": "Users cannot update the city field for contacts via SDK",
+      "recommendation": "Add City *string field to UpdateContactParams",
+      "codeExample": "City *string `json:\"city,omitempty\"`"
+    },
+    {
+      "id": "INC-004",
+      "severity": "minor",
+      "category": "json_tag",
+      "resource": "topics",
+      "sdkMethod": "GetContacts",
+      "sdkFile": "topics.go",
+      "sdkLine": 95,
+      "openApiPath": "/v1/topics/{topicId}/contacts",
+      "openApiOperation": "getTopicContacts",
+      "issue": "Return type uses ContactListResponse but the 'object' field value should be 'contact_list'",
+      "expected": "Response object field should contain 'contact_list' value",
+      "actual": "The struct properly defines the object field but verification at runtime should be considered",
+      "impact": "Minor - response parsing works but type verification could be stricter",
+      "recommendation": "Add response object type verification in the SDK",
+      "codeExample": "// Consider adding runtime check for response.Object == \"contact_list\""
+    },
+    {
+      "id": "INC-005",
+      "severity": "minor",
+      "category": "naming",
+      "resource": "apiKeys",
+      "sdkMethod": "All methods",
+      "sdkFile": "api_keys.go",
+      "sdkLine": 1,
+      "openApiPath": "/v1/api-keys",
+      "openApiOperation": "various",
+      "issue": "Service name uses 'ApiKeys' but Go convention typically uses 'APIKeys'",
+      "expected": "APIKeysSvc, APIKeysSvcImpl following Go naming conventions for acronyms",
+      "actual": "ApiKeysSvc, ApiKeysSvcImpl",
+      "impact": "Minor inconsistency with Go naming conventions",
+      "recommendation": "Consider renaming to APIKeysSvc following Go idioms for acronyms",
+      "codeExample": "type APIKeysSvc interface {...}\ntype APIKeysSvcImpl struct {...}"
+    }
+  ],
+  "typeDiscrepancies": [
+    {
+      "id": "TYPE-001",
+      "severity": "major",
+      "resource": "contacts",
+      "field": "city",
+      "jsonTag": "city",
+      "sdkType": "(missing)",
+      "openApiType": "string",
+      "openApiFormat": null,
+      "location": "request",
+      "file": "contacts.go",
+      "line": 30,
+      "recommendation": "Add City *string `json:\"city,omitempty\"` to CreateContactParams and UpdateContactParams",
+      "codeExample": "type CreateContactParams struct {\n    // ... existing fields\n    City *string `json:\"city,omitempty\"`\n}"
+    }
+  ],
+  "schemaCompleteness": [
+    {
+      "schemaName": "CreateContactRequest",
+      "sdkStruct": "CreateContactParams",
+      "file": "contacts.go",
+      "missingFields": [
+        {
+          "field": "city",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "UpdateContactRequest",
+      "sdkStruct": "UpdateContactParams",
+      "file": "contacts.go",
+      "missingFields": [
+        {
+          "field": "city",
+          "type": "string",
+          "required": false
+        }
+      ],
+      "extraFields": [],
+      "fieldMappingIssues": []
+    },
+    {
+      "schemaName": "CreateSegmentRequest",
+      "sdkStruct": "CreateSegmentParams",
+      "file": "segments.go",
+      "missingFields": [],
+      "extraFields": [],
+      "fieldMappingIssues": [
+        {
+          "specField": "conditions",
+          "sdkField": "Conditions",
+          "issue": "Generic map type instead of structured MongoDB query type"
+        }
+      ]
+    }
+  ],
+  "recommendations": [
+    {
+      "priority": "high",
+      "category": "completeness",
+      "title": "Add missing 'city' field to Contact structs",
+      "description": "The CreateContactParams and UpdateContactParams structs are missing the 'city' field that is defined in the OpenAPI specification",
+      "rationale": "This prevents SDK users from setting or updating the city field for contacts, limiting functionality",
+      "affectedFiles": ["contacts.go"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Add `City *string `json:\"city,omitempty\"`` to both CreateContactParams and UpdateContactParams structs"
+    },
+    {
+      "priority": "medium",
+      "category": "type_safety",
+      "title": "Define proper MongoDB query condition types for Segments",
+      "description": "The Conditions field in segment-related structs uses generic map[string]interface{} which loses compile-time type safety",
+      "rationale": "Proper typing would help SDK users construct valid MongoDB queries and catch errors at compile time",
+      "affectedFiles": ["segments.go"],
+      "estimatedEffort": "medium",
+      "suggestedImplementation": "Create condition builder types with proper operators like $eq, $and, $or, $gt, $lt, etc."
+    },
+    {
+      "priority": "low",
+      "category": "consistency",
+      "title": "Consider renaming ApiKeys to APIKeys following Go conventions",
+      "description": "Go conventions suggest using API (all caps) for acronyms in type names",
+      "rationale": "This would align with standard Go naming conventions (e.g., HTTPServer, URLParser)",
+      "affectedFiles": ["api_keys.go", "client.go"],
+      "estimatedEffort": "small",
+      "suggestedImplementation": "Rename ApiKeysSvc to APIKeysSvc and ApiKeysSvcImpl to APIKeysSvcImpl"
+    }
+  ],
+  "newEndpointsInSpec": []
+}

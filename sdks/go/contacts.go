@@ -41,6 +41,7 @@ type SearchContactRequest struct {
 
 // Contact provides the structure for a contact object.
 type Contact struct {
+	Object     string                 `json:"object"`
 	ID         string                 `json:"id"`
 	Email      string                 `json:"email"`
 	FirstName  string                 `json:"firstName"`
@@ -63,6 +64,7 @@ type ContactResponse struct {
 
 // ListContactsResponse is the response from the List call.
 type ListContactsResponse struct {
+	Object      string    `json:"object"`
 	Data        []Contact `json:"data"`
 	HasMore     bool      `json:"hasMore"`
 	HasPrevious bool      `json:"hasPrevious"`
@@ -70,6 +72,7 @@ type ListContactsResponse struct {
 
 // SearchContactsResponse is the response from the Search call.
 type SearchContactsResponse struct {
+	Object      string    `json:"object"`
 	Data        []Contact `json:"data"`
 	HasMore     bool      `json:"hasMore"`
 	HasPrevious bool      `json:"hasPrevious"`

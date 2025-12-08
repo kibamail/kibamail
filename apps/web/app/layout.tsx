@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${manrope.className} antialiased flex flex-col min-h-screen`}
+        className={`${manrope.className} antialiased flex flex-col overflow-y-auto h-screen`}
       >
         {children}
       </body>
