@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@kibamail/owly";
+import * as Alert from "@kibamail/owly/alert";
+import { Text } from "@kibamail/owly/text";
 import {
   ArrowLeft,
   Clock,
@@ -12,14 +14,15 @@ import {
   PlusCircle,
   User,
   UserXmark,
+  WarningTriangle,
 } from "iconoir-react";
-import { useCallback } from "react";
 import {
   ActionNodeType,
   RuleNodeType,
   isTriggerNodeType,
 } from "@/app/(dashboard)/(flows)/flows/[id]/types/node-types";
 import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
+import { useFlowEditor } from "./flow-editor-context";
 import { AddNodeCard } from "./add-node-card";
 import { TriggerConfiguration } from "./configurations/trigger-configuration";
 import { PercentageSplitConfiguration } from "./configurations/percentage-split-configuration";
@@ -30,6 +33,7 @@ import {
 } from "./configurations/topic-config";
 import { TimeDelayConfig } from "./configurations/time-delay-config";
 import { IfElseConfig } from "./configurations/if-else-config";
+import { WebhookConfig } from "./configurations/webhook-config";
 
 const actionNodes = [
   { id: ActionNodeType.SEND_EMAIL, label: "Send email", icon: Mail },
@@ -74,35 +78,35 @@ export function FlowComposerSidebar() {
     selectedNodeId,
     closeNodeConfiguration,
   } = useFlowStore();
+  const { getNodeErrors, automation } = useFlowEditor();
 
+  const isReadOnly = automation?.status !== "DRAFT";
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
   const isConfigurationMode = sidebarScreen === "node-configuration";
+  const selectedNodeErrors = selectedNodeId ? getNodeErrors(selectedNodeId) : [];
 
-  const onAddNode = useCallback(
-    (nodeType: string) => {
-      const nodeId = `${nodeType}-${Date.now()}`;
+  function onAddNode(nodeType: string) {
+    const nodeId = `${nodeType}-${Date.now()}`;
 
-      let data = {};
-      if (nodeType === RuleNodeType.PERCENTAGE_SPLIT) {
-        data = {
-          splits: [
-            { id: "branch-a", name: "A", percentage: 50 },
-            { id: "branch-b", name: "B", percentage: 50 },
-          ],
-        };
-      }
-
-      const newNode = {
-        id: nodeId,
-        type: nodeType,
-        position: { x: 250, y: 250 },
-        data,
+    let data = {};
+    if (nodeType === RuleNodeType.PERCENTAGE_SPLIT) {
+      data = {
+        splits: [
+          { id: "branch-a", name: "A", percentage: 50 },
+          { id: "branch-b", name: "B", percentage: 50 },
+        ],
       };
+    }
 
-      setNodes([...nodes, newNode]);
-    },
-    [setNodes, nodes]
-  );
+    const newNode = {
+      id: nodeId,
+      type: nodeType,
+      position: { x: 250, y: 250 },
+      data,
+    };
+
+    setNodes([...nodes, newNode]);
+  }
 
   if (isConfigurationMode && selectedNode) {
     const nodeType = selectedNode.type as string;
@@ -113,6 +117,7 @@ export function FlowComposerSidebar() {
     const isRemoveFromTopicNode = nodeType === ActionNodeType.REMOVE_FROM_TOPIC;
     const isTimeDelayNode = nodeType === RuleNodeType.TIME_DELAY;
     const isIfElseNode = nodeType === RuleNodeType.IF_ELSE;
+    const isSendWebhookNode = nodeType === ActionNodeType.SEND_WEBHOOK;
 
     return (
       <div className="w-[390px] box-border shrink-0 h-full border-l border-kb-border-tertiary flex flex-col bg-kb-bg-layout">
@@ -127,7 +132,26 @@ export function FlowComposerSidebar() {
           </Button>
         </div>
 
-        <div className="p-4">
+        <div className="p-4 flex flex-col gap-4">
+          {selectedNodeErrors.length > 0 && (
+            <Alert.Root variant="error">
+              <Alert.Icon>
+                <WarningTriangle className="w-5 h-5" />
+              </Alert.Icon>
+              <div className="flex flex-col gap-1">
+                <Alert.Title>Validation errors</Alert.Title>
+                <ul className="space-y-1">
+                  {selectedNodeErrors.map((error, idx) => (
+                    <li key={idx} className="flex items-start gap-1.5">
+                      <span className="text-kb-content-negative mt-0.5">•</span>
+                      <Text className="text-sm text-kb-content-secondary">{error.message}</Text>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </Alert.Root>
+          )}
+
           {isTriggerNode && <TriggerConfiguration />}
           {isPercentageSplitNode && <PercentageSplitConfiguration />}
           {isUpdateContactNode && <UpdateContactConfig />}
@@ -135,9 +159,15 @@ export function FlowComposerSidebar() {
           {isRemoveFromTopicNode && <RemoveFromTopicConfig />}
           {isTimeDelayNode && <TimeDelayConfig />}
           {isIfElseNode && <IfElseConfig />}
+          {isSendWebhookNode && <WebhookConfig />}
         </div>
       </div>
     );
+  }
+
+  // Hide sidebar in read-only mode when not viewing a node configuration
+  if (isReadOnly) {
+    return null;
   }
 
   return (

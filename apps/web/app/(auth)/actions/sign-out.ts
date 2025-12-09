@@ -14,9 +14,19 @@
 
 "use server";
 
-import { signOut } from "@logto/next/server-actions";
+import { signOut, getLogtoContext } from "@logto/next/server-actions";
 import { logtoConfig } from "@/config/logto";
+import { invalidateUserCache } from "@/lib/auth/user-cache";
+import { Cookies, CookieKey } from "@/lib/cookies";
 
 export async function signOutAction() {
+  const context = await getLogtoContext(logtoConfig);
+
+  if (context.isAuthenticated && context.claims?.sub) {
+    await invalidateUserCache(context.claims.sub);
+  }
+
+  await Cookies.delete(CookieKey.ACTIVE_WORKSPACE_ID);
+
   await signOut(logtoConfig);
 }

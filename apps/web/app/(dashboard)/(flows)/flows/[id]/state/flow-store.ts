@@ -36,12 +36,14 @@ export interface FlowState {
   setSelectedNodeId: (id: string | null) => void;
   openNodeConfiguration: (nodeId: string) => void;
   closeNodeConfiguration: () => void;
+
+  // Initialization
+  initializeFromAutomation: (nodes: Node[], edges: Edge[]) => void;
 }
 
 const initialTriggerId = `${TriggerNodeType.CONTACT_SUBSCRIBED}-initial`;
 
 export const useFlowStore = create<FlowState>((set) => ({
-  // Initial state with default trigger node
   nodes: [
     {
       id: initialTriggerId,
@@ -54,7 +56,6 @@ export const useFlowStore = create<FlowState>((set) => ({
   sidebarScreen: "node-configuration",
   selectedNodeId: initialTriggerId,
 
-  // Node actions
   setNodes: (nodes) => set({ nodes }),
   setEdges: (edges) => set({ edges }),
 
@@ -78,7 +79,6 @@ export const useFlowStore = create<FlowState>((set) => ({
       ),
     })),
 
-  // Edge actions
   addEdge: (edge) =>
     set((state) => ({
       edges: [...state.edges, edge],
@@ -98,11 +98,9 @@ export const useFlowStore = create<FlowState>((set) => ({
       const targetNode = state.nodes.find((n) => n.id === edge.target);
       if (!sourceNode || !targetNode) return state;
 
-      // Calculate midpoint position for the new node
       const newNodeX = (sourceNode.position.x + targetNode.position.x) / 2;
       const newNodeY = (sourceNode.position.y + targetNode.position.y) / 2;
 
-      // Find all downstream nodes from target using BFS
       const downstreamNodeIds = new Set<string>();
       const queue = [edge.target];
       while (queue.length > 0) {
@@ -110,7 +108,6 @@ export const useFlowStore = create<FlowState>((set) => ({
         if (downstreamNodeIds.has(currentId)) continue;
         downstreamNodeIds.add(currentId);
 
-        // Find all edges where current node is the source
         for (const e of state.edges) {
           if (e.source === currentId && !downstreamNodeIds.has(e.target)) {
             queue.push(e.target);
@@ -118,7 +115,6 @@ export const useFlowStore = create<FlowState>((set) => ({
         }
       }
 
-      // Shift downstream nodes down by 150px (node height + padding)
       const shiftAmount = 150;
       const updatedNodes = state.nodes.map((node) => {
         if (downstreamNodeIds.has(node.id)) {
@@ -133,7 +129,6 @@ export const useFlowStore = create<FlowState>((set) => ({
         return node;
       });
 
-      // Create the new empty node
       const newNodeId = `${SpecialNodeType.EMPTY}-${Date.now()}`;
       const newNode: Node = {
         id: newNodeId,
@@ -142,10 +137,8 @@ export const useFlowStore = create<FlowState>((set) => ({
         data: {},
       };
 
-      // Remove the old edge and create two new edges
       const updatedEdges = state.edges.filter((e) => e.id !== edgeId);
 
-      // Edge from source to new node (preserve sourceHandle)
       const sourceToNewEdge: Edge = {
         id: `${edge.source}-${newNodeId}`,
         source: edge.source,
@@ -155,7 +148,6 @@ export const useFlowStore = create<FlowState>((set) => ({
         data: edge.data,
       };
 
-      // Edge from new node to original target
       const newToTargetEdge: Edge = {
         id: `${newNodeId}-${edge.target}`,
         source: newNodeId,
@@ -171,7 +163,6 @@ export const useFlowStore = create<FlowState>((set) => ({
       };
     }),
 
-  // Layout actions
   autoLayout: (direction = "TB") =>
     set((state) => {
       const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -185,7 +176,6 @@ export const useFlowStore = create<FlowState>((set) => ({
       };
     }),
 
-  // Sidebar actions
   setSidebarScreen: (screen) => set({ sidebarScreen: screen }),
 
   setSelectedNodeId: (id) => set({ selectedNodeId: id }),
@@ -201,4 +191,25 @@ export const useFlowStore = create<FlowState>((set) => ({
       sidebarScreen: "node-selector",
       selectedNodeId: null,
     }),
+
+  initializeFromAutomation: (nodes, edges) => {
+    const triggerNode = nodes.find((n) =>
+      n.type?.includes("subscribed") ||
+      n.type?.includes("updated") ||
+      n.type?.includes("filled") ||
+      n.type?.includes("trigger") ||
+      n.type?.includes("entry") ||
+      n.type?.includes("exit") ||
+      n.type?.includes("engagement") ||
+      n.type?.includes("event") ||
+      n.type?.includes("webhook")
+    );
+
+    set({
+      nodes,
+      edges,
+      selectedNodeId: triggerNode?.id || nodes[0]?.id || null,
+      sidebarScreen: "node-configuration",
+    });
+  },
 }));

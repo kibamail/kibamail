@@ -124,11 +124,39 @@ import {
   formListResponseSchema,
   formSubmissionResponseSchema,
 } from "@/app/api/v1/forms/schema";
+import {
+  type CreateAutomationInput,
+  type UpdateAutomationInput,
+  type AutomationResponse,
+  type AutomationListResponse,
+  automationResponseSchema,
+  automationListResponseSchema,
+} from "@/app/api/v1/automations/schema";
 
 type ApiErrorResponse = {
-  error: string;
+  error: string | {
+    type?: string;
+    code?: string;
+    message?: string;
+    details?: Record<string, unknown>;
+  };
   fieldErrors?: Record<string, string[]>;
 };
+
+/**
+ * Custom API error that preserves the full error response
+ */
+export class ApiClientError extends Error {
+  public readonly response: ApiErrorResponse;
+  public readonly status: number;
+
+  constructor(message: string, status: number, response: ApiErrorResponse) {
+    super(message);
+    this.name = "ApiClientError";
+    this.status = status;
+    this.response = response;
+  }
+}
 
 /**
  * Base HTTP client for making requests
@@ -179,8 +207,12 @@ class HttpClient {
         throw zodError;
       }
 
-      // Throw regular error for other failures
-      throw new Error(errorData.error || "Request failed");
+      // Throw ApiClientError to preserve full error response
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Request failed";
+      throw new ApiClientError(errorMessage, response.status, errorData);
     }
 
     const json = await response.json();
@@ -424,7 +456,11 @@ class WorkspacesApi extends HttpClient {
 
     if (!response.ok) {
       const errorData: ApiErrorResponse = await response.json();
-      throw new Error(errorData.error || "Logo upload failed");
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Logo upload failed";
+      throw new ApiClientError(errorMessage, response.status, errorData);
     }
 
     const json = await response.json();
@@ -1313,6 +1349,244 @@ class FormsApi extends HttpClient {
 }
 
 /**
+ * Automations API
+ *
+ * Internal API for automation management.
+ */
+class AutomationsApi extends HttpClient {
+  /**
+   * List all automations
+   *
+   * @param params - Query parameters (status, limit, after, before)
+   * @returns List of automations with pagination info
+   *
+   * @example
+   * ```ts
+   * const { data: automations, hasMore } = await internalApi.automations().list()
+   * ```
+   */
+  async list(params?: {
+    status?: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    limit?: number;
+    after?: string;
+    before?: string;
+  }): Promise<AutomationListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.status) queryParams.set("status", params.status);
+    if (params?.limit) queryParams.set("limit", params.limit.toString());
+    if (params?.after) queryParams.set("after", params.after);
+    if (params?.before) queryParams.set("before", params.before);
+
+    const queryString = queryParams.toString();
+    const url = `/api/internal/v1/automations${queryString ? `?${queryString}` : ""}`;
+
+    return this.request("GET", url, null, automationListResponseSchema);
+  }
+
+  /**
+   * Get a specific automation by ID
+   *
+   * @param automationId - ID of the automation to retrieve
+   * @returns Automation data
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().get('automation_123')
+   * ```
+   */
+  async get(automationId: string): Promise<AutomationResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/automations/${automationId}`,
+      null,
+      automationResponseSchema
+    );
+  }
+
+  /**
+   * Create a new automation
+   *
+   * @param data - Automation creation data (only name is required)
+   * @returns Created automation
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().create({
+   *   name: 'Welcome Email Sequence',
+   *   description: 'Send welcome emails to new subscribers'
+   * })
+   * ```
+   */
+  async create(data: CreateAutomationInput): Promise<AutomationResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/automations",
+      null,
+      automationResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Update an existing automation
+   *
+   * @param automationId - ID of the automation to update
+   * @param data - Automation update data
+   * @returns Updated automation
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().update('automation_123', {
+   *   name: 'Updated Automation Name',
+   *   nodes: [...],
+   *   edges: [...]
+   * })
+   * ```
+   */
+  async update(
+    automationId: string,
+    data: UpdateAutomationInput
+  ): Promise<AutomationResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/automations/${automationId}`,
+      null,
+      automationResponseSchema,
+      data
+    );
+  }
+
+  /**
+   * Delete an automation
+   *
+   * @param automationId - ID of the automation to delete
+   * @returns Deleted automation info
+   *
+   * @example
+   * ```ts
+   * await internalApi.automations().delete('automation_123')
+   * ```
+   */
+  async delete(automationId: string): Promise<AutomationResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/automations/${automationId}`,
+      null,
+      automationResponseSchema
+    );
+  }
+
+  /**
+   * Publish an automation
+   *
+   * @param automationId - ID of the automation to publish
+   * @returns Published automation
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().publish('automation_123')
+   * ```
+   */
+  async publish(automationId: string): Promise<AutomationResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/automations/${automationId}/publish`,
+      null,
+      automationResponseSchema
+    );
+  }
+
+  /**
+   * Archive an automation
+   *
+   * @param automationId - ID of the automation to archive
+   * @returns Archived automation
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().archive('automation_123')
+   * ```
+   */
+  async archive(automationId: string): Promise<AutomationResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/automations/${automationId}/archive`,
+      null,
+      automationResponseSchema
+    );
+  }
+
+  /**
+   * List all versions of an automation
+   *
+   * @param automationId - ID of the automation
+   * @returns List of automation versions
+   *
+   * @example
+   * ```ts
+   * const versions = await internalApi.automations().listVersions('automation_123')
+   * ```
+   */
+  async listVersions(automationId: string): Promise<AutomationListResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/automations/${automationId}/versions`,
+      null,
+      automationListResponseSchema
+    );
+  }
+
+  /**
+   * Create a new version of an automation
+   *
+   * @param automationId - ID of the automation to create a version from
+   * @param data - Optional overrides for the new version
+   * @returns Created automation version
+   *
+   * @example
+   * ```ts
+   * const newVersion = await internalApi.automations().createVersion('automation_123', {
+   *   name: 'Updated Version'
+   * })
+   * ```
+   */
+  async createVersion(
+    automationId: string,
+    data?: { name?: string; description?: string }
+  ): Promise<AutomationResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/automations/${automationId}/versions`,
+      null,
+      automationResponseSchema,
+      data || {}
+    );
+  }
+
+  /**
+   * Rollback to an archived version of an automation
+   *
+   * @param automationId - ID of the archived automation version to rollback to
+   * @returns Rolled back automation (now published)
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().rollback('automation_123')
+   * ```
+   */
+  async rollback(automationId: string): Promise<AutomationResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/automations/${automationId}/rollback`,
+      null,
+      automationResponseSchema
+    );
+  }
+}
+
+/**
  * Internal API SDK
  *
  * Provides namespaced, type-safe methods for all internal API endpoints.
@@ -1327,6 +1601,7 @@ export class InternalApi {
   private _contactProperties: ContactPropertiesApi;
   private _contacts: ContactsApi;
   private _forms: FormsApi;
+  private _automations: AutomationsApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
@@ -1338,6 +1613,7 @@ export class InternalApi {
     this._contactProperties = new ContactPropertiesApi();
     this._contacts = new ContactsApi();
     this._forms = new FormsApi();
+    this._automations = new AutomationsApi();
   }
 
   /**
@@ -1492,6 +1768,22 @@ export class InternalApi {
    */
   forms() {
     return this._forms;
+  }
+
+  /**
+   * Access automations API
+   *
+   * @returns AutomationsApi instance
+   *
+   * @example
+   * ```ts
+   * const automation = await internalApi.automations().create({
+   *   name: 'Welcome Sequence'
+   * })
+   * ```
+   */
+  automations() {
+    return this._automations;
   }
 }
 

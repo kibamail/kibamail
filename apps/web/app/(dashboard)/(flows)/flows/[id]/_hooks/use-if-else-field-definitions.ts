@@ -4,26 +4,23 @@ import { useQuery } from "@tanstack/react-query";
 import type { FilterFieldDefinition } from "@kibamail/owly/filter-builder";
 import { internalApi } from "@/lib/api/client";
 
-/**
- * Hook to get field definitions for if/else condition filtering in flows
- * Based on contact properties and built-in contact fields
- */
 export function useIfElseFieldDefinitions() {
-  const { data: contactProperties, isLoading: propertiesLoading } = useQuery({
+  const { data: contactPropertiesResponse, isLoading: propertiesLoading } = useQuery({
     queryKey: ["contact-properties"],
     queryFn: async () => {
-      const response = await internalApi.contactProperties().list();
-      return response.data;
+      return await internalApi.contactProperties().list();
     },
   });
 
-  const { data: topics, isLoading: topicsLoading } = useQuery({
+  const { data: topicsResponse, isLoading: topicsLoading } = useQuery({
     queryKey: ["topics"],
     queryFn: async () => {
-      const response = await internalApi.topics().list();
-      return response.data;
+      return await internalApi.topics().list();
     },
   });
+
+  const contactProperties = contactPropertiesResponse?.data ?? [];
+  const topics = topicsResponse?.data ?? [];
 
   const isLoading = propertiesLoading || topicsLoading;
 
@@ -181,7 +178,7 @@ export function useIfElseFieldDefinitions() {
     },
   ];
 
-  const customFields: FilterFieldDefinition[] = (contactProperties || []).map(
+  const customFields: FilterFieldDefinition[] = contactProperties.map(
     (property) => {
       const baseOperators = getOperatorsForType(property.type);
 
@@ -195,7 +192,7 @@ export function useIfElseFieldDefinitions() {
     }
   );
 
-  const topicFields: FilterFieldDefinition[] = (topics || []).map((topic) => ({
+  const topicFields: FilterFieldDefinition[] = topics.map((topic) => ({
     id: `topic.${topic.id}`,
     label: topic.name,
     category: "Topic Subscriptions",
@@ -222,9 +219,6 @@ export function useIfElseFieldDefinitions() {
   };
 }
 
-/**
- * Get appropriate operators for a contact property type
- */
 function getOperatorsForType(type: string) {
   switch (type) {
     case "STRING":

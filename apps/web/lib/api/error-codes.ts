@@ -88,6 +88,12 @@ export enum ErrorCode {
   SEGMENT_NOT_FOUND = "SEGMENT_NOT_FOUND",
 
   // ============================================================================
+  // AUTOMATION ERRORS
+  // ============================================================================
+  AUTOMATION_NOT_FOUND = "AUTOMATION_NOT_FOUND",
+  AUTOMATION_VALIDATION_FAILED = "AUTOMATION_VALIDATION_FAILED",
+
+  // ============================================================================
   // CONTACT PROPERTY ERRORS
   // ============================================================================
   CONTACT_PROPERTY_NOT_FOUND = "CONTACT_PROPERTY_NOT_FOUND",

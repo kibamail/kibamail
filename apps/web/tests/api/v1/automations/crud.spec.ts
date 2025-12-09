@@ -13,6 +13,7 @@ import {
   DELETE,
 } from "@/app/api/v1/automations/[automationId]/route";
 import { POST } from "@/app/api/v1/automations/route";
+import { POST as PUBLISH_POST } from "@/app/api/v1/automations/[automationId]/publish/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,
@@ -36,8 +37,7 @@ let fullAccessApiKey: CreatedApiKey;
  */
 async function createTestAutomation(
   apiKey: CreatedApiKey,
-  name: string,
-  status: "DRAFT" | "PUBLISHED" = "DRAFT"
+  name: string
 ) {
   const automationData = {
     name,
@@ -58,12 +58,17 @@ async function createTestAutomation(
 
   const request = post("/automations", automationData, apiKey.key);
   const response = await POST(request);
-  const data = await response.json();
+  return response.json();
+}
 
-  // If status should be PUBLISHED, we'd need to publish it
-  // For now, all created automations are DRAFT by default
-
-  return data;
+/**
+ * Helper to publish an automation
+ */
+async function publishTestAutomation(apiKey: CreatedApiKey, automationId: string) {
+  const request = post(`/automations/${automationId}/publish`, {}, apiKey.key);
+  const params = Promise.resolve({ automationId });
+  const response = await PUBLISH_POST(request, { params });
+  return response.json();
 }
 
 /**
@@ -343,6 +348,81 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     expect(responseData.error.code).toBeDefined();
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
+  });
+
+  test("should allow updating name on PUBLISHED automation", async () => {
+    const createdAutomation = await createTestAutomation(
+      fullAccessApiKey,
+      "Published Name Test"
+    );
+    await publishTestAutomation(fullAccessApiKey, createdAutomation.id);
+
+    const updateData = { name: "Updated Published Name" };
+    const request = put(
+      `/automations/${createdAutomation.id}`,
+      updateData,
+      fullAccessApiKey.key
+    );
+    const params = Promise.resolve({ automationId: createdAutomation.id });
+
+    const response = await PUT(request, { params });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.name).toBe("Updated Published Name");
+  });
+
+  test("should reject updating nodes on PUBLISHED automation", async () => {
+    const createdAutomation = await createTestAutomation(
+      fullAccessApiKey,
+      "Published Nodes Test"
+    );
+    await publishTestAutomation(fullAccessApiKey, createdAutomation.id);
+
+    const updateData = {
+      nodes: [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 100, y: 100 },
+          data: {},
+        },
+      ],
+    };
+    const request = put(
+      `/automations/${createdAutomation.id}`,
+      updateData,
+      fullAccessApiKey.key
+    );
+    const params = Promise.resolve({ automationId: createdAutomation.id });
+
+    const response = await PUT(request, { params });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.message).toContain("Only DRAFT automations can be updated");
+  });
+
+  test("should reject updating description on PUBLISHED automation", async () => {
+    const createdAutomation = await createTestAutomation(
+      fullAccessApiKey,
+      "Published Description Test"
+    );
+    await publishTestAutomation(fullAccessApiKey, createdAutomation.id);
+
+    const updateData = { description: "New description" };
+    const request = put(
+      `/automations/${createdAutomation.id}`,
+      updateData,
+      fullAccessApiKey.key
+    );
+    const params = Promise.resolve({ automationId: createdAutomation.id });
+
+    const response = await PUT(request, { params });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.message).toContain("Only DRAFT automations can be updated");
   });
 });
 

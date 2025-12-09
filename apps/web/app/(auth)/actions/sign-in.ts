@@ -15,9 +15,21 @@
 
 "use server";
 
-import { signIn } from "@logto/next/server-actions";
+import { signIn, getLogtoContext } from "@logto/next/server-actions";
 import { logtoConfig } from "@/config/logto";
+import { invalidateUserCache } from "@/lib/auth/user-cache";
+import { Cookies, CookieKey } from "@/lib/cookies";
 
 export async function signInAction() {
+  // Clear any existing session data before signing in
+  // This prevents stale data when a different user logs in
+  const context = await getLogtoContext(logtoConfig);
+
+  if (context.isAuthenticated && context.claims?.sub) {
+    await invalidateUserCache(context.claims.sub);
+  }
+
+  await Cookies.delete(CookieKey.ACTIVE_WORKSPACE_ID);
+
   await signIn(logtoConfig);
 }

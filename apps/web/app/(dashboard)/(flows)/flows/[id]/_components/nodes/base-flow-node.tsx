@@ -3,6 +3,7 @@
 import { Badge } from "@kibamail/owly/badge";
 import { Handle, Position } from "@xyflow/react";
 import type React from "react";
+import type { ValidationError } from "@/lib/automations/validation";
 
 export interface BaseFlowNodeProps {
   icon: React.ReactNode;
@@ -14,6 +15,7 @@ export interface BaseFlowNodeProps {
     id: string;
     label?: string;
   }>;
+  errors?: ValidationError[];
 }
 
 export function BaseFlowNode({
@@ -23,20 +25,25 @@ export function BaseFlowNode({
   children,
   selected = false,
   outputHandles = [{ id: "default" }],
+  errors = [],
 }: BaseFlowNodeProps) {
   const hasMultipleOutputs = outputHandles.length > 1;
   const isTrigger = type === "trigger";
+  const hasErrors = errors.length > 0;
   const handleClassName = selected
     ? "w-2! h-2! bg-kb-bg-info!"
     : "w-2! h-2! bg-kb-border-primary!";
 
+  const getBorderClassName = () => {
+    if (hasErrors) return "border-kb-border-negative";
+    if (selected) return "border-kb-border-focus";
+    return "border-kb-border-tertiary";
+  };
+
   return (
     <div
-      className={`w-[300px] h-[92px] rounded-xl border bg-kb-bg-primary bg-kb-background-primary flex flex-col ${
-        selected ? "border-kb-border-focus" : "border-kb-border-tertiary"
-      }`}
+      className={`w-[300px] h-[92px] rounded-xl border bg-kb-bg-primary bg-kb-background-primary flex flex-col ${getBorderClassName()}`}
     >
-      {/* Only show input handle for non-trigger nodes */}
       {!isTrigger && (
         <Handle
           type="target"

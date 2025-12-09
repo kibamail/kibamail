@@ -13,6 +13,7 @@ import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
 import { RuleNodeType } from "@/app/(dashboard)/(flows)/flows/[id]/types/node-types";
 import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
+import { useFlowEditor } from "../flow-editor-context";
 import { edgeTypes } from "../edges";
 import { nodeTypes } from "../nodes";
 import { FlowToolbar } from "./flow-toolbar";
@@ -21,12 +22,19 @@ import "./flow.css";
 export function FlowCanvas() {
   const { nodes, edges, setNodes, setEdges, openNodeConfiguration } =
     useFlowStore();
+  const { automation } = useFlowEditor();
+
+  const isReadOnly = automation?.status !== "DRAFT";
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
-      setNodes(applyNodeChanges(changes, nodes));
+      // In read-only mode, only allow selection changes
+      const filteredChanges = isReadOnly
+        ? changes.filter((change) => change.type === "select")
+        : changes;
+      setNodes(applyNodeChanges(filteredChanges, nodes));
     },
-    [nodes, setNodes]
+    [nodes, setNodes, isReadOnly]
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
@@ -92,17 +100,20 @@ export function FlowCanvas() {
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
+        onEdgesChange={isReadOnly ? undefined : onEdgesChange}
+        onConnect={isReadOnly ? undefined : onConnect}
         onNodeClick={onNodeClick}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
+        nodesDraggable={!isReadOnly}
+        nodesConnectable={!isReadOnly}
+        elementsSelectable
         fitView
       >
         <Background />
         <Controls />
       </ReactFlow>
-      <FlowToolbar />
+      {!isReadOnly && <FlowToolbar />}
     </div>
   );
 }

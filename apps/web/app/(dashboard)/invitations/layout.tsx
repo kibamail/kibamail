@@ -6,7 +6,6 @@
  */
 
 import { QueryProvider } from "@/lib/providers/query-provider";
-import { ToastProvider } from "@kibamail/owly/toast";
 import type { PropsWithChildren } from "react";
 
 export const dynamic = "force-dynamic";
@@ -14,9 +13,5 @@ export const dynamic = "force-dynamic";
 export default async function InvitationsLayout({
   children,
 }: PropsWithChildren) {
-  return (
-    <QueryProvider>
-      <ToastProvider>{children}</ToastProvider>
-    </QueryProvider>
-  );
+  return <QueryProvider>{children}</QueryProvider>;
 }

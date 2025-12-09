@@ -1,10 +1,3 @@
-/**
- * Integration tests for Automation Creation (External API)
- *
- * Tests the actual Next.js route handlers for:
- * - POST /api/v1/automations - Create new automation
- */
-
 import { POST } from "@/app/api/v1/automations/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
@@ -22,17 +15,11 @@ import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
 
-/**
- * Setup: Create a test workspace and API keys for authentication
- */
 beforeAll(async () => {
   testWorkspace = createTestWorkspace();
   fullAccessApiKey = await createFullAccessApiKey(testWorkspace.id);
 });
 
-/**
- * Cleanup: Delete test data
- */
 afterAll(async () => {
   await cleanupWorkspace(testWorkspace.id);
 });
@@ -210,9 +197,9 @@ describe("POST /api/v1/automations", () => {
     expect(responseData.id).toBeDefined();
   });
 
-  test("should reject automation without trigger node", async () => {
+  test("should create automation without trigger node (uses action nodes only)", async () => {
     const automationData = {
-      name: "Invalid Automation",
+      name: "Action-Only Automation",
       trigger: {
         type: "CONTACT_SUBSCRIBED",
         config: {},
@@ -232,15 +219,33 @@ describe("POST /api/v1/automations", () => {
     const response = await POST(request);
     const responseData = await response.json();
 
-    expect(response.status).toBe(422);
-    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
-    expect(responseData.error.message).toBeDefined();
-    expect(responseData.error.validationErrors).toBeDefined();
-    expect(responseData.error.requestId).toBeDefined();
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("automation");
+    expect(responseData.name).toBe("Action-Only Automation");
+    expect(responseData.nodes).toHaveLength(1);
+    expect(responseData.nodes[0].type).toBe("send-email");
   });
 
-  test("should reject automation with invalid percentage split", async () => {
+  test("should create automation with default trigger node when no nodes provided", async () => {
+    const automationData = {
+      name: "Minimal Automation",
+    };
+
+    const request = post("/automations", automationData, fullAccessApiKey.key);
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("automation");
+    expect(responseData.name).toBe("Minimal Automation");
+    expect(responseData.trigger.type).toBe("CONTACT_SUBSCRIBED");
+    expect(responseData.nodes).toHaveLength(1);
+    expect(responseData.nodes[0].type).toBe("contact-subscribed");
+  });
+
+  test("should allow creating automation with invalid percentage split (validation at publish)", async () => {
+    // Create/update operations are lenient - strict validation happens at publish time.
+    // This allows users to save work-in-progress automations with incomplete data.
     const automationData = {
       name: "Invalid Split",
       trigger: {
@@ -273,12 +278,10 @@ describe("POST /api/v1/automations", () => {
     const response = await POST(request);
     const responseData = await response.json();
 
-    expect(response.status).toBe(422);
-    expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.VALIDATION_FAILED);
-    expect(responseData.error.message).toBeDefined();
-    expect(responseData.error.validationErrors).toBeDefined();
-    expect(responseData.error.requestId).toBeDefined();
+    // Create succeeds - validation happens at publish time
+    expect(response.status).toBe(201);
+    expect(responseData.id).toBeDefined();
+    expect(responseData.status).toBe("DRAFT");
   });
 
   test("should reject automation with edges referencing non-existent nodes", async () => {

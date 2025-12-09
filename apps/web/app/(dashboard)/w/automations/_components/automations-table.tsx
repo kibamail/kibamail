@@ -2,56 +2,72 @@
 
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
+import * as Dialog from "@kibamail/owly/dialog";
+import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
-import { EditPencil, MoreHoriz, Pause, Play, Trash } from "iconoir-react";
-import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
+import {
+  Archive,
+  EditPencil,
+  HistoricShield,
+  MoreHoriz,
+  SendDiagonal,
+  Trash,
+} from "iconoir-react";
 import Link from "next/link";
+import { useState } from "react";
+import type { Automation } from "@prisma/client";
+import { CreateAutomationButton } from "./create-automation-button";
 
-// Static data for demonstration
-const mockAutomations = [
-  {
-    id: "1",
-    name: "Welcome Email Sequence",
-    status: "active" as const,
-    runs: { running: 12, completed: 245 },
-    createdAt: "2024-01-15",
-  },
-  {
-    id: "2",
-    name: "Abandoned Cart Recovery",
-    status: "paused" as const,
-    runs: { running: 0, completed: 89 },
-    createdAt: "2024-01-10",
-  },
-  {
-    id: "3",
-    name: "Product Recommendation Flow",
-    status: "active" as const,
-    runs: { running: 8, completed: 156 },
-    createdAt: "2024-01-08",
-  },
-  {
-    id: "4",
-    name: "Customer Feedback Survey",
-    status: "draft" as const,
-    runs: { running: 0, completed: 0 },
-    createdAt: "2024-01-05",
-  },
-  {
-    id: "5",
-    name: "Birthday Discount Campaign",
-    status: "active" as const,
-    runs: { running: 3, completed: 67 },
-    createdAt: "2024-01-03",
-  },
-];
+type AutomationWithVersions = Automation & {
+  versions: Automation[];
+  publishedVersion: Automation | null;
+  allVersions: Automation[];
+};
+
+interface AutomationsTableProps {
+  automations: AutomationWithVersions[];
+}
+
+function getStatusBadge(status: string) {
+  switch (status) {
+    case "PUBLISHED":
+      return (
+        <Badge variant="success" size="sm">
+          Published
+        </Badge>
+      );
+    case "ARCHIVED":
+      return (
+        <Badge variant="warning" size="sm">
+          Archived
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="neutral" size="sm">
+          Draft
+        </Badge>
+      );
+  }
+}
+
+function formatDate(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(date);
+}
 
 function AutomationActionsDropdown({
   automation,
 }: {
-  automation: (typeof mockAutomations)[0];
+  automation: AutomationWithVersions;
 }) {
+  // Always link to root ID - page will handle showing draft or creating one
+  const editLink = `/flows/${automation.id}`;
+
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -60,23 +76,24 @@ function AutomationActionsDropdown({
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item>
-          <EditPencil className="w-4 h-4" />
-          Edit
+        <DropdownMenu.Item asChild>
+          <Link href={editLink}>
+            <EditPencil className="w-4 h-4" />
+            Edit
+          </Link>
         </DropdownMenu.Item>
-        <DropdownMenu.Item>
-          {automation.status === "active" ? (
-            <>
-              <Pause className="w-4 h-4" />
-              Pause
-            </>
-          ) : (
-            <>
-              <Play className="w-4 h-4" />
-              Activate
-            </>
-          )}
-        </DropdownMenu.Item>
+        {automation.publishedVersion && (
+          <DropdownMenu.Item>
+            <Archive className="w-4 h-4" />
+            Archive
+          </DropdownMenu.Item>
+        )}
+        {!automation.publishedVersion && automation.status === "DRAFT" && (
+          <DropdownMenu.Item>
+            <SendDiagonal className="w-4 h-4" />
+            Publish
+          </DropdownMenu.Item>
+        )}
         <DropdownMenu.Separator />
         <DropdownMenu.Item className="text-kb-content-error">
           <Trash className="w-4 h-4" />
@@ -87,8 +104,78 @@ function AutomationActionsDropdown({
   );
 }
 
-export function AutomationsTable() {
-  if (mockAutomations.length === 0) {
+interface VersionsModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  automation: AutomationWithVersions;
+}
+
+function VersionsModal({ open, onOpenChange, automation }: VersionsModalProps) {
+  // Root ID is the automation's own ID since we only show root automations in the table
+  const rootId = automation.id;
+
+  const getVersionLink = (version: Automation) => {
+    // Draft versions don't need version param
+    if (version.status === "DRAFT") {
+      return `/flows/${rootId}`;
+    }
+    // Other versions use version query param
+    return `/flows/${rootId}?version=${version.version}`;
+  };
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Content className="max-w-lg">
+        <Dialog.Header>
+          <Dialog.Title>Version History</Dialog.Title>
+        </Dialog.Header>
+        <div className="py-4 px-6">
+          <p className="text-sm text-kb-content-secondary mb-4">
+            {automation.name}
+          </p>
+          <div className="space-y-2 max-h-[400px] overflow-y-auto">
+            {automation.allVersions.map((version) => (
+              <Link
+                key={version.id}
+                href={getVersionLink(version)}
+                className="flex items-center justify-between p-3 rounded-lg border border-kb-border-tertiary hover:bg-kb-surface-secondary transition-colors"
+                onClick={() => onOpenChange(false)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">
+                      Version {version.version}
+                    </span>
+                    <span className="text-xs text-kb-content-secondary">
+                      {version.publishedAt
+                        ? `Published ${formatDate(new Date(version.publishedAt))}`
+                        : `Created ${formatDate(new Date(version.createdAt))}`}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {getStatusBadge(version.status)}
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </Dialog.Content>
+    </Dialog.Root>
+  );
+}
+
+export function AutomationsTable({ automations }: AutomationsTableProps) {
+  const [selectedAutomation, setSelectedAutomation] =
+    useState<AutomationWithVersions | null>(null);
+  const [versionsModalOpen, setVersionsModalOpen] = useState(false);
+
+  function onVersionsClick(automation: AutomationWithVersions) {
+    setSelectedAutomation(automation);
+    setVersionsModalOpen(true);
+  }
+
+  if (automations.length === 0) {
     return (
       <EmptyCard.Root>
         <EmptyCard.Title>No automations yet</EmptyCard.Title>
@@ -96,65 +183,79 @@ export function AutomationsTable() {
           Create your first automation to start engaging with your audience
           automatically.
         </EmptyCard.Description>
+        <EmptyCard.Action>
+          <CreateAutomationButton />
+        </EmptyCard.Action>
       </EmptyCard.Root>
     );
   }
 
   return (
-    <Table.Container>
-      <Table.Root>
-        <Table.Header>
-          <Table.Row>
-            <Table.Head>Name</Table.Head>
-            <Table.Head className="w-[120px]">Status</Table.Head>
-            <Table.Head className="w-[120px]">Running</Table.Head>
-            <Table.Head className="w-[120px]">Completed</Table.Head>
-            <Table.Head className="w-[100px]">Actions</Table.Head>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {mockAutomations.map((automation) => (
-            <Table.Row key={automation.id}>
-              <Table.Cell>
-                <Link
-                  href={`/flows/${automation.id}`}
-                  className="font-medium underline underline-offset-4 cursor-pointer hover:text-kb-content-tertiary transition ease-linear"
-                >
-                  {automation.name}
-                </Link>
-              </Table.Cell>
-              <Table.Cell>
-                <Badge
-                  variant={
-                    automation.status === "active"
-                      ? "success"
-                      : automation.status === "paused"
-                      ? "warning"
-                      : "neutral"
-                  }
-                  size="sm"
-                >
-                  {automation.status.charAt(0).toUpperCase() +
-                    automation.status.slice(1)}
-                </Badge>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="text-sm font-medium text-kb-content-primary">
-                  {automation.runs.running}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="text-sm font-medium text-kb-content-primary">
-                  {automation.runs.completed}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <AutomationActionsDropdown automation={automation} />
-              </Table.Cell>
+    <>
+      <Table.Container>
+        <Table.Root>
+          <Table.Header>
+            <Table.Row>
+              <Table.Head>Name</Table.Head>
+              <Table.Head className="w-[120px]">Status</Table.Head>
+              <Table.Head className="w-[100px]">Versions</Table.Head>
+              <Table.Head className="w-[150px]">Created</Table.Head>
+              <Table.Head className="w-[100px]">Actions</Table.Head>
             </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
-    </Table.Container>
+          </Table.Header>
+          <Table.Body>
+            {automations.map((automation) => {
+              // Show published version status if exists, otherwise root status
+              const displayStatus = automation.publishedVersion
+                ? automation.publishedVersion.status
+                : automation.status;
+
+              // Always link to root ID - page will handle showing draft or creating one
+              const editLink = `/flows/${automation.id}`;
+
+              return (
+                <Table.Row key={automation.id}>
+                  <Table.Cell>
+                    <Link
+                      href={editLink}
+                      className="font-medium underline underline-offset-4 cursor-pointer hover:text-kb-content-tertiary transition ease-linear"
+                    >
+                      {automation.name}
+                    </Link>
+                  </Table.Cell>
+                  <Table.Cell>{getStatusBadge(displayStatus)}</Table.Cell>
+                  <Table.Cell>
+                    <button
+                      type="button"
+                      onClick={() => onVersionsClick(automation)}
+                      className="flex items-center gap-1.5 text-sm text-kb-content-secondary hover:text-kb-content-primary transition-colors cursor-pointer"
+                    >
+                      <HistoricShield className="w-4 h-4" />
+                      <span>{automation.allVersions.length}</span>
+                    </button>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <span className="text-sm text-kb-content-secondary">
+                      {formatDate(automation.createdAt)}
+                    </span>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <AutomationActionsDropdown automation={automation} />
+                  </Table.Cell>
+                </Table.Row>
+              );
+            })}
+          </Table.Body>
+        </Table.Root>
+      </Table.Container>
+
+      {selectedAutomation && (
+        <VersionsModal
+          open={versionsModalOpen}
+          onOpenChange={setVersionsModalOpen}
+          automation={selectedAutomation}
+        />
+      )}
+    </>
   );
 }

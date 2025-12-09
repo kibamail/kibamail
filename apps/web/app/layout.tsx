@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
+import { ToastProvider } from "@kibamail/owly/toast";
 import "./globals.css";
 
 const manrope = Manrope();
@@ -20,7 +21,7 @@ export default function RootLayout({
       <body
         className={`${manrope.className} antialiased flex flex-col overflow-y-auto h-screen`}
       >
-        {children}
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

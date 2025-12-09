@@ -14,7 +14,7 @@ import {
   transformConditionsToFilters,
 } from "../../_utils/conditions-transformer";
 
-export function IfElseConfig() {
+export function TriggerConditionsConfig() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
   const { fieldDefinitions, isLoading } = useIfElseFieldDefinitions();
 
@@ -23,14 +23,16 @@ export function IfElseConfig() {
     conditions?: ConditionInput;
   };
 
+  // Transform backend conditions to FilterBuilder format for display
   const currentFilters = useMemo(() => {
     return transformConditionsToFilters(nodeData?.conditions ?? null);
   }, [nodeData?.conditions]);
 
-  const onConditionsChange = useCallback(
+  const handleConditionsChange = useCallback(
     (filters: FilterBuilderFilter[]) => {
       if (!selectedNodeId) return;
 
+      // Transform FilterBuilder format to backend conditions format
       const conditions = transformFiltersToConditions(filters);
 
       const updatedNodes = nodes.map((node) =>
@@ -50,10 +52,12 @@ export function IfElseConfig() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
+        <Text className="text-sm font-medium">
+          Entry conditions (optional)
+        </Text>
         <Text className="text-xs text-kb-content-tertiary">
-          Define conditions to determine which branch contacts will follow.
-          Contacts matching all conditions go to the "Yes" branch, others go to
-          "No".
+          Filter which contacts can enter this automation. Only contacts
+          matching all conditions will trigger this flow.
         </Text>
       </div>
 
@@ -61,7 +65,7 @@ export function IfElseConfig() {
         <FilterBuilder.Root
           fields={fieldDefinitions}
           filters={currentFilters}
-          onChange={onConditionsChange}
+          onChange={handleConditionsChange}
           maxFilters={10}
         >
           <FilterBuilder.Trigger asChild>

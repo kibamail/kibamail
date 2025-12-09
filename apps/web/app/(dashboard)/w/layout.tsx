@@ -25,7 +25,6 @@ import { getSession } from "@/lib/auth/get-session";
 import { UserProvider } from "@/lib/contexts/user-context";
 import { QueryProvider } from "@/lib/providers/query-provider";
 import { UserSessionDropdown } from "./_components/profile/user-dropdown";
-import { ToastProvider } from "@kibamail/owly/toast";
 import { SidebarNavigation } from "./_components/sidebar-navigation";
 
 export const dynamic = "force-dynamic";
@@ -42,8 +41,7 @@ export default async function WorkspaceLayout({ children }: PropsWithChildren) {
   return (
     <QueryProvider>
       <UserProvider session={session}>
-        <ToastProvider>
-          <DashboardLayoutRoot>
+        <DashboardLayoutRoot>
             <DashboardLayoutSidebarDropdown>
               <UserSessionDropdown session={session} />
             </DashboardLayoutSidebarDropdown>
@@ -123,7 +121,6 @@ export default async function WorkspaceLayout({ children }: PropsWithChildren) {
               <DashboardLayoutContent>{children}</DashboardLayoutContent>
             </DashboardLayoutContentShell>
           </DashboardLayoutRoot>
-        </ToastProvider>
       </UserProvider>
     </QueryProvider>
   );

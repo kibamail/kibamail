@@ -6,6 +6,7 @@ import { TriggerNodeType } from "@/app/(dashboard)/(flows)/flows/[id]/types/node
 import { useFlowStore } from "@/app/(dashboard)/(flows)/flows/[id]/state/flow-store";
 import { FormFilledConfig } from "./form-filled-config";
 import { EventTriggeredConfig } from "./event-triggered-config";
+import { TriggerConditionsConfig } from "./trigger-conditions-config";
 
 const triggerOptions = [
   { value: TriggerNodeType.FORM_FILLED, label: "Form filled" },
@@ -20,7 +21,7 @@ export function TriggerConfiguration() {
   const currentTriggerType =
     selectedNode?.type || TriggerNodeType.CONTACT_SUBSCRIBED;
 
-  const handleTriggerTypeChange = useCallback(
+  const onTriggerTypeChange = useCallback(
     (value: string) => {
       if (!selectedNodeId) return;
 
@@ -43,7 +44,7 @@ export function TriggerConfiguration() {
     <div className="flex flex-col gap-4">
       <Select.Root
         value={currentTriggerType}
-        onValueChange={handleTriggerTypeChange}
+        onValueChange={onTriggerTypeChange}
       >
         <Select.Label>Trigger type</Select.Label>
         <Select.Trigger placeholder="Select trigger type" />
@@ -62,6 +63,10 @@ export function TriggerConfiguration() {
       {currentTriggerType === TriggerNodeType.EVENT_TRIGGERED && (
         <EventTriggeredConfig />
       )}
+
+      <div className="my-3 h-px w-full bg-kb-border-tertiary"></div>
+
+      <TriggerConditionsConfig />
     </div>
   );
 }

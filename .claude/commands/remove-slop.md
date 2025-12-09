@@ -14,5 +14,10 @@ This includes:
 - Keep comments that explain why something non-obvious is done
 - Simplify overly defensive null checks where the value is guaranteed
 - Remove redundant type annotations that are already inferred
+- For react handlers, remove any handlers that are named with convension handleX or handleY and rename them to onX or onY. For example: handleRollbackUpdate should be onRollbackUpdate
+- Whenever possible, default to using function nameOfFn() {} rather than arrow functions, especially when the function type used does not change the impact of the implementation
+- In the codebase, we use @ import aliases. so code that uses ../.. or ../../../ for imports makes the code dirty and should be cleaned up
+- No naming variables e or confusing terms like that. if something is an event, name it event and not e
+- No sharing state between tests. Tests should be able to run in complete isolation or collectively in parallel without any possible data conflicts amongst them.
 
 Report at the end with only a 1-3 sentence summary of what you changed

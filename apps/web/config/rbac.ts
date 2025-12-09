@@ -285,6 +285,19 @@ export const PERMISSIONS: PermissionDefinition[] = [
     description:
       "Create, update, delete, enable, and disable webhook destinations",
   },
+
+  // ============================================================================
+  // AUTOMATIONS
+  // ============================================================================
+  {
+    name: "read:automations",
+    description: "View automations and their details",
+  },
+  {
+    name: "manage:automations",
+    description:
+      "Full automation management (create, update, delete, publish, archive automations)",
+  },
 ];
 
 /**
@@ -339,6 +352,9 @@ export const ROLES: Role[] = [
       // Forms Management - Full Access
       "read:forms",
       "manage:forms",
+      // Automations Management - Full Access
+      "read:automations",
+      "manage:automations",
     ],
   },
 
@@ -380,6 +396,9 @@ export const ROLES: Role[] = [
       // Forms Management - Full Access
       "read:forms",
       "manage:forms",
+      // Automations Management - Full Access
+      "read:automations",
+      "manage:automations",
     ],
   },
 
@@ -401,6 +420,8 @@ export const ROLES: Role[] = [
       "read:topics",
       "read:segments",
       "read:suppression-list",
+      // Automations - Read Only
+      "read:automations",
     ],
   },
 ];
@@ -499,7 +520,10 @@ export type Permission =
   | "manage:suppression-list"
   // Forms Management
   | "read:forms"
-  | "manage:forms";
+  | "manage:forms"
+  // Automations Management
+  | "read:automations"
+  | "manage:automations";
 
 /**
  * Type: Role name
