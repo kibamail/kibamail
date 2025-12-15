@@ -1,0 +1,17 @@
+/* Label styles using owly design system semantic colors */
+.tiptap-label {
+  --tt-label-color: var(--content-secondary);
+}
+
+.tiptap-label {
+  margin-top: var(--sp-lg, 12px);
+  margin-left: var(--sp-md, 8px);
+  margin-right: var(--sp-md, 8px);
+  margin-bottom: var(--sp-xs, 4px);
+  font-size: var(--font-body-sm, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  line-height: var(--line-height-sm, 16px);
+  text-transform: capitalize;
+  color: var(--tt-label-color);
+  font-family: var(--default-font-family-body);
+}

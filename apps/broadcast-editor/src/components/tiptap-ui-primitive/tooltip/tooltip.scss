@@ -1,0 +1,29 @@
+/* Tooltip styles using owly design system semantic colors */
+.tiptap-tooltip {
+  --tt-tooltip-bg: var(--background-inverse);
+  --tt-tooltip-text: var(--content-primary-inverse);
+  --tt-kbd: var(--content-tertiary-inverse);
+}
+
+.tiptap-tooltip {
+  z-index: 200;
+  overflow: hidden;
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--tt-tooltip-bg);
+  padding: var(--sp-sm, 6px) var(--sp-md, 8px);
+  font-size: var(--font-body-sm, 12px);
+  font-weight: var(--font-weight-medium, 500);
+  color: var(--tt-tooltip-text);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  text-align: center;
+  font-family: var(--default-font-family-body);
+
+  kbd {
+    display: inline-block;
+    text-align: center;
+    vertical-align: baseline;
+    font-family: var(--default-font-family-body);
+    text-transform: capitalize;
+    color: var(--tt-kbd);
+  }
+}

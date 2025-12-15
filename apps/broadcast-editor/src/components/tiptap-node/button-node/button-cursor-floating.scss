@@ -1,0 +1,65 @@
+.button-cursor-floating {
+  /* Smooth transitions for position changes */
+  transition: 
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.15s ease-out;
+  
+  /* Optimize for animations */
+  will-change: transform;
+  
+  /* Ensure smooth rendering */
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  
+  /* Slight shadow for better visibility */
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  
+  /* Rounded corners for modern look */
+  border-radius: 8px;
+  
+  /* Ensure it appears above other content */
+  position: relative;
+  
+  /* Smooth entrance/exit animations */
+  &[data-state="open"] {
+    animation: slideInFromTop 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &[data-state="closed"] {
+    animation: slideOutToTop 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+/* Entrance animation */
+@keyframes slideInFromTop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Exit animation */
+@keyframes slideOutToTop {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .button-cursor-floating {
+    transition: none;
+    animation: none;
+  }
+}

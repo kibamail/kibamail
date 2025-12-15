@@ -1,0 +1,71 @@
+/* Card styles using owly design system semantic colors */
+.tiptap-card {
+  --tiptap-card-bg-color: var(--background-primary);
+  --tiptap-card-border-color: var(--border-tertiary);
+  --tiptap-card-group-label-color: var(--content-secondary);
+  --padding: var(--sp-sm, 6px);
+  --border-width: var(--width-px, 1px);
+
+  font-family: var(--default-font-family-body);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+  background-color: var(--tiptap-card-bg-color);
+  border: var(--border-width) solid var(--tiptap-card-border-color);
+  display: flex;
+  flex-direction: column;
+  outline: none;
+  align-items: center;
+
+  position: relative;
+  min-width: 0;
+  word-wrap: break-word;
+  background-clip: border-box;
+}
+
+.tiptap-card-header {
+  padding: var(--sp-sm, 6px);
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-bottom: var(--border-width) solid var(--tiptap-card-border-color);
+}
+
+.tiptap-card-body {
+  padding: var(--sp-sm, 6px);
+  flex: 1 1 auto;
+  width: 100%;
+  overflow-y: auto;
+  border-radius: var(--radius-lg, 12px);
+}
+
+.tiptap-card-item-group {
+  position: relative;
+  display: flex;
+  vertical-align: middle;
+  min-width: max-content;
+
+  &[data-orientation="vertical"] {
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  &[data-orientation="horizontal"] {
+    gap: var(--sp-xs, 4px);
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.tiptap-card-group-label {
+  padding-top: var(--sp-lg, 12px);
+  padding-left: var(--sp-md, 8px);
+  padding-right: var(--sp-md, 8px);
+  padding-bottom: var(--sp-xs, 4px);
+  line-height: normal;
+  font-size: var(--font-body-sm, 12px);
+  font-weight: var(--font-weight-semibold, 600);
+  text-transform: capitalize;
+  color: var(--tiptap-card-group-label-color);
+}

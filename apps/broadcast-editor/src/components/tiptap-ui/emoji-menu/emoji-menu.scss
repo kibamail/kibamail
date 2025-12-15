@@ -1,0 +1,23 @@
+/* Emoji menu styles using owly design system */
+:root {
+  --emoji-input-bg-color: var(--background-primary);
+  --emoji-input-border-color: var(--border-tertiary);
+  --emoji-input-focus: var(--border-focus);
+}
+
+.tiptap-input.emoji-menu-search-input {
+  border: var(--width-px, 1px) solid var(--emoji-input-border-color);
+  border-radius: var(--radius-md, 8px);
+  background-color: var(--emoji-input-bg-color);
+
+  &:focus {
+    border-color: var(--emoji-input-focus);
+  }
+}
+
+.emoji-menu-list {
+  max-height: 225px;
+  overflow-y: scroll;
+  overscroll-behavior: contain;
+  width: 100%;
+}

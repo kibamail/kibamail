@@ -1,0 +1,81 @@
+{
+  "name": "@repo/broadcast-editor",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A powerful, customizable email editor component built with TipTap",
+  "main": "./dist/email-editor.cjs",
+  "module": "./dist/email-editor.mjs",
+  "types": "./dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "import": "./dist/email-editor.mjs",
+      "require": "./dist/email-editor.cjs"
+    },
+    "./styles": "./dist/broadcast-editor.css"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --project tsconfig.lib.json && vite build --config vite.config.lib.ts",
+    "build:lib": "tsc --project tsconfig.lib.json && vite build --config vite.config.lib.ts",
+    "lint": "biome check",
+    "format": "biome format --write",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo node_modules"
+  },
+  "peerDependencies": {
+    "@tiptap/core": "^3.11.0",
+    "@tiptap/react": "^3.11.0",
+    "classnames": "^2.5.1",
+    "iconoir-react": "^7.11.0",
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "dependencies": {
+    "@floating-ui/react": "^0.27.16",
+    "@radix-ui/react-dropdown-menu": "^2.1.16",
+    "@radix-ui/react-popover": "^1.1.15",
+    "@tiptap/extension-drag-handle-react": "^3.11.0",
+    "@tiptap/extension-emoji": "^3.11.0",
+    "@tiptap/extension-heading": "^3.13.0",
+    "@tiptap/extension-highlight": "^3.11.0",
+    "@tiptap/extension-horizontal-rule": "^3.11.0",
+    "@tiptap/extension-image": "^3.11.0",
+    "@tiptap/extension-list": "^3.11.0",
+    "@tiptap/extension-mathematics": "^3.11.0",
+    "@tiptap/extension-mention": "^3.11.0",
+    "@tiptap/extension-paragraph": "^3.13.0",
+    "@tiptap/extension-subscript": "^3.11.0",
+    "@tiptap/extension-superscript": "^3.11.0",
+    "@tiptap/extension-text-align": "^3.11.0",
+    "@tiptap/extension-text-style": "^3.11.0",
+    "@tiptap/extension-typography": "^3.11.0",
+    "@tiptap/extensions": "^3.11.0",
+    "@tiptap/pm": "^3.11.0",
+    "@tiptap/suggestion": "^3.11.0",
+    "lodash.throttle": "^4.1.1",
+    "react-hotkeys-hook": "^5.2.1"
+  },
+  "devDependencies": {
+    "@ariakit/react": "^0.4.19",
+    "@biomejs/biome": "2.2.0",
+    "@kibamail/owly": "workspace:*",
+    "@tiptap/core": "^3.11.0",
+    "@tiptap/react": "^3.11.0",
+    "@tiptap/starter-kit": "^3.11.0",
+    "@types/lodash.throttle": "^4.1.9",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "@vitejs/plugin-react": "^5.1.0",
+    "classnames": "^2.5.1",
+    "iconoir-react": "^7.11.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "sass-embedded": "^1.93.3",
+    "typescript": "~5.9.3",
+    "vite": "^7.2.2"
+  }
+}

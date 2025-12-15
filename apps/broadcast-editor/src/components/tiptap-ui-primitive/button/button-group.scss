@@ -1,0 +1,26 @@
+.tiptap-button-group {
+  position: relative;
+  display: flex;
+  vertical-align: middle;
+
+  .tiptap-button {
+    font-family: var(--default-font-family-body);
+  }
+
+  &[data-orientation="vertical"] {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    min-width: max-content;
+
+    > .tiptap-button {
+      width: 100%;
+    }
+  }
+
+  &[data-orientation="horizontal"] {
+    gap: 0.125rem;
+    flex-direction: row;
+    align-items: center;
+  }
+}

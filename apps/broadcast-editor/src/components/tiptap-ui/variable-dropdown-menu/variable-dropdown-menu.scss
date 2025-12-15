@@ -1,0 +1,53 @@
+/* Variable dropdown menu styles using owly design system */
+.tiptap-variable-decoration {
+  background-color: var(--background-info-subtle);
+  border-radius: var(--radius-sm, 4px);
+  padding: var(--sp-2xs, 2px) var(--sp-xs, 4px);
+}
+
+.tiptap-variable-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--background-info-subtle);
+  color: var(--content-info);
+  border-radius: var(--radius-sm, 4px);
+  padding: var(--sp-2xs, 2px) var(--sp-sm, 6px);
+  font-size: var(--font-body-xs, 11px);
+  font-weight: var(--font-weight-semibold, 600);
+  font-family: var(--default-font-family-mono, monospace);
+  min-width: 32px;
+  margin-right: var(--sp-md, 8px);
+}
+
+.tiptap-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2xs, 2px);
+  overflow: hidden;
+}
+
+.tiptap-button-subtext {
+  font-size: var(--font-body-sm, 12px);
+  color: var(--content-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.tiptap-variable-group-header {
+  font-size: var(--font-body-xs, 11px);
+  font-weight: var(--font-weight-semibold, 600);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--content-tertiary);
+  padding: var(--sp-md, 8px) var(--sp-lg, 12px) var(--sp-xs, 4px);
+  margin-top: var(--sp-xs, 4px);
+
+  &:first-child {
+    margin-top: 0;
+    padding-top: var(--sp-xs, 4px);
+  }
+}

@@ -1,0 +1,34 @@
+/* Color highlight button styles using owly design system */
+.tiptap-button-highlight {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  margin: 0 -3px;
+  border-radius: var(--radius-xl, 16px);
+  background-color: var(--highlight-color);
+  transition: transform 0.2s ease;
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
+    border-radius: inherit;
+    box-sizing: border-box;
+    border: var(--width-px, 1px) solid var(--highlight-color);
+    filter: brightness(95%);
+    mix-blend-mode: multiply;
+  }
+}
+
+.tiptap-button {
+  &[data-active-state="on"] {
+    .tiptap-button-highlight {
+      &::after {
+        filter: brightness(80%);
+      }
+    }
+  }
+}

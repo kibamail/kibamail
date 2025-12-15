@@ -1,0 +1,74 @@
+.email-editor-config-section {
+  padding-bottom: var(--sp-xl);
+  border-bottom: 1px solid var(--border-tertiary);
+  padding-bottom: var(--sp-xl);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.email-editor-config-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: var(--sp-xl);
+  padding: var(--sp-lg);
+
+  .email-editor-config-section-header-title {
+    font-weight: 600;
+  }
+}
+
+.email-editor-config-section-header-actions {
+  display: flex;
+  gap: var(--sp-xs);
+}
+
+.email-editor-config-section-add {
+  position: relative;
+}
+
+.email-editor-config-section-empty {
+  padding: var(--sp-lg);
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.email-editor-config-section-empty-title {
+  display: block;
+  margin-bottom: var(--sp-xs);
+}
+
+.email-editor-config-section-empty-hint {
+  color: var(--text-quaternary);
+}
+
+.email-editor-config-properties {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.email-editor-config-property {
+  padding: 0 var(--sp-lg);
+  margin-bottom: var(--sp-lg);
+
+  label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+.email-editor-config-property-label-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-xs);
+}
+
+.email-editor-config-property-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}

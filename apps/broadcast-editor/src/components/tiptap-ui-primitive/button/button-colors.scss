@@ -1,0 +1,225 @@
+.tiptap-button {
+  /**************************************************
+      Default button background color
+      Using owly design system semantic colors for dark mode support
+  **************************************************/
+
+  --tt-button-default-bg-color: var(--background-hover);
+  --tt-button-hover-bg-color: var(--background-secondary-hover);
+  --tt-button-active-bg-color: var(--background-secondary-pressed);
+  --tt-button-active-bg-color-emphasized: var(--background-selected);
+  --tt-button-active-bg-color-subdued: var(--background-secondary-hover);
+  --tt-button-active-hover-bg-color: var(--background-secondary-pressed);
+  --tt-button-active-hover-bg-color-emphasized: var(--background-info-subtle);
+  --tt-button-active-hover-bg-color-subdued: var(--background-secondary-pressed);
+  --tt-button-disabled-bg-color: var(--background-disabled);
+
+  /**************************************************
+      Default button text color
+  **************************************************/
+
+  --tt-button-default-text-color: var(--content-secondary);
+  --tt-button-hover-text-color: var(--content-primary);
+  --tt-button-active-text-color: var(--content-primary);
+  --tt-button-active-text-color-emphasized: var(--content-primary);
+  --tt-button-active-text-color-subdued: var(--content-primary);
+  --tt-button-disabled-text-color: var(--content-disabled);
+
+  /**************************************************
+      Default button icon color
+  **************************************************/
+
+  --tt-button-default-icon-color: var(--content-secondary);
+  --tt-button-hover-icon-color: var(--content-primary);
+  --tt-button-active-icon-color: var(--content-link);
+  --tt-button-active-icon-color-emphasized: var(--content-link-hover);
+  --tt-button-active-icon-color-subdued: var(--content-primary);
+  --tt-button-disabled-icon-color: var(--content-disabled);
+
+  /**************************************************
+      Default button subicon color
+  **************************************************/
+
+  --tt-button-default-icon-sub-color: var(--content-tertiary);
+  --tt-button-hover-icon-sub-color: var(--content-secondary);
+  --tt-button-active-icon-sub-color: var(--content-secondary);
+  --tt-button-active-icon-sub-color-emphasized: var(--content-secondary);
+  --tt-button-active-icon-sub-color-subdued: var(--content-secondary);
+  --tt-button-disabled-icon-sub-color: var(--content-disabled);
+
+  /**************************************************
+      Default button dropdown / arrows color
+  **************************************************/
+
+  --tt-button-default-dropdown-arrows-color: var(--content-tertiary);
+  --tt-button-hover-dropdown-arrows-color: var(--content-secondary);
+  --tt-button-active-dropdown-arrows-color: var(--content-secondary);
+  --tt-button-active-dropdown-arrows-color-emphasized: var(--content-secondary);
+  --tt-button-active-dropdown-arrows-color-subdued: var(--content-secondary);
+  --tt-button-disabled-dropdown-arrows-color: var(--content-disabled);
+
+  /* ----------------------------------------------------------------
+      --------------------------- GHOST BUTTON --------------------------
+      ---------------------------------------------------------------- */
+
+  &[data-style="ghost"] {
+    /**************************************************
+        Ghost button - transparent background, hover shows subtle bg
+        Matches owly tertiary button variant
+    **************************************************/
+
+    --tt-button-default-bg-color: transparent;
+    --tt-button-hover-bg-color: var(--background-secondary-hover);
+    --tt-button-active-bg-color: var(--background-hover);
+    --tt-button-active-bg-color-emphasized: var(--background-selected);
+    --tt-button-active-bg-color-subdued: var(--background-hover);
+    --tt-button-active-hover-bg-color: var(--background-secondary-hover);
+    --tt-button-active-hover-bg-color-emphasized: var(--background-info-subtle);
+    --tt-button-active-hover-bg-color-subdued: var(--background-secondary-hover);
+    --tt-button-disabled-bg-color: transparent;
+
+    --tt-button-default-text-color: var(--content-secondary);
+    --tt-button-hover-text-color: var(--content-primary);
+    --tt-button-active-text-color: var(--content-primary);
+    --tt-button-active-text-color-emphasized: var(--content-primary);
+    --tt-button-active-text-color-subdued: var(--content-primary);
+    --tt-button-disabled-text-color: var(--content-disabled);
+
+    --tt-button-default-icon-color: var(--content-secondary);
+    --tt-button-hover-icon-color: var(--content-primary);
+    --tt-button-active-icon-color: var(--content-link);
+    --tt-button-active-icon-color-emphasized: var(--content-link-hover);
+    --tt-button-active-icon-color-subdued: var(--content-primary);
+    --tt-button-disabled-icon-color: var(--content-disabled);
+
+    --tt-button-default-icon-sub-color: var(--content-tertiary);
+    --tt-button-hover-icon-sub-color: var(--content-secondary);
+    --tt-button-active-icon-sub-color: var(--content-secondary);
+    --tt-button-active-icon-sub-color-emphasized: var(--content-secondary);
+    --tt-button-active-icon-sub-color-subdued: var(--content-secondary);
+    --tt-button-disabled-icon-sub-color: var(--content-disabled);
+
+    --tt-button-default-dropdown-arrows-color: var(--content-tertiary);
+    --tt-button-hover-dropdown-arrows-color: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color-emphasized: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color-subdued: var(--content-secondary);
+    --tt-button-disabled-dropdown-arrows-color: var(--content-disabled);
+  }
+
+  /* ----------------------------------------------------------------
+      -------------------------- PRIMARY BUTTON -------------------------
+      ---------------------------------------------------------------- */
+
+  &[data-style="primary"] {
+    /**************************************************
+        Primary button - brand colored background
+        Matches owly primary button variant
+    **************************************************/
+
+    --tt-button-default-bg-color: var(--background-brand);
+    --tt-button-hover-bg-color: var(--background-brand-hover);
+    --tt-button-active-bg-color: var(--background-info-subtle);
+    --tt-button-active-bg-color-emphasized: var(--background-info-subtle);
+    --tt-button-active-bg-color-subdued: var(--background-info-subtle);
+    --tt-button-active-hover-bg-color: var(--background-selected);
+    --tt-button-active-hover-bg-color-emphasized: var(--background-selected);
+    --tt-button-active-hover-bg-color-subdued: var(--background-selected);
+    --tt-button-disabled-bg-color: var(--background-disabled);
+
+    --tt-button-default-text-color: var(--content-primary-inverse);
+    --tt-button-hover-text-color: var(--content-primary-inverse);
+    --tt-button-active-text-color: var(--content-primary);
+    --tt-button-active-text-color-emphasized: var(--content-primary);
+    --tt-button-active-text-color-subdued: var(--content-primary);
+    --tt-button-disabled-text-color: var(--content-disabled);
+
+    --tt-button-default-icon-color: var(--content-primary-inverse);
+    --tt-button-hover-icon-color: var(--content-primary-inverse);
+    --tt-button-active-icon-color: var(--content-brand);
+    --tt-button-active-icon-color-emphasized: var(--content-brand);
+    --tt-button-active-icon-color-subdued: var(--content-brand);
+    --tt-button-disabled-icon-color: var(--content-disabled);
+
+    --tt-button-default-icon-sub-color: var(--content-secondary-inverse);
+    --tt-button-hover-icon-sub-color: var(--content-secondary-inverse);
+    --tt-button-active-icon-sub-color: var(--content-secondary);
+    --tt-button-active-icon-sub-color-emphasized: var(--content-secondary);
+    --tt-button-active-icon-sub-color-subdued: var(--content-secondary);
+    --tt-button-disabled-icon-sub-color: var(--content-disabled);
+
+    --tt-button-default-dropdown-arrows-color: var(--content-primary-inverse);
+    --tt-button-hover-dropdown-arrows-color: var(--content-primary-inverse);
+    --tt-button-active-dropdown-arrows-color: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color-emphasized: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color-subdued: var(--content-secondary);
+    --tt-button-disabled-dropdown-arrows-color: var(--content-disabled);
+  }
+
+  /* ----------------------------------------------------------------
+      ------------------------- SECONDARY BUTTON ------------------------
+      ---------------------------------------------------------------- */
+
+  &[data-style="secondary"] {
+    /**************************************************
+        Secondary button - solid background with border
+        Matches owly secondary button variant
+    **************************************************/
+
+    --tt-button-default-bg-color: var(--background-primary);
+    --tt-button-hover-bg-color: var(--background-secondary-hover);
+    --tt-button-active-bg-color: var(--background-secondary-pressed);
+    --tt-button-active-bg-color-emphasized: var(--background-selected);
+    --tt-button-active-bg-color-subdued: var(--background-secondary-hover);
+    --tt-button-active-hover-bg-color: var(--background-secondary-pressed);
+    --tt-button-active-hover-bg-color-emphasized: var(--background-info-subtle);
+    --tt-button-active-hover-bg-color-subdued: var(--background-secondary-pressed);
+    --tt-button-disabled-bg-color: var(--background-primary);
+
+    --tt-button-default-text-color: var(--content-secondary);
+    --tt-button-hover-text-color: var(--content-primary);
+    --tt-button-active-text-color: var(--content-primary);
+    --tt-button-active-text-color-emphasized: var(--content-primary);
+    --tt-button-active-text-color-subdued: var(--content-primary);
+    --tt-button-disabled-text-color: var(--content-disabled);
+
+    --tt-button-default-icon-color: var(--content-secondary);
+    --tt-button-hover-icon-color: var(--content-primary);
+    --tt-button-active-icon-color: var(--content-link);
+    --tt-button-active-icon-color-emphasized: var(--content-link-hover);
+    --tt-button-active-icon-color-subdued: var(--content-primary);
+    --tt-button-disabled-icon-color: var(--content-disabled);
+
+    --tt-button-default-icon-sub-color: var(--content-tertiary);
+    --tt-button-hover-icon-sub-color: var(--content-secondary);
+    --tt-button-active-icon-sub-color: var(--content-secondary);
+    --tt-button-active-icon-sub-color-emphasized: var(--content-secondary);
+    --tt-button-active-icon-sub-color-subdued: var(--content-secondary);
+    --tt-button-disabled-icon-sub-color: var(--content-disabled);
+
+    --tt-button-default-dropdown-arrows-color: var(--content-tertiary);
+    --tt-button-hover-dropdown-arrows-color: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color-emphasized: var(--content-secondary);
+    --tt-button-active-dropdown-arrows-color-subdued: var(--content-secondary);
+    --tt-button-disabled-dropdown-arrows-color: var(--content-disabled);
+
+    /* Border and shadow matching owly secondary button */
+    border: var(--width-px, 1px) solid var(--border-tertiary);
+    box-shadow: 0px 2px 0px 0px var(--white-5) inset, 0px 1px 0px 0px var(--black-10);
+
+    &:hover:not([disabled]) {
+      border-color: var(--border-secondary);
+    }
+
+    &[data-active-state="on"]:not([disabled]),
+    &[data-state="open"]:not([disabled]) {
+      border-color: var(--border-secondary);
+    }
+
+    &:disabled {
+      border-color: var(--border-tertiary);
+      box-shadow: none;
+    }
+  }
+}

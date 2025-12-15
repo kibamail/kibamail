@@ -1,0 +1,101 @@
+/* Badge styles using owly design system */
+.tiptap-badge {
+  font-family: var(--default-font-family-body);
+  font-size: var(--font-body-xs, 10px);
+  font-weight: var(--font-weight-bold, 700);
+  font-feature-settings:
+    "salt" on,
+    "cv01" on;
+  line-height: var(--line-height-xs, 14px);
+  height: 20px;
+  min-width: 20px;
+  padding: var(--sp-xs, 4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: solid var(--width-px, 1px);
+  border-radius: var(--radius-sm, 4px);
+  transition-property: background, color, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
+
+  /* badge size large */
+  &[data-size="large"] {
+    font-size: var(--font-body-sm, 12px);
+    height: 24px;
+    min-width: 24px;
+    padding: var(--sp-sm, 6px);
+    border-radius: var(--radius-md, 8px);
+  }
+
+  /* badge size small */
+  &[data-size="small"] {
+    height: 16px;
+    min-width: 16px;
+    padding: var(--sp-2xs, 2px);
+    border-radius: var(--radius-xs, 2px);
+  }
+
+  /* trim / expand text of the badge */
+  .tiptap-badge-text {
+    padding: 0 var(--sp-2xs, 2px);
+    flex-grow: 1;
+    text-align: left;
+  }
+
+  &[data-text-trim="on"] {
+    .tiptap-badge-text {
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+  }
+
+  /* standard icon, what is used */
+  .tiptap-badge-icon {
+    pointer-events: none;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+  }
+
+  &[data-size="large"] .tiptap-badge-icon {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* --------------------------------------------
+----------- BADGE COLOR SETTINGS -------------
+-------------------------------------------- */
+
+.tiptap-badge {
+  background-color: var(--tt-badge-bg-color);
+  border-color: var(--tt-badge-border-color);
+  color: var(--tt-badge-text-color);
+
+  .tiptap-badge-icon {
+    color: var(--tt-badge-icon-color);
+  }
+
+  /* Emphasized */
+  &[data-appearance="emphasized"] {
+    background-color: var(--tt-badge-bg-color-emphasized);
+    border-color: var(--tt-badge-border-color-emphasized);
+    color: var(--tt-badge-text-color-emphasized);
+
+    .tiptap-badge-icon {
+      color: var(--tt-badge-icon-color-emphasized);
+    }
+  }
+
+  /* Subdued */
+  &[data-appearance="subdued"] {
+    background-color: var(--tt-badge-bg-color-subdued);
+    border-color: var(--tt-badge-border-color-subdued);
+    color: var(--tt-badge-text-color-subdued);
+
+    .tiptap-badge-icon {
+      color: var(--tt-badge-icon-color-subdued);
+    }
+  }
+}

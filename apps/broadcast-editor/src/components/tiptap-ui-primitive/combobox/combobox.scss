@@ -1,0 +1,27 @@
+/* Combobox styles using owly design system semantic colors */
+.tiptap-combobox-list {
+  --tt-combobox-bg-color: var(--background-primary);
+  --tt-combobox-border-color: var(--border-tertiary);
+  --tt-combobox-text-color: var(--content-primary);
+  --padding: var(--sp-sm, 6px);
+  --border-width: var(--width-px, 1px);
+
+  font-family: var(--default-font-family-body);
+  height: 100%;
+  border-radius: var(--radius-lg, 12px);
+  border: var(--border-width) solid var(--tt-combobox-border-color);
+  background-color: var(--tt-combobox-bg-color);
+  color: var(--tt-combobox-text-color);
+  padding: var(--padding);
+  box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+  outline: none;
+
+  max-width: 256px;
+  max-height: var(--popover-available-height);
+  overflow-y: auto;
+  margin-block: var(--sp-sm, 6px);
+
+  &:empty {
+    display: none !important;
+  }
+}

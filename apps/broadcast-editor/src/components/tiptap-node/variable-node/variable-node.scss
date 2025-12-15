@@ -1,0 +1,34 @@
+/* Variable node styles using owly design system semantic colors */
+.variable-node {
+  display: inline;
+  background-color: var(--background-info-subtle);
+  color: var(--content-info);
+  border-radius: 0.25rem;
+  padding: 0.1rem 0.25rem;
+  font-family: var(--default-font-family-mono, ui-monospace, SFMono-Regular, Menlo, Consolas, monospace);
+  font-size: 0.9em;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+
+  &:hover {
+    background-color: var(--background-selected);
+  }
+
+  &--selected {
+    background-color: var(--background-selected);
+    box-shadow: 0 0 0 2px var(--border-info);
+    outline: none;
+  }
+
+  &__bracket {
+    color: var(--content-info);
+    font-weight: 500;
+  }
+
+  &__content {
+    color: var(--content-info-bold);
+    font-weight: 500;
+  }
+}

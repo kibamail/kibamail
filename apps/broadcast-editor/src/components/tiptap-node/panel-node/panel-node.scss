@@ -1,0 +1,38 @@
+/* Panel Node Styles */
+.panel-node {
+  display: block;
+
+  .panel-node-content {
+    border-radius: 4px;
+    background-color: transparent;
+    border: 1px dashed var(--border-tertiary);
+
+    /* Ensure proper spacing for nested content */
+    > * {
+      margin-bottom: 0;
+    }
+
+    > *:not(:last-child) {
+      margin-bottom: 16px;
+    }
+
+    /* Handle empty state */
+    &:empty::before {
+      content: "Add content to this panel...";
+      color: var(--content-tertiary);
+      font-style: italic;
+      pointer-events: none;
+    }
+  }
+
+  /* Focus state */
+  &.ProseMirror-selectednode .panel-node-content {
+    border-color: var(--border-focus);
+    background-color: var(--background-info-subtle);
+  }
+
+  /* Hover state */
+  .panel-node-content:hover {
+    border-color: var(--border-secondary);
+  }
+}

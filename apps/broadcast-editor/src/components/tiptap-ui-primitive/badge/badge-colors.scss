@@ -1,0 +1,133 @@
+/* Badge color styles using owly design system semantic colors */
+.tiptap-badge {
+  /**************************************************
+    Default - using semantic colors
+  **************************************************/
+
+  --tt-badge-border-color: var(--border-tertiary);
+  --tt-badge-border-color-subdued: var(--border-tertiary);
+  --tt-badge-border-color-emphasized: var(--border-secondary);
+  --tt-badge-text-color: var(--content-secondary);
+  --tt-badge-text-color-subdued: var(--content-tertiary);
+  --tt-badge-text-color-emphasized: var(--content-primary);
+  --tt-badge-bg-color: var(--background-primary);
+  --tt-badge-bg-color-subdued: var(--background-primary);
+  --tt-badge-bg-color-emphasized: var(--background-secondary);
+  --tt-badge-icon-color: var(--content-secondary);
+  --tt-badge-icon-color-subdued: var(--content-tertiary);
+  --tt-badge-icon-color-emphasized: var(--content-brand);
+
+  /**************************************************
+    Ghost - transparent background
+  **************************************************/
+
+  &[data-style="ghost"] {
+    --tt-badge-border-color: var(--border-tertiary);
+    --tt-badge-border-color-subdued: var(--border-tertiary);
+    --tt-badge-border-color-emphasized: var(--border-secondary);
+    --tt-badge-text-color: var(--content-secondary);
+    --tt-badge-text-color-subdued: var(--content-tertiary);
+    --tt-badge-text-color-emphasized: var(--content-primary);
+    --tt-badge-bg-color: transparent;
+    --tt-badge-bg-color-subdued: transparent;
+    --tt-badge-bg-color-emphasized: transparent;
+    --tt-badge-icon-color: var(--content-secondary);
+    --tt-badge-icon-color-subdued: var(--content-tertiary);
+    --tt-badge-icon-color-emphasized: var(--content-brand);
+  }
+
+  /**************************************************
+    Gray - using semantic neutral colors
+  **************************************************/
+
+  &[data-style="gray"] {
+    --tt-badge-border-color: var(--border-tertiary);
+    --tt-badge-border-color-subdued: var(--border-tertiary);
+    --tt-badge-border-color-emphasized: var(--border-secondary);
+    --tt-badge-text-color: var(--content-secondary);
+    --tt-badge-text-color-subdued: var(--content-tertiary);
+    --tt-badge-text-color-emphasized: var(--content-primary-inverse);
+    --tt-badge-bg-color: var(--background-secondary);
+    --tt-badge-bg-color-subdued: var(--background-primary);
+    --tt-badge-bg-color-emphasized: var(--background-inverse);
+    --tt-badge-icon-color: var(--content-secondary);
+    --tt-badge-icon-color-subdued: var(--content-tertiary);
+    --tt-badge-icon-color-emphasized: var(--content-primary-inverse);
+  }
+
+  /**************************************************
+    Green - using semantic positive colors
+  **************************************************/
+
+  &[data-style="green"] {
+    --tt-badge-border-color: var(--border-positive);
+    --tt-badge-border-color-subdued: var(--border-positive);
+    --tt-badge-border-color-emphasized: var(--border-positive);
+    --tt-badge-text-color: var(--content-positive);
+    --tt-badge-text-color-subdued: var(--content-positive);
+    --tt-badge-text-color-emphasized: var(--content-primary-inverse);
+    --tt-badge-bg-color: var(--background-positive-subtle);
+    --tt-badge-bg-color-subdued: var(--background-primary);
+    --tt-badge-bg-color-emphasized: var(--background-positive);
+    --tt-badge-icon-color: var(--content-positive);
+    --tt-badge-icon-color-subdued: var(--content-positive);
+    --tt-badge-icon-color-emphasized: var(--content-primary-inverse);
+  }
+
+  /**************************************************
+    Yellow - using semantic notice colors
+  **************************************************/
+
+  &[data-style="yellow"] {
+    --tt-badge-border-color: var(--border-notice);
+    --tt-badge-border-color-subdued: var(--border-notice);
+    --tt-badge-border-color-emphasized: var(--border-notice);
+    --tt-badge-text-color: var(--content-notice);
+    --tt-badge-text-color-subdued: var(--content-notice);
+    --tt-badge-text-color-emphasized: var(--content-primary);
+    --tt-badge-bg-color: var(--background-notice-subtle);
+    --tt-badge-bg-color-subdued: var(--background-primary);
+    --tt-badge-bg-color-emphasized: var(--background-notice);
+    --tt-badge-icon-color: var(--content-notice);
+    --tt-badge-icon-color-subdued: var(--content-notice);
+    --tt-badge-icon-color-emphasized: var(--content-primary);
+  }
+
+  /**************************************************
+    Red - using semantic negative colors
+  **************************************************/
+
+  &[data-style="red"] {
+    --tt-badge-border-color: var(--border-negative);
+    --tt-badge-border-color-subdued: var(--border-negative);
+    --tt-badge-border-color-emphasized: var(--border-negative);
+    --tt-badge-text-color: var(--content-negative);
+    --tt-badge-text-color-subdued: var(--content-negative);
+    --tt-badge-text-color-emphasized: var(--content-primary-inverse);
+    --tt-badge-bg-color: var(--background-negative-subtle);
+    --tt-badge-bg-color-subdued: var(--background-primary);
+    --tt-badge-bg-color-emphasized: var(--background-negative);
+    --tt-badge-icon-color: var(--content-negative);
+    --tt-badge-icon-color-subdued: var(--content-negative);
+    --tt-badge-icon-color-emphasized: var(--content-primary-inverse);
+  }
+
+  /**************************************************
+    Brand - using semantic brand colors
+  **************************************************/
+
+  &[data-style="brand"] {
+    --tt-badge-border-color: var(--border-brand);
+    --tt-badge-border-color-subdued: var(--border-brand);
+    --tt-badge-border-color-emphasized: var(--border-brand);
+    --tt-badge-text-color: var(--content-brand);
+    --tt-badge-text-color-subdued: var(--content-brand);
+    --tt-badge-text-color-emphasized: var(--content-primary-inverse);
+    --tt-badge-bg-color: var(--background-secondary);
+    --tt-badge-bg-color-subdued: var(--background-primary);
+    --tt-badge-bg-color-emphasized: var(--background-brand);
+    --tt-badge-icon-color: var(--content-brand);
+    --tt-badge-icon-color-subdued: var(--content-brand);
+    --tt-badge-icon-color-emphasized: var(--content-primary-inverse);
+  }
+}

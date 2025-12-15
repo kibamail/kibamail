@@ -1,0 +1,92 @@
+/* Toolbar styles using owly design system semantic colors */
+:root {
+  --tt-toolbar-height: 44px;
+  --tt-safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --tt-toolbar-bg-color: var(--background-primary);
+  --tt-toolbar-border-color: var(--border-tertiary);
+}
+
+.tiptap-toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs, 4px);
+  font-family: var(--default-font-family-body);
+
+  &-group {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2xs, 2px);
+
+    &:empty {
+      display: none;
+    }
+
+    &:empty + .tiptap-separator,
+    .tiptap-separator + &:empty {
+      display: none;
+    }
+  }
+
+  &[data-variant="fixed"] {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    width: 100%;
+    min-height: var(--tt-toolbar-height);
+    background: var(--tt-toolbar-bg-color);
+    border-bottom: var(--width-px, 1px) solid var(--tt-toolbar-border-color);
+    padding: 0 var(--sp-md, 8px);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      position: absolute;
+      top: auto;
+      height: calc(var(--tt-toolbar-height) + var(--tt-safe-area-bottom));
+      border-top: var(--width-px, 1px) solid var(--tt-toolbar-border-color);
+      border-bottom: none;
+      padding: 0 var(--sp-md, 8px) var(--tt-safe-area-bottom);
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+
+      .tiptap-toolbar-group {
+        flex: 0 0 auto;
+      }
+    }
+  }
+
+  &[data-variant="floating"] {
+    --tt-toolbar-padding: var(--sp-2xs, 2px);
+    --tt-toolbar-border-width: var(--width-px, 1px);
+
+    padding: var(--sp-xs, 4px);
+    border-radius: var(--radius-lg, 12px);
+    border: var(--tt-toolbar-border-width) solid var(--tt-toolbar-border-color);
+    background-color: var(--tt-toolbar-bg-color);
+    box-shadow: 0 16px 24px -8px rgba(0, 0, 0, 0.1);
+    outline: none;
+    overflow: hidden;
+
+    &[data-plain="true"] {
+      padding: 0;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+      background-color: transparent;
+    }
+
+    @media screen and (max-width: 480px) {
+      width: 100%;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
+    }
+  }
+}

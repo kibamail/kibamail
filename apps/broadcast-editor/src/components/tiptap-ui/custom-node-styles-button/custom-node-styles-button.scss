@@ -1,0 +1,60 @@
+/* Custom node styles button using owly design system */
+.custom-node-styles-popover {
+  min-width: 220px;
+
+  .tiptap-card-body {
+    padding: var(--sp-md, 8px);
+    background-color: var(--background-primary);
+  }
+
+  .tiptap-card-group-label {
+    padding-top: var(--sp-md, 8px);
+    padding-bottom: var(--sp-xs, 4px);
+    font-family: var(--default-font-family-body);
+
+    &:first-child {
+      padding-top: var(--sp-xs, 4px);
+    }
+  }
+}
+
+.custom-node-styles-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs, 4px);
+}
+
+.custom-node-styles-color-input {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md, 8px);
+
+  .tiptap-input {
+    flex: 1;
+  }
+}
+
+.custom-node-styles-color-picker {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: var(--width-px, 1px) solid var(--border-tertiary);
+  border-radius: var(--radius-md, 8px);
+  cursor: pointer;
+  background: none;
+  flex-shrink: 0;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: var(--sp-2xs, 2px);
+  }
+
+  &::-webkit-color-swatch {
+    border: none;
+    border-radius: calc(var(--radius-md, 8px) - 2px);
+  }
+
+  &::-moz-color-swatch {
+    border: none;
+    border-radius: calc(var(--radius-md, 8px) - 2px);
+  }
+}

@@ -1,0 +1,15 @@
+/* Slash dropdown menu styles using owly design system */
+span.tiptap-slash-decoration {
+  background: transparent;
+  outline: none;
+}
+
+.tiptap-slash-card-body {
+  width: 100%;
+}
+
+@media screen and (min-width: 480px) {
+  .tiptap-slash-card {
+    min-width: 240px;
+  }
+}

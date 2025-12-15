@@ -1,0 +1,12 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
+@import "@kibamail/owly/styles/index.css";
+@import "./styles/_variables.scss";
+@import "./styles/_keyframe-animations.scss";
+
+.example-container-header {
+  height: 64px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
