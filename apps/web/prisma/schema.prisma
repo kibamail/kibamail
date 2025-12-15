@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 model Invitation {
@@ -915,4 +914,368 @@ enum FormSubmissionStatus {
   PROCESSED // Successfully processed
   SPAM      // Marked as spam
   FAILED    // Processing failed
+}
+
+/// *
+///  * Sending Domains Schema
+///  *
+///  * Manages email sending infrastructure configuration.
+///  * Stores all configuration needed for proper email authentication and tracking.
+///  * Each sending domain contains DKIM keys, return path settings, and tracking domain config.
+model SendingDomain {
+  /// Unique identifier for the sending domain
+  id                           String            @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId                  String
+  /// Domain name (e.g., "example.com")
+  name                         String
+  /// DKIM subdomain prefix (e.g., "kiba" for kiba._domainkey.example.com)
+  dkimSubDomain                String
+  /// DKIM public key for DNS TXT record
+  dkimPublicKey                String            @db.Text
+  /// DKIM private key (encrypted) for signing emails
+  dkimPrivateKey               String            @db.Text
+  /// When DKIM was verified
+  dkimVerifiedAt               DateTime?
+  /// Return path subdomain for bounce handling (e.g., "bounce" for bounce.example.com)
+  returnPathSubDomain          String
+  /// CNAME value for return path domain
+  returnPathDomainCnameValue   String
+  /// When return path domain was verified
+  returnPathDomainVerifiedAt   DateTime?
+  /// Tracking subdomain for click/open tracking (e.g., "track" for track.example.com)
+  trackingSubDomain            String
+  /// CNAME value for tracking domain
+  trackingDomainCnameValue     String
+  /// When tracking domain CNAME was verified
+  trackingDomainVerifiedAt     DateTime?
+  /// When tracking domain SSL was verified
+  trackingDomainSslVerifiedAt  DateTime?
+  /// SSL certificate key (encrypted)
+  trackingSslCertKey           String?           @db.Text
+  /// SSL certificate secret (encrypted)
+  trackingSslCertSecret        String?           @db.Text
+  /// Whether open tracking is enabled for this domain
+  openTrackingEnabled          Boolean           @default(false)
+  /// Whether click tracking is enabled for this domain
+  clickTrackingEnabled         Boolean           @default(false)
+  /// When DNS records were last verified
+  recordsLastVerifiedAt        DateTime?
+  /// When the sending domain was created
+  createdAt                    DateTime          @default(now())
+  /// When the sending domain was last updated
+  updatedAt                    DateTime          @updatedAt
+  /// Sender identities using this domain
+  senderIdentities             SenderIdentity[]
+  /// Broadcasts using this domain
+  broadcasts                   Broadcast[]
+  /// Email sends using this domain
+  emailSends                   EmailSend[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+}
+
+/// *
+///  * Sender Identities Schema
+///  *
+///  * Manages reusable sender information for emails.
+///  * Stores predefined sender profiles that users can select when sending broadcasts.
+model SenderIdentity {
+  /// Unique identifier for the sender identity
+  id                           String         @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId                  String
+  /// Sender name (used as "From" name in emails)
+  name                         String
+  /// Sender email (local part, combined with sending domain)
+  email                        String
+  /// Sending domain for the email address
+  sendingDomainId              String
+  /// Verification code for email verification
+  emailVerificationCode        String?
+  /// When email was verified
+  emailVerifiedAt              DateTime?
+  /// When verification code expires
+  emailVerificationCodeExpiresAt DateTime?
+  /// Reply-to email address (optional, different from sender email)
+  replyToEmail                 String?
+  /// When the sender identity was created
+  createdAt                    DateTime       @default(now())
+  /// When the sender identity was last updated
+  updatedAt                    DateTime       @updatedAt
+  /// Sending domain relation
+  sendingDomain                SendingDomain  @relation(fields: [sendingDomainId], references: [id], onDelete: Cascade)
+  /// Broadcasts using this sender identity
+  broadcasts                   Broadcast[]
+  /// Email sends using this sender identity
+  emailSends                   EmailSend[]
+
+  @@index([workspaceId])
+}
+
+/// *
+///  * Email Contents Schema
+///  *
+///  * Stores email content in multiple formats (JSON, HTML, text).
+///  * Shared by broadcasts and A/B test variants.
+model EmailContent {
+  /// Unique identifier for the email content
+  id             String          @id @default(cuid())
+  /// JSON content (for editor state)
+  contentJson    Json?
+  /// Plain text content
+  contentText    String?         @db.Text
+  /// HTML content
+  contentHtml    String?         @db.LongText
+  /// Email subject line
+  subject        String?         @db.VarChar(255)
+  /// Preview text (shown in inbox preview)
+  previewText    String?         @db.VarChar(255)
+  /// When the content was last updated
+  updatedAt      DateTime?       @updatedAt
+  /// When the content was created
+  createdAt      DateTime        @default(now())
+  /// Broadcasts using this content
+  broadcasts     Broadcast[]
+  /// A/B test variants using this content
+  abTestVariants AbTestVariant[]
+}
+
+/// *
+///  * Broadcasts Schema
+///  *
+///  * Represents email campaigns that can be sent to contacts.
+///  * Supports A/B testing, scheduling, and tracking.
+model Broadcast {
+  /// Unique identifier for the broadcast
+  id                       String            @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId              String
+  /// Broadcast name
+  name                     String
+  /// Segment ID for targeting (optional)
+  segmentId                String?
+  /// Topic ID for targeting (optional)
+  topicId                  String?
+  /// Whether to track clicks
+  trackClicks              Boolean?
+  /// Whether to track opens
+  trackOpens               Boolean?
+  /// Email content for the broadcast
+  emailContentId           String?
+  /// Sender identity for the broadcast
+  senderIdentityId         String?
+  /// Sending domain for the broadcast
+  sendingDomainId          String?
+  /// Winning A/B test variant ID (set after test completes)
+  winningAbTestVariantId   String?
+  /// Hours to wait before picking A/B test winner
+  waitingTimeToPickWinner  Int?              @default(4)
+  /// Broadcast status
+  status                   BroadcastStatus   @default(DRAFT)
+  /// Whether this is an A/B test broadcast
+  isAbTest                 Boolean           @default(false)
+  /// Criteria for picking A/B test winner
+  winningCriteria          WinningCriteria?
+  /// Time to wait before picking winner (in hours)
+  winningWaitTime          Int?
+  /// Scheduled send time
+  sendAt                   DateTime?
+  /// When the broadcast was created
+  createdAt                DateTime          @default(now())
+  /// When the broadcast was last updated
+  updatedAt                DateTime          @updatedAt
+  /// Email content relation
+  emailContent             EmailContent?     @relation(fields: [emailContentId], references: [id], onDelete: SetNull)
+  /// Sender identity relation
+  senderIdentity           SenderIdentity?   @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  /// Sending domain relation
+  sendingDomain            SendingDomain?    @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
+  /// A/B test variants for this broadcast
+  abTestVariants           AbTestVariant[]
+  /// Email sends for this broadcast
+  emailSends               EmailSend[]
+  /// Email send events for this broadcast
+  emailSendEvents          EmailSendEvent[]
+
+  @@index([workspaceId])
+}
+
+/// *
+///  * A/B Test Variants Schema
+///  *
+///  * Stores variants for A/B testing in broadcasts.
+///  * Each variant has its own email content and weight.
+model AbTestVariant {
+  /// Unique identifier for the variant
+  id             String       @id @default(cuid())
+  /// Parent broadcast
+  broadcastId    String
+  /// Email content for this variant
+  emailContentId String
+  /// Variant name (e.g., "Variant A", "Variant B")
+  name           String       @db.VarChar(50)
+  /// Weight percentage for distribution (1-100)
+  weight         Int          @default(1)
+  /// Scheduled send time for this variant (for staggered sends)
+  sendAt         DateTime?
+  /// When the variant was created
+  createdAt      DateTime     @default(now())
+  /// When the variant was last updated
+  updatedAt      DateTime     @updatedAt
+  /// Parent broadcast relation
+  broadcast      Broadcast    @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  /// Email content relation
+  emailContent   EmailContent @relation(fields: [emailContentId], references: [id], onDelete: Cascade)
+
+  @@index([broadcastId])
+}
+
+/// *
+///  * Email Sends Schema
+///  *
+///  * Tracks individual email sends from broadcasts.
+///  * Contains delivery information and tracking data.
+model EmailSend {
+  /// Unique identifier for the email send
+  id                   String           @id @default(cuid())
+  /// MTA sending ID (from mail transfer agent)
+  sendingId            String?          @unique
+  /// Sending domain used
+  sendingDomainId      String?
+  /// Broadcast this send belongs to
+  broadcastId          String?
+  /// Contact ID for the recipient
+  contactId            String?
+  /// Sender identity used for this email
+  senderIdentityId     String?
+  /// Recipient email address
+  recipient            String?          @db.VarChar(255)
+  /// MTA queue name
+  queue                String?          @db.VarChar(80)
+  /// Site name (MTA identifier)
+  siteName             String?          @db.VarChar(80)
+  /// Email size in bytes
+  size                 Int?
+  /// Total delivery attempts
+  totalAttempts        Int?
+  /// Links in the email (for click tracking)
+  links                Json?
+  /// Node ID (MTA node identifier)
+  nodeId               String?          @db.VarChar(48)
+  /// Egress pool name
+  egressPool           String?          @db.VarChar(80)
+  /// Egress source address
+  egressSource         String?          @db.VarChar(80)
+  /// Delivery protocol (SMTP, etc.)
+  deliveryProtocol     String?          @db.VarChar(12)
+  /// Reception protocol
+  receptionProtocol    String?          @db.VarChar(12)
+  /// Whether click tracking is enabled
+  clickTrackingEnabled Boolean          @default(false)
+  /// Whether open tracking is enabled
+  openTrackingEnabled  Boolean          @default(false)
+  /// When the email was sent
+  createdAt            DateTime         @default(now())
+  /// Sending domain relation
+  sendingDomain        SendingDomain?   @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
+  /// Sender identity relation
+  senderIdentity       SenderIdentity?  @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  /// Broadcast relation
+  broadcast            Broadcast?       @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  /// Email send events
+  events               EmailSendEvent[]
+
+  @@index([broadcastId])
+}
+
+/// *
+///  * Email Send Events Schema
+///  *
+///  * Tracks events for email sends (delivery, bounce, open, click, etc.).
+///  * Used for analytics and deliverability monitoring.
+model EmailSendEvent {
+  /// Unique identifier for the event
+  id                         String         @id @default(cuid())
+  /// Email send this event belongs to
+  emailSendId                String
+  /// Event type
+  type                       EmailEventType @default(Any)
+  /// When the event occurred
+  createdAt                  DateTime       @default(now())
+  /// Contact ID (for contact-level tracking)
+  contactId                  String?
+  /// Broadcast ID (for broadcast-level analytics)
+  broadcastId                String?
+  /// SMTP response code
+  responseCode               Int?
+  /// SMTP response content
+  responseContent            String?        @db.Text
+  /// SMTP response command
+  responseCommand            String?        @db.VarChar(255)
+  /// Enhanced status code - class
+  responseEnhancedCodeClass  Int?
+  /// Enhanced status code - subject
+  responseEnhancedCodeSubject Int?
+  /// Enhanced status code - detail
+  responseEnhancedCodeDetail Int?
+  /// Peer address name (receiving server)
+  peerAddressName            String?        @db.VarChar(255)
+  /// Peer address IP
+  peerAddressAddr            String?        @db.VarChar(255)
+  /// Bounce classification (hard, soft, etc.)
+  bounceClassification       String?        @db.VarChar(120)
+  /// Origin country (for opens/clicks)
+  originCountry              String?        @db.VarChar(10)
+  /// Origin state
+  originState                String?        @db.VarChar(56)
+  /// Origin city
+  originCity                 String?        @db.VarChar(56)
+  /// Device type
+  originDevice               String?        @db.VarChar(56)
+  /// Browser type
+  originBrowser              String?        @db.VarChar(56)
+  /// Email send relation
+  emailSend                  EmailSend      @relation(fields: [emailSendId], references: [id], onDelete: Cascade)
+  /// Broadcast relation
+  broadcast                  Broadcast?     @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  @@index([emailSendId])
+  @@index([broadcastId])
+}
+
+/// Broadcast status
+enum BroadcastStatus {
+  DRAFT            // Draft broadcast being edited
+  QUEUED_FOR_SENDING // Queued and waiting to be sent
+  SENDING          // Currently being sent
+  SENT             // Successfully sent
+  SENDING_FAILED   // Sending failed
+  DRAFT_ARCHIVED   // Archived draft
+  ARCHIVED         // Archived sent broadcast
+}
+
+/// A/B test winning criteria
+enum WinningCriteria {
+  OPENS       // Winner based on open rate
+  CLICKS      // Winner based on click rate
+  CONVERSIONS // Winner based on conversion rate
+}
+
+/// Email event types
+enum EmailEventType {
+  Delivery         // Email delivered
+  Reception        // Email received by MTA
+  Bounce           // Email bounced
+  TransientFailure // Temporary failure
+  Expiration       // Email expired
+  AdminBounce      // Admin bounce
+  OOB              // Out of band bounce
+  Feedback         // Feedback loop (complaint)
+  Rejection        // Email rejected
+  AdminRebind      // Admin rebind
+  Any              // Any/unknown event
+  Click            // Link clicked
+  Open             // Email opened
 }
