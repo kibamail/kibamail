@@ -153,30 +153,6 @@ services:
     networks:
       - control-plane-kibaship-network
 
-  garage:
-    image: dxflrs/garage:v1.1.0
-    container_name: control-plane-kibaship-garage
-    restart: unless-stopped
-    environment:
-      - RUST_LOG=garage=info
-    ports:
-      - "3900:3900" # S3 API
-      - "3901:3901" # RPC (inter-node communication)
-      - "3902:3902" # S3 Web hosting
-      - "3903:3903" # Admin API & Metrics
-    volumes:
-      - ./garage/config/garage.toml:/etc/garage.toml:ro
-      - ./garage/meta:/var/lib/garage/meta
-      - ./garage/data:/var/lib/garage/data
-    networks:
-      - control-plane-kibaship-network
-    healthcheck:
-      test: ["CMD", "garage", "status"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
-
 volumes:
   postgres_data:
     driver: local

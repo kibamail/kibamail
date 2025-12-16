@@ -52,13 +52,15 @@ export type UserSession = {
     id: string;
     name: string;
     description: string | null;
-    branding?: {
-      logoUrl?: string;
-      darkLogoUrl?: string;
-      favicon?: string;
-      darkFavicon?: string;
-    };
-  } | null;
+    branding?:
+      | {
+          logoUrl?: string | undefined;
+          darkLogoUrl?: string | undefined;
+          favicon?: string | undefined;
+          darkFavicon?: string | undefined;
+        }
+      | undefined;
+  };
   permissions: Permission[];
 };
 
@@ -109,7 +111,7 @@ export async function getSession(): Promise<UserSession> {
     // Get active workspace from cookie
     const activeWorkspaceId = await Cookies.get(CookieKey.ACTIVE_WORKSPACE_ID);
 
-    let currentOrganization: UserSession["currentOrganization"] = null;
+    let currentOrganization: UserSession["currentOrganization"] | null = null;
 
     if (activeWorkspaceId) {
       currentOrganization =
@@ -124,7 +126,7 @@ export async function getSession(): Promise<UserSession> {
 
     if (currentOrganization) {
       const currentOrgData = userData.organizations.find(
-        (org) => org.id === currentOrganization.id,
+        (org) => org.id === currentOrganization.id
       );
 
       if (currentOrgData && currentOrgData.roleNames.length > 0) {
@@ -150,7 +152,8 @@ export async function getSession(): Promise<UserSession> {
       },
       claims: ctx.claims,
       organizations,
-      currentOrganization,
+      currentOrganization:
+        currentOrganization as UserSession["currentOrganization"],
       permissions: uniquePermissions,
     };
   } catch (error) {

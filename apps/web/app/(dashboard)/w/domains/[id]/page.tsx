@@ -87,71 +87,65 @@ export default async function DomainDetailPage({
         </div>
       </DashboardLayoutStickyDetailHeader>
 
-      <div className="p-6">
-        <div className="grid grid-cols-4 gap-6 mb-8">
-          <div>
-            <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
-              Status
-            </div>
-            <div className="text-sm text-kb-content-primary">
-              {isFullyVerified
-                ? "Ready to send"
-                : `${verifiedCount}/3 verified`}
-            </div>
+      <div className="grid grid-cols-4 gap-6 mb-8">
+        <div>
+          <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
+            Status
           </div>
-
-          <div>
-            <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
-              ID
-            </div>
-            <CopyableText text={domain.id} />
-          </div>
-
-          <div>
-            <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
-              Created
-            </div>
-            <div className="text-sm text-kb-content-primary">
-              {dayjs(domain.createdAt).format("MMM D, YYYY h:mm A")}
-            </div>
-          </div>
-
-          <div>
-            <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
-              Last Verified
-            </div>
-            <div className="text-sm text-kb-content-primary">
-              {domain.recordsLastVerifiedAt
-                ? dayjs(domain.recordsLastVerifiedAt).format(
-                    "MMM D, YYYY h:mm A",
-                  )
-                : "Never"}
-            </div>
-          </div>
-
-          <div>
-            <TrackingToggle
-              domainId={domain.id}
-              field="openTrackingEnabled"
-              initialValue={domain.openTrackingEnabled}
-              label="Open Tracking"
-              help="Track when recipients open your emails"
-            />
-          </div>
-
-          <div>
-            <TrackingToggle
-              domainId={domain.id}
-              field="clickTrackingEnabled"
-              initialValue={domain.clickTrackingEnabled}
-              label="Click Tracking"
-              help="Track when recipients click links in your emails"
-            />
+          <div className="text-sm text-kb-content-primary">
+            {isFullyVerified ? "Ready to send" : `${verifiedCount}/3 verified`}
           </div>
         </div>
 
-        <DnsRecordsSection domain={domain} />
+        <div>
+          <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
+            ID
+          </div>
+          <CopyableText text={domain.id} />
+        </div>
+
+        <div>
+          <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
+            Created
+          </div>
+          <div className="text-sm text-kb-content-primary">
+            {dayjs(domain.createdAt).format("MMM D, YYYY h:mm A")}
+          </div>
+        </div>
+
+        <div>
+          <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
+            Last Verified
+          </div>
+          <div className="text-sm text-kb-content-primary">
+            {domain.recordsLastVerifiedAt
+              ? dayjs(domain.recordsLastVerifiedAt).format("MMM D, YYYY h:mm A")
+              : "Never"}
+          </div>
+        </div>
+
+        <div>
+          <TrackingToggle
+            domainId={domain.id}
+            field="openTrackingEnabled"
+            initialValue={domain.openTrackingEnabled}
+            label="Open Tracking"
+            help="Track when recipients open your emails"
+          />
+        </div>
+
+        <div>
+          <TrackingToggle
+            domainId={domain.id}
+            field="clickTrackingEnabled"
+            initialValue={domain.clickTrackingEnabled}
+            label="Click Tracking"
+            help="Track when recipients click links in your emails"
+          />
+        </div>
       </div>
+
+      <DnsRecordsSection domain={domain} />
     </DashboardLayoutStickyContentHeaderContainer>
   );
 }

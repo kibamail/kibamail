@@ -8,11 +8,26 @@ const nextConfig: NextConfig = {
   reactCompiler: false,
   images: {
     remotePatterns: [
+      // Backblaze B2 storage
+      {
+        protocol: "https",
+        hostname: "*.backblazeb2.com",
+      },
+      // AWS S3
+      {
+        protocol: "https",
+        hostname: "*.amazonaws.com",
+      },
+      // Custom CDN domain (configure S3_PUBLIC_URL to use this)
+      {
+        protocol: "https",
+        hostname: "cdn.kibamail.com",
+      },
+      // Local development (MinIO)
       {
         protocol: "http",
-        hostname: "public-files.web.garage.localhost",
-        port: "3902",
-        pathname: "/organizations/**",
+        hostname: "localhost",
+        port: "9000",
       },
     ],
   },

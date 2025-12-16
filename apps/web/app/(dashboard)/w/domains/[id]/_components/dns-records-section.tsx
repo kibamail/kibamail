@@ -3,6 +3,7 @@
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
+import * as Tooltip from "@kibamail/owly/tooltip";
 import type { SendingDomain } from "@prisma/client";
 import { Copy } from "iconoir-react";
 
@@ -32,31 +33,49 @@ function DnsRecordRow({ type, hostname, value, verified }: DnsRecordRowProps) {
           {type}
         </span>
       </td>
-      <td className="py-4 pr-4 align-top">
-        <Button
-          variant="tertiary"
-          size="sm"
-          className="flex items-start gap-2 text-left p-1 -m-1"
-          onClick={() => copyToClipboard(hostname)}
-        >
-          <Copy className="w-4 h-4 text-kb-content-tertiary flex-shrink-0 mt-0.5" />
-          <span className="font-mono text-sm text-kb-content-tertiary break-all">
-            {hostname}
-          </span>
-        </Button>
+      <td className="py-4 pr-4 align-top max-w-[200px]">
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Button
+                variant="tertiary"
+                size="sm"
+                className="flex items-start gap-2 text-left p-1 -m-1 max-w-full"
+                onClick={() => copyToClipboard(hostname)}
+              >
+                <Copy className="w-4 h-4 text-kb-content-tertiary flex-shrink-0 mt-0.5" />
+                <span className="font-mono text-sm text-kb-content-tertiary truncate">
+                  {hostname}
+                </span>
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content side="top" className="max-w-sm">
+              <p className="font-mono text-xs break-all">{hostname}</p>
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
       </td>
-      <td className="py-4 pr-4 align-top max-w-md">
-        <Button
-          variant="tertiary"
-          size="sm"
-          className="flex items-start gap-2 text-left p-1 -m-1"
-          onClick={() => copyToClipboard(value)}
-        >
-          <Copy className="w-4 h-4 text-kb-content-tertiary flex-shrink-0 mt-0.5" />
-          <span className="font-mono text-sm text-kb-content-tertiary break-all">
-            {value}
-          </span>
-        </Button>
+      <td className="py-4 pr-4 align-top max-w-[300px]">
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Button
+                variant="tertiary"
+                size="sm"
+                className="flex items-start gap-2 text-left p-1 -m-1 max-w-full"
+                onClick={() => copyToClipboard(value)}
+              >
+                <Copy className="w-4 h-4 text-kb-content-tertiary flex-shrink-0 mt-0.5" />
+                <span className="font-mono text-sm text-kb-content-tertiary truncate">
+                  {value}
+                </span>
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content side="top" className="max-w-md">
+              <p className="font-mono text-xs break-all">{value}</p>
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
       </td>
       <td className="py-4 text-right align-top">
         <Badge variant={verified ? "success" : "warning"} size="sm">
@@ -69,6 +88,25 @@ function DnsRecordRow({ type, hostname, value, verified }: DnsRecordRowProps) {
 
 interface DnsRecordsSectionProps {
   domain: SendingDomain;
+}
+
+/**
+ * Get the hostname for DNS record display (without the root domain).
+ * DNS providers expect just the subdomain portion since the root domain is implied.
+ *
+ * Example:
+ * - domain: "newsletter.app.constructor.com", subdomain: "kibamail._domainkey"
+ * - Result: "kibamail._domainkey.newsletter.app" (strips "constructor.com")
+ */
+function getDnsHostname(subdomain: string, domainName: string): string {
+  const parts = domainName.split(".");
+  if (parts.length <= 2) {
+    // No subdomain in domain name, just return the subdomain prefix
+    return subdomain;
+  }
+  // Get all parts except the last two (the root domain)
+  const subdomainPart = parts.slice(0, -2).join(".");
+  return `${subdomain}.${subdomainPart}`;
 }
 
 function cleanupPublicKey(publicKey: string): string {
@@ -87,7 +125,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
   }`;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 mt-16">
       <div>
         <div className="flex items-center gap-3 mb-4">
           <h3 className="text-sm font-medium text-kb-content-secondary">
@@ -118,7 +156,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
           <tbody>
             <DnsRecordRow
               type="CNAME"
-              hostname={`${domain.returnPathSubDomain}.${domain.name}`}
+              hostname={getDnsHostname(domain.returnPathSubDomain, domain.name)}
               value={domain.returnPathDomainCnameValue}
               verified={domain.returnPathDomainVerifiedAt !== null}
             />
@@ -156,7 +194,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
           <tbody>
             <DnsRecordRow
               type="TXT"
-              hostname={`${domain.dkimSubDomain}.${domain.name}`}
+              hostname={getDnsHostname(domain.dkimSubDomain, domain.name)}
               value={dkimValue}
               verified={domain.dkimVerifiedAt !== null}
             />
@@ -194,7 +232,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
           <tbody>
             <DnsRecordRow
               type="CNAME"
-              hostname={`${domain.trackingSubDomain}.${domain.name}`}
+              hostname={getDnsHostname(domain.trackingSubDomain, domain.name)}
               value={domain.trackingDomainCnameValue}
               verified={domain.trackingDomainVerifiedAt !== null}
             />

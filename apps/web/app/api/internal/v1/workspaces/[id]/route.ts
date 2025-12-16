@@ -25,7 +25,7 @@ import { updateWorkspace } from "./handler";
  *   headers: { 'Content-Type': 'application/json' },
  *   body: JSON.stringify({
  *     name: 'New Workspace Name',
- *     logoUrl: 'http://public-files.web.garage.localhost:3902/...'
+ *     logoUrl: 'https://cdn.example.com/organizations/org-123/logo.png'
  *   })
  * });
  * ```

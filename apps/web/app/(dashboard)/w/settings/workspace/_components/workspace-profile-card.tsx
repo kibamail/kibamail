@@ -95,7 +95,7 @@ export function WorkspaceProfileCard() {
         .updateLogo(workspaceId, file);
 
       // Store the pending logo URL
-      setPendingLogoUrl(result.data.logoUrl);
+      setPendingLogoUrl(result.logoUrl);
     } catch (error) {
       console.error("Failed to upload logo:", error);
       toast.error(

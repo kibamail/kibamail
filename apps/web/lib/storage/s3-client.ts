@@ -1,10 +1,11 @@
 /**
- * Garage S3 Client
+ * S3 Client
  *
- * A wrapper around the AWS SDK S3 client configured for Garage object storage.
+ * A wrapper around the AWS SDK S3 client configured for S3-compatible storage.
+ * Supports Backblaze B2, AWS S3, MinIO, and other S3-compatible services.
  * Provides common operations for uploading, downloading, and deleting files.
  *
- * @see https://garagehq.deuxfleurs.fr/documentation/reference-manual/s3-compatibility/
+ * @see https://www.backblaze.com/docs/cloud-storage-s3-compatible-api
  */
 
 import {
@@ -15,32 +16,29 @@ import {
   ListObjectsV2Command,
   HeadObjectCommand,
   type PutObjectCommandInput,
-  type GetObjectCommandInput,
-  type DeleteObjectCommandInput,
-  type ListObjectsV2CommandInput,
 } from "@aws-sdk/client-s3";
 import { env } from "@/env/schema";
 
 /**
- * Initialize the S3 client configured for Garage
+ * Initialize the S3 client configured for S3-compatible storage
  */
 const s3Client = new S3Client({
-  endpoint: env.GARAGE_S3_ENDPOINT,
-  region: env.GARAGE_S3_REGION,
+  endpoint: env.S3_ENDPOINT,
+  region: env.S3_REGION,
   credentials: {
-    accessKeyId: env.GARAGE_S3_ACCESS_KEY_ID,
-    secretAccessKey: env.GARAGE_S3_SECRET_ACCESS_KEY,
+    accessKeyId: env.S3_ACCESS_KEY_ID,
+    secretAccessKey: env.S3_SECRET_ACCESS_KEY,
   },
-  forcePathStyle: true, // Required for Garage S3 compatibility
+  forcePathStyle: true, // Required for most S3-compatible services
 });
 
 /**
- * Upload a file to Garage S3
+ * Upload a file to S3
  *
  * @param key - The object key (path) in the bucket
  * @param body - The file content (Buffer, Readable, or string)
  * @param contentType - The MIME type of the file
- * @param bucket - The bucket name (defaults to env.GARAGE_S3_BUCKET)
+ * @param bucket - The bucket name (defaults to env.S3_BUCKET)
  * @returns The uploaded object's ETag and location
  *
  * @example
@@ -53,7 +51,7 @@ export async function uploadFile(
   key: string,
   body: PutObjectCommandInput["Body"],
   contentType?: string,
-  bucket: string = env.GARAGE_S3_BUCKET,
+  bucket: string = env.S3_BUCKET,
 ) {
   const command = new PutObjectCommand({
     Bucket: bucket,
@@ -67,15 +65,15 @@ export async function uploadFile(
   return {
     etag: response.ETag,
     versionId: response.VersionId,
-    location: `${env.GARAGE_S3_ENDPOINT}/${bucket}/${key}`,
+    location: `${env.S3_ENDPOINT}/${bucket}/${key}`,
   };
 }
 
 /**
- * Download a file from Garage S3
+ * Download a file from S3
  *
  * @param key - The object key (path) in the bucket
- * @param bucket - The bucket name (defaults to env.GARAGE_S3_BUCKET)
+ * @param bucket - The bucket name (defaults to env.S3_BUCKET)
  * @returns The file content as a stream and metadata
  *
  * @example
@@ -87,7 +85,7 @@ export async function uploadFile(
  */
 export async function downloadFile(
   key: string,
-  bucket: string = env.GARAGE_S3_BUCKET,
+  bucket: string = env.S3_BUCKET,
 ) {
   const command = new GetObjectCommand({
     Bucket: bucket,
@@ -106,10 +104,10 @@ export async function downloadFile(
 }
 
 /**
- * Delete a file from Garage S3
+ * Delete a file from S3
  *
  * @param key - The object key (path) in the bucket
- * @param bucket - The bucket name (defaults to env.GARAGE_S3_BUCKET)
+ * @param bucket - The bucket name (defaults to env.S3_BUCKET)
  * @returns Deletion confirmation
  *
  * @example
@@ -120,7 +118,7 @@ export async function downloadFile(
  */
 export async function deleteFile(
   key: string,
-  bucket: string = env.GARAGE_S3_BUCKET,
+  bucket: string = env.S3_BUCKET,
 ) {
   const command = new DeleteObjectCommand({
     Bucket: bucket,
@@ -140,7 +138,7 @@ export async function deleteFile(
  * List files in a bucket with optional prefix filtering
  *
  * @param prefix - Filter objects by prefix (folder path)
- * @param bucket - The bucket name (defaults to env.GARAGE_S3_BUCKET)
+ * @param bucket - The bucket name (defaults to env.S3_BUCKET)
  * @param maxKeys - Maximum number of keys to return (default: 1000)
  * @returns List of objects with metadata
  *
@@ -154,7 +152,7 @@ export async function deleteFile(
  */
 export async function listFiles(
   prefix?: string,
-  bucket: string = env.GARAGE_S3_BUCKET,
+  bucket: string = env.S3_BUCKET,
   maxKeys: number = 1000,
 ) {
   const command = new ListObjectsV2Command({
@@ -174,10 +172,10 @@ export async function listFiles(
 }
 
 /**
- * Check if a file exists in Garage S3
+ * Check if a file exists in S3
  *
  * @param key - The object key (path) in the bucket
- * @param bucket - The bucket name (defaults to env.GARAGE_S3_BUCKET)
+ * @param bucket - The bucket name (defaults to env.S3_BUCKET)
  * @returns True if file exists, false otherwise
  *
  * @example
@@ -190,7 +188,7 @@ export async function listFiles(
  */
 export async function fileExists(
   key: string,
-  bucket: string = env.GARAGE_S3_BUCKET,
+  bucket: string = env.S3_BUCKET,
 ): Promise<boolean> {
   try {
     const command = new HeadObjectCommand({
@@ -212,7 +210,7 @@ export async function fileExists(
  * Get file metadata without downloading the file
  *
  * @param key - The object key (path) in the bucket
- * @param bucket - The bucket name (defaults to env.GARAGE_S3_BUCKET)
+ * @param bucket - The bucket name (defaults to env.S3_BUCKET)
  * @returns File metadata
  *
  * @example
@@ -223,7 +221,7 @@ export async function fileExists(
  */
 export async function getFileMetadata(
   key: string,
-  bucket: string = env.GARAGE_S3_BUCKET,
+  bucket: string = env.S3_BUCKET,
 ) {
   const command = new HeadObjectCommand({
     Bucket: bucket,
@@ -242,53 +240,31 @@ export async function getFileMetadata(
 }
 
 /**
- * Get the public URL for a file in a bucket with website hosting enabled
+ * Get the public URL for a file
  *
- * Garage uses subdomain-based bucket access for web hosting:
- * - Format: http://{bucket}.web.garage.localhost:3902/{key}
- * - In production: http://{bucket}.s3.yourdomain.com/{key}
+ * Uses the S3_PUBLIC_URL environment variable as the base URL.
+ * This should be configured to point to your CDN or public bucket URL.
  *
  * @param key - The object key (path) in the bucket
- * @param bucket - The bucket name (defaults to "public-files")
  * @returns The public HTTP URL to access the file
  *
  * @example
  * ```ts
  * const url = getPublicFileUrl("images/avatar.jpg");
- * // Returns: http://public-files.web.garage.localhost:3902/images/avatar.jpg
+ * // Returns: https://cdn.yourdomain.com/images/avatar.jpg
  *
  * // Use in JSX
  * <img src={getPublicFileUrl("images/logo.png")} alt="Logo" />
  * ```
- *
- * @note The bucket must have website hosting enabled:
- * docker exec starterkit-garage /garage bucket website --allow <bucket-name>
  */
-export function getPublicFileUrl(
-  key: string,
-  bucket: string = "public-files",
-): string {
-  // Garage web hosting uses subdomain-based bucket access
-  // Development: http://{bucket}.web.garage.localhost:3902/{key}
-  // Production: http://{bucket}.s3.yourdomain.com/{key}
-
-  const isDevelopment =
-    env.GARAGE_S3_ENDPOINT.includes("localhost") ||
-    env.GARAGE_S3_ENDPOINT.includes("127.0.0.1");
-
-  if (isDevelopment) {
-    // Local development with subdomain
-    return `http://${bucket}.web.garage.localhost:3902/${key}`;
-  }
-
-  // Production - assumes you have configured DNS and reverse proxy
-  // You should set GARAGE_S3_ENDPOINT to your public domain
-  const domain = new URL(env.GARAGE_S3_ENDPOINT).hostname;
-  return `https://${bucket}.${domain}/${key}`;
+export function getPublicFileUrl(key: string): string {
+  // Remove trailing slash from public URL if present
+  const baseUrl = env.S3_PUBLIC_URL.replace(/\/$/, "");
+  return `${baseUrl}/${key}`;
 }
 
 /**
- * Upload a file to the public bucket with website hosting
+ * Upload a file and return its public URL
  *
  * @param key - The object key (path) in the bucket
  * @param body - The file content (Buffer, Readable, or string)
@@ -304,7 +280,7 @@ export function getPublicFileUrl(
  * );
  *
  * console.log("Public URL:", result.publicUrl);
- * // http://localhost:3902/public-files/images/banner.jpg
+ * // https://cdn.yourdomain.com/images/banner.jpg
  * ```
  */
 export async function uploadPublicFile(
@@ -312,14 +288,11 @@ export async function uploadPublicFile(
   body: PutObjectCommandInput["Body"],
   contentType?: string,
 ) {
-  const bucket = "public-files";
-
-  const result = await uploadFile(key, body, contentType, bucket);
+  const result = await uploadFile(key, body, contentType);
 
   return {
     ...result,
-    publicUrl: getPublicFileUrl(key, bucket),
-    bucket,
+    publicUrl: getPublicFileUrl(key),
   };
 }
 

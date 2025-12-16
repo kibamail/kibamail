@@ -9,13 +9,11 @@ import { z } from "zod";
 /**
  * Response schema for successful logo upload
  * Note: This only uploads to S3, doesn't update Logto yet
- * The API wraps responses in a data field via responseOk()
+ * responseOk() spreads the data directly (no data wrapper)
  */
 export const updateLogoResponseSchema = z.object({
-  data: z.object({
-    success: z.boolean(),
-    logoUrl: z.string().url(),
-  }),
+  success: z.boolean(),
+  logoUrl: z.string().url(),
 });
 
 export type UpdateLogoResponse = z.infer<typeof updateLogoResponseSchema>;

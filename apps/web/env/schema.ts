@@ -543,63 +543,67 @@ export const env = createEnv({
       .min(1, "OUTPOST_API_KEY is required")
       .describe("Outpost API key for webhook delivery authentication"),
 
+    // ============================================================================
+    // S3-COMPATIBLE STORAGE CONFIGURATION
+    // ============================================================================
+    // Configuration for S3-compatible object storage (Backblaze B2, AWS S3, etc.)
+    // Used for file uploads, organization logos, and other storage operations.
+    // @see https://www.backblaze.com/docs/cloud-storage-s3-compatible-api
+
     /**
-     * Garage S3 Endpoint
+     * S3 Endpoint
      *
-     * The URL endpoint for the Garage S3-compatible object storage service.
+     * The URL endpoint for the S3-compatible object storage service.
      * Used for file uploads and object storage operations.
      *
      * Common values:
-     * - Development (Docker): http://localhost:3900
-     * - Production: https://s3.yourdomain.com
+     * - Backblaze B2: https://s3.us-west-004.backblazeb2.com
+     * - AWS S3: https://s3.amazonaws.com
+     * - MinIO: http://localhost:9000
      *
-     * @example "http://localhost:3900"
-     * @see https://garagehq.deuxfleurs.fr/
+     * @example "https://s3.us-west-004.backblazeb2.com"
      */
-    GARAGE_S3_ENDPOINT: z
+    S3_ENDPOINT: z
       .string()
-      .url("GARAGE_S3_ENDPOINT must be a valid URL")
-      .describe("Garage S3 endpoint URL"),
+      .url("S3_ENDPOINT must be a valid URL")
+      .describe("S3-compatible storage endpoint URL"),
 
     /**
-     * Garage S3 Region
+     * S3 Region
      *
-     * The region identifier for Garage S3 storage.
-     * This is configured in the garage.toml file's s3_region setting.
+     * The region identifier for S3 storage.
+     * For Backblaze B2, use the region from your bucket URL (e.g., "us-west-004").
      *
-     * @example "garage"
-     * @see https://garagehq.deuxfleurs.fr/documentation/reference-manual/configuration/
+     * @example "us-west-004"
      */
-    GARAGE_S3_REGION: z
+    S3_REGION: z
       .string()
-      .min(1, "GARAGE_S3_REGION is required")
-      .default("garage")
-      .describe("Garage S3 region identifier"),
+      .min(1, "S3_REGION is required")
+      .describe("S3 region identifier"),
 
     /**
-     * Garage S3 Access Key ID
+     * S3 Access Key ID
      *
-     * The access key ID for authenticating with Garage S3.
-     * Generated using: docker exec starterkit-garage /garage key create <key-name>
+     * The access key ID for authenticating with S3.
+     * For Backblaze B2, this is the "keyID" from your Application Key.
      *
      * ⚠️ SECURITY:
      * - Keep this secret and never commit to version control
      * - Use different keys for each environment
      * - Rotate if compromised
      *
-     * @example "GK4dd17fb7892fda233347522a"
-     * @see https://garagehq.deuxfleurs.fr/documentation/quick-start/
+     * @example "004a1b2c3d4e5f60000000001"
      */
-    GARAGE_S3_ACCESS_KEY_ID: z
+    S3_ACCESS_KEY_ID: z
       .string()
-      .min(1, "GARAGE_S3_ACCESS_KEY_ID is required")
-      .describe("Garage S3 access key ID"),
+      .min(1, "S3_ACCESS_KEY_ID is required")
+      .describe("S3 access key ID"),
 
     /**
-     * Garage S3 Secret Access Key
+     * S3 Secret Access Key
      *
-     * The secret access key for authenticating with Garage S3.
-     * Generated along with the access key ID.
+     * The secret access key for authenticating with S3.
+     * For Backblaze B2, this is the "applicationKey" from your Application Key.
      *
      * ⚠️ SECURITY:
      * - Keep this secret and never commit to version control
@@ -607,28 +611,40 @@ export const env = createEnv({
      * - Use different keys for each environment
      * - Rotate if compromised
      *
-     * @example "82fdcd964cb77bddbb6cb5170825fd8c2750eb29914169840372131e79765cb2"
-     * @see https://garagehq.deuxfleurs.fr/documentation/quick-start/
+     * @example "K004abcdefghijklmnopqrstuvwxyz"
      */
-    GARAGE_S3_SECRET_ACCESS_KEY: z
+    S3_SECRET_ACCESS_KEY: z
       .string()
-      .min(1, "GARAGE_S3_SECRET_ACCESS_KEY is required")
-      .describe("Garage S3 secret access key"),
+      .min(1, "S3_SECRET_ACCESS_KEY is required")
+      .describe("S3 secret access key"),
 
     /**
-     * Garage S3 Bucket Name
+     * S3 Bucket Name
      *
-     * The default bucket name to use for storing files.
-     * Bucket must be created before use: docker exec starterkit-garage /garage bucket create <bucket-name>
+     * The bucket name to use for storing files.
+     * For Backblaze B2, this is the bucket name you created in the B2 console.
      *
-     * @example "uploads"
-     * @see https://garagehq.deuxfleurs.fr/documentation/quick-start/
+     * @example "kibamail-uploads"
      */
-    GARAGE_S3_BUCKET: z
+    S3_BUCKET: z
       .string()
-      .min(1, "GARAGE_S3_BUCKET is required")
-      .default("uploads")
-      .describe("Garage S3 default bucket name"),
+      .min(1, "S3_BUCKET is required")
+      .describe("S3 bucket name"),
+
+    /**
+     * S3 Public URL
+     *
+     * The public base URL for accessing uploaded files.
+     * For Backblaze B2 with CDN/Cloudflare, use your custom domain.
+     * For native B2, use the "Friendly URL" from your bucket settings.
+     *
+     * @example "https://f004.backblazeb2.com/file/kibamail-uploads"
+     * @example "https://cdn.yourdomain.com" (with Cloudflare CDN)
+     */
+    S3_PUBLIC_URL: z
+      .string()
+      .url("S3_PUBLIC_URL must be a valid URL")
+      .describe("Public base URL for accessing uploaded files"),
 
     /**
      * Application Key
@@ -708,11 +724,12 @@ export const env = createEnv({
     REDIS_DATABASE: process.env.REDIS_DATABASE,
     OUTPOST_API_URL: process.env.OUTPOST_API_URL,
     OUTPOST_API_KEY: process.env.OUTPOST_API_KEY,
-    GARAGE_S3_ENDPOINT: process.env.GARAGE_S3_ENDPOINT,
-    GARAGE_S3_REGION: process.env.GARAGE_S3_REGION,
-    GARAGE_S3_ACCESS_KEY_ID: process.env.GARAGE_S3_ACCESS_KEY_ID,
-    GARAGE_S3_SECRET_ACCESS_KEY: process.env.GARAGE_S3_SECRET_ACCESS_KEY,
-    GARAGE_S3_BUCKET: process.env.GARAGE_S3_BUCKET,
+    S3_ENDPOINT: process.env.S3_ENDPOINT,
+    S3_REGION: process.env.S3_REGION,
+    S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
+    S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
+    S3_BUCKET: process.env.S3_BUCKET,
+    S3_PUBLIC_URL: process.env.S3_PUBLIC_URL,
     APP_KEY: process.env.APP_KEY,
     // Map client environment variables here
     // Example:

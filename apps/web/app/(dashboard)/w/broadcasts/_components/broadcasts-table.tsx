@@ -5,6 +5,8 @@ import { Button } from "@kibamail/owly/button";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
+import type { Broadcast, BroadcastStatus, EmailContent } from "@prisma/client";
+import Link from "next/link";
 import {
   MoreHoriz,
   EditPencil,
@@ -14,79 +16,13 @@ import {
   Clock,
   Check,
   SendDiagonal,
+  WarningTriangle,
+  Archive,
 } from "iconoir-react";
 
-type BroadcastStatus = "DRAFT" | "SCHEDULED" | "SENDING" | "SENT";
-
-interface Broadcast {
-  id: string;
-  subject: string;
-  status: BroadcastStatus;
-  audienceName: string;
-  recipientCount: number;
-  scheduledAt: string | null;
-  sentAt: string | null;
-  openRate: number | null;
-  clickRate: number | null;
-}
-
-const staticBroadcasts: Broadcast[] = [
-  {
-    id: "1",
-    subject: "Welcome to our December Newsletter",
-    status: "SENT",
-    audienceName: "All Subscribers",
-    recipientCount: 12500,
-    scheduledAt: null,
-    sentAt: "2024-12-10T10:00:00Z",
-    openRate: 42.5,
-    clickRate: 8.3,
-  },
-  {
-    id: "2",
-    subject: "Holiday Sale - 50% Off Everything!",
-    status: "SCHEDULED",
-    audienceName: "Active Customers",
-    recipientCount: 8200,
-    scheduledAt: "2024-12-20T09:00:00Z",
-    sentAt: null,
-    openRate: null,
-    clickRate: null,
-  },
-  {
-    id: "3",
-    subject: "Product Update: New Features Released",
-    status: "SENT",
-    audienceName: "Product Users",
-    recipientCount: 5400,
-    scheduledAt: null,
-    sentAt: "2024-12-05T14:30:00Z",
-    openRate: 38.2,
-    clickRate: 12.1,
-  },
-  {
-    id: "4",
-    subject: "Year in Review - Your 2024 Highlights",
-    status: "DRAFT",
-    audienceName: "All Subscribers",
-    recipientCount: 12500,
-    scheduledAt: null,
-    sentAt: null,
-    openRate: null,
-    clickRate: null,
-  },
-  {
-    id: "5",
-    subject: "Upcoming Webinar: Best Practices for 2025",
-    status: "SENDING",
-    audienceName: "Newsletter Subscribers",
-    recipientCount: 3200,
-    scheduledAt: null,
-    sentAt: null,
-    openRate: null,
-    clickRate: null,
-  },
-];
+type BroadcastWithEmailContent = Broadcast & {
+  emailContent: Pick<EmailContent, "subject"> | null;
+};
 
 function getStatusBadge(status: BroadcastStatus) {
   switch (status) {
@@ -97,11 +33,11 @@ function getStatusBadge(status: BroadcastStatus) {
           Draft
         </Badge>
       );
-    case "SCHEDULED":
+    case "QUEUED_FOR_SENDING":
       return (
         <Badge variant="warning" size="sm">
           <Clock className="w-3 h-3" />
-          Scheduled
+          Queued
         </Badge>
       );
     case "SENDING":
@@ -118,12 +54,32 @@ function getStatusBadge(status: BroadcastStatus) {
           Sent
         </Badge>
       );
+    case "SENDING_FAILED":
+      return (
+        <Badge variant="error" size="sm">
+          <WarningTriangle className="w-3 h-3" />
+          Failed
+        </Badge>
+      );
+    case "DRAFT_ARCHIVED":
+    case "ARCHIVED":
+      return (
+        <Badge variant="neutral" size="sm">
+          <Archive className="w-3 h-3" />
+          Archived
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="neutral" size="sm">
+          {status}
+        </Badge>
+      );
   }
 }
 
-function formatDate(dateString: string | null) {
-  if (!dateString) return "-";
-  const date = new Date(dateString);
+function formatDate(date: Date | null) {
+  if (!date) return "—";
   return date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
@@ -133,7 +89,11 @@ function formatDate(dateString: string | null) {
   });
 }
 
-function BroadcastActionsDropdown({ broadcast }: { broadcast: Broadcast }) {
+function BroadcastActionsDropdown({
+  broadcast,
+}: {
+  broadcast: BroadcastWithEmailContent;
+}) {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>
@@ -142,14 +102,18 @@ function BroadcastActionsDropdown({ broadcast }: { broadcast: Broadcast }) {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item>
-          <Eye className="w-4 h-4" />
-          View Details
+        <DropdownMenu.Item asChild>
+          <Link href={`/broadcasts/${broadcast.id}`}>
+            <Eye className="w-4 h-4" />
+            View Details
+          </Link>
         </DropdownMenu.Item>
         {broadcast.status === "DRAFT" && (
-          <DropdownMenu.Item>
-            <EditPencil className="w-4 h-4" />
-            Edit
+          <DropdownMenu.Item asChild>
+            <Link href={`/broadcasts/${broadcast.id}`}>
+              <EditPencil className="w-4 h-4" />
+              Edit
+            </Link>
           </DropdownMenu.Item>
         )}
         <DropdownMenu.Item>
@@ -166,9 +130,11 @@ function BroadcastActionsDropdown({ broadcast }: { broadcast: Broadcast }) {
   );
 }
 
-export function BroadcastsTable() {
-  const broadcasts = staticBroadcasts;
+interface BroadcastsTableProps {
+  broadcasts: BroadcastWithEmailContent[];
+}
 
+export function BroadcastsTable({ broadcasts }: BroadcastsTableProps) {
   if (broadcasts.length === 0) {
     return (
       <EmptyCard.Root>
@@ -186,12 +152,8 @@ export function BroadcastsTable() {
         <Table.Header>
           <Table.Row>
             <Table.Head>Subject</Table.Head>
-            <Table.Head className="w-[100px]">Status</Table.Head>
-            <Table.Head className="w-[160px]">Audience</Table.Head>
-            <Table.Head className="w-[100px]">Recipients</Table.Head>
-            <Table.Head className="w-[160px]">Date</Table.Head>
-            <Table.Head className="w-[80px]">Opens</Table.Head>
-            <Table.Head className="w-[80px]">Clicks</Table.Head>
+            <Table.Head className="w-[120px]">Status</Table.Head>
+            <Table.Head className="w-[180px]">Send On</Table.Head>
             <Table.Head className="w-[80px]">Actions</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -199,43 +161,18 @@ export function BroadcastsTable() {
           {broadcasts.map((broadcast) => (
             <Table.Row key={broadcast.id}>
               <Table.Cell className="font-medium">
-                {broadcast.subject}
+                <Link
+                  href={`/broadcasts/${broadcast.id}`}
+                  className="hover:text-kb-content-brand transition-colors"
+                >
+                  {broadcast.emailContent?.subject || broadcast.name || "Untitled"}
+                </Link>
               </Table.Cell>
               <Table.Cell>{getStatusBadge(broadcast.status)}</Table.Cell>
               <Table.Cell>
                 <span className="text-sm text-kb-content-secondary">
-                  {broadcast.audienceName}
+                  {formatDate(broadcast.sendAt)}
                 </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="text-sm font-medium text-kb-content-primary">
-                  {broadcast.recipientCount.toLocaleString()}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                <span className="text-sm text-kb-content-secondary">
-                  {broadcast.status === "SCHEDULED"
-                    ? formatDate(broadcast.scheduledAt)
-                    : formatDate(broadcast.sentAt)}
-                </span>
-              </Table.Cell>
-              <Table.Cell>
-                {broadcast.openRate !== null ? (
-                  <span className="text-sm font-medium text-kb-content-primary">
-                    {broadcast.openRate}%
-                  </span>
-                ) : (
-                  <span className="text-sm text-kb-content-tertiary">-</span>
-                )}
-              </Table.Cell>
-              <Table.Cell>
-                {broadcast.clickRate !== null ? (
-                  <span className="text-sm font-medium text-kb-content-primary">
-                    {broadcast.clickRate}%
-                  </span>
-                ) : (
-                  <span className="text-sm text-kb-content-tertiary">-</span>
-                )}
               </Table.Cell>
               <Table.Cell>
                 <BroadcastActionsDropdown broadcast={broadcast} />
