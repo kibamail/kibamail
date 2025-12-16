@@ -20,27 +20,16 @@
  */
 
 import { ZodError, type ZodType } from "zod";
-
 import {
-  type CreateWorkspaceInput,
-  type CreateWorkspaceResponse,
-  createWorkspaceResponseSchema,
-  createWorkspaceSchema,
-} from "@/app/api/internal/v1/workspaces/schema";
-import {
-  type ActivateWorkspaceResponse,
-  activateWorkspaceResponseSchema,
-} from "@/app/api/internal/v1/workspaces/[id]/activate/schema";
-import {
-  type InviteMembersInput,
-  type InviteMembersResponse,
-  type ChangeMemberRoleInput,
-  type ChangeMemberRoleResponse,
-  inviteMembersResponseSchema,
-  inviteMembersSchema,
-  changeMemberRoleSchema,
-  changeMemberRoleResponseSchema,
-} from "@/app/api/internal/v1/workspaces/[id]/members/schema";
+  type CreateApiKeyInput,
+  type CreateApiKeyResponse,
+  createApiKeyResponseSchema,
+  createApiKeySchema,
+  type DeleteApiKeyResponse,
+  deleteApiKeyResponseSchema,
+  type ListApiKeysResponse,
+  listApiKeysResponseSchema,
+} from "@/app/api/internal/v1/api-keys/schema";
 import {
   type UpdateInvitationStatusInput,
   type UpdateInvitationStatusResponse,
@@ -48,98 +37,121 @@ import {
   updateInvitationStatusSchema,
 } from "@/app/api/internal/v1/invitations/[id]/status/schema";
 import {
-  type CreateApiKeyInput,
-  type CreateApiKeyResponse,
-  type ListApiKeysResponse,
-  type DeleteApiKeyResponse,
-  createApiKeyResponseSchema,
-  createApiKeySchema,
-  listApiKeysResponseSchema,
-  deleteApiKeyResponseSchema,
-} from "@/app/api/internal/v1/api-keys/schema";
-import {
   type CreateWebhookDestinationInput,
-  type UpdateWebhookDestinationInput,
+  createWebhookDestinationSchema,
+  emptyResponseSchema,
   type ListEventsResponse,
+  listEventsResponseSchema,
+  type UpdateWebhookDestinationInput,
+  updateWebhookDestinationSchema,
   type WebhookDestinationResponse,
   type WebhookEventDeliveriesResponse,
-  createWebhookDestinationSchema,
-  updateWebhookDestinationSchema,
-  listEventsResponseSchema,
   webhookDestinationResponseSchema,
   webhookEventDeliveriesResponseSchema,
-  emptyResponseSchema,
 } from "@/app/api/internal/v1/webhooks/schema";
+import {
+  type ActivateWorkspaceResponse,
+  activateWorkspaceResponseSchema,
+} from "@/app/api/internal/v1/workspaces/[id]/activate/schema";
 import {
   type UpdateLogoResponse,
   updateLogoResponseSchema,
 } from "@/app/api/internal/v1/workspaces/[id]/logo/schema";
 import {
-  type CreateTopicRequest,
-  type TopicResponse,
-  type TopicListResponse,
-  createTopicSchema,
-  topicResponseSchema,
-  topicListResponseSchema,
-} from "@/app/api/v1/topics/schema";
-import {
-  type CreateSegmentRequest,
-  type SegmentResponse,
-  type SegmentListResponse,
-  createSegmentSchema,
-  segmentResponseSchema,
-  segmentListResponseSchema,
-} from "@/app/api/v1/segments/schema";
-import {
-  type CreateContactPropertyRequest,
-  type ContactPropertyResponse,
-  type ContactPropertyListResponse,
-  createContactPropertySchema,
-  contactPropertyResponseSchema,
-  contactPropertyListResponseSchema,
-} from "@/app/api/v1/contact-properties/schema";
+  type ChangeMemberRoleInput,
+  type ChangeMemberRoleResponse,
+  changeMemberRoleResponseSchema,
+  changeMemberRoleSchema,
+  type InviteMembersInput,
+  type InviteMembersResponse,
+  inviteMembersResponseSchema,
+  inviteMembersSchema,
+} from "@/app/api/internal/v1/workspaces/[id]/members/schema";
 import {
   type UpdateWorkspaceInput,
   type UpdateWorkspaceResponse,
-  updateWorkspaceSchema,
   updateWorkspaceResponseSchema,
+  updateWorkspaceSchema,
 } from "@/app/api/internal/v1/workspaces/[id]/schema";
 import {
-  type CreateContactRequest,
-  type UpdateContactRequest,
-  type ContactResponse,
+  type CreateWorkspaceInput,
+  type CreateWorkspaceResponse,
+  createWorkspaceResponseSchema,
+  createWorkspaceSchema,
+} from "@/app/api/internal/v1/workspaces/schema";
+import {
+  type AutomationListResponse,
+  type AutomationResponse,
+  automationListResponseSchema,
+  automationResponseSchema,
+  type CreateAutomationInput,
+  type UpdateAutomationInput,
+} from "@/app/api/v1/automations/schema";
+import {
+  type ContactPropertyListResponse,
+  type ContactPropertyResponse,
+  type CreateContactPropertyRequest,
+  contactPropertyListResponseSchema,
+  contactPropertyResponseSchema,
+  createContactPropertySchema,
+} from "@/app/api/v1/contact-properties/schema";
+import {
   type ContactDeleteResponse,
-  createContactSchema,
-  updateContactSchema,
-  contactResponseSchema,
+  type ContactResponse,
+  type CreateContactRequest,
   contactDeleteResponseSchema,
+  contactResponseSchema,
+  createContactSchema,
+  type UpdateContactRequest,
+  updateContactSchema,
 } from "@/app/api/v1/contacts/schema";
 import {
+  type CreateSendingDomainRequest,
+  createSendingDomainSchema,
+  type SendingDomainListResponse,
+  type SendingDomainResponse,
+  type SendingDomainVerifyResponse,
+  sendingDomainListResponseSchema,
+  sendingDomainResponseSchema,
+  sendingDomainVerifyResponseSchema,
+  type UpdateSendingDomainRequest,
+} from "@/app/api/v1/domains/schema";
+import {
   type CreateFormRequest,
-  type FormResponse,
-  type FormListResponse,
-  type FormSubmissionResponse,
   createFormSchema,
-  formResponseSchema,
+  type FormListResponse,
+  type FormResponse,
+  type FormSubmissionResponse,
   formListResponseSchema,
+  formResponseSchema,
   formSubmissionResponseSchema,
 } from "@/app/api/v1/forms/schema";
 import {
-  type CreateAutomationInput,
-  type UpdateAutomationInput,
-  type AutomationResponse,
-  type AutomationListResponse,
-  automationResponseSchema,
-  automationListResponseSchema,
-} from "@/app/api/v1/automations/schema";
+  type CreateSegmentRequest,
+  createSegmentSchema,
+  type SegmentListResponse,
+  type SegmentResponse,
+  segmentListResponseSchema,
+  segmentResponseSchema,
+} from "@/app/api/v1/segments/schema";
+import {
+  type CreateTopicRequest,
+  createTopicSchema,
+  type TopicListResponse,
+  type TopicResponse,
+  topicListResponseSchema,
+  topicResponseSchema,
+} from "@/app/api/v1/topics/schema";
 
 type ApiErrorResponse = {
-  error: string | {
-    type?: string;
-    code?: string;
-    message?: string;
-    details?: Record<string, unknown>;
-  };
+  error:
+    | string
+    | {
+        type?: string;
+        code?: string;
+        message?: string;
+        details?: Record<string, unknown>;
+      };
   fieldErrors?: Record<string, string[]>;
 };
 
@@ -179,7 +191,7 @@ class HttpClient {
     path: string,
     requestSchema: ZodType<TRequest> | null,
     responseSchema: ZodType<TResponse>,
-    data?: TRequest
+    data?: TRequest,
   ): Promise<TResponse> {
     const response = await fetch(path, {
       method,
@@ -200,7 +212,7 @@ class HttpClient {
               code: "custom" as const,
               path: field.split("."),
               message,
-            }))
+            })),
         );
 
         const zodError = new ZodError(issues);
@@ -244,14 +256,14 @@ class InvitationsApi extends HttpClient {
    */
   async update(
     invitationId: string,
-    data: UpdateInvitationStatusInput
+    data: UpdateInvitationStatusInput,
   ): Promise<UpdateInvitationStatusResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/invitations/${invitationId}/status`,
       updateInvitationStatusSchema,
       updateInvitationStatusResponseSchema,
-      data
+      data,
     );
   }
 }
@@ -276,7 +288,7 @@ class WorkspaceInvitationsApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/invitations/${invitationId}`,
       null,
-      emptyResponseSchema
+      emptyResponseSchema,
     );
   }
 }
@@ -310,7 +322,7 @@ class WorkspaceMembersApi extends HttpClient {
       `/api/internal/v1/workspaces/${this.workspaceId}/members`,
       inviteMembersSchema,
       inviteMembersResponseSchema,
-      data
+      data,
     );
   }
 
@@ -331,14 +343,14 @@ class WorkspaceMembersApi extends HttpClient {
    */
   async changeRole(
     memberId: string,
-    data: ChangeMemberRoleInput
+    data: ChangeMemberRoleInput,
   ): Promise<ChangeMemberRoleResponse> {
     return this.request(
       "PATCH",
       `/api/internal/v1/workspaces/${this.workspaceId}/members/${memberId}/role`,
       changeMemberRoleSchema,
       changeMemberRoleResponseSchema,
-      data
+      data,
     );
   }
 }
@@ -368,7 +380,7 @@ class WorkspacesApi extends HttpClient {
       "/api/internal/v1/workspaces",
       createWorkspaceSchema,
       createWorkspaceResponseSchema,
-      data
+      data,
     );
   }
 
@@ -389,7 +401,7 @@ class WorkspacesApi extends HttpClient {
       "POST",
       `/api/internal/v1/workspaces/${id}/activate`,
       null,
-      activateWorkspaceResponseSchema
+      activateWorkspaceResponseSchema,
     );
   }
 
@@ -441,7 +453,7 @@ class WorkspacesApi extends HttpClient {
    */
   async updateLogo(
     workspaceId: string,
-    logoFile: File
+    logoFile: File,
   ): Promise<UpdateLogoResponse> {
     const formData = new FormData();
     formData.append("logo", logoFile);
@@ -451,7 +463,7 @@ class WorkspacesApi extends HttpClient {
       {
         method: "PATCH",
         body: formData,
-      }
+      },
     );
 
     if (!response.ok) {
@@ -484,14 +496,14 @@ class WorkspacesApi extends HttpClient {
    */
   async update(
     workspaceId: string,
-    data: UpdateWorkspaceInput
+    data: UpdateWorkspaceInput,
   ): Promise<UpdateWorkspaceResponse> {
     return this.request(
       "PATCH",
       `/api/internal/v1/workspaces/${workspaceId}`,
       updateWorkspaceSchema,
       updateWorkspaceResponseSchema,
-      data
+      data,
     );
   }
 }
@@ -517,13 +529,15 @@ class WebhooksApi extends HttpClient {
    * })
    * ```
    */
-  async create(data: CreateWebhookDestinationInput): Promise<WebhookDestinationResponse> {
+  async create(
+    data: CreateWebhookDestinationInput,
+  ): Promise<WebhookDestinationResponse> {
     return this.request(
       "POST",
       "/api/internal/v1/webhooks",
       createWebhookDestinationSchema,
       webhookDestinationResponseSchema,
-      data
+      data,
     );
   }
 
@@ -544,14 +558,14 @@ class WebhooksApi extends HttpClient {
    */
   async update(
     webhookId: string,
-    data: UpdateWebhookDestinationInput
+    data: UpdateWebhookDestinationInput,
   ): Promise<WebhookDestinationResponse> {
     return this.request(
       "PATCH",
       `/api/internal/v1/webhooks/${webhookId}`,
       updateWebhookDestinationSchema,
       webhookDestinationResponseSchema,
-      data
+      data,
     );
   }
 
@@ -571,7 +585,7 @@ class WebhooksApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/webhooks/${webhookId}`,
       null,
-      emptyResponseSchema
+      emptyResponseSchema,
     );
   }
 
@@ -591,7 +605,7 @@ class WebhooksApi extends HttpClient {
       "PUT",
       `/api/internal/v1/webhooks/${webhookId}/enable`,
       null,
-      webhookDestinationResponseSchema
+      webhookDestinationResponseSchema,
     );
   }
 
@@ -611,7 +625,7 @@ class WebhooksApi extends HttpClient {
       "PUT",
       `/api/internal/v1/webhooks/${webhookId}/disable`,
       null,
-      webhookDestinationResponseSchema
+      webhookDestinationResponseSchema,
     );
   }
 
@@ -640,7 +654,7 @@ class WebhooksApi extends HttpClient {
       limit?: number;
       start?: string;
       status?: "success" | "failed";
-    }
+    },
   ): Promise<ListEventsResponse> {
     const queryParams = new URLSearchParams();
     if (params?.next) queryParams.set("next", params.next);
@@ -672,13 +686,13 @@ class WebhooksApi extends HttpClient {
    */
   async listEventDeliveries(
     webhookId: string,
-    eventId: string
+    eventId: string,
   ): Promise<WebhookEventDeliveriesResponse> {
     return this.request(
       "GET",
       `/api/internal/v1/webhooks/${webhookId}/events/${eventId}/deliveries`,
       null,
-      webhookEventDeliveriesResponseSchema
+      webhookEventDeliveriesResponseSchema,
     );
   }
 }
@@ -709,7 +723,7 @@ class ApiKeysApi extends HttpClient {
       "/api/internal/v1/api-keys",
       createApiKeySchema,
       createApiKeyResponseSchema,
-      data
+      data,
     );
   }
 
@@ -730,7 +744,7 @@ class ApiKeysApi extends HttpClient {
       "GET",
       "/api/internal/v1/api-keys",
       null,
-      listApiKeysResponseSchema
+      listApiKeysResponseSchema,
     );
   }
 
@@ -751,7 +765,7 @@ class ApiKeysApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/api-keys/${apiKeyId}`,
       null,
-      deleteApiKeyResponseSchema
+      deleteApiKeyResponseSchema,
     );
   }
 }
@@ -782,7 +796,7 @@ class SegmentsApi extends HttpClient {
       "/api/internal/v1/segments",
       createSegmentSchema,
       segmentResponseSchema,
-      data
+      data,
     );
   }
 
@@ -802,7 +816,7 @@ class SegmentsApi extends HttpClient {
       "GET",
       "/api/internal/v1/segments",
       null,
-      segmentListResponseSchema
+      segmentListResponseSchema,
     );
   }
 
@@ -823,7 +837,7 @@ class SegmentsApi extends HttpClient {
       "GET",
       `/api/internal/v1/segments/${segmentId}`,
       null,
-      segmentResponseSchema
+      segmentResponseSchema,
     );
   }
 
@@ -843,13 +857,16 @@ class SegmentsApi extends HttpClient {
    * })
    * ```
    */
-  async update(segmentId: string, data: Partial<CreateSegmentRequest>): Promise<SegmentResponse> {
+  async update(
+    segmentId: string,
+    data: Partial<CreateSegmentRequest>,
+  ): Promise<SegmentResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/segments/${segmentId}`,
       null,
       segmentResponseSchema,
-      data
+      data,
     );
   }
 
@@ -870,7 +887,7 @@ class SegmentsApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/segments/${segmentId}`,
       null,
-      segmentResponseSchema
+      segmentResponseSchema,
     );
   }
 }
@@ -895,13 +912,15 @@ class ContactPropertiesApi extends HttpClient {
    * })
    * ```
    */
-  async create(data: CreateContactPropertyRequest): Promise<ContactPropertyResponse> {
+  async create(
+    data: CreateContactPropertyRequest,
+  ): Promise<ContactPropertyResponse> {
     return this.request(
       "POST",
       "/api/internal/v1/contact-properties",
       createContactPropertySchema,
       contactPropertyResponseSchema,
-      data
+      data,
     );
   }
 
@@ -921,7 +940,7 @@ class ContactPropertiesApi extends HttpClient {
       "GET",
       "/api/internal/v1/contact-properties",
       null,
-      contactPropertyListResponseSchema
+      contactPropertyListResponseSchema,
     );
   }
 
@@ -943,14 +962,14 @@ class ContactPropertiesApi extends HttpClient {
    */
   async update(
     propertyId: string,
-    data: Partial<CreateContactPropertyRequest>
+    data: Partial<CreateContactPropertyRequest>,
   ): Promise<ContactPropertyResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/contact-properties/${propertyId}`,
       null,
       contactPropertyResponseSchema,
-      data
+      data,
     );
   }
 
@@ -971,7 +990,7 @@ class ContactPropertiesApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/contact-properties/${propertyId}`,
       null,
-      contactPropertyResponseSchema
+      contactPropertyResponseSchema,
     );
   }
 }
@@ -1004,7 +1023,7 @@ class TopicsApi extends HttpClient {
       "/api/internal/v1/topics",
       createTopicSchema,
       topicResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1024,7 +1043,7 @@ class TopicsApi extends HttpClient {
       "GET",
       "/api/internal/v1/topics",
       null,
-      topicListResponseSchema
+      topicListResponseSchema,
     );
   }
 
@@ -1045,7 +1064,7 @@ class TopicsApi extends HttpClient {
       "GET",
       `/api/internal/v1/topics/${topicId}`,
       null,
-      topicResponseSchema
+      topicResponseSchema,
     );
   }
 
@@ -1065,13 +1084,16 @@ class TopicsApi extends HttpClient {
    * })
    * ```
    */
-  async update(topicId: string, data: Partial<CreateTopicRequest>): Promise<TopicResponse> {
+  async update(
+    topicId: string,
+    data: Partial<CreateTopicRequest>,
+  ): Promise<TopicResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/topics/${topicId}`,
       null,
       topicResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1092,7 +1114,7 @@ class TopicsApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/topics/${topicId}`,
       null,
-      topicResponseSchema
+      topicResponseSchema,
     );
   }
 }
@@ -1126,7 +1148,7 @@ class ContactsApi extends HttpClient {
       "/api/internal/v1/contacts",
       createContactSchema,
       contactResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1148,14 +1170,14 @@ class ContactsApi extends HttpClient {
    */
   async update(
     contactId: string,
-    data: UpdateContactRequest
+    data: UpdateContactRequest,
   ): Promise<ContactResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/contacts/${contactId}`,
       updateContactSchema,
       contactResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1175,7 +1197,7 @@ class ContactsApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/contacts/${contactId}`,
       null,
-      contactDeleteResponseSchema
+      contactDeleteResponseSchema,
     );
   }
 }
@@ -1201,7 +1223,7 @@ class FormsApi extends HttpClient {
       "GET",
       "/api/internal/v1/forms",
       null,
-      formListResponseSchema
+      formListResponseSchema,
     );
   }
 
@@ -1227,7 +1249,7 @@ class FormsApi extends HttpClient {
       "/api/internal/v1/forms",
       createFormSchema,
       formResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1249,14 +1271,14 @@ class FormsApi extends HttpClient {
    */
   async update(
     formId: string,
-    data: Partial<CreateFormRequest>
+    data: Partial<CreateFormRequest>,
   ): Promise<FormResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/forms/${formId}`,
       null,
       formResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1276,7 +1298,7 @@ class FormsApi extends HttpClient {
       "POST",
       `/api/internal/v1/forms/${formId}/publish`,
       null,
-      formResponseSchema
+      formResponseSchema,
     );
   }
 
@@ -1297,7 +1319,7 @@ class FormsApi extends HttpClient {
       `/api/internal/v1/forms/${formId}/versions`,
       null,
       formResponseSchema,
-      {}
+      {},
     );
   }
 
@@ -1319,14 +1341,14 @@ class FormsApi extends HttpClient {
    */
   async submitPublic(
     formId: string,
-    data: Record<string, unknown>
+    data: Record<string, unknown>,
   ): Promise<FormSubmissionResponse> {
     return this.request(
       "POST",
       `/api/internal/v1/forms/${formId}/submissions`,
       null,
       formSubmissionResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1399,7 +1421,7 @@ class AutomationsApi extends HttpClient {
       "GET",
       `/api/internal/v1/automations/${automationId}`,
       null,
-      automationResponseSchema
+      automationResponseSchema,
     );
   }
 
@@ -1424,7 +1446,7 @@ class AutomationsApi extends HttpClient {
       "/api/internal/v1/automations",
       null,
       automationResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1447,14 +1469,14 @@ class AutomationsApi extends HttpClient {
    */
   async update(
     automationId: string,
-    data: UpdateAutomationInput
+    data: UpdateAutomationInput,
   ): Promise<AutomationResponse> {
     return this.request(
       "PUT",
       `/api/internal/v1/automations/${automationId}`,
       null,
       automationResponseSchema,
-      data
+      data,
     );
   }
 
@@ -1474,7 +1496,7 @@ class AutomationsApi extends HttpClient {
       "DELETE",
       `/api/internal/v1/automations/${automationId}`,
       null,
-      automationResponseSchema
+      automationResponseSchema,
     );
   }
 
@@ -1494,7 +1516,7 @@ class AutomationsApi extends HttpClient {
       "POST",
       `/api/internal/v1/automations/${automationId}/publish`,
       null,
-      automationResponseSchema
+      automationResponseSchema,
     );
   }
 
@@ -1514,7 +1536,7 @@ class AutomationsApi extends HttpClient {
       "POST",
       `/api/internal/v1/automations/${automationId}/archive`,
       null,
-      automationResponseSchema
+      automationResponseSchema,
     );
   }
 
@@ -1534,7 +1556,7 @@ class AutomationsApi extends HttpClient {
       "GET",
       `/api/internal/v1/automations/${automationId}/versions`,
       null,
-      automationListResponseSchema
+      automationListResponseSchema,
     );
   }
 
@@ -1554,14 +1576,14 @@ class AutomationsApi extends HttpClient {
    */
   async createVersion(
     automationId: string,
-    data?: { name?: string; description?: string }
+    data?: { name?: string; description?: string },
   ): Promise<AutomationResponse> {
     return this.request(
       "POST",
       `/api/internal/v1/automations/${automationId}/versions`,
       null,
       automationResponseSchema,
-      data || {}
+      data || {},
     );
   }
 
@@ -1581,7 +1603,146 @@ class AutomationsApi extends HttpClient {
       "POST",
       `/api/internal/v1/automations/${automationId}/rollback`,
       null,
-      automationResponseSchema
+      automationResponseSchema,
+    );
+  }
+}
+
+/**
+ * Sending Domains API namespace
+ */
+class DomainsApi extends HttpClient {
+  /**
+   * List all sending domains
+   *
+   * @returns List of sending domains with pagination info
+   *
+   * @example
+   * ```ts
+   * const { data: domains, hasMore } = await internalApi.domains().list()
+   * ```
+   */
+  async list(): Promise<SendingDomainListResponse> {
+    return this.request(
+      "GET",
+      "/api/internal/v1/domains",
+      null,
+      sendingDomainListResponseSchema,
+    );
+  }
+
+  /**
+   * Get a specific sending domain by ID
+   *
+   * @param domainId - ID of the domain to retrieve
+   * @returns Sending domain data
+   *
+   * @example
+   * ```ts
+   * const domain = await internalApi.domains().get('domain_123')
+   * ```
+   */
+  async get(domainId: string): Promise<SendingDomainResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/domains/${domainId}`,
+      null,
+      sendingDomainResponseSchema,
+    );
+  }
+
+  /**
+   * Create a new sending domain
+   *
+   * @param data - Domain creation data (only name is required)
+   * @returns Created domain with DNS records
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const domain = await internalApi.domains().create({
+   *   name: 'example.com'
+   * })
+   * ```
+   */
+  async create(
+    data: CreateSendingDomainRequest,
+  ): Promise<SendingDomainResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/domains",
+      createSendingDomainSchema,
+      sendingDomainResponseSchema,
+      data,
+    );
+  }
+
+  /**
+   * Delete a sending domain
+   *
+   * @param domainId - ID of the domain to delete
+   * @returns Deleted domain info
+   *
+   * @example
+   * ```ts
+   * await internalApi.domains().delete('domain_123')
+   * ```
+   */
+  async delete(domainId: string): Promise<SendingDomainResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/domains/${domainId}`,
+      null,
+      sendingDomainResponseSchema,
+    );
+  }
+
+  /**
+   * Update a sending domain
+   *
+   * @param domainId - ID of the domain to update
+   * @param data - Update data (openTrackingEnabled, clickTrackingEnabled)
+   * @returns Updated domain
+   *
+   * @example
+   * ```ts
+   * const domain = await internalApi.domains().update('domain_123', {
+   *   openTrackingEnabled: true,
+   *   clickTrackingEnabled: false
+   * })
+   * ```
+   */
+  async update(
+    domainId: string,
+    data: UpdateSendingDomainRequest,
+  ): Promise<SendingDomainResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/domains/${domainId}`,
+      null,
+      sendingDomainResponseSchema,
+      data,
+    );
+  }
+
+  /**
+   * Verify DNS configuration for a sending domain
+   *
+   * @param domainId - ID of the domain to verify
+   * @returns Domain data with verification results
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.domains().verify('domain_123')
+   * console.log(result.verification.allVerified) // true/false
+   * ```
+   */
+  async verify(domainId: string): Promise<SendingDomainVerifyResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/domains/${domainId}/verify`,
+      null,
+      sendingDomainVerifyResponseSchema,
     );
   }
 }
@@ -1602,6 +1763,7 @@ export class InternalApi {
   private _contacts: ContactsApi;
   private _forms: FormsApi;
   private _automations: AutomationsApi;
+  private _domains: DomainsApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
@@ -1614,6 +1776,7 @@ export class InternalApi {
     this._contacts = new ContactsApi();
     this._forms = new FormsApi();
     this._automations = new AutomationsApi();
+    this._domains = new DomainsApi();
   }
 
   /**
@@ -1784,6 +1947,22 @@ export class InternalApi {
    */
   automations() {
     return this._automations;
+  }
+
+  /**
+   * Access sending domains API
+   *
+   * @returns DomainsApi instance
+   *
+   * @example
+   * ```ts
+   * const domain = await internalApi.domains().create({
+   *   name: 'example.com'
+   * })
+   * ```
+   */
+  domains() {
+    return this._domains;
   }
 }
 

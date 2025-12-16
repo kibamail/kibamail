@@ -32,20 +32,26 @@ export const PRICING_CONFIGS: Record<PricingType, PricingConfig> = {
     tiers: [
       {
         from: 0,
+        to: 10_000,
+        rates: { usd: 0, ngn: 0 },
+        label: "First 10,000 emails",
+      },
+      {
+        from: 10_001,
         to: 50_000,
-        rates: { usd: 0.0002, ngn: 0.0002 * NGN_MULTIPLIER },
-        label: "First 50,000 emails",
+        rates: { usd: 0.00025, ngn: 0.00025 * NGN_MULTIPLIER },
+        label: "10,000 - 50,000 emails",
       },
       {
         from: 50_001,
         to: 200_000,
-        rates: { usd: 0.00015, ngn: 0.00015 * NGN_MULTIPLIER },
+        rates: { usd: 0.000175, ngn: 0.000175 * NGN_MULTIPLIER },
         label: "50,000 - 200,000 emails",
       },
       {
         from: 200_001,
         to: null,
-        rates: { usd: 0.0001, ngn: 0.0001 * NGN_MULTIPLIER },
+        rates: { usd: 0.00012, ngn: 0.00012 * NGN_MULTIPLIER },
         label: "200,000+ emails",
       },
     ],
@@ -55,20 +61,26 @@ export const PRICING_CONFIGS: Record<PricingType, PricingConfig> = {
     tiers: [
       {
         from: 0,
+        to: 10_000,
+        rates: { usd: 0, ngn: 0 },
+        label: "First 10,000 emails",
+      },
+      {
+        from: 10_001,
         to: 50_000,
-        rates: { usd: 0.00025, ngn: 0.00025 * NGN_MULTIPLIER },
-        label: "First 50,000 emails",
+        rates: { usd: 0.0003, ngn: 0.0003 * NGN_MULTIPLIER },
+        label: "10,000 - 50,000 emails",
       },
       {
         from: 50_001,
         to: 200_000,
-        rates: { usd: 0.0002, ngn: 0.0002 * NGN_MULTIPLIER },
+        rates: { usd: 0.000225, ngn: 0.000225 * NGN_MULTIPLIER },
         label: "50,000 - 200,000 emails",
       },
       {
         from: 200_001,
         to: null,
-        rates: { usd: 0.00015, ngn: 0.00015 * NGN_MULTIPLIER },
+        rates: { usd: 0.00018, ngn: 0.00018 * NGN_MULTIPLIER },
         label: "200,000+ emails",
       },
     ],
@@ -78,20 +90,26 @@ export const PRICING_CONFIGS: Record<PricingType, PricingConfig> = {
     tiers: [
       {
         from: 0,
+        to: 10_000,
+        rates: { usd: 0, ngn: 0 },
+        label: "First 10,000 emails",
+      },
+      {
+        from: 10_001,
         to: 50_000,
-        rates: { usd: 0.0002, ngn: 0.0002 * NGN_MULTIPLIER },
-        label: "First 50,000 emails",
+        rates: { usd: 0.00025, ngn: 0.00025 * NGN_MULTIPLIER },
+        label: "10,000 - 50,000 emails",
       },
       {
         from: 50_001,
         to: 200_000,
-        rates: { usd: 0.00015, ngn: 0.00015 * NGN_MULTIPLIER },
+        rates: { usd: 0.000175, ngn: 0.000175 * NGN_MULTIPLIER },
         label: "50,000 - 200,000 emails",
       },
       {
         from: 200_001,
         to: null,
-        rates: { usd: 0.0001, ngn: 0.0001 * NGN_MULTIPLIER },
+        rates: { usd: 0.00012, ngn: 0.00012 * NGN_MULTIPLIER },
         label: "200,000+ emails",
       },
     ],
@@ -101,20 +119,26 @@ export const PRICING_CONFIGS: Record<PricingType, PricingConfig> = {
     tiers: [
       {
         from: 0,
+        to: 10_000,
+        rates: { usd: 0, ngn: 0 },
+        label: "First 10,000 emails",
+      },
+      {
+        from: 10_001,
         to: 50_000,
-        rates: { usd: 0.0001, ngn: 0.0001 * NGN_MULTIPLIER },
-        label: "First 50,000 emails",
+        rates: { usd: 0.000125, ngn: 0.000125 * NGN_MULTIPLIER },
+        label: "10,000 - 50,000 emails",
       },
       {
         from: 50_001,
         to: 200_000,
-        rates: { usd: 0.00008, ngn: 0.00008 * NGN_MULTIPLIER },
+        rates: { usd: 0.0001, ngn: 0.0001 * NGN_MULTIPLIER },
         label: "50,000 - 200,000 emails",
       },
       {
         from: 200_001,
         to: null,
-        rates: { usd: 0.00006, ngn: 0.00006 * NGN_MULTIPLIER },
+        rates: { usd: 0.000075, ngn: 0.000075 * NGN_MULTIPLIER },
         label: "200,000+ emails",
       },
     ],
@@ -154,7 +178,10 @@ export function getTierRate(
   tier: PricingTier,
   currency: Currency
 ): string {
-  const symbol = CURRENCY_SYMBOLS[currency];
   const rate = tier.rates[currency];
+  if (rate === 0) {
+    return "Free";
+  }
+  const symbol = CURRENCY_SYMBOLS[currency];
   return `${symbol}${rate.toFixed(5)} / email`;
 }

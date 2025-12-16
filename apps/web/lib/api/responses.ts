@@ -31,7 +31,7 @@
 import { NextResponse } from "next/server";
 import type { ZodError } from "zod";
 
-export type ApiObjectType = "api_key" | "api_key_list" | "contact" | "contact_list" | "tag" | "tag_list" | "topic" | "topic_list" | "segment" | "segment_list" | "contact_property" | "contact_property_list" | "automation" | "automation_list" | "form" | "form_list" | "form_submission" | "page_view";
+export type ApiObjectType = "api_key" | "api_key_list" | "contact" | "contact_list" | "tag" | "tag_list" | "topic" | "topic_list" | "segment" | "segment_list" | "contact_property" | "contact_property_list" | "automation" | "automation_list" | "form" | "form_list" | "form_submission" | "page_view" | "sending_domain" | "sending_domain_list";
 
 /**
  * Standard API response structure (for external API v1)

@@ -1,7 +1,6 @@
 .tiptap.ProseMirror {
   // Using owly semantic colors for automatic dark mode support
   --tt-collaboration-carets-label: var(--content-primary);
-  --link-text-color: var(--content-link);
   --thread-text: var(--content-primary);
   --placeholder-color: var(--content-tertiary);
   --thread-bg-color: var(--background-notice-subtle);
@@ -108,33 +107,21 @@
 /* =====================
      PLACEHOLDER
      ===================== */
-.is-empty:not(.with-slash)[data-placeholder]:has(
-    > .ProseMirror-trailingBreak:only-child
+/* Paragraph placeholder - only shows for the first empty paragraph when editor is empty */
+.is-empty.is-editor-empty[data-placeholder]:has(
+    [data-node-view-content-react] > .ProseMirror-trailingBreak:only-child
+  )::before,
+.is-empty.is-editor-empty[data-placeholder]:has(
+    [data-node-view-content-react]:empty
   )::before {
   content: attr(data-placeholder);
-}
-
-.is-empty.with-slash[data-placeholder]:has(
-    > .ProseMirror-trailingBreak:only-child
-  )::before {
-  content: "Write, type '/' for commands…";
-  font-style: italic;
-}
-
-.is-empty[data-placeholder]:has(
-    > .ProseMirror-trailingBreak:only-child
-  ):before {
+  color: var(--placeholder-color);
   pointer-events: none;
-  height: 0;
   position: absolute;
-  width: 100%;
-  text-align: inherit;
   left: 0;
   right: 0;
-}
-
-.is-empty[data-placeholder]:has(> .ProseMirror-trailingBreak):before {
-  color: var(--placeholder-color);
+  font-size: 16px;
+  font-family: var(--default-font-family-body);
 }
 
 /* =====================

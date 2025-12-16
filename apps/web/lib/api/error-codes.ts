@@ -101,6 +101,12 @@ export enum ErrorCode {
   CONTACT_PROPERTY_LIMIT_REACHED = "CONTACT_PROPERTY_LIMIT_REACHED",
 
   // ============================================================================
+  // SENDING DOMAIN ERRORS
+  // ============================================================================
+  SENDING_DOMAIN_NOT_FOUND = "SENDING_DOMAIN_NOT_FOUND",
+  SENDING_DOMAIN_ALREADY_EXISTS = "SENDING_DOMAIN_ALREADY_EXISTS",
+
+  // ============================================================================
   // VALIDATION ERRORS (422)
   // ============================================================================
   VALIDATION_FAILED = "VALIDATION_FAILED",

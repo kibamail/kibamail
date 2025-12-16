@@ -4,7 +4,7 @@ import {
   DashboardLayoutSidebarGroup,
   DashboardLayoutSidebarItem,
 } from "@kibamail/owly/dashboard-layout";
-import { HomeAltSlimHoriz, Settings, NetworkReverse, User, Component, SendDiagonal } from "iconoir-react";
+import { HomeAltSlimHoriz, Settings, NetworkReverse, User, Component, SendDiagonal, Globe } from "iconoir-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -21,8 +21,9 @@ export function SidebarNavigation() {
   const isAutomationsActive = pathname.startsWith("/w/automations");
   const isFormsActive = pathname.startsWith("/w/forms");
   const isBroadcastsActive = pathname.startsWith("/w/broadcasts");
+  const isDomainsActive = pathname.startsWith("/w/domains");
   const isAudienceActive = pathname.startsWith("/w/contacts") || pathname.startsWith("/w/segments") || pathname.startsWith("/w/topics") || pathname.startsWith("/w/properties");
-  const isDashboardActive = !isSettingsActive && !isAutomationsActive && !isAudienceActive && !isFormsActive && !isBroadcastsActive;
+  const isDashboardActive = !isSettingsActive && !isAutomationsActive && !isAudienceActive && !isFormsActive && !isBroadcastsActive && !isDomainsActive;
 
   return (
     <DashboardLayoutSidebarGroup>
@@ -54,6 +55,12 @@ export function SidebarNavigation() {
         <Link href="/w/automations">
           <NetworkReverse />
           Automations
+        </Link>
+      </DashboardLayoutSidebarItem>
+      <DashboardLayoutSidebarItem asChild active={isDomainsActive}>
+        <Link href="/w/domains">
+          <Globe />
+          Domains
         </Link>
       </DashboardLayoutSidebarItem>
       <DashboardLayoutSidebarItem asChild active={isSettingsActive}>

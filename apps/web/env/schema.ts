@@ -629,6 +629,30 @@ export const env = createEnv({
       .min(1, "GARAGE_S3_BUCKET is required")
       .default("uploads")
       .describe("Garage S3 default bucket name"),
+
+    /**
+     * Application Key
+     *
+     * A 32-character secret key used for encrypting sensitive data like DKIM private keys.
+     * This key is used for AES-256 encryption throughout the application.
+     *
+     * Generate a secure key:
+     * ```bash
+     * openssl rand -base64 32 | head -c 32
+     * ```
+     *
+     * ⚠️ SECURITY:
+     * - Must be exactly 32 characters
+     * - Keep secret and never commit to version control
+     * - Rotating this will make existing encrypted data unreadable
+     * - Use different keys for each environment
+     *
+     * @example "itxd3l3ji6zo7VQbZK8EHNAv86hcDb9U"
+     */
+    APP_KEY: z
+      .string()
+      .min(32, "APP_KEY must be at least 32 characters")
+      .describe("Application secret key for encryption"),
   },
 
   /**
@@ -689,6 +713,7 @@ export const env = createEnv({
     GARAGE_S3_ACCESS_KEY_ID: process.env.GARAGE_S3_ACCESS_KEY_ID,
     GARAGE_S3_SECRET_ACCESS_KEY: process.env.GARAGE_S3_SECRET_ACCESS_KEY,
     GARAGE_S3_BUCKET: process.env.GARAGE_S3_BUCKET,
+    APP_KEY: process.env.APP_KEY,
     // Map client environment variables here
     // Example:
     // NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,

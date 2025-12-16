@@ -198,6 +198,8 @@ export function EditorContentArea({
 
   // Get body styles from config and merge with dynamic styles
   const bodyStyles = getStyles("body");
+  const linkStyles = getStyles("link");
+  const linkColor = (linkStyles?.color as string) || "#0066cc";
 
   const { isStylingMode, exitStylingMode } = useActiveNode();
   const isCanvasOpen = canvasConfiguration?.open ?? false;
@@ -213,8 +215,9 @@ export function EditorContentArea({
           className="email-editor-content"
           style={{
             cursor: isDragging ? "grabbing" : "auto",
+            "--link-text-color": linkColor,
             ...bodyStyles,
-          }}
+          } as React.CSSProperties}
         >
           <DragContextMenu />
           <EmojiDropdownMenu />

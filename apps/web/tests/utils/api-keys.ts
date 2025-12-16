@@ -118,6 +118,10 @@ export async function createFullAccessApiKey(
       "write:forms",
       "update:forms",
       "delete:forms",
+      "read:domains",
+      "write:domains",
+      "update:domains",
+      "delete:domains",
     ],
   });
 }

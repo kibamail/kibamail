@@ -1,0 +1,185 @@
+/**
+ * DNS Configuration and Verification
+ *
+ * Utilities for generating DNS record values and verifying DNS configuration.
+ */
+
+import dns from "node:dns/promises";
+
+/**
+ * DNS configuration for sending domains
+ */
+export const DNS_CONFIG = {
+  bounceHost: "mail.kbmta.net",
+  bounceSubdomain: "kb",
+  trackingHost: "e.kbmta.net",
+  trackingSubdomain: "e",
+};
+
+/**
+ * Clean up public key for DNS record
+ * Removes PEM headers/footers and joins lines
+ */
+function cleanupPublicKey(publicKey: string): string {
+  const lines = publicKey.split("\n");
+  lines.shift(); // remove "-----BEGIN PUBLIC KEY-----"
+  lines.pop(); // remove empty line
+  lines.pop(); // remove "-----END PUBLIC KEY-----"
+  return lines.join("");
+}
+
+/**
+ * Get DKIM DNS record configuration
+ */
+export function getDkimRecord(
+  domain: string,
+  dkimSubdomain: string,
+  publicKey: string
+) {
+  const cleanedKey = publicKey.includes("-----BEGIN")
+    ? cleanupPublicKey(publicKey)
+    : publicKey;
+
+  return {
+    type: "TXT" as const,
+    hostname: `${dkimSubdomain}.${domain}`,
+    value: `k=rsa;p=${cleanedKey}`,
+  };
+}
+
+/**
+ * Get Return Path (bounce) DNS record configuration
+ */
+export function getReturnPathRecord(domain: string, subdomain: string) {
+  return {
+    type: "CNAME" as const,
+    hostname: `${subdomain}.${domain}`,
+    value: DNS_CONFIG.bounceHost,
+  };
+}
+
+/**
+ * Get Tracking DNS record configuration
+ */
+export function getTrackingRecord(domain: string, subdomain: string) {
+  return {
+    type: "CNAME" as const,
+    hostname: `${subdomain}.${domain}`,
+    value: DNS_CONFIG.trackingHost,
+  };
+}
+
+/**
+ * Get all DNS records for a sending domain
+ */
+export function getDnsRecords(
+  domain: string,
+  dkimSubdomain: string,
+  publicKey: string,
+  returnPathSubdomain: string,
+  trackingSubdomain: string
+) {
+  return {
+    dkim: getDkimRecord(domain, dkimSubdomain, publicKey),
+    returnPath: getReturnPathRecord(domain, returnPathSubdomain),
+    tracking: getTrackingRecord(domain, trackingSubdomain),
+  };
+}
+
+/**
+ * Resolve CNAME records for a hostname
+ */
+async function resolveCname(hostname: string): Promise<string[]> {
+  try {
+    return await dns.resolveCname(hostname);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Resolve TXT records for a hostname
+ */
+async function resolveTxt(hostname: string): Promise<string[]> {
+  try {
+    const records = await dns.resolveTxt(hostname);
+    // TXT records may be arrays of strings that need to be joined
+    return records.map((record) =>
+      Array.isArray(record) ? record.join("") : record
+    );
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Verification result for a single record
+ */
+export interface RecordVerification {
+  configured: boolean;
+  expected: string;
+  found: string[];
+}
+
+/**
+ * Full DNS verification result
+ */
+export interface DnsVerificationResult {
+  dkim: RecordVerification;
+  returnPath: RecordVerification;
+  tracking: RecordVerification;
+  allVerified: boolean;
+}
+
+/**
+ * Verify DNS configuration for a sending domain
+ */
+export async function verifyDnsRecords(
+  domain: string,
+  dkimSubdomain: string,
+  publicKey: string,
+  returnPathSubdomain: string,
+  trackingSubdomain: string,
+  returnPathCnameValue: string,
+  trackingCnameValue: string
+): Promise<DnsVerificationResult> {
+  const expectedDkim = getDkimRecord(domain, dkimSubdomain, publicKey);
+  const expectedReturnPath = getReturnPathRecord(domain, returnPathSubdomain);
+  const expectedTracking = getTrackingRecord(domain, trackingSubdomain);
+
+  // Resolve all records in parallel
+  const [dkimRecords, returnPathRecords, trackingRecords] = await Promise.all([
+    resolveTxt(`${dkimSubdomain}.${domain}`),
+    resolveCname(`${returnPathSubdomain}.${domain}`),
+    resolveCname(`${trackingSubdomain}.${domain}`),
+  ]);
+
+  const dkimConfigured = dkimRecords.some(
+    (record) => record === expectedDkim.value
+  );
+  const returnPathConfigured = returnPathRecords.some(
+    (record) => record === returnPathCnameValue
+  );
+  const trackingConfigured = trackingRecords.some(
+    (record) => record === trackingCnameValue
+  );
+
+  return {
+    dkim: {
+      configured: dkimConfigured,
+      expected: expectedDkim.value,
+      found: dkimRecords,
+    },
+    returnPath: {
+      configured: returnPathConfigured,
+      expected: returnPathCnameValue,
+      found: returnPathRecords,
+    },
+    tracking: {
+      configured: trackingConfigured,
+      expected: trackingCnameValue,
+      found: trackingRecords,
+    },
+    allVerified: dkimConfigured && returnPathConfigured && trackingConfigured,
+  };
+}

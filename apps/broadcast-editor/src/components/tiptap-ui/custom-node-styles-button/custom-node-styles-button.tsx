@@ -5,6 +5,9 @@ import type { Node as TiptapNode } from "@tiptap/pm/model";
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
 
+// --- Owly Components ---
+import { ColorField } from "@kibamail/owly";
+
 // --- UI Primitives ---
 import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
 import { Button } from "@/components/tiptap-ui-primitive/button";
@@ -16,17 +19,72 @@ import {
 import {
   Card,
   CardBody,
-  CardGroupLabel,
   CardItemGroup,
 } from "@/components/tiptap-ui-primitive/card";
-import { Input, InputGroup } from "@/components/tiptap-ui-primitive/input";
 import { Separator } from "@/components/tiptap-ui-primitive/separator";
+
+// --- Components ---
+import { SpacingInput } from "@/components/tiptap-templates/email-editor/spacing-input";
 
 // --- Icons ---
 import { FillColor as PaintBucketIcon } from "iconoir-react";
 
 // --- Styles ---
 import "./custom-node-styles-button.scss";
+
+/**
+ * Parse a CSS spacing value (e.g., "10px 20px 10px 20px" or "10px") into individual sides
+ */
+function parseSpacingValue(value: string | undefined): {
+  top: string;
+  right: string;
+  bottom: string;
+  left: string;
+} {
+  if (!value) {
+    return { top: "0px", right: "0px", bottom: "0px", left: "0px" };
+  }
+
+  const parts = value.toString().split(" ").filter(Boolean);
+
+  if (parts.length === 1) {
+    return { top: parts[0], right: parts[0], bottom: parts[0], left: parts[0] };
+  }
+  if (parts.length === 2) {
+    return {
+      top: parts[0],
+      right: parts[1],
+      bottom: parts[0],
+      left: parts[1],
+    };
+  }
+  if (parts.length === 3) {
+    return {
+      top: parts[0],
+      right: parts[1],
+      bottom: parts[2],
+      left: parts[1],
+    };
+  }
+  return {
+    top: parts[0] || "0px",
+    right: parts[1] || "0px",
+    bottom: parts[2] || "0px",
+    left: parts[3] || "0px",
+  };
+}
+
+/**
+ * Combine individual spacing values into a CSS shorthand
+ */
+function combineSpacingValue(values: {
+  top: string;
+  right: string;
+  bottom: string;
+  left: string;
+}): string {
+  return `${values.top} ${values.right} ${values.bottom} ${values.left}`;
+}
 
 export interface CustomNodeStylesButtonProps extends Omit<ButtonProps, "type"> {
   /**
@@ -60,58 +118,6 @@ export interface CustomNodeStylesButtonProps extends Omit<ButtonProps, "type"> {
    * @default "left"
    */
   popoverSide?: "top" | "right" | "bottom" | "left";
-}
-
-interface StyleSectionProps {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  type?: "color" | "text";
-  placeholder?: string;
-}
-
-function StyleSection({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-}: StyleSectionProps) {
-  if (type === "color") {
-    return (
-      <div className="custom-node-styles-section">
-        <CardGroupLabel>{label}</CardGroupLabel>
-        <div className="custom-node-styles-color-input">
-          <input
-            type="color"
-            value={value || "#000000"}
-            onChange={(e) => onChange(e.target.value)}
-            className="custom-node-styles-color-picker"
-          />
-          <Input
-            type="text"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            placeholder={placeholder || "#000000"}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="custom-node-styles-section">
-      <CardGroupLabel>{label}</CardGroupLabel>
-      <InputGroup>
-        <Input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-        />
-      </InputGroup>
-    </div>
-  );
 }
 
 /**
@@ -219,43 +225,55 @@ export const CustomNodeStylesButton = forwardRef<
           <Card>
             <CardBody>
               <CardItemGroup>
-                <StyleSection
-                  label="Text Color"
-                  value={(localStyles.color as string) || ""}
-                  onChange={(value) => handleStyleChange("color", value)}
-                  type="color"
-                  placeholder="#000000"
-                />
+                <div className="custom-node-styles-section">
+                  <ColorField.Root
+                    size="sm"
+                    label="Text Color"
+                    value={(localStyles.color as string) || "#000000"}
+                    onChange={(value) => handleStyleChange("color", value)}
+                  />
+                </div>
 
                 <Separator orientation="horizontal" />
 
-                <StyleSection
-                  label="Background Color"
-                  value={(localStyles.backgroundColor as string) || ""}
-                  onChange={(value) =>
-                    handleStyleChange("backgroundColor", value)
-                  }
-                  type="color"
-                  placeholder="#ffffff"
-                />
+                <div className="custom-node-styles-section">
+                  <ColorField.Root
+                    size="sm"
+                    label="Background Color"
+                    value={(localStyles.backgroundColor as string) || "#ffffff"}
+                    onChange={(value) =>
+                      handleStyleChange("backgroundColor", value)
+                    }
+                  />
+                </div>
 
                 <Separator orientation="horizontal" />
 
-                <StyleSection
-                  label="Padding"
-                  value={(localStyles.padding as string) || ""}
-                  onChange={(value) => handleStyleChange("padding", value)}
-                  placeholder="e.g. 8px or 8px 16px"
-                />
+                <div className="custom-node-styles-section">
+                  <SpacingInput
+                    label="Padding"
+                    values={parseSpacingValue(localStyles.padding as string)}
+                    onChange={(side, value) => {
+                      const currentValues = parseSpacingValue(localStyles.padding as string);
+                      const newValues = { ...currentValues, [side]: value };
+                      handleStyleChange("padding", combineSpacingValue(newValues));
+                    }}
+                  />
+                </div>
 
                 <Separator orientation="horizontal" />
 
-                <StyleSection
-                  label="Margin"
-                  value={(localStyles.margin as string) || ""}
-                  onChange={(value) => handleStyleChange("margin", value)}
-                  placeholder="e.g. 8px or 8px 16px"
-                />
+                <div className="custom-node-styles-section">
+                  <SpacingInput
+                    label="Margin"
+                    values={parseSpacingValue(localStyles.margin as string)}
+                    onChange={(side, value) => {
+                      const currentValues = parseSpacingValue(localStyles.margin as string);
+                      const newValues = { ...currentValues, [side]: value };
+                      handleStyleChange("margin", combineSpacingValue(newValues));
+                    }}
+                  />
+                </div>
               </CardItemGroup>
             </CardBody>
           </Card>

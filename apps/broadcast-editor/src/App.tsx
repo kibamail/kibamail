@@ -24,13 +24,17 @@ export default function App() {
             open,
             styles: {
               body: {
-                backgroundColor: "#ffffff",
+                backgroundColor: "#f4f5f7",
+                paddingTop: "24px",
+                paddingBottom: "24px",
               },
               container: {
                 backgroundColor: "#ffffff",
+                borderWidth: "1px",
+                borderColor: "#f4f5f7",
               },
               button: {
-                backgroundColor: "#000",
+                backgroundColor: "#49260b",
                 color: "#fff",
                 paddingLeft: "16px",
                 paddingRight: "16px",

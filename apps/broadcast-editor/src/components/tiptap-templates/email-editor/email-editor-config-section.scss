@@ -1,7 +1,5 @@
 .email-editor-config-section {
-  padding-bottom: var(--sp-xl);
   border-bottom: 1px solid var(--border-tertiary);
-  padding-bottom: var(--sp-xl);
 
   &:last-child {
     border-bottom: none;
@@ -12,53 +10,60 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: var(--sp-xl);
-  padding: var(--sp-lg);
+  padding: var(--sp-md) var(--sp-lg);
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background-color: var(--bg-secondary);
+  }
 
   .email-editor-config-section-header-title {
     font-weight: 600;
   }
 }
 
-.email-editor-config-section-header-actions {
-  display: flex;
-  gap: var(--sp-xs);
-}
-
-.email-editor-config-section-add {
-  position: relative;
-}
-
-.email-editor-config-section-empty {
-  padding: var(--sp-lg);
-  text-align: center;
+.email-editor-config-section-arrow {
+  width: 16px;
+  height: 16px;
   color: var(--text-tertiary);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
 }
 
-.email-editor-config-section-empty-title {
-  display: block;
-  margin-bottom: var(--sp-xs);
+.email-editor-config-section-expanded {
+  .email-editor-config-section-arrow {
+    transform: rotate(180deg);
+  }
 }
 
-.email-editor-config-section-empty-hint {
-  color: var(--text-quaternary);
+.email-editor-config-section-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.2s ease-out;
+
+  &.email-editor-config-section-content-expanded {
+    grid-template-rows: 1fr;
+  }
+}
+
+.email-editor-config-section-content-inner {
+  overflow: hidden;
 }
 
 .email-editor-config-properties {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--sp-md);
+  padding-bottom: var(--sp-lg);
 }
 
 .email-editor-config-property {
   padding: 0 var(--sp-lg);
-  margin-bottom: var(--sp-lg);
-
-  label {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
 }
 
 .email-editor-config-property-label-wrapper {
@@ -68,7 +73,7 @@
   margin-bottom: var(--sp-xs);
 }
 
-.email-editor-config-property-label {
-  font-weight: 500;
-  color: var(--text-primary);
+.email-editor-config-section-empty {
+  padding: 0 var(--sp-lg);
+  color: var(--text-tertiary);
 }

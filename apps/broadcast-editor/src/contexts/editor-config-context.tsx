@@ -35,6 +35,15 @@ export interface EditorConfigContextValue {
   ) => void;
 
   /**
+   * Update a specific heading style property
+   */
+  updateHeadingStyleProperty: (
+    level: HeadingLevel,
+    property: string,
+    value: string | number
+  ) => void;
+
+  /**
    * Remove a specific style property from a given element type
    */
   removeStyleProperty: (
@@ -58,6 +67,7 @@ export const EditorConfigContext = createContext<EditorConfigContextValue>({
   getStyles: () => undefined,
   getHeadingStyles: () => undefined,
   updateStyleProperty: () => {},
+  updateHeadingStyleProperty: () => {},
   removeStyleProperty: () => {},
 });
 
@@ -115,6 +125,24 @@ export function EditorConfigProvider({
     []
   );
 
+  // Update a specific heading style property
+  const updateHeadingStyleProperty = useCallback(
+    (level: HeadingLevel, property: string, value: string | number) => {
+      const headingKey = `h${level}` as keyof NonNullable<EditorStylesConfig["heading"]>;
+      setStyles((prev) => ({
+        ...prev,
+        heading: {
+          ...prev.heading,
+          [headingKey]: {
+            ...prev.heading?.[headingKey],
+            [property]: value,
+          },
+        },
+      }));
+    },
+    []
+  );
+
   // Remove a specific style property
   const removeStyleProperty = useCallback(
     (type: keyof EditorStylesConfig, property: string) => {
@@ -145,9 +173,10 @@ export function EditorConfigProvider({
       getStyles: (type: SimpleStyleKey) => styles[type],
       getHeadingStyles,
       updateStyleProperty,
+      updateHeadingStyleProperty,
       removeStyleProperty,
     }),
-    [styles, getHeadingStyles, updateStyleProperty, removeStyleProperty]
+    [styles, getHeadingStyles, updateStyleProperty, updateHeadingStyleProperty, removeStyleProperty]
   );
 
   return (

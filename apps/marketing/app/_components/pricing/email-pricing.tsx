@@ -184,15 +184,16 @@ export function EmailPricing({ type }: EmailPricingProps) {
           <div className="flex flex-col gap-1">
             <PricingSlider
               min={0}
-              max={200_000}
+              max={1_000_000}
               value={[emailCount]}
               onValueChange={handleSliderChange}
               markers={[
                 { value: 0, label: "0" },
-                { value: 50_000, label: "50k" },
-                { value: 100_000, label: "100k" },
-                { value: 150_000, label: "150k" },
-                { value: 200_000, label: "200k+" },
+                { value: 200_000, label: "200k" },
+                { value: 400_000, label: "400k" },
+                { value: 600_000, label: "600k" },
+                { value: 800_000, label: "800k" },
+                { value: 1_000_000, label: "1M" },
               ]}
             />
 
