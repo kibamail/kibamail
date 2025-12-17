@@ -16,9 +16,9 @@ export function ParagraphNode(props: NodeViewProps) {
 
   return (
     <NodeViewWrapper>
-      <p style={paragraphStyles} data-text-align={props.node.attrs.textAlign}>
+      <div style={paragraphStyles} data-text-align={props.node.attrs.textAlign}>
         <NodeViewContent />
-      </p>
+      </div>
     </NodeViewWrapper>
   );
 }

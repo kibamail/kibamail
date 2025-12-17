@@ -15,7 +15,7 @@ import {
   getSendingDomain,
   updateSendingDomain,
   deleteSendingDomain,
-} from "../handler";
+} from "@/app/api/v1/domains/handler";
 
 /**
  * GET /api/v1/domains/[domainId]

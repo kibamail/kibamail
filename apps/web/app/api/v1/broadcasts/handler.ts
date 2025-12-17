@@ -43,7 +43,6 @@ async function getOrCreateSenderIdentity(
 ): Promise<SenderIdentity> {
   const { localPart } = parseEmail(fromEmail);
 
-  // Check if sender identity already exists
   const existingSenderIdentity = await prisma.senderIdentity.findFirst({
     where: {
       workspaceId,
@@ -56,14 +55,13 @@ async function getOrCreateSenderIdentity(
     return existingSenderIdentity;
   }
 
-  // Create new sender identity with auto-verification
   const senderIdentity = await prisma.senderIdentity.create({
     data: {
       workspaceId,
-      name: localPart, // Use local part as default name
+      name: localPart,
       email: localPart,
       sendingDomainId,
-      emailVerifiedAt: new Date(), // Auto-verify
+      emailVerifiedAt: new Date(),
     },
   });
 
@@ -157,7 +155,6 @@ export async function createBroadcast(
   let senderIdentityId: string | undefined;
   let sendingDomainId: string | undefined;
 
-  // Handle 'from' field if provided
   if (data.from) {
     const sendingDomain = await validateFromDomain(workspaceId, data.from);
     const senderIdentity = await getOrCreateSenderIdentity(
@@ -169,7 +166,6 @@ export async function createBroadcast(
     senderIdentityId = senderIdentity.id;
     sendingDomainId = sendingDomain.id;
 
-    // Update replyTo on sender identity if provided
     if (data.replyTo && data.replyTo !== senderIdentity.replyToEmail) {
       await prisma.senderIdentity.update({
         where: { id: senderIdentity.id },
@@ -178,7 +174,6 @@ export async function createBroadcast(
     }
   }
 
-  // Create email content if emailContent object is provided
   let emailContentId: string | undefined;
   if (data.emailContent) {
     const emailContent = await prisma.emailContent.create({
@@ -192,7 +187,6 @@ export async function createBroadcast(
     emailContentId = emailContent.id;
   }
 
-  // Validate topicId if provided
   if (data.topicId) {
     const topic = await prisma.topic.findFirst({
       where: { id: data.topicId, workspaceId },
@@ -202,7 +196,6 @@ export async function createBroadcast(
     }
   }
 
-  // Validate segmentId if provided
   if (data.segmentId) {
     const segment = await prisma.segment.findFirst({
       where: { id: data.segmentId, workspaceId },
@@ -212,7 +205,6 @@ export async function createBroadcast(
     }
   }
 
-  // Create the broadcast
   const broadcast = await prisma.broadcast.create({
     data: {
       workspaceId,
@@ -339,7 +331,6 @@ export async function updateBroadcast(
 ) {
   const data = await validateRequestBody(updateBroadcastSchema, request);
 
-  // Get existing broadcast
   const existingBroadcast = await prisma.broadcast.findFirst({
     where: {
       id: broadcastId,
@@ -358,7 +349,6 @@ export async function updateBroadcast(
     );
   }
 
-  // Only allow updates on DRAFT broadcasts
   if (existingBroadcast.status !== "DRAFT") {
     throw new BadRequestError(
       "Only draft broadcasts can be updated",
@@ -368,12 +358,10 @@ export async function updateBroadcast(
 
   const updateData: Record<string, unknown> = {};
 
-  // Update name if provided
   if (data.name !== undefined) {
     updateData.name = data.name;
   }
 
-  // Handle 'from' field if provided
   if (data.from !== undefined) {
     const sendingDomain = await validateFromDomain(workspaceId, data.from);
     const senderIdentity = await getOrCreateSenderIdentity(
@@ -385,7 +373,6 @@ export async function updateBroadcast(
     updateData.senderIdentityId = senderIdentity.id;
     updateData.sendingDomainId = sendingDomain.id;
 
-    // Update replyTo on sender identity if provided
     if (data.replyTo) {
       await prisma.senderIdentity.update({
         where: { id: senderIdentity.id },
@@ -393,20 +380,16 @@ export async function updateBroadcast(
       });
     }
   } else if (data.replyTo !== undefined && existingBroadcast.senderIdentityId) {
-    // Update replyTo on existing sender identity
     await prisma.senderIdentity.update({
       where: { id: existingBroadcast.senderIdentityId },
       data: { replyToEmail: data.replyTo },
     });
   }
 
-  // Handle emailContent update
   if (data.emailContent !== undefined) {
     if (data.emailContent === null) {
-      // Clear email content
       updateData.emailContentId = null;
     } else if (existingBroadcast.emailContentId) {
-      // Update existing email content
       await prisma.emailContent.update({
         where: { id: existingBroadcast.emailContentId },
         data: {
@@ -417,7 +400,6 @@ export async function updateBroadcast(
         },
       });
     } else {
-      // Create new email content
       const emailContent = await prisma.emailContent.create({
         data: {
           subject: data.emailContent.subject,
@@ -430,7 +412,6 @@ export async function updateBroadcast(
     }
   }
 
-  // Handle topicId update
   if (data.topicId !== undefined) {
     if (data.topicId === null) {
       updateData.topicId = null;
@@ -445,7 +426,6 @@ export async function updateBroadcast(
     }
   }
 
-  // Handle segmentId update
   if (data.segmentId !== undefined) {
     if (data.segmentId === null) {
       updateData.segmentId = null;
@@ -463,7 +443,6 @@ export async function updateBroadcast(
     }
   }
 
-  // Update the broadcast
   const updatedBroadcast = await prisma.broadcast.update({
     where: { id: broadcastId },
     data: updateData,
@@ -503,7 +482,6 @@ export async function deleteBroadcast(workspaceId: string, broadcastId: string) 
     );
   }
 
-  // Only allow deletion of DRAFT broadcasts
   if (broadcast.status !== "DRAFT") {
     throw new BadRequestError(
       "Only draft broadcasts can be deleted",
@@ -537,7 +515,6 @@ export async function sendBroadcast(
 ) {
   const data = await validateRequestBody(sendBroadcastSchema, request);
 
-  // Get the broadcast with all related data
   const broadcast = await prisma.broadcast.findFirst({
     where: {
       id: broadcastId,
@@ -562,7 +539,6 @@ export async function sendBroadcast(
     );
   }
 
-  // Only allow sending DRAFT broadcasts
   if (broadcast.status !== "DRAFT") {
     throw new BadRequestError(
       "Only draft broadcasts can be sent",
@@ -570,8 +546,6 @@ export async function sendBroadcast(
     );
   }
 
-  // Validate required fields for sending
-  // These validations can be extended later as mentioned by user
   if (!broadcast.senderIdentityId || !broadcast.senderIdentity) {
     throw new BadRequestError(
       "Broadcast must have a sender (from) configured before sending",
@@ -593,7 +567,6 @@ export async function sendBroadcast(
     );
   }
 
-  // Update the broadcast status to QUEUED_FOR_SENDING and set sendAt
   const updatedBroadcast = await prisma.broadcast.update({
     where: { id: broadcastId },
     data: {

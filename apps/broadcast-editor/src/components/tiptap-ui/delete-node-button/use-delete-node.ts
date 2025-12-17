@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useState } from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 import { type Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
+
+// --- Lib ---
+import { isNodeSelectionType } from "@/lib/tiptap-utils"
 
 // --- Icons ---
 import { Trash as TrashIcon } from "iconoir-react"
@@ -42,7 +44,7 @@ export function canDeleteNode(editor: Editor | null): boolean {
   const { state } = editor
   const { selection } = state
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     return true
   }
 
@@ -89,7 +91,7 @@ export function deleteNode(editor: Editor | null): boolean {
     const { state } = editor
     const { selection } = state
 
-    if (selection instanceof NodeSelection) {
+    if (isNodeSelectionType(selection)) {
       const pos = selection.from
       const selectedNode = selection.node
 

@@ -49,6 +49,7 @@ export function CreateBroadcastModal({
   const nameFieldId = useId();
   const fromLocalPartFieldId = useId();
   const [domainPopoverOpen, setDomainPopoverOpen] = useState(false);
+  const [isAddingNewSender, setIsAddingNewSender] = useState(false);
 
   const hasSenderIdentities = senderIdentities.length > 0;
   const hasDomains = domains.length > 0;
@@ -71,7 +72,6 @@ export function CreateBroadcastModal({
     },
   });
 
-  // Reset form when modal opens
   useEffect(() => {
     if (open) {
       reset({
@@ -82,6 +82,7 @@ export function CreateBroadcastModal({
         fromLocalPart: "",
         fromDomainId: hasDomains ? domains[0]?.id : undefined,
       });
+      setIsAddingNewSender(false);
     }
   }, [open, reset, hasSenderIdentities, hasDomains, senderIdentities, domains]);
 
@@ -89,19 +90,23 @@ export function CreateBroadcastModal({
     async mutationFn(data: BroadcastFormData) {
       let from: string | undefined;
 
-      if (hasSenderIdentities && data.senderIdentityId) {
-        // Use selected sender identity
+      if (isAddingNewSender || !hasSenderIdentities) {
+        // User is adding a new sender or there are no existing sender identities
+        if (hasDomains && data.fromLocalPart && data.fromDomainId) {
+          const selectedDomain = domains.find(
+            (d) => d.id === data.fromDomainId
+          );
+          if (selectedDomain && data.fromLocalPart.trim()) {
+            from = `${data.fromLocalPart.trim()}@${selectedDomain.name}`;
+          }
+        }
+      } else if (data.senderIdentityId) {
+        // User selected an existing sender identity
         const selectedIdentity = senderIdentities.find(
           (si) => si.id === data.senderIdentityId
         );
         if (selectedIdentity) {
           from = selectedIdentity.email;
-        }
-      } else if (hasDomains && data.fromLocalPart && data.fromDomainId) {
-        // Construct from email from local part and domain
-        const selectedDomain = domains.find((d) => d.id === data.fromDomainId);
-        if (selectedDomain && data.fromLocalPart.trim()) {
-          from = `${data.fromLocalPart.trim()}@${selectedDomain.name}`;
         }
       }
 
@@ -112,15 +117,14 @@ export function CreateBroadcastModal({
     },
     onSuccess(data) {
       toast("Broadcast created successfully.");
-      handleClose();
-      // Navigate to the broadcast editor
+      onClose();
       const broadcast = data as { id: string };
       router.push(`/broadcasts/${broadcast.id}`);
       router.refresh();
     },
   });
 
-  function handleClose() {
+  function onClose() {
     reset();
     onOpenChange?.(false);
   }
@@ -130,7 +134,7 @@ export function CreateBroadcastModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleClose}>
+    <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
@@ -158,11 +162,17 @@ export function CreateBroadcastModal({
               )}
             </TextField.Root>
 
-            {/* Show sender identity selector if sender identities exist */}
-            {hasSenderIdentities && (
+            {hasSenderIdentities && !isAddingNewSender && (
               <Select.Root
                 value={watch("senderIdentityId")}
-                onValueChange={(value) => setValue("senderIdentityId", value)}
+                onValueChange={(value) => {
+                  if (value === "__add_new__") {
+                    setIsAddingNewSender(true);
+                    setValue("senderIdentityId", undefined);
+                  } else {
+                    setValue("senderIdentityId", value);
+                  }
+                }}
               >
                 <Select.Label help="Select who this broadcast will be sent from">
                   From
@@ -174,12 +184,18 @@ export function CreateBroadcastModal({
                       <span>{identity.email}</span>
                     </Select.Item>
                   ))}
+                  {hasDomains && (
+                    <Select.Item value="__add_new__">
+                      <span className="text-kb-content-secondary">
+                        + Add new sender
+                      </span>
+                    </Select.Item>
+                  )}
                 </Select.Content>
               </Select.Root>
             )}
 
-            {/* Show email input with domain selector suffix if no sender identities but has domains */}
-            {!hasSenderIdentities && hasDomains && (
+            {(isAddingNewSender || !hasSenderIdentities) && hasDomains && (
               <TextField.Root
                 id={fromLocalPartFieldId}
                 placeholder="newsletter"
@@ -212,8 +228,7 @@ export function CreateBroadcastModal({
                     </Popover.Trigger>
                     <Popover.Content
                       align="end"
-                      sideOffset={24}
-                      className="w-48 bg-kb-surface-primary border border-kb-stroke-secondary rounded-lg shadow-lg p-1"
+                      className="w-48 -ml-2 bg-kb-surface-primary border border-kb-stroke-secondary rounded-lg shadow-lg p-1"
                     >
                       {domains.map((domain) => (
                         <button
@@ -239,7 +254,6 @@ export function CreateBroadcastModal({
               </TextField.Root>
             )}
 
-            {/* Show warning if no domains exist */}
             {!hasDomains && (
               <Alert.Root variant="warning">
                 <Alert.Icon>
@@ -260,7 +274,7 @@ export function CreateBroadcastModal({
             <Button
               type="button"
               variant="secondary"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={mutation.isPending}
             >
               Cancel

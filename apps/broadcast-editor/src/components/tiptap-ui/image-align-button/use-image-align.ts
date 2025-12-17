@@ -3,14 +3,13 @@
 import { useCallback, useEffect, useState } from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 import { type Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
 
 // --- Lib ---
-import { isExtensionAvailable } from "@/lib/tiptap-utils"
+import { isExtensionAvailable, isNodeSelectionType } from "@/lib/tiptap-utils"
 
 // --- Icons ---
 import { AlignStartVerticalIcon } from "@/components/tiptap-icons/align-start-vertical-icon"
@@ -127,8 +126,8 @@ export function setImageAlign(
 
   try {
     const { selection } = editor.state
-    const isNodeSelection = selection instanceof NodeSelection
-    const selectionPosition = isNodeSelection
+    const isNodeSel = isNodeSelectionType(selection)
+    const selectionPosition = isNodeSel
       ? selection.from
       : selection.$anchor.pos
 
@@ -140,7 +139,7 @@ export function setImageAlign(
 
     // Restore node selection if it was originally selected
     // This is the temporary solution as image-node-extension.ts contain content: "inline*"
-    if (alignmentUpdated && isNodeSelection) {
+    if (alignmentUpdated && isNodeSel) {
       editor.commands.setNodeSelection(selectionPosition)
     }
 

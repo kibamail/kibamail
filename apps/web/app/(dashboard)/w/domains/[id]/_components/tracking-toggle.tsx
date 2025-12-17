@@ -43,7 +43,7 @@ export function TrackingToggle({
     },
   });
 
-  function handleChange(value: boolean) {
+  function onChange(value: boolean) {
     setChecked(value);
     mutation.mutate(value);
   }
@@ -52,7 +52,7 @@ export function TrackingToggle({
     <Switch.Root
       id={field}
       checked={checked}
-      onCheckedChange={handleChange}
+      onCheckedChange={onChange}
       disabled={mutation.isPending}
     >
       <Switch.Label htmlFor={field} help={help}>

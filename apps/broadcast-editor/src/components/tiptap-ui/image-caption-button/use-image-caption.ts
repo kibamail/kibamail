@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { type Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
@@ -11,6 +10,7 @@ import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
 import {
   isExtensionAvailable,
   isNodeTypeSelected,
+  isNodeSelectionType,
 } from "@/lib/tiptap-utils"
 
 // --- Icons ---
@@ -54,13 +54,13 @@ export function isImageCaptionActive(editor: Editor | null): boolean {
   try {
     const { selection } = editor.state
     const isImageSelected =
-      selection instanceof NodeSelection && selection.node.type.name === "image"
+      isNodeSelectionType(selection) && selection.node.type.name === "image"
 
     if (!isImageSelected) {
       return false
     }
 
-    const imageNode = (selection as NodeSelection).node
+    const imageNode = selection.node
     return imageNode.attrs.showCaption === true || imageNode.content.size > 0
   } catch {
     return false
@@ -78,7 +78,7 @@ export function setImageCaption(editor: Editor | null): boolean {
   try {
     const { selection } = editor.state
     const isImageSelected =
-      selection instanceof NodeSelection && selection.node.type.name === "image"
+      isNodeSelectionType(selection) && selection.node.type.name === "image"
 
     if (!isImageSelected) {
       return false

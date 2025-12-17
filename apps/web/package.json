@@ -34,6 +34,7 @@
     "@kibamail/owly": "workspace:*",
     "@repo/broadcast-editor": "workspace:*",
     "@tiptap/core": "^3.11.0",
+    "@tiptap/pm": "^3.11.0",
     "@tiptap/react": "^3.11.0",
     "@logto/api": "^1.33.0",
     "@logto/next": "^4.2.6",

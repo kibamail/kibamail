@@ -95,6 +95,7 @@ import {
   type CreateBroadcastRequest,
   type UpdateBroadcastRequest,
 } from "@/app/api/v1/broadcasts/schema";
+import { type UploadBroadcastFilesResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/files/schema";
 import {
   type ContactPropertyListResponse,
   type ContactPropertyResponse,
@@ -1812,6 +1813,50 @@ class BroadcastsApi extends HttpClient {
       broadcastResponseSchema,
       data,
     );
+  }
+
+  /**
+   * Upload files for a broadcast
+   *
+   * @param broadcastId - ID of the broadcast
+   * @param files - Array of files to upload
+   * @returns Upload result with file URLs
+   *
+   * @example
+   * ```ts
+   * const input = document.querySelector('input[type="file"]');
+   * const files = Array.from(input.files);
+   * const result = await internalApi.broadcasts().uploadFiles('broadcast_123', files)
+   * console.log(result.files) // Array of uploaded file info with URLs
+   * ```
+   */
+  async uploadFiles(
+    broadcastId: string,
+    files: File[],
+  ): Promise<UploadBroadcastFilesResponse> {
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("files", file);
+    }
+
+    const response = await fetch(
+      `/api/internal/v1/broadcasts/${broadcastId}/files`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json();
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "File upload failed";
+      throw new ApiClientError(errorMessage, response.status, errorData);
+    }
+
+    return response.json();
   }
 }
 

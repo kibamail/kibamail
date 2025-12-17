@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { type Editor, isNodeSelection } from "@tiptap/react";
+import { type Editor } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import { autoUpdate } from "@floating-ui/react";
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
+
+// --- Lib ---
+import { isNodeSelectionType } from "@/lib/tiptap-utils";
 
 // --- UI Components ---
 import { FloatingElement } from "@/components/tiptap-ui-utils/floating-element";
@@ -46,7 +49,7 @@ export function VariableFallbackFloating({
 
     const { selection } = editor.state;
 
-    if (!isNodeSelection(selection)) return null;
+    if (!isNodeSelectionType(selection)) return null;
     if (selection.node.type.name !== "variable") return null;
 
     const nodeDom = editor.view.nodeDOM(selection.from) as HTMLElement | null;
@@ -61,7 +64,7 @@ export function VariableFallbackFloating({
 
       const { selection } = editorInstance.state;
 
-      if (!isNodeSelection(selection)) {
+      if (!isNodeSelectionType(selection)) {
         return { selected: false, fallback: "", pos: null };
       }
 

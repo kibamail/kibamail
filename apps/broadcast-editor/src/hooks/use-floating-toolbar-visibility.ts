@@ -1,6 +1,8 @@
-import { isNodeSelection, type Editor } from "@tiptap/react"
+import { type Editor } from "@tiptap/react"
 import { NodeSelection, type Transaction } from "@tiptap/pm/state"
 import { useEffect, useRef, useState } from "react"
+
+import { isNodeSelectionType } from "@/lib/tiptap-utils"
 
 export const HIDE_FLOATING_META = "hideFloatingToolbar"
 
@@ -55,7 +57,7 @@ export function useFloatingToolbarVisibility(params: {
 
     const onPointerDown = (e: PointerEvent) => {
       const sel = editor.state.selection
-      if (!(sel instanceof NodeSelection)) return
+      if (!isNodeSelectionType(sel)) return
       const nodeDom = editor.view.nodeDOM(sel.from) as HTMLElement | null
       if (!nodeDom) return
       if (nodeDom.contains(e.target as Node)) {
@@ -81,7 +83,7 @@ export function useFloatingToolbarVisibility(params: {
       const { selection } = editor.state
       const valid = isSelectionValid(editor, selection)
 
-      if (extraHideWhen || (isNodeSelection(selection) && hideRef.current)) {
+      if (extraHideWhen || (isNodeSelectionType(selection) && hideRef.current)) {
         setShouldShow(false)
         return
       }

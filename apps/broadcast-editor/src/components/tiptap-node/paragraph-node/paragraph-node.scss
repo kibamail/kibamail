@@ -137,3 +137,29 @@
   height: 0.188rem;
   cursor: grabbing;
 }
+
+/* =====================
+     TEXT ALIGNMENT
+     ===================== */
+.tiptap.ProseMirror {
+  [data-text-align="left"] {
+    [data-node-view-wrapper],
+    [data-node-view-content-react] {
+      text-align: left;
+    }
+  }
+
+  [data-text-align="center"] {
+    [data-node-view-wrapper],
+    [data-node-view-content-react] {
+      text-align: center;
+    }
+  }
+
+  [data-text-align="right"] {
+    [data-node-view-wrapper],
+    [data-node-view-content-react] {
+      text-align: right;
+    }
+  }
+}

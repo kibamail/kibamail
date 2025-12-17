@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 import { type Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
 
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
@@ -13,6 +12,7 @@ import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
 import {
   isExtensionAvailable,
   isNodeTypeSelected,
+  isNodeSelectionType,
   sanitizeUrl,
 } from "@/lib/tiptap-utils"
 
@@ -97,7 +97,7 @@ export function getSelectedImageData(editor: Editor | null): {
 
   const { selection } = editor.state
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const node = selection.node
 
     if (node.type.name === "image") {

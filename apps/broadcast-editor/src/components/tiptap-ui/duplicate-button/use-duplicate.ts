@@ -3,11 +3,12 @@
 import { useCallback, useEffect, useState } from "react"
 import { useHotkeys } from "react-hotkeys-hook"
 import { type Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
-
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
 import { useIsBreakpoint } from "@/hooks/use-is-breakpoint"
+
+// --- Lib ---
+import { isNodeSelectionType } from "@/lib/tiptap-utils"
 
 // --- Icons ---
 import { Copy as CopyIcon } from "iconoir-react"
@@ -43,7 +44,7 @@ export function canDuplicateNode(editor: Editor | null): boolean {
     const { state } = editor
     const { selection } = state
 
-    if (selection instanceof NodeSelection) {
+    if (isNodeSelectionType(selection)) {
       return !!selection.node
     }
 
@@ -66,7 +67,7 @@ export function duplicateNode(editor: Editor | null): boolean {
     const { selection } = state
     const chain = editor.chain().focus()
 
-    if (selection instanceof NodeSelection) {
+    if (isNodeSelectionType(selection)) {
       const selectedNode = selection.node
       const insertPos = selection.to
 

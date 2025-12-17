@@ -1,7 +1,9 @@
-import { NodeSelection, type Selection } from "@tiptap/pm/state"
+import { type Selection } from "@tiptap/pm/state"
 import { CellSelection } from "@tiptap/pm/tables"
 import type { Editor } from "@tiptap/react"
-import { isTextSelection, isNodeSelection, posToDOMRect } from "@tiptap/react"
+import { isTextSelection, posToDOMRect } from "@tiptap/react"
+
+import { isNodeSelectionType } from "@/lib/tiptap-utils"
 
 const NODE_TYPE_LABELS: Record<string, string> = {
   paragraph: "Text",
@@ -24,7 +26,7 @@ export const getNodeDisplayName = (editor: Editor | null): string => {
 
   const { selection } = editor.state
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const nodeType = selection.node.type.name
     return NODE_TYPE_LABELS[nodeType] || nodeType.toLowerCase()
   }
@@ -76,11 +78,11 @@ export const isSelectionValid = (
     !doc.textBetween(from, to).length && isTextSelection(selection)
   const isCodeBlock =
     selection.$from.parent.type.spec.code ||
-    (isNodeSelection(selection) && selection.node.type.spec.code)
+    (isNodeSelectionType(selection) && selection.node.type.spec.code)
 
   const isButtonBlock = selection.$from.parent.type.name === "button"
   const isExcludedNode =
-    isNodeSelection(selection) &&
+    isNodeSelectionType(selection) &&
     excludedNodeTypes.includes(selection.node.type.name)
   const isTableCell = selection instanceof CellSelection
 
@@ -108,7 +110,7 @@ export const isTextSelectionValid = (editor: Editor | null): boolean => {
     isTextSelection(selection) &&
     !selection.empty &&
     !selection.$from.parent.type.spec.code &&
-    !isNodeSelection(selection)
+    !isNodeSelectionType(selection)
 
   return isValid
 }
@@ -124,7 +126,7 @@ export const getSelectionBoundingRect = (editor: Editor): DOMRect | null => {
   const from = Math.min(...ranges.map((range) => range.$from.pos))
   const to = Math.max(...ranges.map((range) => range.$to.pos))
 
-  if (isNodeSelection(selection)) {
+  if (isNodeSelectionType(selection)) {
     const node = editor.view.nodeDOM(from) as HTMLElement
     if (node) {
       return node.getBoundingClientRect()

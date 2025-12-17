@@ -8,6 +8,7 @@ import { NodeSelection, TextSelection } from "@tiptap/pm/state"
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
 
 // --- Lib ---
+import { isNodeSelectionType } from "@/lib/tiptap-utils"
 import {
   findNodePosition,
   isNodeInSchema,
@@ -110,7 +111,7 @@ export function toggleCodeBlock(editor: Editor | null): boolean {
     let chain = editor.chain().focus()
 
     // Handle NodeSelection
-    if (selection instanceof NodeSelection) {
+    if (isNodeSelectionType(selection)) {
       const firstChild = selection.node.firstChild?.firstChild
       const lastChild = selection.node.lastChild?.lastChild
 

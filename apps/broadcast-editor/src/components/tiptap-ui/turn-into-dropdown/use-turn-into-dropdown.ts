@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react"
 import type { Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
-
 // --- Hooks ---
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+
+// --- Lib ---
+import { isNodeSelectionType } from "@/lib/tiptap-utils"
 
 // --- Icons ---
 import { NavArrowDown as ChevronDownIcon } from "iconoir-react"
@@ -117,7 +118,7 @@ export function canTurnInto(
   const blockTypes = allowedBlockTypes || TURN_INTO_BLOCKS
   const { selection } = editor.state
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const nodeType = selection.node.type.name
     return blockTypes.includes(nodeType)
   }

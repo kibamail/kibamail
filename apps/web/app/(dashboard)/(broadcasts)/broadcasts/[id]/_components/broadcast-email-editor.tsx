@@ -4,29 +4,46 @@ import { useRef } from "react";
 import type { JSONContent } from "@tiptap/react";
 import { EmailEditor, type EmailEditorRef } from "@repo/broadcast-editor";
 import "@repo/broadcast-editor/styles";
+import { internalApi } from "@/lib/api/client";
 
 interface BroadcastEmailEditorProps {
+  broadcastId: string;
   stylesOpen: boolean;
   onStylesOpenChange: (open: boolean) => void;
 }
 
 export function BroadcastEmailEditor({
+  broadcastId,
   stylesOpen,
   onStylesOpenChange,
 }: BroadcastEmailEditorProps) {
   const emailEditorRef = useRef<EmailEditorRef>(null);
 
-  const handleChange = (content: JSONContent) => {
+  const onChange = (content: JSONContent) => {
     console.log("Content changed:", content);
   };
 
-  const handleUpload = async (
-    _file: File,
-    _onProgress?: (event: { progress: number }) => void,
+  const onUpload = async (
+    file: File,
+    onProgress?: (event: { progress: number }) => void,
     _abortSignal?: AbortSignal
   ): Promise<string> => {
-    // TODO: Implement actual file upload
-    return "/placeholder-image.jpg";
+    // Show initial progress
+    onProgress?.({ progress: 10 });
+
+    const result = await internalApi
+      .broadcasts()
+      .uploadFiles(broadcastId, [file]);
+
+    // Show completion
+    onProgress?.({ progress: 100 });
+
+    // Return the URL of the first uploaded file
+    if (result.files.length > 0) {
+      return result.files[0].url;
+    }
+
+    throw new Error("Upload failed - no file URL returned");
   };
 
   return (
@@ -97,7 +114,7 @@ export function BroadcastEmailEditor({
           },
           onOpenChange: onStylesOpenChange,
         }}
-        onChange={handleChange}
+        onChange={onChange}
         variables={[
           "contact.email",
           "contact.first_name",
@@ -106,7 +123,7 @@ export function BroadcastEmailEditor({
           "preferences_url",
           "view_in_browser_url",
         ]}
-        onUpload={handleUpload}
+        onUpload={onUpload}
       />
     </div>
   );

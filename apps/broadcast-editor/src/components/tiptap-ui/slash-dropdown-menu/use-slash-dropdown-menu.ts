@@ -19,6 +19,7 @@ import {
 import { HeadingOneIcon } from "@/components/tiptap-icons/heading-one-icon";
 import { HeadingTwoIcon } from "@/components/tiptap-icons/heading-two-icon";
 import { HeadingThreeIcon } from "@/components/tiptap-icons/heading-three-icon";
+import { FooterIcon } from "@/components/tiptap-icons/footer-icon";
 
 // --- Lib ---
 import { isExtensionAvailable, isNodeInSchema } from "@/lib/tiptap-utils";
@@ -144,6 +145,14 @@ const texts = {
     badge: PanelIcon,
     group: "Insert",
   },
+
+  footer: {
+    title: "Email Footer",
+    subtext: "Email footer with unsubscribe and address",
+    keywords: ["footer", "unsubscribe", "address", "compliance", "can-spam"],
+    badge: FooterIcon,
+    group: "Insert",
+  },
 };
 
 export type SlashMenuItemType = keyof typeof texts;
@@ -225,7 +234,7 @@ const getItemImplementations = () => {
       },
     },
 
-    // Button inserș
+    // Button insert
     button: {
       check: (editor: Editor) => isNodeInSchema("button", editor),
       action: ({ editor }: { editor: Editor }) => {
@@ -239,11 +248,102 @@ const getItemImplementations = () => {
       },
     },
 
-    // Panel inserș
+    // Panel insert
     panel: {
       check: (editor: Editor) => isNodeInSchema("panel", editor),
       action: ({ editor }: { editor: Editor }) => {
         editor.chain().focus().insertPanel().run();
+      },
+    },
+
+    // Footer insert
+    footer: {
+      check: (editor: Editor) =>
+        isNodeInSchema("paragraph", editor) &&
+        isNodeInSchema("horizontalRule", editor),
+      action: ({ editor }: { editor: Editor }) => {
+        const footerStyle = { fontSize: "14px" };
+
+        editor
+          .chain()
+          .focus()
+          .insertContent([
+            // Horizontal divider at top
+            { type: "horizontalRule" },
+            // Opt-in message
+            {
+              type: "paragraph",
+              attrs: { textAlign: "center", customStyle: footerStyle },
+              content: [
+                {
+                  type: "text",
+                  text: "You are receiving this email because you opted in via our site.",
+                },
+              ],
+            },
+            // Change preferences question
+            {
+              type: "paragraph",
+              attrs: { textAlign: "center", customStyle: footerStyle },
+              content: [
+                {
+                  type: "text",
+                  text: "Want to change how you receive these emails?",
+                },
+              ],
+            },
+            // Unsubscribe and preferences links
+            {
+              type: "paragraph",
+              attrs: { textAlign: "center", customStyle: footerStyle },
+              content: [
+                { type: "text", text: "You can " },
+                {
+                  type: "text",
+                  text: "unsubscribe from this list",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: { href: "{{unsubscribe_url}}" },
+                    },
+                  ],
+                },
+                { type: "text", text: " or manage your " },
+                {
+                  type: "text",
+                  text: "email preferences",
+                  marks: [
+                    {
+                      type: "link",
+                      attrs: { href: "{{preferences_url}}" },
+                    },
+                  ],
+                },
+                { type: "text", text: "." },
+              ],
+            },
+            // Empty line for spacing
+            { type: "paragraph", attrs: { customStyle: footerStyle } },
+            // Company name
+            {
+              type: "paragraph",
+              attrs: { textAlign: "center", customStyle: footerStyle },
+              content: [{ type: "text", text: "Your Company Name" }],
+            },
+            // Street address
+            {
+              type: "paragraph",
+              attrs: { textAlign: "center", customStyle: footerStyle },
+              content: [{ type: "text", text: "123 Street Address" }],
+            },
+            // City, State, Zip
+            {
+              type: "paragraph",
+              attrs: { textAlign: "center", customStyle: footerStyle },
+              content: [{ type: "text", text: "City, State 12345" }],
+            },
+          ])
+          .run();
       },
     },
   };

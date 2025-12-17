@@ -1,9 +1,9 @@
 import type { Attrs, Node } from "@tiptap/pm/model"
-import { findNodePosition, isValidPosition } from "@/lib/tiptap-utils"
+import { findNodePosition, isValidPosition, isNodeSelectionType } from "@/lib/tiptap-utils"
 import type { NodeWithPos } from "@tiptap/react"
 import { findParentNodeClosestToPos, type Editor } from "@tiptap/react"
 import type { Selection } from "@tiptap/pm/state"
-import { NodeSelection, TextSelection } from "@tiptap/pm/state"
+import { TextSelection } from "@tiptap/pm/state"
 import { cellAround, CellSelection } from "@tiptap/pm/tables"
 
 /**
@@ -115,7 +115,7 @@ export function getSelectedDOMElement(editor: Editor): HTMLElement | null {
   const { state, view } = editor
   const { selection } = state
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     return view.nodeDOM(selection.from) as HTMLElement | null
   }
 
@@ -259,7 +259,7 @@ export function getAllMatchingNodes(
     return matchesName && matchesBlock && matchesPredicate
   }
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const selectedNode = selection.node
     if (nodeMatches(selectedNode)) {
       matches.push({
@@ -301,7 +301,7 @@ export function getAnchorNodeAndPos(
   const { state } = editor
   const { selection } = state
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const node = selection.node
     const pos = selection.from
 
@@ -386,7 +386,7 @@ export function getSelectedNodesOfType(
     return results
   }
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const { node, from: pos } = selection
     if (node && allowed.has(node.type.name)) {
       results.push({ node, pos })

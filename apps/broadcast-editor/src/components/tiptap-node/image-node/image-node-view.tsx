@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import type { Editor, NodeViewProps } from "@tiptap/react"
 import { NodeViewWrapper, NodeViewContent } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
 
-import { isValidPosition } from "@/lib/tiptap-utils"
+import { isValidPosition, isNodeSelectionType } from "@/lib/tiptap-utils"
 
 import "./image-node-view.scss"
 
@@ -171,7 +170,7 @@ export const ResizableImage: React.FC<ResizableImageProps> = ({
       if (!resizeParams) return
 
       const wasNodeSelection =
-        editor.state.selection instanceof NodeSelection &&
+        isNodeSelectionType(editor.state.selection) &&
         editor.state.selection.node.type.name === "image"
 
       setResizeParams(undefined)

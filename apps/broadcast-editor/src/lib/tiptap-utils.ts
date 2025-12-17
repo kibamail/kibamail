@@ -8,6 +8,37 @@ import {
 } from "@tiptap/pm/state"
 import type { Editor, NodeWithPos } from "@tiptap/react"
 
+/**
+ * Duck-typing check for NodeSelection to avoid instanceof issues
+ * with duplicate @tiptap/pm packages in monorepos.
+ *
+ * Use this instead of `selection instanceof NodeSelection`
+ *
+ * This checks for the presence and shape of the `node` property
+ * rather than constructor name (which can be minified in production).
+ */
+export function isNodeSelectionType(
+  selection: Selection | null | undefined
+): selection is NodeSelection {
+  if (!selection) return false
+
+  // NodeSelection has a 'node' property that contains the selected node
+  if (!("node" in selection)) return false
+
+  // Verify it's actually a ProseMirror node (has type and attrs properties)
+  const nodeProperty = (selection as NodeSelection).node
+  if (
+    !nodeProperty ||
+    typeof nodeProperty !== "object" ||
+    !("type" in nodeProperty) ||
+    !("attrs" in nodeProperty)
+  ) {
+    return false
+  }
+
+  return true
+}
+
 export const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
 
 export const MAC_SYMBOLS: Record<string, string> = {
@@ -289,8 +320,8 @@ export function isNodeTypeSelected(
   const { selection } = editor.state
   if (selection.empty) return false
 
-  // Direct node selection check
-  if (selection instanceof NodeSelection) {
+  // Use duck-typing helper to avoid instanceof issues with duplicate packages
+  if (isNodeSelectionType(selection)) {
     const selectedNode = selection.node
     return selectedNode ? nodeTypeNames.includes(selectedNode.type.name) : false
   }
@@ -326,7 +357,7 @@ export function selectionWithinConvertibleTypes(
   const { selection } = state
   const allowed = new Set(types)
 
-  if (selection instanceof NodeSelection) {
+  if (isNodeSelectionType(selection)) {
     const nodeType = selection.node?.type?.name
     return !!nodeType && allowed.has(nodeType)
   }

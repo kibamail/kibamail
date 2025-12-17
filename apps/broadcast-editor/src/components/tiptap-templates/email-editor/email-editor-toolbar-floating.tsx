@@ -24,6 +24,10 @@ import {
   TextAlignButton,
 } from "@/components/tiptap-ui/text-align-button";
 import { TurnIntoDropdown } from "@/components/tiptap-ui/turn-into-dropdown";
+import { CustomNodeStylesButton } from "@/components/tiptap-ui/custom-node-styles-button";
+
+// --- Lib ---
+import { getClosestNode } from "@/lib/tiptap-advanced-utils";
 
 // --- Utils ---
 import { isSelectionValid } from "@/lib/tiptap-collab-utils";
@@ -88,6 +92,7 @@ export function EmailToolbarFloating() {
             hideWhenUnavailable={true}
           />
           <ColorTextPopover hideWhenUnavailable={true} />
+          <FloatingCustomNodeStyles hideWhenUnavailable={true} />
         </ToolbarGroup>
 
         <MoreOptions hideWhenUnavailable={true} />
@@ -220,5 +225,91 @@ export function MoreOptions({
         </Popover>
       </ToolbarGroup>
     </>
+  );
+}
+
+/**
+ * Supported node types for custom styles in the floating toolbar
+ */
+const STYLEABLE_NODE_TYPES = ["paragraph", "heading"];
+
+/**
+ * Checks if custom node styles can be applied to the current selection
+ */
+function canApplyCustomNodeStyles(editor: Editor | null): boolean {
+  if (!editor || !editor.isEditable) return false;
+
+  const closestNode = getClosestNode(editor, {
+    isBlock: true,
+    predicate: (node) => STYLEABLE_NODE_TYPES.includes(node.type.name),
+  });
+
+  return closestNode !== null;
+}
+
+interface FloatingCustomNodeStylesProps {
+  editor?: Editor | null;
+  hideWhenUnavailable?: boolean;
+}
+
+/**
+ * Wrapper component for CustomNodeStylesButton in the floating toolbar.
+ * Gets the current block node from selection and passes it to CustomNodeStylesButton.
+ */
+function FloatingCustomNodeStyles({
+  editor: providedEditor,
+  hideWhenUnavailable = false,
+}: FloatingCustomNodeStylesProps) {
+  const { editor } = useTiptapEditor(providedEditor);
+  const [nodeInfo, setNodeInfo] = useState<{
+    node: NonNullable<ReturnType<typeof getClosestNode>>["node"];
+    pos: number;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const updateNodeInfo = () => {
+      const closestNode = getClosestNode(editor, {
+        isBlock: true,
+        predicate: (node) => STYLEABLE_NODE_TYPES.includes(node.type.name),
+      });
+
+      if (closestNode) {
+        setNodeInfo({ node: closestNode.node, pos: closestNode.pos });
+      } else {
+        setNodeInfo(null);
+      }
+    };
+
+    updateNodeInfo();
+
+    editor.on("selectionUpdate", updateNodeInfo);
+    editor.on("transaction", updateNodeInfo);
+
+    return () => {
+      editor.off("selectionUpdate", updateNodeInfo);
+      editor.off("transaction", updateNodeInfo);
+    };
+  }, [editor]);
+
+  const canApply = canApplyCustomNodeStyles(editor);
+
+  if (hideWhenUnavailable && !canApply) {
+    return null;
+  }
+
+  if (!nodeInfo || !nodeInfo.node) {
+    return null;
+  }
+
+  return (
+    <CustomNodeStylesButton
+      editor={editor}
+      node={nodeInfo.node}
+      nodePos={nodeInfo.pos}
+      popoverSide="top"
+      hideWhenUnavailable={hideWhenUnavailable}
+    />
   );
 }

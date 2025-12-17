@@ -6,7 +6,7 @@ import type { Node as TiptapNode } from "@tiptap/pm/model";
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
 
 // --- Owly Components ---
-import { ColorField } from "@kibamail/owly";
+import { ColorField, TextField } from "@kibamail/owly";
 
 // --- UI Primitives ---
 import type { ButtonProps } from "@/components/tiptap-ui-primitive/button";
@@ -245,6 +245,23 @@ export const CustomNodeStylesButton = forwardRef<
                       handleStyleChange("backgroundColor", value)
                     }
                   />
+                </div>
+
+                <Separator orientation="horizontal" />
+
+                <div className="custom-node-styles-section">
+                  <TextField.Root
+                    size="sm"
+                    value={((localStyles.fontSize as string) || "").replace(/[^0-9]/g, "")}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, "");
+                      handleStyleChange("fontSize", value ? `${value}px` : "");
+                    }}
+                    placeholder="16"
+                  >
+                    <TextField.Label>Font Size</TextField.Label>
+                    <TextField.Slot side="right">px</TextField.Slot>
+                  </TextField.Root>
                 </div>
 
                 <Separator orientation="horizontal" />

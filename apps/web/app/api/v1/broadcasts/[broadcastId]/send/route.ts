@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-import { sendBroadcast } from "../../handler";
+import { sendBroadcast } from "@/app/api/v1/broadcasts/handler";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;

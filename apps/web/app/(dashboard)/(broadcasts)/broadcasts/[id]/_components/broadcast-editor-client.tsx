@@ -44,6 +44,7 @@ export function BroadcastEditorClient({
 
       <div className="grow rounded-lg overflow-hidden">
         <BroadcastEmailEditor
+          broadcastId={broadcastId}
           stylesOpen={stylesOpen}
           onStylesOpenChange={setStylesOpen}
         />
