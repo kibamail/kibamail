@@ -105,6 +105,8 @@ function formatEmailContent(emailContent: EmailContent | null) {
     text: emailContent.contentText ?? null,
     html: emailContent.contentHtml ?? null,
     previewText: emailContent.previewText ?? null,
+    json: emailContent.contentJson ?? null,
+    styles: emailContent.styles ?? null,
   };
 }
 
@@ -182,6 +184,8 @@ export async function createBroadcast(
         contentText: data.emailContent.text,
         contentHtml: data.emailContent.html,
         previewText: data.emailContent.previewText,
+        contentJson: data.emailContent.contentJson,
+        styles: data.emailContent.styles,
       },
     });
     emailContentId = emailContent.id;
@@ -397,6 +401,8 @@ export async function updateBroadcast(
           contentText: data.emailContent.text,
           contentHtml: data.emailContent.html,
           previewText: data.emailContent.previewText,
+          contentJson: data.emailContent.contentJson,
+          styles: data.emailContent.styles,
         },
       });
     } else {
@@ -406,6 +412,8 @@ export async function updateBroadcast(
           contentText: data.emailContent.text,
           contentHtml: data.emailContent.html,
           previewText: data.emailContent.previewText,
+          contentJson: data.emailContent.contentJson,
+          styles: data.emailContent.styles,
         },
       });
       updateData.emailContentId = emailContent.id;
@@ -441,6 +449,10 @@ export async function updateBroadcast(
       }
       updateData.segmentId = data.segmentId;
     }
+  }
+
+  if (data.sendAt !== undefined) {
+    updateData.sendAt = data.sendAt;
   }
 
   const updatedBroadcast = await prisma.broadcast.update({

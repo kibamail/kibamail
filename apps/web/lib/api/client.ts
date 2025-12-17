@@ -96,6 +96,7 @@ import {
   type UpdateBroadcastRequest,
 } from "@/app/api/v1/broadcasts/schema";
 import { type UploadBroadcastFilesResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/files/schema";
+import type { BroadcastReadinessResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/readiness/route";
 import {
   type ContactPropertyListResponse,
   type ContactPropertyResponse,
@@ -1853,6 +1854,50 @@ class BroadcastsApi extends HttpClient {
         typeof errorData.error === "string"
           ? errorData.error
           : errorData.error?.message || "File upload failed";
+      throw new ApiClientError(errorMessage, response.status, errorData);
+    }
+
+    return response.json();
+  }
+
+  async preview(
+    broadcastId: string
+  ): Promise<{ html: string; hasContent: boolean }> {
+    const response = await fetch(
+      `/api/internal/v1/broadcasts/${broadcastId}/preview`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json();
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Preview generation failed";
+      throw new ApiClientError(errorMessage, response.status, errorData);
+    }
+
+    return response.json();
+  }
+
+  async readiness(broadcastId: string): Promise<BroadcastReadinessResponse> {
+    const response = await fetch(
+      `/api/internal/v1/broadcasts/${broadcastId}/readiness`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json();
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Readiness check failed";
       throw new ApiClientError(errorMessage, response.status, errorData);
     }
 

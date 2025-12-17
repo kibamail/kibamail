@@ -5,7 +5,6 @@ import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
 import type { Editor, JSONContent } from "@tiptap/react";
 import { createPortal } from "react-dom";
 
-// --- Tiptap Core Extensions ---
 import { StarterKit } from "@tiptap/starter-kit";
 import { Mention } from "@tiptap/extension-mention";
 import { TaskList, TaskItem } from "@tiptap/extension-list";
@@ -19,11 +18,9 @@ import { TextAlign } from "@tiptap/extension-text-align";
 import { Mathematics } from "@tiptap/extension-mathematics";
 import { Emoji, gitHubEmojis } from "@tiptap/extension-emoji";
 
-// --- Hooks ---
 import { useUiEditorState } from "@/hooks/use-ui-editor-state";
 import { useScrollToHash } from "@/components/tiptap-ui/copy-anchor-link-button/use-scroll-to-hash";
 
-// --- Custom Extensions ---
 import { HorizontalRule } from "@/components/tiptap-node/horizontal-rule-node/horizontal-rule-node-extension";
 import { Paragraph } from "@/components/tiptap-node/paragraph-node/paragraph-node-extension";
 import { Heading } from "@/components/tiptap-node/heading-node/heading-node-extension";
@@ -32,7 +29,6 @@ import { Image } from "@/components/tiptap-node/image-node/image-node-extension"
 import { NodeBackground } from "@/components/tiptap-extension/node-background-extension";
 import { NodeAlignment } from "@/components/tiptap-extension/node-alignment-extension";
 
-// --- Tiptap Node ---
 import { ImageUploadNode } from "@/components/tiptap-node/image-upload-node/image-upload-node-extension";
 
 import "@/components/tiptap-node/blockquote-node/blockquote-node.scss";
@@ -42,14 +38,12 @@ import "@/components/tiptap-node/image-node/image-node.scss";
 import "@/components/tiptap-node/heading-node/heading-node.scss";
 import "@/components/tiptap-node/paragraph-node/paragraph-node.scss";
 
-// --- Tiptap UI ---
 import { EmojiDropdownMenu } from "@/components/tiptap-ui/emoji-dropdown-menu";
 import { MentionDropdownMenu } from "@/components/tiptap-ui/mention-dropdown-menu";
 import { VariableDropdownMenu } from "@/components/tiptap-ui/variable-dropdown-menu/variable-dropdown-menu";
 import { SlashDropdownMenu } from "@/components/tiptap-ui/slash-dropdown-menu";
 import { DragContextMenu } from "@/components/tiptap-ui/drag-context-menu";
 
-// --- Contexts ---
 import { AppProvider } from "@/contexts/app-context";
 import {
   ActiveNodeProvider,
@@ -57,14 +51,11 @@ import {
 } from "@/contexts/active-node-context";
 import { VariablesProvider } from "@/contexts/variables-context";
 
-// --- Lib ---
 import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
-// --- Styles ---
 import "@/components/tiptap-templates/email-editor/email-editor.scss";
 import "@/components/tiptap-ui/variable-dropdown-menu/variable-dropdown-menu.scss";
 
-// --- Content ---
 import { MobileToolbar } from "@/components/tiptap-templates/email-editor/email-editor-mobile-toolbar";
 import { EmailToolbarFloating } from "@/components/tiptap-templates/email-editor/email-editor-toolbar-floating";
 import { EmailEditorLeftPanel } from "@/components/tiptap-templates/email-editor/email-editor-left-panel";
@@ -76,77 +67,37 @@ import { VariableNodeExtension } from "@/components/tiptap-node/variable-node/va
 import { VariableFallbackFloating } from "@/components/tiptap-node/variable-node/variable-fallback-floating";
 import { CustomStyles } from "@/components/tiptap-extension/custom-styles-extension";
 
-// --- Editor Config ---
 import type { EditorStylesConfig } from "@/types/editor-config";
 import {
   EditorConfigProvider,
   useEditorConfig,
 } from "@/contexts/editor-config-context";
 
+export type { EditorStylesConfig };
+
 export interface EmailEditorRef {
-  /**
-   * The TipTap editor instance
-   */
   editor: Editor | null;
 }
 
 export interface CanvasConfiguration {
-  /**
-   * Default styles for the canvas/editor configuration
-   */
   styles?: EditorStylesConfig;
-
-  /**
-   * Whether the canvas configuration panel is open
-   */
   open: boolean;
-
-  /**
-   * Callback when the open state should change
-   */
   onOpenChange: (open: boolean) => void;
 }
 
 export interface EmailEditorProps {
-  /**
-   * Placeholder text shown when editor is empty
-   */
   placeholder?: string;
-
-  /**
-   * Global styles configuration for the editor
-   * Allows customizing styles for body, container, panel, button, typography, link, image, and codeblock
-   */
   styles?: EditorStylesConfig;
-
-  /**
-   * Custom upload handler for image files
-   * Takes a file and optional callbacks, returns a promise with the uploaded URL
-   * Required for image upload functionality
-   */
   onUpload: (
     file: File,
     onProgress?: (event: { progress: number }) => void,
     abortSignal?: AbortSignal
   ) => Promise<string>;
-
-  /**
-   * Canvas configuration for the left panel
-   * Controls the visibility and behavior of the editor configuration panel
-   */
   canvasConfiguration?: CanvasConfiguration;
-
-  /**
-   * Available template variables (e.g., ["contact.email", "unsubscribe_url"])
-   * Variables ending in _url will be available in link popovers
-   */
   variables?: string[];
-
-  /**
-   * Callback when the editor content changes
-   * Called with the JSON representation of the editor content
-   */
   onChange?: (content: JSONContent) => void;
+  onStylesChange?: (styles: EditorStylesConfig) => void;
+  initialContent?: JSONContent;
 }
 
 export interface EditorProviderProps {
@@ -159,11 +110,9 @@ export interface EditorProviderProps {
   canvasConfiguration?: CanvasConfiguration;
   editorRef?: React.RefObject<EmailEditorRef>;
   onChange?: (content: JSONContent) => void;
+  initialContent?: JSONContent;
 }
 
-/**
- * Loading spinner component shown while connecting to the notion server
- */
 export function LoadingSpinner({ text = "Connecting..." }: { text?: string }) {
   return (
     <div className="spinner-container">
@@ -178,9 +127,6 @@ export function LoadingSpinner({ text = "Connecting..." }: { text?: string }) {
   );
 }
 
-/**
- * EditorContent component that renders the actual editor
- */
 export function EditorContentArea({
   canvasConfiguration,
 }: {
@@ -196,7 +142,6 @@ export function EditorContentArea({
     return null;
   }
 
-  // Get body styles from config and merge with dynamic styles
   const bodyStyles = getStyles("body");
   const linkStyles = getStyles("link");
   const linkColor = (linkStyles?.color as string) || "#0066cc";
@@ -251,9 +196,6 @@ export function EditorContentArea({
   );
 }
 
-/**
- * Component that creates and provides the editor instance
- */
 export function EditorProvider(props: EditorProviderProps) {
   const {
     placeholder = "Start writing...",
@@ -261,18 +203,17 @@ export function EditorProvider(props: EditorProviderProps) {
     canvasConfiguration,
     editorRef,
     onChange,
+    initialContent,
   } = props;
   const { getStyles } = useEditorConfig();
   const { isStylingMode } = useActiveNode();
   const isCanvasOpen = canvasConfiguration?.open ?? false;
 
-  // Wrap onUpload with validation logic
-  const wrappedUpload = async (
+  async function wrappedUpload(
     file: File,
     onProgress?: (event: { progress: number }) => void,
     abortSignal?: AbortSignal
-  ): Promise<string> => {
-    // Validate file
+  ): Promise<string> {
     if (!file) {
       throw new Error("No file provided");
     }
@@ -283,16 +224,13 @@ export function EditorProvider(props: EditorProviderProps) {
       );
     }
 
-    // Call the user-provided upload handler
     return onUpload(file, onProgress, abortSignal);
-  };
+  }
 
-  // Get container styles and convert to inline style string
   const containerStyles = getStyles("container");
   const containerStyleString = containerStyles
     ? Object.entries(containerStyles)
         .map(([key, value]) => {
-          // Convert camelCase to kebab-case
           const kebabKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
           return `${kebabKey}: ${value}`;
         })
@@ -302,6 +240,7 @@ export function EditorProvider(props: EditorProviderProps) {
   const editor = useEditor({
     immediatelyRender: false,
     editable: !isStylingMode && !isCanvasOpen,
+    content: initialContent,
     onUpdate: ({ editor }) => {
       onChange?.(editor.getJSON());
     },
@@ -313,7 +252,6 @@ export function EditorProvider(props: EditorProviderProps) {
     },
     extensions: [
       StarterKit.configure({
-        // undoRedo: false,
         horizontalRule: false,
         paragraph: false,
         heading: false,
@@ -377,14 +315,12 @@ export function EditorProvider(props: EditorProviderProps) {
     ],
   });
 
-  // Update editor editable state when styling mode or canvas panel changes
   useEffect(() => {
     if (editor) {
       editor.setEditable(!isStylingMode && !isCanvasOpen);
     }
   }, [editor, isStylingMode, isCanvasOpen]);
 
-  // Expose editor instance through ref
   useImperativeHandle(
     editorRef,
     () => ({
@@ -404,9 +340,6 @@ export function EditorProvider(props: EditorProviderProps) {
   );
 }
 
-/**
- * Full editor with all necessary providers, ready to use with just a room ID
- */
 export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
   (
     {
@@ -416,11 +349,11 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
       canvasConfiguration,
       variables = [],
       onChange,
+      onStylesChange,
+      initialContent,
     },
     ref
   ) => {
-    // Merge canvasConfiguration.styles with the main styles prop
-    // canvasConfiguration.styles takes priority
     const mergedStyles = {
       ...styles,
       ...canvasConfiguration?.styles,
@@ -428,7 +361,7 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
 
     return (
       <div className="email-editor-root">
-        <EditorConfigProvider config={{ styles: mergedStyles }}>
+        <EditorConfigProvider config={{ styles: mergedStyles }} onStylesChange={onStylesChange}>
           <VariablesProvider variables={variables}>
             <AppProvider>
               <ActiveNodeProvider>
@@ -438,6 +371,7 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
                   canvasConfiguration={canvasConfiguration}
                   editorRef={ref as React.RefObject<EmailEditorRef>}
                   onChange={onChange}
+                  initialContent={initialContent}
                 />
               </ActiveNodeProvider>
             </AppProvider>
@@ -450,15 +384,13 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
 
 EmailEditor.displayName = "EmailEditor";
 
-/**
- * Internal component that handles the editor loading state
- */
 export function EmailEditorContent({
   placeholder,
   onUpload,
   canvasConfiguration,
   editorRef,
   onChange,
+  initialContent,
 }: {
   placeholder?: string;
   onUpload: (
@@ -469,6 +401,7 @@ export function EmailEditorContent({
   canvasConfiguration?: CanvasConfiguration;
   editorRef?: React.RefObject<EmailEditorRef>;
   onChange?: (content: JSONContent) => void;
+  initialContent?: JSONContent;
 }) {
   return (
     <EditorProvider
@@ -477,6 +410,7 @@ export function EmailEditorContent({
       canvasConfiguration={canvasConfiguration}
       editorRef={editorRef}
       onChange={onChange}
+      initialContent={initialContent}
     />
   );
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { useEditorConfig } from "@/contexts/editor-config-context";
 import { ColorField, Text, TextField, SelectField } from "@kibamail/owly";
 import { NavArrowDown } from "iconoir-react";
@@ -7,15 +7,9 @@ import type { HeadingLevel } from "@/types/editor-config";
 import "./spacing-input.scss";
 
 interface HeadingConfigSectionProps {
-  /**
-   * Whether the section is expanded by default
-   */
   defaultExpanded?: boolean;
 }
 
-/**
- * Parse a CSS spacing value (e.g., "10px 20px 10px 20px" or "10px") into individual sides
- */
 function parseSpacingValue(value: string | undefined): {
   top: string;
   right: string;
@@ -55,9 +49,6 @@ function parseSpacingValue(value: string | undefined): {
   };
 }
 
-/**
- * Combine individual spacing values into a CSS shorthand
- */
 function combineSpacingValue(values: {
   top: string;
   right: string;
@@ -88,9 +79,9 @@ export function HeadingConfigSection({
   const { getHeadingStyles, updateHeadingStyleProperty } = useEditorConfig();
   const [selectedLevel, setSelectedLevel] = useState<HeadingLevel>(1);
 
-  const toggleExpanded = useCallback(() => {
+  function toggleExpanded() {
     setIsExpanded((prev) => !prev);
-  }, []);
+  }
 
   const currentStyles = getHeadingStyles(selectedLevel) || {};
 
@@ -99,32 +90,23 @@ export function HeadingConfigSection({
   const color = (currentStyles.color as string) || "#000000";
   const marginValues = parseSpacingValue(currentStyles.margin as string);
 
-  const handleLevelChange = useCallback((value: string) => {
+  function onLevelChange(value: string) {
     setSelectedLevel(parseInt(value, 10) as HeadingLevel);
-  }, []);
+  }
 
-  const handleFontSizeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/[^0-9]/g, "");
-      updateHeadingStyleProperty(selectedLevel, "fontSize", value ? `${value}px` : "16px");
-    },
-    [selectedLevel, updateHeadingStyleProperty]
-  );
+  function onFontSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value.replace(/[^0-9]/g, "");
+    updateHeadingStyleProperty(selectedLevel, "fontSize", value ? `${value}px` : "16px");
+  }
 
-  const handleColorChange = useCallback(
-    (newColor: string) => {
-      updateHeadingStyleProperty(selectedLevel, "color", newColor);
-    },
-    [selectedLevel, updateHeadingStyleProperty]
-  );
+  function onColorChange(newColor: string) {
+    updateHeadingStyleProperty(selectedLevel, "color", newColor);
+  }
 
-  const handleMarginChange = useCallback(
-    (side: "top" | "right" | "bottom" | "left", value: string) => {
-      const newValues = { ...marginValues, [side]: value };
-      updateHeadingStyleProperty(selectedLevel, "margin", combineSpacingValue(newValues));
-    },
-    [selectedLevel, updateHeadingStyleProperty, marginValues]
-  );
+  function onMarginChange(side: "top" | "right" | "bottom" | "left", value: string) {
+    const newValues = { ...marginValues, [side]: value };
+    updateHeadingStyleProperty(selectedLevel, "margin", combineSpacingValue(newValues));
+  }
 
   const fontSizeNumeric = fontSize.replace(/[^0-9]/g, "");
 
@@ -149,7 +131,7 @@ export function HeadingConfigSection({
               <SelectField.Root
                 size="sm"
                 value={selectedLevel.toString()}
-                onValueChange={handleLevelChange}
+                onValueChange={onLevelChange}
               >
                 <SelectField.Label>Heading Level</SelectField.Label>
                 <SelectField.Trigger placeholder="Select heading" />
@@ -168,7 +150,7 @@ export function HeadingConfigSection({
                 size="sm"
                 value={color}
                 label="Text Color"
-                onChange={handleColorChange}
+                onChange={onColorChange}
               />
             </div>
 
@@ -176,7 +158,7 @@ export function HeadingConfigSection({
               <TextField.Root
                 size="sm"
                 value={fontSizeNumeric}
-                onChange={handleFontSizeChange}
+                onChange={onFontSizeChange}
                 placeholder="16"
               >
                 <TextField.Label>Font Size</TextField.Label>
@@ -188,7 +170,7 @@ export function HeadingConfigSection({
               <SpacingInput
                 label="Margin"
                 values={marginValues}
-                onChange={handleMarginChange}
+                onChange={onMarginChange}
               />
             </div>
           </div>

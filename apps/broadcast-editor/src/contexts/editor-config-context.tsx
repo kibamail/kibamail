@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useMemo, useState, useCallback, useEffect } from "react";
 import type { EditorConfig, EditorStylesConfig, HeadingLevel } from "@/types/editor-config";
 
 /**
@@ -81,6 +81,11 @@ export interface EditorConfigProviderProps {
   config?: Partial<EditorConfig>;
 
   /**
+   * Callback when styles change
+   */
+  onStylesChange?: (styles: EditorStylesConfig) => void;
+
+  /**
    * Children components
    */
   children: React.ReactNode;
@@ -98,6 +103,7 @@ export interface EditorConfigProviderProps {
  */
 export function EditorConfigProvider({
   config,
+  onStylesChange,
   children,
 }: EditorConfigProviderProps) {
   // Initialize with merged config
@@ -110,6 +116,11 @@ export function EditorConfigProvider({
   );
 
   const [styles, setStyles] = useState<EditorStylesConfig>(initialStyles);
+
+  // Notify parent when styles change
+  useEffect(() => {
+    onStylesChange?.(styles);
+  }, [styles, onStylesChange]);
 
   // Update a specific style property
   const updateStyleProperty = useCallback(

@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { TextField } from "@kibamail/owly";
 import {
   BorderTop,
@@ -9,24 +8,13 @@ import {
 import "./spacing-input.scss";
 
 interface SpacingInputProps {
-  /**
-   * Label for the spacing input (e.g., "Padding", "Margin")
-   */
   label: string;
-
-  /**
-   * Current values for each side
-   */
   values: {
     top: string;
     right: string;
     bottom: string;
     left: string;
   };
-
-  /**
-   * Callback when any value changes
-   */
   onChange: (side: "top" | "right" | "bottom" | "left", value: string) => void;
 }
 
@@ -37,20 +25,17 @@ interface SideInputProps {
 }
 
 function SideInput({ value, onChange, icon }: SideInputProps) {
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const rawValue = e.target.value.replace(/[^0-9]/g, "");
-      onChange(rawValue ? `${rawValue}px` : "0px");
-    },
-    [onChange]
-  );
+  function onInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const rawValue = event.target.value.replace(/[^0-9]/g, "");
+    onChange(rawValue ? `${rawValue}px` : "0px");
+  }
 
   const numericValue = value.replace(/[^0-9]/g, "");
 
   return (
     <TextField.Root
       value={numericValue}
-      onChange={handleChange}
+      onChange={onInputChange}
       placeholder="0"
       size="sm"
     >
@@ -61,12 +46,11 @@ function SideInput({ value, onChange, icon }: SideInputProps) {
 }
 
 export function SpacingInput({ label, values, onChange }: SpacingInputProps) {
-  const handleSideChange = useCallback(
-    (side: "top" | "right" | "bottom" | "left") => (value: string) => {
+  function onSideChange(side: "top" | "right" | "bottom" | "left") {
+    return (value: string) => {
       onChange(side, value);
-    },
-    [onChange]
-  );
+    };
+  }
 
   return (
     <div className="spacing-input">
@@ -75,28 +59,28 @@ export function SpacingInput({ label, values, onChange }: SpacingInputProps) {
         <div className="spacing-input-side-top">
           <SideInput
             value={values.top}
-            onChange={handleSideChange("top")}
+            onChange={onSideChange("top")}
             icon={<BorderTop className="w-3 h-3" />}
           />
         </div>
         <div className="spacing-input-side-left">
           <SideInput
             value={values.left}
-            onChange={handleSideChange("left")}
+            onChange={onSideChange("left")}
             icon={<BorderLeft className="w-3 h-3" />}
           />
         </div>
         <div className="spacing-input-side-right">
           <SideInput
             value={values.right}
-            onChange={handleSideChange("right")}
+            onChange={onSideChange("right")}
             icon={<BorderRight className="w-3 h-3" />}
           />
         </div>
         <div className="spacing-input-side-bottom">
           <SideInput
             value={values.bottom}
-            onChange={handleSideChange("bottom")}
+            onChange={onSideChange("bottom")}
             icon={<BorderBottom className="w-3 h-3" />}
           />
         </div>

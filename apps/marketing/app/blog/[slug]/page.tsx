@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { Badge, Button, Heading, Text } from "@kibamail/owly";
 import { format } from "date-fns";
 import { getAllBlogSlugs, getBlogPostBySlug } from "@/app/_lib/blog";
+import { renderMarkdown } from "@/app/_lib/markdown";
 
 interface BlogArticleProps {
   params: Promise<{ slug: string }>;
@@ -37,6 +38,8 @@ export default async function BlogArticle({ params }: BlogArticleProps) {
   if (!blogPost) {
     notFound();
   }
+
+  const contentHtml = renderMarkdown(blogPost.content);
 
   return (
     <div className="w-full max-w-7xl mx-auto mt-8 sm:mt-12 lg:mt-16 px-6 md:px-0 mb-12">
@@ -88,75 +91,10 @@ export default async function BlogArticle({ params }: BlogArticleProps) {
         <div className="sm:p-6 lg:p-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-8 lg:gap-10">
             {/* Left Column - Blog Content */}
-            <article className="prose prose-neutral dark:prose-invert max-w-none">
-              <div className="blog-content">
-                {blogPost.content.split("\n").map((paragraph, index) => {
-                  const trimmed = paragraph.trim();
-
-                  if (!trimmed) return null;
-
-                  // H2 headings
-                  if (trimmed.startsWith("## ")) {
-                    return (
-                      <Heading
-                        key={index}
-                        size="sm"
-                        variant="display"
-                        className="font-bold! text-xl! sm:text-2xl! mt-8 mb-4 first:mt-0"
-                      >
-                        {trimmed.replace("## ", "")}
-                      </Heading>
-                    );
-                  }
-
-                  // H3 headings
-                  if (trimmed.startsWith("### ")) {
-                    return (
-                      <Heading
-                        key={index}
-                        size="sm"
-                        variant="display"
-                        className="font-semibold! text-lg! sm:text-xl! mt-6 mb-3"
-                      >
-                        {trimmed.replace("### ", "")}
-                      </Heading>
-                    );
-                  }
-
-                  // List items
-                  if (trimmed.startsWith("- ")) {
-                    return (
-                      <div key={index} className="flex gap-2 my-2">
-                        <span className="text-kb-content-secondary">•</span>
-                        <Text size="md" className="text-sm! sm:text-base!">
-                          {trimmed
-                            .replace("- ", "")
-                            .split("**")
-                            .map((part, i) =>
-                              i % 2 === 1 ? (
-                                <strong key={i}>{part}</strong>
-                              ) : (
-                                part
-                              )
-                            )}
-                        </Text>
-                      </div>
-                    );
-                  }
-
-                  // Regular paragraphs
-                  return (
-                    <Text
-                      key={index}
-                      size="md"
-                      className="text-sm! sm:text-base! leading-relaxed! my-4"
-                    >
-                      {trimmed}
-                    </Text>
-                  );
-                })}
-              </div>
-            </article>
+            <article
+              className="kb-blog-content"
+              dangerouslySetInnerHTML={{ __html: contentHtml }}
+            />
 
             {/* Right Column - Sticky CTA Card */}
             <aside className="hidden lg:block">

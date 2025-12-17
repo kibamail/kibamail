@@ -8,11 +8,8 @@ import {
   Text,
   TextField,
 } from "@kibamail/owly";
-// --- Contexts ---
 import { useActiveNode } from "@/contexts/active-node-context";
 import { SpacingInput } from "./spacing-input";
-
-// --- Icons ---
 import { Plus as PlusIcon, Minus as MinusIcon } from "iconoir-react";
 
 const CSS_PROPERTIES = [
@@ -26,9 +23,6 @@ const CSS_PROPERTIES = [
   { value: "border", label: "Border", type: "text" },
 ] as const;
 
-/**
- * Parse a CSS spacing value (e.g., "10px 20px 10px 20px" or "10px") into individual sides
- */
 function parseSpacingValue(value: string | undefined): {
   top: string;
   right: string;
@@ -68,9 +62,6 @@ function parseSpacingValue(value: string | undefined): {
   };
 }
 
-/**
- * Combine individual spacing values into a CSS shorthand
- */
 function combineSpacingValue(values: {
   top: string;
   right: string;
@@ -85,7 +76,6 @@ export function NodeStylesSection() {
   const { activeNode } = useActiveNode();
   const [localStyles, setLocalStyles] = useState<React.CSSProperties>({});
 
-  // Initialize local state when activeNode changes
   useEffect(() => {
     if (activeNode) {
       const initialStyles = (activeNode.node.attrs.customStyle ||
@@ -107,10 +97,8 @@ export function NodeStylesSection() {
       [property]: defaultValue,
     };
 
-    // Update local state
     setLocalStyles(updatedStyles);
 
-    // Update editor without focusing
     editor.commands.command(({ tr }) => {
       tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
@@ -130,10 +118,8 @@ export function NodeStylesSection() {
       [property]: value,
     };
 
-    // Update local state
     setLocalStyles(updatedStyles);
 
-    // Update editor without focusing
     editor.commands.command(({ tr }) => {
       tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
@@ -151,10 +137,8 @@ export function NodeStylesSection() {
 
     delete updatedStyles[property as keyof React.CSSProperties];
 
-    // Update local state
     setLocalStyles(updatedStyles);
 
-    // Update editor without focusing
     editor.commands.command(({ tr }) => {
       tr.setNodeMarkup(pos, undefined, {
         ...node.attrs,
@@ -249,7 +233,7 @@ export function NodeStylesSection() {
 
             if (inputType === "spacing") {
               const spacingValues = parseSpacingValue(String(value));
-              const handleSpacingChange = (
+              const onSpacingChange = (
                 side: "top" | "right" | "bottom" | "left",
                 sideValue: string
               ) => {
@@ -280,7 +264,7 @@ export function NodeStylesSection() {
                   <SpacingInput
                     label=""
                     values={spacingValues}
-                    onChange={handleSpacingChange}
+                    onChange={onSpacingChange}
                   />
                 </div>
               );

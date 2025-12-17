@@ -48,6 +48,8 @@ export const emailContentSchema = z.object({
     .string()
     .max(255, "Preview text must be 255 characters or less")
     .optional(),
+  contentJson: z.record(z.string(), z.unknown()).optional(),
+  styles: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**
@@ -79,6 +81,7 @@ export const updateBroadcastSchema = z.object({
   replyTo: z.email("Invalid reply-to email format").optional(),
   topicId: z.string().nullable().optional(),
   segmentId: z.string().nullable().optional(),
+  sendAt: z.coerce.date().nullable().optional(),
 });
 
 /**
@@ -89,6 +92,8 @@ export const emailContentResponseSchema = z.object({
   text: z.string().nullable(),
   html: z.string().nullable(),
   previewText: z.string().nullable(),
+  json: z.record(z.string(), z.unknown()).nullable(),
+  styles: z.record(z.string(), z.unknown()).nullable(),
 });
 
 /**

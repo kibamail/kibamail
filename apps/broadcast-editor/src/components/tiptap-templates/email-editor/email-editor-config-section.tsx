@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import {
   useEditorConfig,
   type SimpleStyleKey,
@@ -80,9 +80,9 @@ export function ConfigSection({
   const { getStyles, updateStyleProperty } = useEditorConfig();
   const currentStyles = getStyles(type) || {};
 
-  const toggleExpanded = useCallback(() => {
+  function toggleExpanded() {
     setIsExpanded((prev) => !prev);
-  }, []);
+  }
 
   const backgroundColor =
     (currentStyles.backgroundColor as string) || "#ffffff";
@@ -94,70 +94,45 @@ export function ConfigSection({
   const paddingValues = getSpacingValues(currentStyles, "padding");
   const marginValues = getSpacingValues(currentStyles, "margin");
 
-  const handleBackgroundColorChange = useCallback(
-    (color: string) => {
-      updateStyleProperty(type, "backgroundColor", color);
-    },
-    [type, updateStyleProperty]
-  );
+  function onBackgroundColorChange(color: string) {
+    updateStyleProperty(type, "backgroundColor", color);
+  }
 
-  const handleBorderRadiusChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/[^0-9]/g, "");
-      updateStyleProperty(type, "borderRadius", value ? `${value}px` : "0px");
-    },
-    [type, updateStyleProperty]
-  );
+  function onBorderRadiusChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value.replace(/[^0-9]/g, "");
+    updateStyleProperty(type, "borderRadius", value ? `${value}px` : "0px");
+  }
 
-  const handleBorderWidthChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/[^0-9]/g, "");
-      updateStyleProperty(type, "borderWidth", value ? `${value}px` : "0px");
-      // Also set borderStyle to solid when width > 0
-      if (value && parseInt(value) > 0) {
-        updateStyleProperty(type, "borderStyle", "solid");
-      }
-    },
-    [type, updateStyleProperty]
-  );
+  function onBorderWidthChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value.replace(/[^0-9]/g, "");
+    updateStyleProperty(type, "borderWidth", value ? `${value}px` : "0px");
+    if (value && parseInt(value) > 0) {
+      updateStyleProperty(type, "borderStyle", "solid");
+    }
+  }
 
-  const handleBorderColorChange = useCallback(
-    (newColor: string) => {
-      updateStyleProperty(type, "borderColor", newColor);
-    },
-    [type, updateStyleProperty]
-  );
+  function onBorderColorChange(newColor: string) {
+    updateStyleProperty(type, "borderColor", newColor);
+  }
 
-  const handleFontSizeChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/[^0-9]/g, "");
-      updateStyleProperty(type, "fontSize", value ? `${value}px` : "16px");
-    },
-    [type, updateStyleProperty]
-  );
+  function onFontSizeChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const value = event.target.value.replace(/[^0-9]/g, "");
+    updateStyleProperty(type, "fontSize", value ? `${value}px` : "16px");
+  }
 
-  const handleColorChange = useCallback(
-    (newColor: string) => {
-      updateStyleProperty(type, "color", newColor);
-    },
-    [type, updateStyleProperty]
-  );
+  function onColorChange(newColor: string) {
+    updateStyleProperty(type, "color", newColor);
+  }
 
-  const handlePaddingChange = useCallback(
-    (side: "top" | "right" | "bottom" | "left", value: string) => {
-      const propertyName = `padding${side.charAt(0).toUpperCase()}${side.slice(1)}`;
-      updateStyleProperty(type, propertyName, value);
-    },
-    [type, updateStyleProperty]
-  );
+  function onPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
+    const propertyName = `padding${side.charAt(0).toUpperCase()}${side.slice(1)}`;
+    updateStyleProperty(type, propertyName, value);
+  }
 
-  const handleMarginChange = useCallback(
-    (side: "top" | "right" | "bottom" | "left", value: string) => {
-      const propertyName = `margin${side.charAt(0).toUpperCase()}${side.slice(1)}`;
-      updateStyleProperty(type, propertyName, value);
-    },
-    [type, updateStyleProperty]
-  );
+  function onMarginChange(side: "top" | "right" | "bottom" | "left", value: string) {
+    const propertyName = `margin${side.charAt(0).toUpperCase()}${side.slice(1)}`;
+    updateStyleProperty(type, propertyName, value);
+  }
 
   const borderRadiusNumeric = borderRadius.replace(/[^0-9]/g, "");
   const borderWidthNumeric = borderWidth.replace(/[^0-9]/g, "");
@@ -188,7 +163,7 @@ export function ConfigSection({
                   size="sm"
                   value={backgroundColor}
                   label="Background Color"
-                  onChange={handleBackgroundColorChange}
+                  onChange={onBackgroundColorChange}
                 />
               </div>
             )}
@@ -199,7 +174,7 @@ export function ConfigSection({
                   size="sm"
                   value={color}
                   label="Text Color"
-                  onChange={handleColorChange}
+                  onChange={onColorChange}
                 />
               </div>
             )}
@@ -209,7 +184,7 @@ export function ConfigSection({
                 <TextField.Root
                   size="sm"
                   value={fontSizeNumeric}
-                  onChange={handleFontSizeChange}
+                  onChange={onFontSizeChange}
                   placeholder="16"
                 >
                   <TextField.Label>Font Size</TextField.Label>
@@ -223,7 +198,7 @@ export function ConfigSection({
                 <TextField.Root
                   size="sm"
                   value={borderRadiusNumeric}
-                  onChange={handleBorderRadiusChange}
+                  onChange={onBorderRadiusChange}
                   placeholder="0"
                 >
                   <TextField.Label>Border Radius</TextField.Label>
@@ -237,7 +212,7 @@ export function ConfigSection({
                 <TextField.Root
                   size="sm"
                   value={borderWidthNumeric}
-                  onChange={handleBorderWidthChange}
+                  onChange={onBorderWidthChange}
                   placeholder="0"
                 >
                   <TextField.Label>Border Width</TextField.Label>
@@ -252,7 +227,7 @@ export function ConfigSection({
                   size="sm"
                   value={borderColor}
                   label="Border Color"
-                  onChange={handleBorderColorChange}
+                  onChange={onBorderColorChange}
                 />
               </div>
             )}
@@ -262,7 +237,7 @@ export function ConfigSection({
                 <SpacingInput
                   label="Padding"
                   values={paddingValues}
-                  onChange={handlePaddingChange}
+                  onChange={onPaddingChange}
                 />
               </div>
             )}
@@ -272,7 +247,7 @@ export function ConfigSection({
                 <SpacingInput
                   label="Margin"
                   values={marginValues}
-                  onChange={handleMarginChange}
+                  onChange={onMarginChange}
                 />
               </div>
             )}

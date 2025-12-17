@@ -4,6 +4,7 @@ generator client {
 
 datasource db {
   provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model Invitation {
@@ -1024,6 +1025,8 @@ model EmailContent {
   id             String          @id @default(cuid())
   /// JSON content (for editor state)
   contentJson    Json?
+  /// Editor styles configuration (canvas styles)
+  styles         Json?
   /// Plain text content
   contentText    String?         @db.Text
   /// HTML content
