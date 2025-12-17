@@ -6,10 +6,11 @@ export default function Blog() {
       <div className="flex flex-col gap-4 p-6">
         <Badge size="sm">blog</Badge>
 
-        <Heading size="sm" variant="display">
-          Insights on email marketing, email best practices and building a
-          healthy email strategy.
-        </Heading>
+        <div className="max-w-2xl">
+          <Heading size="sm" variant="display">
+            Insights on email marketing strategy and email best practices.
+          </Heading>
+        </div>
       </div>
     </div>
   );

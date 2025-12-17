@@ -22,16 +22,57 @@ async function getBroadcasts(workspaceId: string) {
   });
 }
 
+async function getSenderIdentities(workspaceId: string) {
+  const identities = await prisma.senderIdentity.findMany({
+    where: { workspaceId },
+    include: {
+      sendingDomain: {
+        select: { id: true, name: true },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return identities.map((identity) => ({
+    id: identity.id,
+    name: identity.name,
+    email: `${identity.email}@${identity.sendingDomain.name}`,
+    localPart: identity.email,
+    domain: identity.sendingDomain.name,
+    domainId: identity.sendingDomain.id,
+    verified: identity.emailVerifiedAt !== null,
+  }));
+}
+
+async function getDomains(workspaceId: string) {
+  const domains = await prisma.sendingDomain.findMany({
+    where: { workspaceId },
+    select: { id: true, name: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return domains;
+}
+
 export default async function BroadcastsPage() {
   const session = await getSession();
-  const broadcasts = await getBroadcasts(session.currentOrganization.id);
+  const workspaceId = session.currentOrganization.id;
+
+  const [broadcasts, senderIdentities, domains] = await Promise.all([
+    getBroadcasts(workspaceId),
+    getSenderIdentities(workspaceId),
+    getDomains(workspaceId),
+  ]);
 
   return (
     <div className="w-full">
       <DashboardLayoutStickyContentHeaderContainer>
         <DashboardLayoutContentHeader title="Broadcasts">
           <DashboardLayoutContentActions>
-            <CreateBroadcastButton />
+            <CreateBroadcastButton
+              senderIdentities={senderIdentities}
+              domains={domains}
+            />
           </DashboardLayoutContentActions>
         </DashboardLayoutContentHeader>
       </DashboardLayoutStickyContentHeaderContainer>

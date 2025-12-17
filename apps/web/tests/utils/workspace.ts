@@ -51,7 +51,22 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
     where: { workspaceId },
   });
 
-  // 3. Delete forms (handle self-referencing parentId)
+  // 3. Delete broadcasts (must delete before sender identities and email content)
+  await prisma.broadcast.deleteMany({
+    where: { workspaceId },
+  });
+
+  // 4. Delete sender identities (must delete before sending domains)
+  await prisma.senderIdentity.deleteMany({
+    where: { workspaceId },
+  });
+
+  // 5. Delete sending domains
+  await prisma.sendingDomain.deleteMany({
+    where: { workspaceId },
+  });
+
+  // 6. Delete forms (handle self-referencing parentId)
   // First delete child forms (versions), then root forms
   await prisma.form.deleteMany({
     where: { workspaceId, parentId: { not: null } },
@@ -60,7 +75,7 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
     where: { workspaceId },
   });
 
-  // 4. Delete automation runs first, then automations
+  // 8. Delete automation runs first, then automations
   await prisma.automationRun.deleteMany({
     where: { automation: { workspaceId } },
   });
@@ -68,32 +83,32 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
     where: { workspaceId },
   });
 
-  // 5. Delete suppression list entries
+  // 9. Delete suppression list entries
   await prisma.suppressionList.deleteMany({
     where: { workspaceId },
   });
 
-  // 6. Delete contacts
+  // 10. Delete contacts
   await prisma.contact.deleteMany({
     where: { workspaceId },
   });
 
-  // 7. Delete contact properties
+  // 11. Delete contact properties
   await prisma.contactProperty.deleteMany({
     where: { workspaceId },
   });
 
-  // 8. Delete topics
+  // 12. Delete topics
   await prisma.topic.deleteMany({
     where: { workspaceId },
   });
 
-  // 9. Delete segments
+  // 13. Delete segments
   await prisma.segment.deleteMany({
     where: { workspaceId },
   });
 
-  // 10. Delete API keys last
+  // 14. Delete API keys last
   await prisma.apiKey.deleteMany({
     where: { workspaceId },
   });

@@ -107,6 +107,13 @@ export enum ErrorCode {
   SENDING_DOMAIN_ALREADY_EXISTS = "SENDING_DOMAIN_ALREADY_EXISTS",
 
   // ============================================================================
+  // BROADCAST ERRORS
+  // ============================================================================
+  BROADCAST_NOT_FOUND = "BROADCAST_NOT_FOUND",
+  BROADCAST_INVALID_FROM_DOMAIN = "BROADCAST_INVALID_FROM_DOMAIN",
+  BROADCAST_NOT_EDITABLE = "BROADCAST_NOT_EDITABLE",
+
+  // ============================================================================
   // VALIDATION ERRORS (422)
   // ============================================================================
   VALIDATION_FAILED = "VALIDATION_FAILED",

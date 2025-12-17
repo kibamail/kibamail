@@ -88,6 +88,14 @@ import {
   type UpdateAutomationInput,
 } from "@/app/api/v1/automations/schema";
 import {
+  type BroadcastListResponse,
+  type BroadcastResponse,
+  broadcastListResponseSchema,
+  broadcastResponseSchema,
+  type CreateBroadcastRequest,
+  type UpdateBroadcastRequest,
+} from "@/app/api/v1/broadcasts/schema";
+import {
   type ContactPropertyListResponse,
   type ContactPropertyResponse,
   type CreateContactPropertyRequest,
@@ -1609,6 +1617,205 @@ class AutomationsApi extends HttpClient {
 }
 
 /**
+ * Sender Identities API namespace
+ */
+class SenderIdentitiesApi extends HttpClient {
+  /**
+   * List all sender identities
+   *
+   * @returns List of sender identities
+   *
+   * @example
+   * ```ts
+   * const { data } = await internalApi.senderIdentities().list()
+   * ```
+   */
+  async list(): Promise<{
+    object: string;
+    data: Array<{
+      id: string;
+      name: string;
+      email: string;
+      localPart: string;
+      domain: string;
+      domainId: string;
+      replyToEmail: string | null;
+      verified: boolean;
+      createdAt: string;
+    }>;
+    hasMore: boolean;
+  }> {
+    const response = await fetch("/api/internal/v1/sender-identities", {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiClientError(
+        errorData.error?.message || "Failed to fetch sender identities",
+        response.status,
+        errorData,
+      );
+    }
+
+    return response.json();
+  }
+}
+
+/**
+ * Broadcasts API namespace
+ */
+class BroadcastsApi extends HttpClient {
+  /**
+   * List all broadcasts
+   *
+   * @param params - Query parameters (limit, after, before)
+   * @returns List of broadcasts with pagination info
+   *
+   * @example
+   * ```ts
+   * const { data: broadcasts, hasMore } = await internalApi.broadcasts().list()
+   * ```
+   */
+  async list(params?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+  }): Promise<BroadcastListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set("limit", params.limit.toString());
+    if (params?.after) queryParams.set("after", params.after);
+    if (params?.before) queryParams.set("before", params.before);
+
+    const queryString = queryParams.toString();
+    const url = `/api/internal/v1/broadcasts${queryString ? `?${queryString}` : ""}`;
+
+    return this.request("GET", url, null, broadcastListResponseSchema);
+  }
+
+  /**
+   * Get a specific broadcast by ID
+   *
+   * @param broadcastId - ID of the broadcast to retrieve
+   * @returns Broadcast data
+   *
+   * @example
+   * ```ts
+   * const broadcast = await internalApi.broadcasts().get('broadcast_123')
+   * ```
+   */
+  async get(broadcastId: string): Promise<BroadcastResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/broadcasts/${broadcastId}`,
+      null,
+      broadcastResponseSchema,
+    );
+  }
+
+  /**
+   * Create a new broadcast
+   *
+   * @param data - Broadcast creation data
+   * @returns Created broadcast
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const broadcast = await internalApi.broadcasts().create({
+   *   name: 'Welcome Newsletter',
+   *   from: 'news@example.com'
+   * })
+   * ```
+   */
+  async create(data: CreateBroadcastRequest): Promise<BroadcastResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/broadcasts",
+      null,
+      broadcastResponseSchema,
+      data,
+    );
+  }
+
+  /**
+   * Update an existing broadcast
+   *
+   * @param broadcastId - ID of the broadcast to update
+   * @param data - Broadcast update data
+   * @returns Updated broadcast
+   * @throws ZodError if validation fails
+   *
+   * @example
+   * ```ts
+   * const broadcast = await internalApi.broadcasts().update('broadcast_123', {
+   *   name: 'Updated Newsletter'
+   * })
+   * ```
+   */
+  async update(
+    broadcastId: string,
+    data: UpdateBroadcastRequest,
+  ): Promise<BroadcastResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/broadcasts/${broadcastId}`,
+      null,
+      broadcastResponseSchema,
+      data,
+    );
+  }
+
+  /**
+   * Delete a broadcast
+   *
+   * @param broadcastId - ID of the broadcast to delete
+   * @returns Deleted broadcast info
+   *
+   * @example
+   * ```ts
+   * await internalApi.broadcasts().delete('broadcast_123')
+   * ```
+   */
+  async delete(broadcastId: string): Promise<BroadcastResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/broadcasts/${broadcastId}`,
+      null,
+      broadcastResponseSchema,
+    );
+  }
+
+  /**
+   * Schedule a broadcast for sending
+   *
+   * @param broadcastId - ID of the broadcast to send
+   * @param data - Send data with sendAt date
+   * @returns Updated broadcast
+   *
+   * @example
+   * ```ts
+   * const broadcast = await internalApi.broadcasts().send('broadcast_123', {
+   *   sendAt: new Date('2024-01-15T10:00:00Z')
+   * })
+   * ```
+   */
+  async send(
+    broadcastId: string,
+    data: { sendAt: Date },
+  ): Promise<BroadcastResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/broadcasts/${broadcastId}/send`,
+      null,
+      broadcastResponseSchema,
+      data,
+    );
+  }
+}
+
+/**
  * Sending Domains API namespace
  */
 class DomainsApi extends HttpClient {
@@ -1764,6 +1971,8 @@ export class InternalApi {
   private _forms: FormsApi;
   private _automations: AutomationsApi;
   private _domains: DomainsApi;
+  private _broadcasts: BroadcastsApi;
+  private _senderIdentities: SenderIdentitiesApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
@@ -1777,6 +1986,8 @@ export class InternalApi {
     this._forms = new FormsApi();
     this._automations = new AutomationsApi();
     this._domains = new DomainsApi();
+    this._broadcasts = new BroadcastsApi();
+    this._senderIdentities = new SenderIdentitiesApi();
   }
 
   /**
@@ -1963,6 +2174,36 @@ export class InternalApi {
    */
   domains() {
     return this._domains;
+  }
+
+  /**
+   * Access broadcasts API
+   *
+   * @returns BroadcastsApi instance
+   *
+   * @example
+   * ```ts
+   * const broadcast = await internalApi.broadcasts().create({
+   *   name: 'Welcome Newsletter'
+   * })
+   * ```
+   */
+  broadcasts() {
+    return this._broadcasts;
+  }
+
+  /**
+   * Access sender identities API
+   *
+   * @returns SenderIdentitiesApi instance
+   *
+   * @example
+   * ```ts
+   * const { data } = await internalApi.senderIdentities().list()
+   * ```
+   */
+  senderIdentities() {
+    return this._senderIdentities;
   }
 }
 

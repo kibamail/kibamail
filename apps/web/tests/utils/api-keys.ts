@@ -122,6 +122,10 @@ export async function createFullAccessApiKey(
       "write:domains",
       "update:domains",
       "delete:domains",
+      "read:broadcasts",
+      "write:broadcasts",
+      "update:broadcasts",
+      "delete:broadcasts",
     ],
   });
 }
