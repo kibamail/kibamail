@@ -173,6 +173,14 @@ export function ButtonCursorFloating({
 
     const handleSelectionUpdate = () => {
       const nodeData = getButtonNodeData(editor);
+      if (nodeData) {
+        console.log("[ButtonCursorFloating] Got button node:", {
+          nodeType: nodeData.node.type.name,
+          nodeAttrs: nodeData.node.attrs,
+          customStyle: nodeData.node.attrs.customStyle,
+          pos: nodeData.pos,
+        });
+      }
       setShouldShow(nodeData !== null);
       setButtonNodeData(nodeData);
     };

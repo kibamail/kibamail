@@ -145,14 +145,38 @@ export const CustomNodeStylesButton = forwardRef<
     const [open, setOpen] = useState(false);
     const [localStyles, setLocalStyles] = useState<React.CSSProperties>({});
 
-    // Initialize local state when node changes or popover opens
+    // Handle popover open/close with explicit style sync
+    const handleOpenChange = useCallback(
+      (isOpen: boolean) => {
+        if (isOpen && node) {
+          // Sync styles from node when opening the popover
+          const nodeStyles = (node.attrs?.customStyle || {}) as React.CSSProperties;
+          console.log("[CustomNodeStylesButton] Opening popover", {
+            nodeType: node.type.name,
+            nodeAttrs: node.attrs,
+            customStyle: node.attrs?.customStyle,
+            nodeStyles,
+          });
+          setLocalStyles(nodeStyles);
+        }
+        setOpen(isOpen);
+      },
+      [node]
+    );
+
+    // Also sync when node changes while popover is open
+    const customStyleKey = node?.attrs?.customStyle
+      ? JSON.stringify(node.attrs.customStyle)
+      : "";
+
+    // Re-sync when customStyle content changes while popover is open
     useEffect(() => {
       if (open && node) {
         const initialStyles = (node.attrs.customStyle ||
           {}) as React.CSSProperties;
         setLocalStyles(initialStyles);
       }
-    }, [open, node]);
+    }, [open, node, customStyleKey]);
 
     const updateNodeStyles = useCallback(
       (newStyles: React.CSSProperties) => {
@@ -195,7 +219,7 @@ export const CustomNodeStylesButton = forwardRef<
     const isDisabled = !editor || !editor.isEditable || !node;
 
     return (
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={handleOpenChange}>
         <PopoverTrigger asChild>
           <Button
             type="button"

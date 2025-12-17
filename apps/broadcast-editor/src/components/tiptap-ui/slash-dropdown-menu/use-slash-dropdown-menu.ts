@@ -24,9 +24,24 @@ import { FooterIcon } from "@/components/tiptap-icons/footer-icon";
 // --- Lib ---
 import { isExtensionAvailable, isNodeInSchema } from "@/lib/tiptap-utils";
 
+// --- Contexts ---
+import {
+  useEditorConfig,
+  type SimpleStyleKey,
+} from "@/contexts/editor-config-context";
+import type { HeadingLevel } from "@/types/editor-config";
+
 // --- Tiptap UI ---
 import type { SuggestionItem } from "@/components/tiptap-ui-utils/suggestion-menu";
 import { addEmojiTrigger } from "@/components/tiptap-ui/emoji-trigger-button";
+
+/**
+ * Style getter functions passed to item implementations
+ */
+interface StyleGetters {
+  getStyles: (type: SimpleStyleKey) => React.CSSProperties | undefined;
+  getHeadingStyles: (level: HeadingLevel) => React.CSSProperties | undefined;
+}
 
 export interface SlashMenuConfig {
   enabledItems?: SlashMenuItemType[];
@@ -157,54 +172,94 @@ const texts = {
 
 export type SlashMenuItemType = keyof typeof texts;
 
-const getItemImplementations = () => {
+/**
+ * Action context passed to item implementations
+ */
+interface ActionContext {
+  editor: Editor;
+  styleGetters: StyleGetters;
+}
+
+const getItemImplementations = (_styleGetters: StyleGetters) => {
   return {
     // Style
     text: {
       check: (editor: Editor) => isNodeInSchema("paragraph", editor),
-      action: ({ editor }: { editor: Editor }) => {
-        editor.chain().focus().setParagraph().run();
+      action: ({ editor, styleGetters }: ActionContext) => {
+        const paragraphStyles = styleGetters.getStyles("paragraph") || {};
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "paragraph",
+            attrs: { customStyle: paragraphStyles },
+          })
+          .run();
       },
     },
     heading_1: {
       check: (editor: Editor) => isNodeInSchema("heading", editor),
-      action: ({ editor }: { editor: Editor }) => {
-        editor.chain().focus().toggleHeading({ level: 1 }).run();
+      action: ({ editor, styleGetters }: ActionContext) => {
+        const headingStyles = styleGetters.getHeadingStyles(1) || {};
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "heading",
+            attrs: { level: 1, customStyle: headingStyles },
+          })
+          .run();
       },
     },
     heading_2: {
       check: (editor: Editor) => isNodeInSchema("heading", editor),
-      action: ({ editor }: { editor: Editor }) => {
-        editor.chain().focus().toggleHeading({ level: 2 }).run();
+      action: ({ editor, styleGetters }: ActionContext) => {
+        const headingStyles = styleGetters.getHeadingStyles(2) || {};
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "heading",
+            attrs: { level: 2, customStyle: headingStyles },
+          })
+          .run();
       },
     },
     heading_3: {
       check: (editor: Editor) => isNodeInSchema("heading", editor),
-      action: ({ editor }: { editor: Editor }) => {
-        editor.chain().focus().toggleHeading({ level: 3 }).run();
+      action: ({ editor, styleGetters }: ActionContext) => {
+        const headingStyles = styleGetters.getHeadingStyles(3) || {};
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "heading",
+            attrs: { level: 3, customStyle: headingStyles },
+          })
+          .run();
       },
     },
     bullet_list: {
       check: (editor: Editor) => isNodeInSchema("bulletList", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor }: ActionContext) => {
         editor.chain().focus().toggleBulletList().run();
       },
     },
     ordered_list: {
       check: (editor: Editor) => isNodeInSchema("orderedList", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor }: ActionContext) => {
         editor.chain().focus().toggleOrderedList().run();
       },
     },
     quote: {
       check: (editor: Editor) => isNodeInSchema("blockquote", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor }: ActionContext) => {
         editor.chain().focus().toggleBlockquote().run();
       },
     },
     code_block: {
       check: (editor: Editor) => isNodeInSchema("codeBlock", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor }: ActionContext) => {
         editor.chain().focus().toggleNode("codeBlock", "paragraph").run();
       },
     },
@@ -212,18 +267,18 @@ const getItemImplementations = () => {
     emoji: {
       check: (editor: Editor) =>
         isExtensionAvailable(editor, ["emoji", "emojiPicker"]),
-      action: ({ editor }: { editor: Editor }) => addEmojiTrigger(editor),
+      action: ({ editor }: ActionContext) => addEmojiTrigger(editor),
     },
     divider: {
       check: (editor: Editor) => isNodeInSchema("horizontalRule", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor }: ActionContext) => {
         editor.chain().focus().setHorizontalRule().run();
       },
     },
     // Upload
     image: {
       check: (editor: Editor) => isNodeInSchema("image", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor }: ActionContext) => {
         editor
           .chain()
           .focus()
@@ -237,12 +292,21 @@ const getItemImplementations = () => {
     // Button insert
     button: {
       check: (editor: Editor) => isNodeInSchema("button", editor),
-      action: ({ editor }: { editor: Editor }) => {
+      action: ({ editor, styleGetters }: ActionContext) => {
+        const buttonStyles = styleGetters.getStyles("button") || {};
+        console.log("[SlashMenu] Inserting button with styles:", buttonStyles);
         editor
           .chain()
           .focus()
-          .insertButton({
-            align: "left",
+          .insertContent({
+            type: "button",
+            attrs: {
+              align: "left",
+              href: null,
+              fullWidth: false,
+              customStyle: buttonStyles,
+            },
+            content: [{ type: "text", text: "Button" }],
           })
           .run();
       },
@@ -251,8 +315,17 @@ const getItemImplementations = () => {
     // Panel insert
     panel: {
       check: (editor: Editor) => isNodeInSchema("panel", editor),
-      action: ({ editor }: { editor: Editor }) => {
-        editor.chain().focus().insertPanel().run();
+      action: ({ editor, styleGetters }: ActionContext) => {
+        const panelStyles = styleGetters.getStyles("panel") || {};
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "panel",
+            attrs: { customStyle: panelStyles },
+            content: [{ type: "paragraph" }],
+          })
+          .run();
       },
     },
 
@@ -261,8 +334,10 @@ const getItemImplementations = () => {
       check: (editor: Editor) =>
         isNodeInSchema("paragraph", editor) &&
         isNodeInSchema("horizontalRule", editor),
-      action: ({ editor }: { editor: Editor }) => {
-        const footerStyle = { fontSize: "14px" };
+      action: ({ editor, styleGetters }: ActionContext) => {
+        // Footer uses a fixed smaller font size, merged with global paragraph styles
+        const paragraphStyles = styleGetters.getStyles("paragraph") || {};
+        const footerStyle = { ...paragraphStyles, fontSize: "14px" };
 
         editor
           .chain()
@@ -381,6 +456,13 @@ function organizeItemsByGroups(
  * Custom hook for slash dropdown menu functionality
  */
 export function useSlashDropdownMenu(config?: SlashMenuConfig) {
+  const { getStyles, getHeadingStyles } = useEditorConfig();
+
+  const styleGetters: StyleGetters = {
+    getStyles,
+    getHeadingStyles,
+  };
+
   const getSlashMenuItems = useCallback(
     (editor: Editor) => {
       const items: SuggestionItem[] = [];
@@ -389,7 +471,7 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
         config?.enabledItems || (Object.keys(texts) as SlashMenuItemType[]);
       const showGroups = config?.showGroups !== false;
 
-      const itemImplementations = getItemImplementations();
+      const itemImplementations = getItemImplementations(styleGetters);
 
       enabledItems.forEach((itemType) => {
         const itemImpl = itemImplementations[itemType];
@@ -397,7 +479,8 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
 
         if (itemImpl && itemText && itemImpl.check(editor)) {
           const item: SuggestionItem = {
-            onSelect: ({ editor }) => itemImpl.action({ editor }),
+            onSelect: ({ editor }) =>
+              itemImpl.action({ editor, styleGetters }),
             ...itemText,
           };
 
@@ -418,7 +501,7 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
       // Reorganize items by groups to ensure keyboard navigation works correctly
       return organizeItemsByGroups(items, showGroups);
     },
-    [config]
+    [config, styleGetters]
   );
 
   return {
