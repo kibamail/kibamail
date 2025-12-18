@@ -41,9 +41,7 @@ export function SendBroadcastButton({
         throw new Error("Broadcast is not ready to send");
       }
 
-      return internalApi.broadcasts().send(broadcastId, {
-        sendAt: new Date(),
-      });
+      return internalApi.broadcasts().send(broadcastId);
     },
     onSuccess: () => {
       toast("Broadcast scheduled for sending");
@@ -141,7 +139,7 @@ export function SendBroadcastButton({
             width="full"
             disabled={!readiness.ready || sendMutation.isPending}
           >
-            {sendMutation.isPending ? "Sending..." : "Send Now"}
+            Schedule broadcast
             <NavArrowRight className="w-4 h-4" />
           </Button>
         )}

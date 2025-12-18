@@ -1,0 +1,11 @@
+email,first_name,last_name
+valid@example.com,Valid,User
+notanemail,Invalid,NoAt
+missing@domain,Missing,Domain
+@nodomain.com,No,Local
+spaces in@email.com,Spaces,InEmail
+double@@at.com,Double,At
+valid2@example.org,Another,Valid
+.startswithdot@example.com,Starts,WithDot
+endswith.@example.com,Ends,WithDot
+valid3@sub.example.com,SubDomain,Valid

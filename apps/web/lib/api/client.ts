@@ -96,6 +96,12 @@ import {
   type UpdateBroadcastRequest,
 } from "@/app/api/v1/broadcasts/schema";
 import { type UploadBroadcastFilesResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/files/schema";
+import {
+  type CreateContactImportResponse,
+  type UpdateContactImportRequest,
+  type UpdateContactImportResponse,
+  type ContactImportResponse,
+} from "@/app/api/internal/v1/contact-imports/schema";
 import type { BroadcastReadinessResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/readiness/route";
 import {
   type ContactPropertyListResponse,
@@ -1134,6 +1140,26 @@ class TopicsApi extends HttpClient {
  */
 class ContactsApi extends HttpClient {
   /**
+   * Get a contact by ID
+   *
+   * @param contactId - ID of the contact to fetch
+   * @returns Contact with topics
+   *
+   * @example
+   * ```ts
+   * const contact = await internalApi.contacts().get('contact_123')
+   * ```
+   */
+  async get(contactId: string): Promise<ContactResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/contacts/${contactId}`,
+      null,
+      contactResponseSchema,
+    );
+  }
+
+  /**
    * Create a new contact with topic subscriptions
    *
    * @param data - Contact creation data
@@ -1209,6 +1235,151 @@ class ContactsApi extends HttpClient {
       null,
       contactDeleteResponseSchema,
     );
+  }
+}
+
+/**
+ * Contact Imports API
+ *
+ * Internal API for contact import operations.
+ */
+class ContactImportsApi {
+  /**
+   * Create a new contact import by uploading a CSV file
+   *
+   * Uses XMLHttpRequest for upload progress tracking.
+   *
+   * @param file - CSV file to upload
+   * @param onProgress - Optional callback for upload progress (0-100)
+   * @returns Created contact import with ID
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.contactImports().create(
+   *   csvFile,
+   *   (progress) => console.log(`${progress}% uploaded`)
+   * )
+   * console.log('Import ID:', result.id)
+   * ```
+   */
+  async create(
+    file: File,
+    onProgress?: (progress: number) => void,
+  ): Promise<CreateContactImportResponse> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      const formData = new FormData();
+      formData.append("file", file);
+
+      xhr.upload.addEventListener("progress", (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      });
+
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const response = JSON.parse(xhr.responseText);
+            resolve(response);
+          } catch {
+            reject(new Error("Failed to parse response"));
+          }
+        } else {
+          try {
+            const errorData = JSON.parse(xhr.responseText);
+            const errorMessage =
+              typeof errorData.error === "string"
+                ? errorData.error
+                : errorData.error?.message || "Upload failed";
+            reject(new Error(errorMessage));
+          } catch {
+            reject(new Error(`Upload failed with status ${xhr.status}`));
+          }
+        }
+      });
+
+      xhr.addEventListener("error", () => {
+        reject(new Error("Network error during upload"));
+      });
+
+      xhr.addEventListener("abort", () => {
+        reject(new Error("Upload cancelled"));
+      });
+
+      xhr.open("POST", "/api/internal/v1/contact-imports");
+      xhr.send(formData);
+    });
+  }
+
+  /**
+   * Get a contact import by ID
+   *
+   * @param id - Contact import ID
+   * @returns Contact import details
+   *
+   * @example
+   * ```ts
+   * const import = await internalApi.contactImports().get('import_123')
+   * console.log('Status:', import.status)
+   * ```
+   */
+  async get(id: string): Promise<ContactImportResponse> {
+    const response = await fetch(`/api/internal/v1/contact-imports/${id}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Failed to get contact import";
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Update a contact import with column mapping and settings
+   *
+   * @param id - Contact import ID
+   * @param data - Update data (columnMapping, topicIds, autoSubscribe, updateExisting)
+   * @returns Updated contact import
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.contactImports().update('import_123', {
+   *   columnMapping: { email: 'Email Address', firstName: 'First Name' },
+   *   topicIds: ['topic_1', 'topic_2'],
+   *   autoSubscribe: true,
+   *   updateExisting: false
+   * })
+   * ```
+   */
+  async update(
+    id: string,
+    data: UpdateContactImportRequest,
+  ): Promise<UpdateContactImportResponse> {
+    const response = await fetch(`/api/internal/v1/contact-imports/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Failed to update contact import";
+      throw new Error(errorMessage);
+    }
+
+    return response.json();
   }
 }
 
@@ -1792,27 +1963,23 @@ class BroadcastsApi extends HttpClient {
   /**
    * Schedule a broadcast for sending
    *
+   * Performs readiness checks and schedules the broadcast job
+   * to run 5 minutes before the broadcast's sendAt time.
+   *
    * @param broadcastId - ID of the broadcast to send
-   * @param data - Send data with sendAt date
    * @returns Updated broadcast
    *
    * @example
    * ```ts
-   * const broadcast = await internalApi.broadcasts().send('broadcast_123', {
-   *   sendAt: new Date('2024-01-15T10:00:00Z')
-   * })
+   * const broadcast = await internalApi.broadcasts().send('broadcast_123')
    * ```
    */
-  async send(
-    broadcastId: string,
-    data: { sendAt: Date },
-  ): Promise<BroadcastResponse> {
+  async send(broadcastId: string): Promise<BroadcastResponse> {
     return this.request(
       "POST",
       `/api/internal/v1/broadcasts/${broadcastId}/send`,
       null,
       broadcastResponseSchema,
-      data,
     );
   }
 
@@ -2058,6 +2225,7 @@ export class InternalApi {
   private _segments: SegmentsApi;
   private _contactProperties: ContactPropertiesApi;
   private _contacts: ContactsApi;
+  private _contactImports: ContactImportsApi;
   private _forms: FormsApi;
   private _automations: AutomationsApi;
   private _domains: DomainsApi;
@@ -2073,6 +2241,7 @@ export class InternalApi {
     this._segments = new SegmentsApi();
     this._contactProperties = new ContactPropertiesApi();
     this._contacts = new ContactsApi();
+    this._contactImports = new ContactImportsApi();
     this._forms = new FormsApi();
     this._automations = new AutomationsApi();
     this._domains = new DomainsApi();
@@ -2215,6 +2384,22 @@ export class InternalApi {
    */
   contacts() {
     return this._contacts;
+  }
+
+  /**
+   * Access contact imports API
+   *
+   * @returns ContactImportsApi instance
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.contactImports().uploadCsv(file, (progress) => {
+   *   console.log(`${progress}% uploaded`)
+   * })
+   * ```
+   */
+  contactImports() {
+    return this._contactImports;
   }
 
   /**

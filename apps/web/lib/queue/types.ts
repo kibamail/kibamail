@@ -37,6 +37,14 @@ export type QueueJobs = {
   segments: {
     "compute-contacts-count": { segmentIds: string[] };
   };
+  // Contact imports queue for processing CSV imports
+  "contact-imports": {
+    "process-import": { contactImportId: string };
+  };
+  // Broadcasts queue for sending broadcasts
+  broadcasts: {
+    "send-broadcast": { broadcastId: string };
+  };
 };
 
 /**

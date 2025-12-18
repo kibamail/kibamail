@@ -20,6 +20,7 @@ const unlimitedSet = [
 
 const features: Feature[] = [
   { title: "No monthly subscriptions" },
+  { title: "10,000 free emails . No credit card required." },
   {
     title: "Unlimited features",
     description: (
@@ -52,8 +53,6 @@ export function HomePageHero() {
   return (
     <div className="relative px-6 xl:px-0">
       <div className="w-full min-h-[728px] border-t-[0.5px] border-l-[0.5px] border-r-[0.5px] border-[rgba(91,47,14,0.10)] dark:border-kb-border-tertiary/40 overflow-hidden">
-        {/* Background shape with notch */}
-
         <div className="mt-18 w-full mx-auto lg:max-w-2xl flex flex-col items-center px-6 sm:px-0">
           <h1 className="w-full font-heading text-kb-content-brand text-2xl lg:text-3xl xl:text-5xl text-left sm:text-center font-bold">
             Open-source <br /> alternative to aws ses
@@ -72,7 +71,7 @@ export function HomePageHero() {
             </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 max-w-3xl mt-6">
+          <div className="flex flex-wrap items-center justify-center gap-4 max-w-4xl mt-6">
             {features.map((feature) => (
               <div className="flex items-center gap-1" key={feature.title}>
                 <CheckCircle className="text-kb-content-positive w-4 h-4 shrink-0" />
@@ -100,7 +99,6 @@ export function HomePageHero() {
         </div>
 
         <div className="relative w-full max-w-[1210px] overflow-hidden">
-          {/* Image positioned on top of SVG, inset from the rect */}
           <div className="w-full max-w-5xl mx-auto p-6">
             <div className="p-2 md:p-4 border border-white/20 shadow-md rounded-xl backdrop-blur-2xl bg-white/10">
               <Image

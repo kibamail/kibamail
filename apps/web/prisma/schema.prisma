@@ -116,82 +116,82 @@ model Contact {
   propertyFloat7   Float?
   propertyFloat8   Float?
   propertyFloat9   Float?
-  propertyFloat10   Float?
-  propertyFloat11   Float?
-  propertyFloat12   Float?
-  propertyFloat13   Float?
-  propertyFloat14   Float?
-  propertyFloat15   Float?
-  propertyFloat16   Float?
-  propertyFloat17   Float?
-  propertyFloat18   Float?
-  propertyFloat19   Float?
-  propertyFloat20   Float?
-  propertyFloat21   Float?
-  propertyFloat22   Float?
-  propertyFloat23   Float?
-  propertyFloat24   Float?
-  propertyFloat25   Float?
-  propertyFloat26   Float?
-  propertyFloat27   Float?
-  propertyFloat28   Float?
-  propertyFloat29   Float?
-  propertyFloat30   Float?
-  propertyFloat31   Float?
-  propertyFloat32   Float?
-  propertyFloat33   Float?
-  propertyFloat34   Float?
+  propertyFloat10  Float?
+  propertyFloat11  Float?
+  propertyFloat12  Float?
+  propertyFloat13  Float?
+  propertyFloat14  Float?
+  propertyFloat15  Float?
+  propertyFloat16  Float?
+  propertyFloat17  Float?
+  propertyFloat18  Float?
+  propertyFloat19  Float?
+  propertyFloat20  Float?
+  propertyFloat21  Float?
+  propertyFloat22  Float?
+  propertyFloat23  Float?
+  propertyFloat24  Float?
+  propertyFloat25  Float?
+  propertyFloat26  Float?
+  propertyFloat27  Float?
+  propertyFloat28  Float?
+  propertyFloat29  Float?
+  propertyFloat30  Float?
+  propertyFloat31  Float?
+  propertyFloat32  Float?
+  propertyFloat33  Float?
+  propertyFloat34  Float?
   /// Custom property slots - String (50 slots)
-  propertyString0  String? @db.VarChar(255)
-  propertyString1  String? @db.VarChar(255)
-  propertyString2  String? @db.VarChar(255)
-  propertyString3  String? @db.VarChar(255)
-  propertyString4  String? @db.VarChar(255)
-  propertyString5  String? @db.VarChar(255)
-  propertyString6  String? @db.VarChar(255)
-  propertyString7  String? @db.VarChar(255)
-  propertyString8  String? @db.VarChar(255)
-  propertyString9  String? @db.VarChar(255)
-  propertyString10  String? @db.VarChar(255)
-  propertyString11  String? @db.VarChar(255)
-  propertyString12  String? @db.VarChar(255)
-  propertyString13  String? @db.VarChar(255)
-  propertyString14  String? @db.VarChar(255)
-  propertyString15  String? @db.VarChar(255)
-  propertyString16  String? @db.VarChar(255)
-  propertyString17  String? @db.VarChar(255)
-  propertyString18  String? @db.VarChar(255)
-  propertyString19  String? @db.VarChar(255)
-  propertyString20  String? @db.VarChar(255)
-  propertyString21  String? @db.VarChar(255)
-  propertyString22  String? @db.VarChar(255)
-  propertyString23  String? @db.VarChar(255)
-  propertyString24  String? @db.VarChar(255)
-  propertyString25  String? @db.VarChar(255)
-  propertyString26  String? @db.VarChar(255)
-  propertyString27  String? @db.VarChar(255)
-  propertyString28  String? @db.VarChar(255)
-  propertyString29  String? @db.VarChar(255)
-  propertyString30  String? @db.VarChar(255)
-  propertyString31  String? @db.VarChar(255)
-  propertyString32  String? @db.VarChar(255)
-  propertyString33  String? @db.VarChar(255)
-  propertyString34  String? @db.VarChar(255)
-  propertyString35  String? @db.VarChar(255)
-  propertyString36  String? @db.VarChar(255)
-  propertyString37  String? @db.VarChar(255)
-  propertyString38  String? @db.VarChar(255)
-  propertyString39  String? @db.VarChar(255)
-  propertyString40  String? @db.VarChar(255)
-  propertyString41  String? @db.VarChar(255)
-  propertyString42  String? @db.VarChar(255)
-  propertyString43  String? @db.VarChar(255)
-  propertyString44  String? @db.VarChar(255)
-  propertyString45  String? @db.VarChar(255)
-  propertyString46  String? @db.VarChar(255)
-  propertyString47  String? @db.VarChar(255)
-  propertyString48  String? @db.VarChar(255)
-  propertyString49  String? @db.VarChar(255)
+  propertyString0  String?           @db.VarChar(255)
+  propertyString1  String?           @db.VarChar(255)
+  propertyString2  String?           @db.VarChar(255)
+  propertyString3  String?           @db.VarChar(255)
+  propertyString4  String?           @db.VarChar(255)
+  propertyString5  String?           @db.VarChar(255)
+  propertyString6  String?           @db.VarChar(255)
+  propertyString7  String?           @db.VarChar(255)
+  propertyString8  String?           @db.VarChar(255)
+  propertyString9  String?           @db.VarChar(255)
+  propertyString10 String?           @db.VarChar(255)
+  propertyString11 String?           @db.VarChar(255)
+  propertyString12 String?           @db.VarChar(255)
+  propertyString13 String?           @db.VarChar(255)
+  propertyString14 String?           @db.VarChar(255)
+  propertyString15 String?           @db.VarChar(255)
+  propertyString16 String?           @db.VarChar(255)
+  propertyString17 String?           @db.VarChar(255)
+  propertyString18 String?           @db.VarChar(255)
+  propertyString19 String?           @db.VarChar(255)
+  propertyString20 String?           @db.VarChar(255)
+  propertyString21 String?           @db.VarChar(255)
+  propertyString22 String?           @db.VarChar(255)
+  propertyString23 String?           @db.VarChar(255)
+  propertyString24 String?           @db.VarChar(255)
+  propertyString25 String?           @db.VarChar(255)
+  propertyString26 String?           @db.VarChar(255)
+  propertyString27 String?           @db.VarChar(255)
+  propertyString28 String?           @db.VarChar(255)
+  propertyString29 String?           @db.VarChar(255)
+  propertyString30 String?           @db.VarChar(255)
+  propertyString31 String?           @db.VarChar(255)
+  propertyString32 String?           @db.VarChar(255)
+  propertyString33 String?           @db.VarChar(255)
+  propertyString34 String?           @db.VarChar(255)
+  propertyString35 String?           @db.VarChar(255)
+  propertyString36 String?           @db.VarChar(255)
+  propertyString37 String?           @db.VarChar(255)
+  propertyString38 String?           @db.VarChar(255)
+  propertyString39 String?           @db.VarChar(255)
+  propertyString40 String?           @db.VarChar(255)
+  propertyString41 String?           @db.VarChar(255)
+  propertyString42 String?           @db.VarChar(255)
+  propertyString43 String?           @db.VarChar(255)
+  propertyString44 String?           @db.VarChar(255)
+  propertyString45 String?           @db.VarChar(255)
+  propertyString46 String?           @db.VarChar(255)
+  propertyString47 String?           @db.VarChar(255)
+  propertyString48 String?           @db.VarChar(255)
+  propertyString49 String?           @db.VarChar(255)
   segments         ContactSegment[]
   topics           ContactTopic[]
   suppressions     SuppressionList[]
@@ -329,7 +329,6 @@ model ContactTopic {
   @@map("contact_topics")
 }
 
-
 /// *
 ///  * Segments Schema
 ///  *
@@ -445,10 +444,82 @@ enum ContactStatus {
 
 /// Source type indicating how a contact was created
 enum ContactSourceType {
-  MANUAL  // Created manually via dashboard
-  IMPORT  // Created via CSV/file import
-  FORM    // Created via form submission
-  API     // Created via API call
+  MANUAL // Created manually via dashboard
+  IMPORT // Created via CSV/file import
+  FORM // Created via form submission
+  API // Created via API call
+}
+
+/// *
+///  * Contact Import Schema
+///  *
+///  * Stores contact import jobs from CSV files.
+///  * The import is processed asynchronously by a background job.
+///  * Tracks progress, statistics, and any errors that occur.
+model ContactImport {
+  /// Unique identifier for the import
+  id             String              @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId    String
+  /// S3 file key for the uploaded CSV
+  fileKey        String
+  /// Original filename
+  fileName       String
+  /// File size in bytes
+  fileSize       Int
+  /// Import status
+  status         ContactImportStatus @default(PENDING)
+  /// Column mapping configuration (CSV column -> contact field)
+  /// @example {"email": "Email Address", "firstName": "First Name", "lastName": "Last Name", "customProperties": {"Company": "propertyString0"}}
+  columnMapping  Json
+  /// Topic IDs to subscribe imported contacts to
+  /// @example ["topic_123", "topic_456"]
+  topicIds       Json                @default("[]")
+  /// Whether to auto-subscribe all imported contacts
+  autoSubscribe  Boolean             @default(false)
+  /// Whether to update existing contacts if email already exists
+  updateExisting Boolean             @default(false)
+  /// Total number of rows in the CSV (excluding header)
+  totalRows      Int                 @default(0)
+  /// Number of rows successfully processed
+  processedRows  Int                 @default(0)
+  /// Number of contacts created
+  createdCount   Int                 @default(0)
+  /// Number of contacts updated
+  updatedCount   Int                 @default(0)
+  /// Number of rows skipped (duplicates when updateExisting is false)
+  skippedCount   Int                 @default(0)
+  /// Number of rows that failed to process
+  failedCount    Int                 @default(0)
+  /// Error details for failed rows (stored as JSON array)
+  /// @example [{"row": 5, "error": "Invalid email format"}, {"row": 12, "error": "Missing required field"}]
+  errors         Json                @default("[]")
+  /// Error message if the entire import failed
+  errorMessage   String?             @db.Text
+  /// When processing started
+  startedAt      DateTime?
+  /// When processing completed
+  completedAt    DateTime?
+  /// When the import was created
+  createdAt      DateTime            @default(now())
+  /// When the import was last updated
+  updatedAt      DateTime            @updatedAt
+
+  @@index([workspaceId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([workspaceId, status])
+  @@map("contact_imports")
+}
+
+/// Contact import status
+enum ContactImportStatus {
+  PENDING // Waiting to be configured
+  QUEUED // Ready and waiting in queue
+  PROCESSING // Currently being processed
+  COMPLETED // Successfully completed
+  FAILED // Processing failed
+  CANCELLED // Cancelled by user
 }
 
 enum ContactPropertyType {
@@ -560,39 +631,39 @@ model Automation {
 ///  * Stores execution state as JSON (current node, completed nodes, pending nodes).
 model AutomationRun {
   /// Unique identifier for the run
-  id              String              @id @default(cuid())
+  id             String              @id @default(cuid())
   /// Automation ID this run belongs to
-  automationId    String
+  automationId   String
   /// Contact going through the automation
-  contactId       String
+  contactId      String
   /// Workspace ID for tenant segregation
-  workspaceId     String
+  workspaceId    String
   /// Current status of the run
-  status          AutomationRunStatus @default(ACTIVE)
+  status         AutomationRunStatus @default(ACTIVE)
   /// Current node ID the contact is on (from React Flow nodes)
-  currentNodeId   String?
+  currentNodeId  String?
   /// Execution state (completed nodes, pending nodes, branch decisions, etc.)
   /// @example {"completedNodes": ["node-1", "node-2"], "pendingNodes": ["node-3"], "branchDecisions": {"if-else-1": "true"}}
-  executionState  Json?
+  executionState Json?
   /// When the contact entered the automation
-  startedAt       DateTime            @default(now())
+  startedAt      DateTime            @default(now())
   /// When the automation run completed (success or failure)
-  completedAt     DateTime?
+  completedAt    DateTime?
   /// When the next scheduled action should occur (for time delays)
-  scheduledAt     DateTime?
+  scheduledAt    DateTime?
   /// Error message if the run failed
-  errorMessage    String?             @db.Text
+  errorMessage   String?             @db.Text
   /// Metadata about the run (entry trigger data, custom attributes, execution history, etc.)
   /// @example {"entrySource": "segment", "segmentId": "seg_123", "nodeExecutions": [{...}]}
-  metadata        Json?
+  metadata       Json?
   /// When the run was created
-  createdAt       DateTime            @default(now())
+  createdAt      DateTime            @default(now())
   /// When the run was last updated
-  updatedAt       DateTime            @updatedAt
+  updatedAt      DateTime            @updatedAt
   /// Parent automation version
-  automation      Automation          @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  automation     Automation          @relation(fields: [automationId], references: [id], onDelete: Cascade)
   /// Contact
-  contact         Contact             @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  contact        Contact             @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   @@unique([automationId, contactId])
   @@index([workspaceId])
@@ -609,52 +680,52 @@ model AutomationRun {
 /// Automation version status
 /// Only one DRAFT and one PUBLISHED version can exist per automation at a time
 enum AutomationStatus {
-  DRAFT               // Draft version being edited
-  PUBLISHED           // Published version (active)
-  ARCHIVED            // Archived version (replaced by newer published version)
+  DRAFT // Draft version being edited
+  PUBLISHED // Published version (active)
+  ARCHIVED // Archived version (replaced by newer published version)
 }
 
 /// Automation trigger types
 enum AutomationTrigger {
-  CONTACT_SUBSCRIBED         // Contact subscribed
-  PROPERTY_UPDATED           // Contact property updated
-  FORM_SUBMITTED             // Form submitted
-  API                        // Triggered via API call
-  EVENT                      // Custom event occurs
-  SEGMENT_ENTRY              // Contact enters a segment
-  SEGMENT_EXIT               // Contact exits a segment
-  EMAIL_ENGAGEMENT           // Email opened, clicked, etc.
+  CONTACT_SUBSCRIBED // Contact subscribed
+  PROPERTY_UPDATED // Contact property updated
+  FORM_SUBMITTED // Form submitted
+  API // Triggered via API call
+  EVENT // Custom event occurs
+  SEGMENT_ENTRY // Contact enters a segment
+  SEGMENT_EXIT // Contact exits a segment
+  EMAIL_ENGAGEMENT // Email opened, clicked, etc.
 }
 
 /// Automation node types (from React Flow)
 enum AutomationNodeType {
   // Triggers
-  FORM_FILLED                // Trigger: Form filled (form-filled)
-  CONTACT_SUBSCRIBED         // Trigger: Contact subscribed (contact-subscribed)
-  CONTACT_PROPERTY_UPDATED   // Trigger: Contact property updated (contact-property-updated)
-  WEBHOOK_TRIGGER            // Trigger: Webhook trigger (webhook-trigger)
+  FORM_FILLED // Trigger: Form filled (form-filled)
+  CONTACT_SUBSCRIBED // Trigger: Contact subscribed (contact-subscribed)
+  CONTACT_PROPERTY_UPDATED // Trigger: Contact property updated (contact-property-updated)
+  WEBHOOK_TRIGGER // Trigger: Webhook trigger (webhook-trigger)
 
   // Actions
-  SEND_EMAIL                 // Action: Send email (send-email)
-  SEND_WEBHOOK               // Action: Send webhook (send-webhook)
-  UPDATE_CONTACT             // Action: Update contact (update-contact)
-  UNSUBSCRIBE_CONTACT        // Action: Unsubscribe contact (unsubscribe-contact)
-  ADD_TO_TOPIC               // Action: Add to topic (add-to-topic)
-  REMOVE_FROM_TOPIC          // Action: Remove from topic (remove-from-topic)
+  SEND_EMAIL // Action: Send email (send-email)
+  SEND_WEBHOOK // Action: Send webhook (send-webhook)
+  UPDATE_CONTACT // Action: Update contact (update-contact)
+  UNSUBSCRIBE_CONTACT // Action: Unsubscribe contact (unsubscribe-contact)
+  ADD_TO_TOPIC // Action: Add to topic (add-to-topic)
+  REMOVE_FROM_TOPIC // Action: Remove from topic (remove-from-topic)
 
   // Rules
-  IF_ELSE                    // Rule: If/else condition (if-else)
-  PERCENTAGE_SPLIT           // Rule: Percentage split / A/B test (percentage-split)
-  TIME_DELAY                 // Rule: Time delay / wait (time-delay)
+  IF_ELSE // Rule: If/else condition (if-else)
+  PERCENTAGE_SPLIT // Rule: Percentage split / A/B test (percentage-split)
+  TIME_DELAY // Rule: Time delay / wait (time-delay)
 }
 
 /// Automation run status
 enum AutomationRunStatus {
-  ACTIVE              // Currently running
-  COMPLETED           // Successfully completed
-  FAILED              // Failed with error
-  CANCELLED           // Manually cancelled
-  PAUSED              // Paused (e.g., waiting for time delay)
+  ACTIVE // Currently running
+  COMPLETED // Successfully completed
+  FAILED // Failed with error
+  CANCELLED // Manually cancelled
+  PAUSED // Paused (e.g., waiting for time delay)
 }
 
 /// *
@@ -666,59 +737,59 @@ enum AutomationRunStatus {
 ///  * Competitive with Typeform, Mailchimp forms, and ConvertKit forms.
 model Form {
   /// Unique identifier for the form
-  id              String             @id @default(cuid())
+  id                 String      @id @default(cuid())
   /// Workspace ID for tenant segregation
-  workspaceId     String
+  workspaceId        String
   /// Form name
-  name            String
+  name               String
   /// Form description
-  description     String?
+  description        String?
   /// Form type (sign-up for collecting subscribers, survey for collecting information)
-  type            FormType           @default(SIGN_UP)
+  type               FormType    @default(SIGN_UP)
   /// Form display mode (how the form is presented to users)
-  display         FormDisplay        @default(INLINE_EMBED)
+  display            FormDisplay @default(INLINE_EMBED)
   /// Form status
-  status          FormStatus         @default(DRAFT)
+  status             FormStatus  @default(DRAFT)
   /// Version number (increments with each new version)
-  version         Int                @default(1)
+  version            Int         @default(1)
   /// Reference to parent form ID (for version grouping)
   /// NULL for the first version, references the original form ID for subsequent versions
-  parentId        String?
+  parentId           String?
   /// Reference to the currently published version (for root forms only)
   /// Points to the active published version that should be shown on the public endpoint
   publishedVersionId String?
   /// Form fields configuration stored as JSON
   /// Each field defines its name, type, validation, and which submission slot it maps to
   /// @example [{"id": "field-1", "name": "email", "type": "email", "label": "Email Address", "required": true, "slot": "fieldString0"}]
-  fields          Json               @default("[]")
+  fields             Json        @default("[]")
   /// Form settings (success message, redirect URL, double opt-in, etc.)
   /// @example {"successMessage": "Thank you!", "redirectUrl": "https://example.com/thank-you", "doubleOptIn": true, "createContact": true}
-  settings        Json?
+  settings           Json?
   /// Field mapping for submission storage - maps form field names to database slots
   /// Populated at publish time. Slot assignments are permanent per root form for data integrity.
   /// @example {"email": {"slot": "fieldString0", "type": "string"}, "age": {"slot": "fieldNum0", "type": "number"}}
-  fieldMapping    Json?
+  fieldMapping       Json?
 
   /// When this version was published (NULL if never published)
-  publishedAt     DateTime?
+  publishedAt             DateTime?
   /// When the form was created
-  createdAt       DateTime           @default(now())
+  createdAt               DateTime         @default(now())
   /// When the form was last updated
-  updatedAt       DateTime           @updatedAt
+  updatedAt               DateTime         @updatedAt
   /// Soft delete timestamp (NULL = active, non-NULL = deleted)
-  deletedAt       DateTime?          @map("deleted_at")
+  deletedAt               DateTime?        @map("deleted_at")
   /// Parent form (for version tracking)
-  parent          Form?              @relation("FormVersions", fields: [parentId], references: [id], onDelete: Cascade)
+  parent                  Form?            @relation("FormVersions", fields: [parentId], references: [id], onDelete: Cascade)
   /// Child versions
-  versions        Form[]             @relation("FormVersions")
+  versions                Form[]           @relation("FormVersions")
   /// Currently published version (for root forms only)
-  publishedVersion Form?             @relation("PublishedVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
+  publishedVersion        Form?            @relation("PublishedVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
   /// Forms that reference this as published version
-  referencedByAsPublished Form[]     @relation("PublishedVersion")
+  referencedByAsPublished Form[]           @relation("PublishedVersion")
   /// Form submissions
-  submissions     FormSubmission[]
+  submissions             FormSubmission[]
   /// Page views for this form
-  pageViews       PageView[]
+  pageViews               PageView[]
 
   // Only enforce uniqueness for DRAFT and PUBLISHED status (allow multiple ARCHIVED)
   // This allows version rollback/rollforward without constraint violations
@@ -818,9 +889,9 @@ model FormSubmission {
   fieldNum14     Float?
 
   /// Parent form
-  form           Form                 @relation(fields: [formId], references: [id], onDelete: Cascade)
+  form    Form     @relation(fields: [formId], references: [id], onDelete: Cascade)
   /// Contact associated with this submission (for SIGN_UP forms)
-  contact        Contact?             @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  contact Contact? @relation(fields: [contactId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([formId])
@@ -847,17 +918,17 @@ model FormSubmission {
 ///  * Used to calculate conversion rates and analyze visitor behavior.
 model PageView {
   /// Unique identifier for the page view
-  id          String        @id @default(cuid())
+  id          String       @id @default(cuid())
   /// Workspace ID for tenant segregation
   workspaceId String
   /// Form ID (optional - for form page views)
   formId      String?
   /// Page type being viewed
-  pageType    PageViewType  @default(FORM)
+  pageType    PageViewType @default(FORM)
   /// IP address of the visitor
   ipAddress   String?
   /// Raw user agent string
-  userAgent   String?       @db.Text
+  userAgent   String?      @db.Text
   /// Detected device type (desktop, mobile, tablet)
   device      String?
   /// Detected operating system
@@ -869,12 +940,12 @@ model PageView {
   /// City (derived from IP)
   city        String?
   /// Referrer URL
-  referrerUrl String?       @db.Text
+  referrerUrl String?      @db.Text
   /// When the page was viewed
-  createdAt   DateTime      @default(now())
+  createdAt   DateTime     @default(now())
 
   /// Parent form
-  form        Form?         @relation(fields: [formId], references: [id], onDelete: Cascade)
+  form Form? @relation(fields: [formId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
   @@index([formId])
@@ -886,35 +957,35 @@ model PageView {
 
 /// Page view type
 enum PageViewType {
-  FORM          // Form page view
-  LANDING_PAGE  // Landing page view (future)
+  FORM // Form page view
+  LANDING_PAGE // Landing page view (future)
 }
 
 /// Form status
 enum FormStatus {
-  DRAFT      // Draft form being edited
-  PUBLISHED  // Published form (active and accepting submissions)
-  ARCHIVED   // Archived form (no longer accepting submissions)
+  DRAFT // Draft form being edited
+  PUBLISHED // Published form (active and accepting submissions)
+  ARCHIVED // Archived form (no longer accepting submissions)
 }
 
 /// Form type
 enum FormType {
-  SIGN_UP    // Sign-up form for collecting subscribers
-  SURVEY     // Survey form for collecting information
+  SIGN_UP // Sign-up form for collecting subscribers
+  SURVEY // Survey form for collecting information
 }
 
 /// Form display mode
 enum FormDisplay {
-  POPUP        // Popup/modal form
+  POPUP // Popup/modal form
   INLINE_EMBED // Inline embedded form
 }
 
 /// Form submission status
 enum FormSubmissionStatus {
-  PENDING   // Pending processing
+  PENDING // Pending processing
   PROCESSED // Successfully processed
-  SPAM      // Marked as spam
-  FAILED    // Processing failed
+  SPAM // Marked as spam
+  FAILED // Processing failed
 }
 
 /// *
@@ -925,53 +996,53 @@ enum FormSubmissionStatus {
 ///  * Each sending domain contains DKIM keys, return path settings, and tracking domain config.
 model SendingDomain {
   /// Unique identifier for the sending domain
-  id                           String            @id @default(cuid())
+  id                          String           @id @default(cuid())
   /// Workspace ID for tenant segregation
-  workspaceId                  String
+  workspaceId                 String
   /// Domain name (e.g., "example.com")
-  name                         String
+  name                        String
   /// DKIM subdomain prefix (e.g., "kiba" for kiba._domainkey.example.com)
-  dkimSubDomain                String
+  dkimSubDomain               String
   /// DKIM public key for DNS TXT record
-  dkimPublicKey                String            @db.Text
+  dkimPublicKey               String           @db.Text
   /// DKIM private key (encrypted) for signing emails
-  dkimPrivateKey               String            @db.Text
+  dkimPrivateKey              String           @db.Text
   /// When DKIM was verified
-  dkimVerifiedAt               DateTime?
+  dkimVerifiedAt              DateTime?
   /// Return path subdomain for bounce handling (e.g., "bounce" for bounce.example.com)
-  returnPathSubDomain          String
+  returnPathSubDomain         String
   /// CNAME value for return path domain
-  returnPathDomainCnameValue   String
+  returnPathDomainCnameValue  String
   /// When return path domain was verified
-  returnPathDomainVerifiedAt   DateTime?
+  returnPathDomainVerifiedAt  DateTime?
   /// Tracking subdomain for click/open tracking (e.g., "track" for track.example.com)
-  trackingSubDomain            String
+  trackingSubDomain           String
   /// CNAME value for tracking domain
-  trackingDomainCnameValue     String
+  trackingDomainCnameValue    String
   /// When tracking domain CNAME was verified
-  trackingDomainVerifiedAt     DateTime?
+  trackingDomainVerifiedAt    DateTime?
   /// When tracking domain SSL was verified
-  trackingDomainSslVerifiedAt  DateTime?
+  trackingDomainSslVerifiedAt DateTime?
   /// SSL certificate key (encrypted)
-  trackingSslCertKey           String?           @db.Text
+  trackingSslCertKey          String?          @db.Text
   /// SSL certificate secret (encrypted)
-  trackingSslCertSecret        String?           @db.Text
+  trackingSslCertSecret       String?          @db.Text
   /// Whether open tracking is enabled for this domain
-  openTrackingEnabled          Boolean           @default(false)
+  openTrackingEnabled         Boolean          @default(false)
   /// Whether click tracking is enabled for this domain
-  clickTrackingEnabled         Boolean           @default(false)
+  clickTrackingEnabled        Boolean          @default(false)
   /// When DNS records were last verified
-  recordsLastVerifiedAt        DateTime?
+  recordsLastVerifiedAt       DateTime?
   /// When the sending domain was created
-  createdAt                    DateTime          @default(now())
+  createdAt                   DateTime         @default(now())
   /// When the sending domain was last updated
-  updatedAt                    DateTime          @updatedAt
+  updatedAt                   DateTime         @updatedAt
   /// Sender identities using this domain
-  senderIdentities             SenderIdentity[]
+  senderIdentities            SenderIdentity[]
   /// Broadcasts using this domain
-  broadcasts                   Broadcast[]
+  broadcasts                  Broadcast[]
   /// Email sends using this domain
-  emailSends                   EmailSend[]
+  emailSends                  EmailSend[]
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
@@ -984,33 +1055,33 @@ model SendingDomain {
 ///  * Stores predefined sender profiles that users can select when sending broadcasts.
 model SenderIdentity {
   /// Unique identifier for the sender identity
-  id                           String         @id @default(cuid())
+  id                             String        @id @default(cuid())
   /// Workspace ID for tenant segregation
-  workspaceId                  String
+  workspaceId                    String
   /// Sender name (used as "From" name in emails)
-  name                         String
+  name                           String
   /// Sender email (local part, combined with sending domain)
-  email                        String
+  email                          String
   /// Sending domain for the email address
-  sendingDomainId              String
+  sendingDomainId                String
   /// Verification code for email verification
-  emailVerificationCode        String?
+  emailVerificationCode          String?
   /// When email was verified
-  emailVerifiedAt              DateTime?
+  emailVerifiedAt                DateTime?
   /// When verification code expires
   emailVerificationCodeExpiresAt DateTime?
   /// Reply-to email address (optional, different from sender email)
-  replyToEmail                 String?
+  replyToEmail                   String?
   /// When the sender identity was created
-  createdAt                    DateTime       @default(now())
+  createdAt                      DateTime      @default(now())
   /// When the sender identity was last updated
-  updatedAt                    DateTime       @updatedAt
+  updatedAt                      DateTime      @updatedAt
   /// Sending domain relation
-  sendingDomain                SendingDomain  @relation(fields: [sendingDomainId], references: [id], onDelete: Cascade)
+  sendingDomain                  SendingDomain @relation(fields: [sendingDomainId], references: [id], onDelete: Cascade)
   /// Broadcasts using this sender identity
-  broadcasts                   Broadcast[]
+  broadcasts                     Broadcast[]
   /// Email sends using this sender identity
-  emailSends                   EmailSend[]
+  emailSends                     EmailSend[]
 
   @@index([workspaceId])
 }
@@ -1052,55 +1123,55 @@ model EmailContent {
 ///  * Supports A/B testing, scheduling, and tracking.
 model Broadcast {
   /// Unique identifier for the broadcast
-  id                       String            @id @default(cuid())
+  id                      String           @id @default(cuid())
   /// Workspace ID for tenant segregation
-  workspaceId              String
+  workspaceId             String
   /// Broadcast name
-  name                     String
+  name                    String
   /// Segment ID for targeting (optional)
-  segmentId                String?
+  segmentId               String?
   /// Topic ID for targeting (optional)
-  topicId                  String?
+  topicId                 String?
   /// Whether to track clicks
-  trackClicks              Boolean?
+  trackClicks             Boolean?
   /// Whether to track opens
-  trackOpens               Boolean?
+  trackOpens              Boolean?
   /// Email content for the broadcast
-  emailContentId           String?
+  emailContentId          String?
   /// Sender identity for the broadcast
-  senderIdentityId         String?
+  senderIdentityId        String?
   /// Sending domain for the broadcast
-  sendingDomainId          String?
+  sendingDomainId         String?
   /// Winning A/B test variant ID (set after test completes)
-  winningAbTestVariantId   String?
+  winningAbTestVariantId  String?
   /// Hours to wait before picking A/B test winner
-  waitingTimeToPickWinner  Int?              @default(4)
+  waitingTimeToPickWinner Int?             @default(4)
   /// Broadcast status
-  status                   BroadcastStatus   @default(DRAFT)
+  status                  BroadcastStatus  @default(DRAFT)
   /// Whether this is an A/B test broadcast
-  isAbTest                 Boolean           @default(false)
+  isAbTest                Boolean          @default(false)
   /// Criteria for picking A/B test winner
-  winningCriteria          WinningCriteria?
+  winningCriteria         WinningCriteria?
   /// Time to wait before picking winner (in hours)
-  winningWaitTime          Int?
+  winningWaitTime         Int?
   /// Scheduled send time
-  sendAt                   DateTime?
+  sendAt                  DateTime?
   /// When the broadcast was created
-  createdAt                DateTime          @default(now())
+  createdAt               DateTime         @default(now())
   /// When the broadcast was last updated
-  updatedAt                DateTime          @updatedAt
+  updatedAt               DateTime         @updatedAt
   /// Email content relation
-  emailContent             EmailContent?     @relation(fields: [emailContentId], references: [id], onDelete: SetNull)
+  emailContent            EmailContent?    @relation(fields: [emailContentId], references: [id], onDelete: SetNull)
   /// Sender identity relation
-  senderIdentity           SenderIdentity?   @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  senderIdentity          SenderIdentity?  @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
   /// Sending domain relation
-  sendingDomain            SendingDomain?    @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
+  sendingDomain           SendingDomain?   @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
   /// A/B test variants for this broadcast
-  abTestVariants           AbTestVariant[]
+  abTestVariants          AbTestVariant[]
   /// Email sends for this broadcast
-  emailSends               EmailSend[]
+  emailSends              EmailSend[]
   /// Email send events for this broadcast
-  emailSendEvents          EmailSendEvent[]
+  emailSendEvents         EmailSendEvent[]
 
   @@index([workspaceId])
 }
@@ -1200,49 +1271,49 @@ model EmailSend {
 ///  * Used for analytics and deliverability monitoring.
 model EmailSendEvent {
   /// Unique identifier for the event
-  id                         String         @id @default(cuid())
+  id                          String         @id @default(cuid())
   /// Email send this event belongs to
-  emailSendId                String
+  emailSendId                 String
   /// Event type
-  type                       EmailEventType @default(Any)
+  type                        EmailEventType @default(Any)
   /// When the event occurred
-  createdAt                  DateTime       @default(now())
+  createdAt                   DateTime       @default(now())
   /// Contact ID (for contact-level tracking)
-  contactId                  String?
+  contactId                   String?
   /// Broadcast ID (for broadcast-level analytics)
-  broadcastId                String?
+  broadcastId                 String?
   /// SMTP response code
-  responseCode               Int?
+  responseCode                Int?
   /// SMTP response content
-  responseContent            String?        @db.Text
+  responseContent             String?        @db.Text
   /// SMTP response command
-  responseCommand            String?        @db.VarChar(255)
+  responseCommand             String?        @db.VarChar(255)
   /// Enhanced status code - class
-  responseEnhancedCodeClass  Int?
+  responseEnhancedCodeClass   Int?
   /// Enhanced status code - subject
   responseEnhancedCodeSubject Int?
   /// Enhanced status code - detail
-  responseEnhancedCodeDetail Int?
+  responseEnhancedCodeDetail  Int?
   /// Peer address name (receiving server)
-  peerAddressName            String?        @db.VarChar(255)
+  peerAddressName             String?        @db.VarChar(255)
   /// Peer address IP
-  peerAddressAddr            String?        @db.VarChar(255)
+  peerAddressAddr             String?        @db.VarChar(255)
   /// Bounce classification (hard, soft, etc.)
-  bounceClassification       String?        @db.VarChar(120)
+  bounceClassification        String?        @db.VarChar(120)
   /// Origin country (for opens/clicks)
-  originCountry              String?        @db.VarChar(10)
+  originCountry               String?        @db.VarChar(10)
   /// Origin state
-  originState                String?        @db.VarChar(56)
+  originState                 String?        @db.VarChar(56)
   /// Origin city
-  originCity                 String?        @db.VarChar(56)
+  originCity                  String?        @db.VarChar(56)
   /// Device type
-  originDevice               String?        @db.VarChar(56)
+  originDevice                String?        @db.VarChar(56)
   /// Browser type
-  originBrowser              String?        @db.VarChar(56)
+  originBrowser               String?        @db.VarChar(56)
   /// Email send relation
-  emailSend                  EmailSend      @relation(fields: [emailSendId], references: [id], onDelete: Cascade)
+  emailSend                   EmailSend      @relation(fields: [emailSendId], references: [id], onDelete: Cascade)
   /// Broadcast relation
-  broadcast                  Broadcast?     @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+  broadcast                   Broadcast?     @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
 
   @@index([emailSendId])
   @@index([broadcastId])
@@ -1250,35 +1321,35 @@ model EmailSendEvent {
 
 /// Broadcast status
 enum BroadcastStatus {
-  DRAFT            // Draft broadcast being edited
+  DRAFT // Draft broadcast being edited
   QUEUED_FOR_SENDING // Queued and waiting to be sent
-  SENDING          // Currently being sent
-  SENT             // Successfully sent
-  SENDING_FAILED   // Sending failed
-  DRAFT_ARCHIVED   // Archived draft
-  ARCHIVED         // Archived sent broadcast
+  SENDING // Currently being sent
+  SENT // Successfully sent
+  SENDING_FAILED // Sending failed
+  DRAFT_ARCHIVED // Archived draft
+  ARCHIVED // Archived sent broadcast
 }
 
 /// A/B test winning criteria
 enum WinningCriteria {
-  OPENS       // Winner based on open rate
-  CLICKS      // Winner based on click rate
+  OPENS // Winner based on open rate
+  CLICKS // Winner based on click rate
   CONVERSIONS // Winner based on conversion rate
 }
 
 /// Email event types
 enum EmailEventType {
-  Delivery         // Email delivered
-  Reception        // Email received by MTA
-  Bounce           // Email bounced
+  Delivery // Email delivered
+  Reception // Email received by MTA
+  Bounce // Email bounced
   TransientFailure // Temporary failure
-  Expiration       // Email expired
-  AdminBounce      // Admin bounce
-  OOB              // Out of band bounce
-  Feedback         // Feedback loop (complaint)
-  Rejection        // Email rejected
-  AdminRebind      // Admin rebind
-  Any              // Any/unknown event
-  Click            // Link clicked
-  Open             // Email opened
+  Expiration // Email expired
+  AdminBounce // Admin bounce
+  OOB // Out of band bounce
+  Feedback // Feedback loop (complaint)
+  Rejection // Email rejected
+  AdminRebind // Admin rebind
+  Any // Any/unknown event
+  Click // Link clicked
+  Open // Email opened
 }

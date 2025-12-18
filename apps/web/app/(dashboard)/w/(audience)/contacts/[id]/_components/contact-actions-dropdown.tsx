@@ -4,7 +4,6 @@ import { Button } from "@kibamail/owly/button";
 import { ConfirmDialog } from "@kibamail/owly/dialog";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import { useToast } from "@kibamail/owly/toast";
-import type { ContactStatus } from "@prisma/client";
 import { EditPencil, MoreHoriz, Trash } from "iconoir-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -15,18 +14,14 @@ import { CreateContactModal } from "@/app/(dashboard)/w/(audience)/contacts/_com
 
 interface ContactActionsDropdownProps {
   variant?: "icon" | "default";
-  contact: {
-    id: string;
-    email: string;
-    status: ContactStatus;
-    topics: string[];
-    properties: Record<string, unknown>;
-  };
+  contactId: string;
+  contactEmail: string;
 }
 
 export function ContactActionsDropdown({
   variant = "icon",
-  contact,
+  contactId,
+  contactEmail,
 }: ContactActionsDropdownProps) {
   const { success: toast, error: errorToast } = useToast();
   const router = useRouter();
@@ -35,7 +30,7 @@ export function ContactActionsDropdown({
 
   const deleteMutation = useMutation({
     async mutationFn() {
-      return internalApi.contacts().delete(contact.id);
+      return internalApi.contacts().delete(contactId);
     },
     onSuccess() {
       toast("Contact deleted successfully.");
@@ -92,15 +87,15 @@ export function ContactActionsDropdown({
       <CreateContactModal
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
-        contact={contact}
+        contactId={contactId}
         mode="edit"
       />
 
       <ConfirmDialog
         {...deleteDialogState}
         title="Delete contact"
-        description={`Are you sure you want to delete "${contact.email}"? This action cannot be undone and will remove all contact data including topic subscriptions and activity history.`}
-        confirmText={contact.email}
+        description={`Are you sure you want to delete "${contactEmail}"? This action cannot be undone and will remove all contact data including topic subscriptions and activity history.`}
+        confirmText={contactEmail}
         confirm={{
           variant: "destructive",
           children: "Delete",

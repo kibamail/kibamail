@@ -10,20 +10,13 @@ import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
 import { AudienceTabs } from "./audience-tabs";
 import { CreateContactButton } from "../contacts/_components/create-contact-button";
+import { ImportContactsButton } from "../contacts/_components/import-contacts";
 import { CreateTopicButton } from "../topics/_components/create-topic-button";
 import { CreateSegmentButton } from "../segments/_components/create-segment-button";
 import { CreateContactPropertyButton } from "../contacts/_components/create-contact-property-button";
 
-/**
- * Audience Tabs Container
- *
- * Client component that wraps the audience layout with tabs functionality.
- * Detects the active tab from the current pathname.
- */
 export function AudienceTabsContainer({ children }: PropsWithChildren) {
   const pathname = usePathname();
-
-  // Extract the active tab from the pathname - same logic as settings
   const segments = pathname.split("/");
   const activeTab = segments[segments.length - 1] || "contacts";
 
@@ -32,7 +25,12 @@ export function AudienceTabsContainer({ children }: PropsWithChildren) {
       <DashboardLayoutStickyContentHeaderContainer>
         <DashboardLayoutContentHeader title="Audience">
           <DashboardLayoutContentActions>
-            {activeTab === "contacts" && <CreateContactButton />}
+            {activeTab === "contacts" && (
+              <>
+                <ImportContactsButton />
+                <CreateContactButton />
+              </>
+            )}
             {activeTab === "topics" && <CreateTopicButton />}
             {activeTab === "segments" && <CreateSegmentButton />}
             {activeTab === "properties" && <CreateContactPropertyButton />}

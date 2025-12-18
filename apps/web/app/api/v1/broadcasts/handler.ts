@@ -18,11 +18,12 @@ import {
 import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
+import { queue } from "@/lib/queue";
 import {
-  createBroadcastSchema,
-  sendBroadcastSchema,
-  updateBroadcastSchema,
-} from "./schema";
+  checkBroadcastReadiness,
+  getReadinessErrors,
+} from "@/lib/broadcasts/readiness";
+import { createBroadcastSchema, updateBroadcastSchema } from "./schema";
 
 /**
  * Parse email into local part and domain
@@ -39,7 +40,7 @@ function parseEmail(email: string): { localPart: string; domain: string } {
 async function getOrCreateSenderIdentity(
   workspaceId: string,
   fromEmail: string,
-  sendingDomainId: string,
+  sendingDomainId: string
 ): Promise<SenderIdentity> {
   const { localPart } = parseEmail(fromEmail);
 
@@ -85,7 +86,7 @@ async function validateFromDomain(workspaceId: string, fromEmail: string) {
   if (!sendingDomain) {
     throw new BadRequestError(
       `Domain "${domain}" is not registered in your workspace. Please add the domain first.`,
-      ErrorCode.BROADCAST_INVALID_FROM_DOMAIN,
+      ErrorCode.BROADCAST_INVALID_FROM_DOMAIN
     );
   }
 
@@ -119,9 +120,8 @@ function formatBroadcast(
     senderIdentity:
       | (SenderIdentity & { sendingDomain: { name: string } })
       | null;
-  },
+  }
 ) {
-  // Reconstruct the from email from sender identity
   let from: string | null = null;
   if (broadcast.senderIdentity) {
     from = `${broadcast.senderIdentity.email}@${broadcast.senderIdentity.sendingDomain.name}`;
@@ -150,7 +150,7 @@ function formatBroadcast(
  */
 export async function createBroadcast(
   workspaceId: string,
-  request: NextRequest,
+  request: NextRequest
 ) {
   const data = await validateRequestBody(createBroadcastSchema, request);
 
@@ -162,7 +162,7 @@ export async function createBroadcast(
     const senderIdentity = await getOrCreateSenderIdentity(
       workspaceId,
       data.from,
-      sendingDomain.id,
+      sendingDomain.id
     );
 
     senderIdentityId = senderIdentity.id;
@@ -239,7 +239,10 @@ export async function createBroadcast(
  *
  * List broadcasts for the workspace with cursor-based pagination.
  */
-export async function listBroadcasts(workspaceId: string, request: NextRequest) {
+export async function listBroadcasts(
+  workspaceId: string,
+  request: NextRequest
+) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
   const baseQuery = {
@@ -265,12 +268,12 @@ export async function listBroadcasts(workspaceId: string, request: NextRequest) 
         skip: 1,
       })
     : before
-      ? await prisma.broadcast.findMany({
-          ...baseQuery,
-          cursor: { id: before },
-          skip: 1,
-        })
-      : await prisma.broadcast.findMany(baseQuery);
+    ? await prisma.broadcast.findMany({
+        ...baseQuery,
+        cursor: { id: before },
+        skip: 1,
+      })
+    : await prisma.broadcast.findMany(baseQuery);
 
   const hasMore = broadcasts.length > limit;
   const items = hasMore ? broadcasts.slice(0, -1) : broadcasts;
@@ -284,7 +287,7 @@ export async function listBroadcasts(workspaceId: string, request: NextRequest) 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedBroadcasts,
     hasMore,
-    "broadcast_list",
+    "broadcast_list"
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -315,7 +318,7 @@ export async function getBroadcast(workspaceId: string, broadcastId: string) {
   if (!broadcast) {
     throw new NotFoundError(
       "Broadcast not found",
-      ErrorCode.BROADCAST_NOT_FOUND,
+      ErrorCode.BROADCAST_NOT_FOUND
     );
   }
 
@@ -331,7 +334,7 @@ export async function getBroadcast(workspaceId: string, broadcastId: string) {
 export async function updateBroadcast(
   workspaceId: string,
   broadcastId: string,
-  request: NextRequest,
+  request: NextRequest
 ) {
   const data = await validateRequestBody(updateBroadcastSchema, request);
 
@@ -349,14 +352,14 @@ export async function updateBroadcast(
   if (!existingBroadcast) {
     throw new NotFoundError(
       "Broadcast not found",
-      ErrorCode.BROADCAST_NOT_FOUND,
+      ErrorCode.BROADCAST_NOT_FOUND
     );
   }
 
   if (existingBroadcast.status !== "DRAFT") {
     throw new BadRequestError(
       "Only draft broadcasts can be updated",
-      ErrorCode.BROADCAST_NOT_EDITABLE,
+      ErrorCode.BROADCAST_NOT_EDITABLE
     );
   }
 
@@ -371,7 +374,7 @@ export async function updateBroadcast(
     const senderIdentity = await getOrCreateSenderIdentity(
       workspaceId,
       data.from,
-      sendingDomain.id,
+      sendingDomain.id
     );
 
     updateData.senderIdentityId = senderIdentity.id;
@@ -444,7 +447,7 @@ export async function updateBroadcast(
       if (!segment) {
         throw new NotFoundError(
           "Segment not found",
-          ErrorCode.SEGMENT_NOT_FOUND,
+          ErrorCode.SEGMENT_NOT_FOUND
         );
       }
       updateData.segmentId = data.segmentId;
@@ -479,7 +482,10 @@ export async function updateBroadcast(
  * Delete a specific broadcast by ID.
  * Only DRAFT broadcasts can be deleted.
  */
-export async function deleteBroadcast(workspaceId: string, broadcastId: string) {
+export async function deleteBroadcast(
+  workspaceId: string,
+  broadcastId: string
+) {
   const broadcast = await prisma.broadcast.findFirst({
     where: {
       id: broadcastId,
@@ -490,14 +496,14 @@ export async function deleteBroadcast(workspaceId: string, broadcastId: string) 
   if (!broadcast) {
     throw new NotFoundError(
       "Broadcast not found",
-      ErrorCode.BROADCAST_NOT_FOUND,
+      ErrorCode.BROADCAST_NOT_FOUND
     );
   }
 
   if (broadcast.status !== "DRAFT") {
     throw new BadRequestError(
       "Only draft broadcasts can be deleted",
-      ErrorCode.BROADCAST_NOT_EDITABLE,
+      ErrorCode.BROADCAST_NOT_EDITABLE
     );
   }
 
@@ -509,7 +515,7 @@ export async function deleteBroadcast(workspaceId: string, broadcastId: string) 
     {
       id: deletedBroadcast.id,
     },
-    "broadcast",
+    "broadcast"
   );
 }
 
@@ -517,16 +523,10 @@ export async function deleteBroadcast(workspaceId: string, broadcastId: string) 
  * POST /api/v1/broadcasts/[broadcastId]/send
  *
  * Schedule a broadcast for sending.
- * Validates that the broadcast has all required fields before scheduling.
+ * Performs readiness checks before scheduling.
  * Only DRAFT broadcasts can be sent.
  */
-export async function sendBroadcast(
-  workspaceId: string,
-  broadcastId: string,
-  request: NextRequest,
-) {
-  const data = await validateRequestBody(sendBroadcastSchema, request);
-
+export async function sendBroadcast(workspaceId: string, broadcastId: string) {
   const broadcast = await prisma.broadcast.findFirst({
     where: {
       id: broadcastId,
@@ -536,46 +536,34 @@ export async function sendBroadcast(
       emailContent: true,
       senderIdentity: {
         include: {
-          sendingDomain: {
-            select: { name: true },
-          },
+          sendingDomain: true,
         },
       },
+      sendingDomain: true,
     },
   });
 
   if (!broadcast) {
     throw new NotFoundError(
       "Broadcast not found",
-      ErrorCode.BROADCAST_NOT_FOUND,
+      ErrorCode.BROADCAST_NOT_FOUND
     );
   }
 
   if (broadcast.status !== "DRAFT") {
     throw new BadRequestError(
       "Only draft broadcasts can be sent",
-      ErrorCode.BROADCAST_NOT_EDITABLE,
+      ErrorCode.BROADCAST_NOT_EDITABLE
     );
   }
 
-  if (!broadcast.senderIdentityId || !broadcast.senderIdentity) {
-    throw new BadRequestError(
-      "Broadcast must have a sender (from) configured before sending",
-      ErrorCode.MISSING_REQUIRED_FIELD,
-    );
-  }
+  const readinessResult = await checkBroadcastReadiness(workspaceId, broadcast);
 
-  if (!broadcast.emailContentId || !broadcast.emailContent) {
+  if (!readinessResult.ready) {
+    const errors = getReadinessErrors(readinessResult);
     throw new BadRequestError(
-      "Broadcast must have email content before sending",
-      ErrorCode.MISSING_REQUIRED_FIELD,
-    );
-  }
-
-  if (!broadcast.emailContent.subject) {
-    throw new BadRequestError(
-      "Broadcast must have a subject before sending",
-      ErrorCode.MISSING_REQUIRED_FIELD,
+      errors.length > 0 ? errors[0] : "Broadcast is not ready to send",
+      ErrorCode.MISSING_REQUIRED_FIELD
     );
   }
 
@@ -583,7 +571,6 @@ export async function sendBroadcast(
     where: { id: broadcastId },
     data: {
       status: "QUEUED_FOR_SENDING",
-      sendAt: data.sendAt,
     },
     include: {
       emailContent: true,
@@ -596,6 +583,12 @@ export async function sendBroadcast(
       },
     },
   });
+
+  const sendAt = new Date(broadcast.sendAt!);
+  const jobRunAt = new Date(sendAt.getTime() - 5 * 60 * 1000); // 5 minutes before
+  const delay = Math.max(0, jobRunAt.getTime() - Date.now());
+
+  await queue("broadcasts").push("send-broadcast", { broadcastId }, { delay });
 
   return responseOk(formatBroadcast(updatedBroadcast), "broadcast");
 }

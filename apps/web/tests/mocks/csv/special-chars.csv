@@ -1,0 +1,8 @@
+email,first_name,last_name,company
+unicode@example.com,José,García,Compañía
+emoji@example.com,Test,User,Company 🎉
+accents@example.com,François,Müller,Café & Co
+symbols@example.com,John,O'Connor,AT&T
+asian@example.com,田中,太郎,株式会社
+cyrillic@example.com,Иван,Петров,Компания
+arabic@example.com,محمد,أحمد,شركة

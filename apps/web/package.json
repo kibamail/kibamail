@@ -21,7 +21,9 @@
     "logto:types": "openapi-typescript http://localhost:3001/api/.well-known/management.openapi.json -o ./auth/logto.types.ts",
     "seed": "dotenvx run -f .env.local -- tsx scripts/seed.ts",
     "seed:contacts": "dotenvx run -f .env.local -- tsx scripts/contact-seed.ts",
-    "worker:segments": "tsx jobs/segments/worker.ts"
+    "worker": "dotenvx run -f .env.local -- tsx jobs/worker.ts",
+    "worker:segments": "tsx jobs/segments/worker.ts",
+    "worker:contact-imports": "tsx jobs/contact-imports/worker.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.929.0",

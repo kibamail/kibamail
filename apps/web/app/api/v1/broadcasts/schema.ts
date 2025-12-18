@@ -123,21 +123,11 @@ export const broadcastListResponseSchema = z.object({
 });
 
 /**
- * Send Broadcast Request Schema
- */
-export const sendBroadcastSchema = z.object({
-  sendAt: z.coerce
-    .date()
-    .refine((date) => date > new Date(), "sendAt must be a future date"),
-});
-
-/**
  * Type exports for TypeScript
  */
 export type EmailContentRequest = z.infer<typeof emailContentSchema>;
 export type EmailContentResponse = z.infer<typeof emailContentResponseSchema>;
 export type CreateBroadcastRequest = z.infer<typeof createBroadcastSchema>;
 export type UpdateBroadcastRequest = z.infer<typeof updateBroadcastSchema>;
-export type SendBroadcastRequest = z.infer<typeof sendBroadcastSchema>;
 export type BroadcastResponse = z.infer<typeof broadcastResponseSchema>;
 export type BroadcastListResponse = z.infer<typeof broadcastListResponseSchema>;

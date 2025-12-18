@@ -57,7 +57,6 @@ function formatCellValue(
   return String(value);
 }
 
-// Get column label
 function getColumnLabel(columnId: string): string {
   const labels: Record<string, string> = {
     email: "Email",
@@ -117,7 +116,10 @@ function ContactActionsDropdown({
             Edit
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
-          <DropdownMenu.Item className="text-kb-content-error" onClick={onDelete}>
+          <DropdownMenu.Item
+            className="text-kb-content-error"
+            onClick={onDelete}
+          >
             <Trash className="w-4 h-4" />
             Delete
           </DropdownMenu.Item>
@@ -146,26 +148,11 @@ export function ContactsTable({
   selectedColumns,
   contactProperties,
 }: ContactsTableProps) {
-  const [editContact, setEditContact] = useState<{
-    id: string;
-    email: string;
-    status: ContactStatus;
-    topics: string[];
-    properties: Record<string, unknown>;
-  } | null>(null);
+  const [editContactId, setEditContactId] = useState<string | null>(null);
   const [editModalOpen, setEditModalOpen] = useState(false);
 
-  function handleEditContact(contact: Contact) {
-    // Map contact data to the format expected by the modal
-    const contactForEdit = {
-      id: contact.id,
-      email: contact.email,
-      status: contact.status,
-      topics: [], // We'll need to fetch this from the API
-      properties: contact.properties,
-    };
-
-    setEditContact(contactForEdit);
+  function onEditContact(contact: Contact) {
+    setEditContactId(contact.id);
     setEditModalOpen(true);
   }
 
@@ -199,7 +186,9 @@ export function ContactsTable({
           <Table.Header>
             <Table.Row>
               {selectedColumns.map((columnId) => (
-                <Table.Head key={columnId}>{getColumnLabel(columnId)}</Table.Head>
+                <Table.Head key={columnId}>
+                  {getColumnLabel(columnId)}
+                </Table.Head>
               ))}
               <Table.Head className="w-[100px]">Actions</Table.Head>
             </Table.Row>
@@ -211,7 +200,6 @@ export function ContactsTable({
                   const value = getCellValue(contact, columnId);
                   const propertyType = getPropertyType(columnId);
 
-                  // Special rendering for email column with avatar
                   if (columnId === "email") {
                     return (
                       <Table.Cell key={columnId} className="font-medium">
@@ -241,7 +229,7 @@ export function ContactsTable({
                 <Table.Cell>
                   <ContactActionsDropdown
                     contact={contact}
-                    onEdit={() => handleEditContact(contact)}
+                    onEdit={() => onEditContact(contact)}
                   />
                 </Table.Cell>
               </Table.Row>
@@ -253,7 +241,7 @@ export function ContactsTable({
       <CreateContactModal
         open={editModalOpen}
         onOpenChange={setEditModalOpen}
-        contact={editContact || undefined}
+        contactId={editContactId || undefined}
         mode="edit"
       />
     </>

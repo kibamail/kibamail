@@ -20,6 +20,7 @@ interface RouteParams {
  *
  * Schedule a broadcast for sending
  * Requires API key authentication with write:broadcasts scope
+ * Performs readiness checks and schedules job 5 minutes before send time
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const { broadcastId } = await params;
@@ -27,8 +28,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) =>
-        sendBroadcast(apiKey.workspaceId, broadcastId, request),
+      (apiKey) =>
+        sendBroadcast(apiKey.workspaceId, broadcastId),
       ["write:broadcasts"],
     ),
   );

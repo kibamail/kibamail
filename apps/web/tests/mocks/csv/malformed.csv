@@ -1,0 +1,9 @@
+email,first_name,last_name,company
+valid@example.com,John,Doe,Acme Corp
+invalid-email,Jane,Smith,Tech Inc
+missing@columns.com,Bob
+extra@columns.com,Alice,Williams,StartUp,Extra,Fields,Here
+"unclosed@quote.com,Charlie,Brown,Enterprise
+another@valid.com,Dave,Wilson,Corp Ltd
+,Empty,Email,Company
+spaces@example.com,  Spaces  ,  Around  ,  Values

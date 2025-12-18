@@ -1,0 +1,31 @@
+-- CreateTable
+CREATE TABLE `contact_imports` (
+    `id` VARCHAR(191) NOT NULL,
+    `workspaceId` VARCHAR(191) NOT NULL,
+    `fileKey` VARCHAR(191) NOT NULL,
+    `fileName` VARCHAR(191) NOT NULL,
+    `fileSize` INTEGER NOT NULL,
+    `status` ENUM('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED') NOT NULL DEFAULT 'PENDING',
+    `columnMapping` JSON NOT NULL,
+    `topicIds` JSON NOT NULL,
+    `autoSubscribe` BOOLEAN NOT NULL DEFAULT false,
+    `updateExisting` BOOLEAN NOT NULL DEFAULT false,
+    `totalRows` INTEGER NOT NULL DEFAULT 0,
+    `processedRows` INTEGER NOT NULL DEFAULT 0,
+    `createdCount` INTEGER NOT NULL DEFAULT 0,
+    `updatedCount` INTEGER NOT NULL DEFAULT 0,
+    `skippedCount` INTEGER NOT NULL DEFAULT 0,
+    `failedCount` INTEGER NOT NULL DEFAULT 0,
+    `errors` JSON NOT NULL,
+    `errorMessage` TEXT NULL,
+    `startedAt` DATETIME(3) NULL,
+    `completedAt` DATETIME(3) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    INDEX `contact_imports_workspaceId_idx`(`workspaceId`),
+    INDEX `contact_imports_status_idx`(`status`),
+    INDEX `contact_imports_createdAt_idx`(`createdAt`),
+    INDEX `contact_imports_workspaceId_status_idx`(`workspaceId`, `status`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

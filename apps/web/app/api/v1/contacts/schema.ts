@@ -61,7 +61,7 @@ export const createContactSchema = z.object({
   subscribedAt: z.coerce.date().optional().nullable(),
   unsubscribedAt: z.coerce.date().optional().nullable(),
   properties: z
-    .record(z.string(), z.union([z.string(), z.number()]))
+    .record(z.string(), z.union([z.string(), z.number(), z.null()]))
     .optional(),
   topics: z.array(z.string()).optional().default([]),
 });
@@ -109,7 +109,7 @@ export const updateContactSchema = z.object({
   subscribedAt: z.coerce.date().optional().nullable(),
   unsubscribedAt: z.coerce.date().optional().nullable(),
   properties: z
-    .record(z.string(), z.union([z.string(), z.number()]))
+    .record(z.string(), z.union([z.string(), z.number(), z.null()]))
     .optional(),
   topics: z.array(z.string()).optional(),
 });
@@ -130,7 +130,8 @@ export const contactResponseSchema = z.object({
   status: ContactStatusEnum,
   subscribedAt: z.date().nullable(),
   unsubscribedAt: z.date().nullable(),
-  properties: z.record(z.string(), z.union([z.string(), z.number()])),
+  properties: z.record(z.string(), z.union([z.string(), z.number(), z.null()])),
+  topics: z.array(z.string()),
 });
 
 /**

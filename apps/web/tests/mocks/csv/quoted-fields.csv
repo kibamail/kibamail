@@ -1,0 +1,8 @@
+email,first_name,last_name,company,notes
+john@example.com,John,Doe,"Acme, Corp","This is a note with ""quotes"" inside"
+jane@example.com,Jane,Smith,"Tech Inc","Note with
+multiple
+lines"
+bob@example.com,Bob,Johnson,"Global, Ltd","Simple note"
+alice@example.com,"Alice ""The Great""",Williams,StartUp,"Contains, commas, everywhere"
+charlie@example.com,Charlie,Brown,"Enterprise ""Best"" LLC","Mixed ""quotes"" and, commas"

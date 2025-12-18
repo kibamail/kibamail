@@ -23,19 +23,19 @@ interface RouteParams {
  *
  * Schedule a broadcast for sending
  * Uses session-based authentication and gets workspaceId from session
+ * Performs readiness checks and schedules job 5 minutes before send time
  */
 export async function POST(request: NextRequest, { params }: RouteParams) {
   const { broadcastId } = await params;
 
   return withErrorHandling(request, () =>
-    withSession(request, (session, request) => {
+    withSession(request, (session) => {
       if (!session.currentOrganization) {
         throw new Error("No active workspace found");
       }
       return sendBroadcast(
         session.currentOrganization.id,
         broadcastId,
-        request,
       );
     }),
   );

@@ -20,9 +20,6 @@ interface ContactDetailPageProps {
   }>;
 }
 
-/**
- * Build properties object for a contact from contact property definitions
- */
 function buildContactProperties(
   contact: any,
   properties: Array<{ name: string; slot: string }>
@@ -52,7 +49,6 @@ export default async function ContactDetailPage({
 
   const workspaceId = session.currentOrganization.id;
 
-  // Fetch contact with topics
   const contact = await prisma.contact.findFirst({
     where: {
       id,
@@ -71,16 +67,13 @@ export default async function ContactDetailPage({
     notFound();
   }
 
-  // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
     where: { workspaceId },
     select: { name: true, slot: true, type: true },
   });
 
-  // Build properties object
   const properties = buildContactProperties(contact, contactProperties);
 
-  // Fetch topic details for display
   const topicDetails = await prisma.topic.findMany({
     where: {
       id: { in: contact.topics.map((t) => t.topicId) },
@@ -91,15 +84,6 @@ export default async function ContactDetailPage({
       name: true,
     },
   });
-
-  // Prepare contact data for the dropdown
-  const contactForDropdown = {
-    id: contact.id,
-    email: contact.email,
-    status: contact.status,
-    topics: contact.topics.map((t) => t.topicId),
-    properties,
-  };
 
   return (
     <DashboardLayoutStickyContentHeaderContainer className="mt-8">
@@ -120,13 +104,12 @@ export default async function ContactDetailPage({
             </DashboardLayoutStickyDetailHeaderTitle>
           </div>
 
-          <ContactActionsDropdown variant="default" contact={contactForDropdown} />
+          <ContactActionsDropdown variant="default" contactId={contact.id} contactEmail={contact.email} />
         </div>
       </DashboardLayoutStickyDetailHeader>
 
       <div className="p-6">
         <div className="grid grid-cols-4 gap-6">
-          {/* Subscribed/Unsubscribed At */}
           <div>
             <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
               {contact.status === "SUBSCRIBED" ? "Subscribed At" : "Unsubscribed At"}
@@ -142,7 +125,6 @@ export default async function ContactDetailPage({
             </div>
           </div>
 
-          {/* ID */}
           <div>
             <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
               ID
@@ -150,7 +132,6 @@ export default async function ContactDetailPage({
             <CopyableId id={contact.id} />
           </div>
 
-          {/* Status */}
           <div>
             <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
               Status
@@ -160,7 +141,6 @@ export default async function ContactDetailPage({
             </div>
           </div>
 
-          {/* Topics */}
           <div>
             <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
               Topics
@@ -172,7 +152,6 @@ export default async function ContactDetailPage({
             </div>
           </div>
 
-          {/* Custom Properties */}
           {contactProperties.map((property) => {
             const value = properties[property.name];
 

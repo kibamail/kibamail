@@ -84,7 +84,7 @@ function buildContactProperties(
  * ```
  */
 function mapPropertiesToSlots(
-  properties: Record<string, string | number>,
+  properties: Record<string, string | number | null>,
   contactProperties: Array<{ name: string; slot: string }>
 ): Record<string, any> {
   const slotData: Record<string, any> = {};
@@ -163,7 +163,6 @@ export async function createContact(
     },
   });
 
-  // Create topic subscriptions if topics were provided
   if (topics && topics.length > 0) {
     await prisma.contactTopic.createMany({
       data: topics.map((topicId: string) => ({
@@ -194,7 +193,6 @@ export async function createContact(
 export async function listContacts(workspaceId: string, request: NextRequest) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
-  // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
     where: { workspaceId },
     select: { name: true, slot: true },
@@ -264,13 +262,10 @@ export async function searchContacts(
   const { filters } = await validateRequestBody(searchContactsSchema, request);
   const { limit, after, before } = parseCursorPaginationParams(request);
 
-  // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
     where: { workspaceId },
     select: { name: true, slot: true, type: true },
   });
-
-  // Validate that all fields in conditions are valid
   const validation = validateConditionFields(filters, contactProperties);
   if (!validation.isValid) {
     throw new BadRequestError(
@@ -282,7 +277,6 @@ export async function searchContacts(
     );
   }
 
-  // Convert segment conditions to Prisma where clause
   const conditionsWhere = conditionsToPrismaWhere(filters, contactProperties);
 
   const baseQuery = {
@@ -345,7 +339,6 @@ export async function searchContacts(
  * Workspace is determined from the authenticated API key.
  */
 export async function getContact(workspaceId: string, contactId: string) {
-  // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
     where: { workspaceId },
     select: { name: true, slot: true },
@@ -355,6 +348,12 @@ export async function getContact(workspaceId: string, contactId: string) {
     where: {
       id: contactId,
       workspaceId,
+    },
+    include: {
+      topics: {
+        where: { status: "SUBSCRIBED" },
+        select: { topicId: true },
+      },
     },
   });
 
@@ -376,6 +375,7 @@ export async function getContact(workspaceId: string, contactId: string) {
       subscribedAt: contact.subscribedAt,
       unsubscribedAt: contact.unsubscribedAt,
       properties: buildContactProperties(contact, contactProperties),
+      topics: contact.topics.map((t) => t.topicId),
     },
     "contact"
   );
@@ -397,10 +397,8 @@ export async function updateContact(
 ) {
   const data = await validateRequestBody(updateContactSchema, request);
 
-  // Extract properties and topics from data
   const { properties, topics, ...contactData } = data;
 
-  // If properties are provided, fetch contact properties and map to slots
   let slotData = {};
   if (properties && Object.keys(properties).length > 0) {
     const contactProperties = await prisma.contactProperty.findMany({
@@ -422,14 +420,11 @@ export async function updateContact(
     },
   });
 
-  // Update topic subscriptions if topics were provided
   if (topics !== undefined) {
-    // Delete existing topic subscriptions
     await prisma.contactTopic.deleteMany({
       where: { contactId },
     });
 
-    // Create new topic subscriptions
     if (topics.length > 0) {
       await prisma.contactTopic.createMany({
         data: topics.map((topicId: string) => ({

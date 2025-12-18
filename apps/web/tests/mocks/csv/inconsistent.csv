@@ -1,0 +1,11 @@
+email,first_name,last_name,company
+UPPERCASE@EXAMPLE.COM,JOHN,DOE,ACME
+lowercase@example.com,jane,smith,tech
+MixedCase@Example.Com,Bob,Johnson,Global
+  spaces@example.com  ,  Alice  ,  Williams  ,  StartUp
+valid@example.com,Charlie,Brown,Enterprise
+duplicate@example.com,First,Entry,Company1
+duplicate@example.com,Second,Entry,Company2
+another@valid.com,Dave,Wilson,Corp
+   TRIM@EXAMPLE.COM   ,   Trimmed   ,   Values   ,   Here
+final@example.com,Final,Entry,LastCompany

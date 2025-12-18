@@ -7,8 +7,8 @@ import * as MultiSelect from "@kibamail/owly/multi-select";
 import * as Switch from "@kibamail/owly/switch";
 import * as TextField from "@kibamail/owly/text-field";
 import { useToast } from "@kibamail/owly/toast";
-import type { Contact, ContactStatus } from "@prisma/client";
-import { useQuery } from "@tanstack/react-query";
+import type { ContactStatus } from "@prisma/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -24,22 +24,30 @@ interface ContactFormData {
 }
 
 interface CreateContactModalProps extends ToggleState {
-  contact?: Pick<Contact, "id" | "email" | "status"> & {
-    topics: string[];
-    properties: Record<string, unknown>;
-  };
+  contactId?: string;
   mode?: "create" | "edit";
 }
 
 export function CreateContactModal({
   open,
   onOpenChange,
-  contact,
+  contactId,
   mode = "create",
 }: CreateContactModalProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { success: toast } = useToast();
-  const isEditMode = mode === "edit" && contact;
+  const isEditMode = mode === "edit" && contactId;
+
+  const { data: contact, isLoading: contactLoading } = useQuery({
+    queryKey: ["contact", contactId],
+    queryFn: async () => {
+      if (!contactId) return null;
+      return internalApi.contacts().get(contactId);
+    },
+    enabled: !!isEditMode && open,
+    staleTime: 0, // Always refetch when modal opens
+  });
 
   const { data: topics, isLoading: topicsLoading } = useQuery({
     queryKey: ["topics"],
@@ -57,7 +65,7 @@ export function CreateContactModal({
     },
   });
 
-  const isLoading = topicsLoading || propertiesLoading;
+  const isLoading = topicsLoading || propertiesLoading || (isEditMode && contactLoading);
 
   const {
     register,
@@ -76,14 +84,12 @@ export function CreateContactModal({
     },
   });
 
-  // Populate form with contact data when in edit mode
   useEffect(() => {
     if (isEditMode && contact) {
       setValue("email", contact.email);
       setValue("topics", contact.topics || []);
       setValue("subscribed", contact.status === "SUBSCRIBED");
 
-      // Populate properties
       if (contact.properties) {
         const formProperties: Record<string, string | number | Date> = {};
 
@@ -94,7 +100,6 @@ export function CreateContactModal({
         setValue("properties", formProperties);
       }
     } else if (!isEditMode) {
-      // Reset to default values when switching to create mode
       reset({
         email: "",
         topics: [],
@@ -128,24 +133,27 @@ export function CreateContactModal({
         properties: Object.keys(properties).length > 0 ? properties : undefined,
       };
 
-      if (isEditMode && contact) {
-        return internalApi.contacts().update(contact.id, payload);
+      if (isEditMode && contactId) {
+        return internalApi.contacts().update(contactId, payload);
       } else {
         return internalApi.contacts().create(payload);
       }
     },
     onSuccess() {
+      if (contactId) {
+        queryClient.invalidateQueries({ queryKey: ["contact", contactId] });
+      }
       toast(
         isEditMode
           ? "Contact updated successfully."
           : "Contact created successfully."
       );
-      handleClose();
+      onClose();
       router.refresh();
     },
   });
 
-  function handleClose() {
+  function onClose() {
     reset();
     onOpenChange?.(false);
   }
@@ -155,7 +163,7 @@ export function CreateContactModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleClose}>
+    <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content className="max-w-2xl">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
@@ -170,141 +178,149 @@ export function CreateContactModal({
           </Dialog.Header>
 
           <div className="space-y-6 py-4 px-6">
-            <TextField.Root
-              id="email"
-              type="email"
-              placeholder="contact@example.com"
-              {...register("email", {
-                required: "Email is required",
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: "Invalid email address",
-                },
-              })}
-            >
-              <TextField.Label>Email</TextField.Label>
-              {errors.email && (
-                <TextField.Error>{errors.email.message}</TextField.Error>
-              )}
-            </TextField.Root>
-
-            {!topicsLoading && topics && (
-              <div className="space-y-2">
-                <Controller
-                  name="topics"
-                  control={control}
-                  render={({ field }) => (
-                    <MultiSelect.Root
-                      value={field.value}
-                      onValueChange={field.onChange}
-                    >
-                      <MultiSelect.Label>Topics</MultiSelect.Label>
-                      <MultiSelect.Trigger placeholder="Select topics to subscribe to" />
-                      <MultiSelect.Content className="z-50">
-                        {topics.map((topic) => (
-                          <MultiSelect.Item key={topic.id} value={topic.id}>
-                            {topic.name}
-                          </MultiSelect.Item>
-                        ))}
-                      </MultiSelect.Content>
-                    </MultiSelect.Root>
-                  )}
-                />
+            {isEditMode && contactLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-kb-content-secondary">Loading contact...</div>
               </div>
-            )}
-
-            <div className="flex items-center justify-between">
-              <Switch.Root
-                id="subscribed"
-                checked={watch("subscribed")}
-                onCheckedChange={(checked) => setValue("subscribed", checked)}
-              >
-                <Switch.Label
-                  htmlFor="subscribed"
-                  help="When enabled, the contact will be marked as subscribed. When disabled, they will be unsubscribed."
+            ) : (
+              <>
+                <TextField.Root
+                  id="email"
+                  type="email"
+                  placeholder="contact@example.com"
+                  {...register("email", {
+                    required: "Email is required",
+                    pattern: {
+                      value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                      message: "Invalid email address",
+                    },
+                  })}
                 >
-                  Subscribed
-                </Switch.Label>
-              </Switch.Root>
-            </div>
+                  <TextField.Label>Email</TextField.Label>
+                  {errors.email && (
+                    <TextField.Error>{errors.email.message}</TextField.Error>
+                  )}
+                </TextField.Root>
 
-            {!propertiesLoading &&
-              contactProperties &&
-              contactProperties.length > 0 && (
-                <>
-                  <div className="h-px bg-kb-bg-secondary" />
-                  <div className="space-y-4">
-                    <div>
-                      <p className="text-sm font-medium leading-none">
-                        Contact Properties
-                      </p>
-                      <p className="text-sm text-kb-content-secondary mt-1">
-                        Add custom property values for this contact
-                      </p>
-                    </div>
-
-                    {contactProperties.map((property) => {
-                      if (property.type === "DATE") {
-                        return (
-                          <Controller
-                            key={property.name}
-                            name={`properties.${property.name}`}
-                            control={control}
-                            render={({ field }) => (
-                              <DateField.Root
-                                value={
-                                  field.value instanceof Date
-                                    ? field.value
-                                    : undefined
-                                }
-                                onValueChange={(date) => field.onChange(date)}
-                                label={property.name}
-                                hint=""
-                              />
-                            )}
-                          />
-                        );
-                      }
-
-                      if (property.type === "NUMBER") {
-                        return (
-                          <TextField.Root
-                            key={property.name}
-                            id={`property-${property.name}`}
-                            type="number"
-                            step="any"
-                            placeholder="Enter a number"
-                            {...register(`properties.${property.name}`, {
-                              valueAsNumber: true,
-                            })}
-                          >
-                            <TextField.Label>{property.name}</TextField.Label>
-                          </TextField.Root>
-                        );
-                      }
-
-                      return (
-                        <TextField.Root
-                          key={property.name}
-                          id={`property-${property.name}`}
-                          type="text"
-                          placeholder="Enter a value"
-                          {...register(`properties.${property.name}`)}
+                {!topicsLoading && topics && (
+                  <div className="space-y-2">
+                    <Controller
+                      name="topics"
+                      control={control}
+                      render={({ field }) => (
+                        <MultiSelect.Root
+                          value={field.value}
+                          onValueChange={field.onChange}
                         >
-                          <TextField.Label>{property.name}</TextField.Label>
-                        </TextField.Root>
-                      );
-                    })}
+                          <MultiSelect.Label>Topics</MultiSelect.Label>
+                          <MultiSelect.Trigger placeholder="Select topics to subscribe to" />
+                          <MultiSelect.Content className="z-50">
+                            {topics.map((topic) => (
+                              <MultiSelect.Item key={topic.id} value={topic.id}>
+                                {topic.name}
+                              </MultiSelect.Item>
+                            ))}
+                          </MultiSelect.Content>
+                        </MultiSelect.Root>
+                      )}
+                    />
                   </div>
-                </>
-              )}
+                )}
+
+                <div className="flex items-center justify-between">
+                  <Switch.Root
+                    id="subscribed"
+                    checked={watch("subscribed")}
+                    onCheckedChange={(checked) => setValue("subscribed", checked)}
+                  >
+                    <Switch.Label
+                      htmlFor="subscribed"
+                      help="When enabled, the contact will be marked as subscribed. When disabled, they will be unsubscribed."
+                    >
+                      Subscribed
+                    </Switch.Label>
+                  </Switch.Root>
+                </div>
+
+                {!propertiesLoading &&
+                  contactProperties &&
+                  contactProperties.length > 0 && (
+                    <>
+                      <div className="h-px bg-kb-bg-secondary" />
+                      <div className="space-y-4">
+                        <div>
+                          <p className="text-sm font-medium leading-none">
+                            Contact Properties
+                          </p>
+                          <p className="text-sm text-kb-content-secondary mt-1">
+                            Add custom property values for this contact
+                          </p>
+                        </div>
+
+                        {contactProperties.map((property) => {
+                          if (property.type === "DATE") {
+                            return (
+                              <Controller
+                                key={property.name}
+                                name={`properties.${property.name}`}
+                                control={control}
+                                render={({ field }) => (
+                                  <DateField.Root
+                                    value={
+                                      field.value instanceof Date
+                                        ? field.value
+                                        : undefined
+                                    }
+                                    onValueChange={(date) => field.onChange(date)}
+                                    label={property.name}
+                                    hint=""
+                                  />
+                                )}
+                              />
+                            );
+                          }
+
+                          if (property.type === "NUMBER") {
+                            return (
+                              <TextField.Root
+                                key={property.name}
+                                id={`property-${property.name}`}
+                                type="number"
+                                step="any"
+                                placeholder="Enter a number"
+                                {...register(`properties.${property.name}`, {
+                                  valueAsNumber: true,
+                                })}
+                              >
+                                <TextField.Label>{property.name}</TextField.Label>
+                              </TextField.Root>
+                            );
+                          }
+
+                          return (
+                            <TextField.Root
+                              key={property.name}
+                              id={`property-${property.name}`}
+                              type="text"
+                              placeholder="Enter a value"
+                              {...register(`properties.${property.name}`)}
+                            >
+                              <TextField.Label>{property.name}</TextField.Label>
+                            </TextField.Root>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
+              </>
+            )}
           </div>
 
           <Dialog.Footer className="flex items-center justify-between">
             <Button
               type="button"
               variant="secondary"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={isLoading || mutation.isPending}
             >
               Cancel
