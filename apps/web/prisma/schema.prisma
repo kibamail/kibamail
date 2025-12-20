@@ -1023,6 +1023,10 @@ model SendingDomain {
   trackingDomainVerifiedAt    DateTime?
   /// When tracking domain SSL was verified
   trackingDomainSslVerifiedAt DateTime?
+  /// DMARC reporting shortcode (10 lowercase chars) for aggregate reports
+  dmarcReportingCode          String           @db.VarChar(10)
+  /// When DMARC record was verified
+  dmarcVerifiedAt             DateTime?
   /// SSL certificate key (encrypted)
   trackingSslCertKey          String?          @db.Text
   /// SSL certificate secret (encrypted)

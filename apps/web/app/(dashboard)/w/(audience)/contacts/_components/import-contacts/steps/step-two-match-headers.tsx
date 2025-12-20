@@ -10,11 +10,15 @@ import cn from "classnames";
 import {
   Calendar,
   CheckCircle,
+  Clock,
+  Globe,
   Hashtag,
   InfoCircle,
   Mail,
+  MapPin,
   NavArrowRight,
   Number0Square,
+  Phone,
   Plus,
   Text as TextIcon,
 } from "iconoir-react";
@@ -40,11 +44,23 @@ type SelectFieldPropertyState = Record<
   }
 >;
 
-const standardProperties = ["email", "firstName", "lastName"] as const;
+const standardProperties = [
+  "email",
+  "firstName",
+  "lastName",
+  "phone",
+  "country",
+  "timezone",
+  "city",
+] as const;
 const standardPropertyNames = [
   "Email address",
   "First name",
   "Last name",
+  "Phone",
+  "Country",
+  "Timezone",
+  "City",
 ] as const;
 
 function mapDbTypeToPropertyType(dbType: string): PropertyType {
@@ -230,6 +246,30 @@ export function StepTwoMatchHeaders() {
       type: "standard" as PropertyType,
       icon: TextIcon,
     },
+    {
+      name: "Phone",
+      id: "phone",
+      type: "standard" as PropertyType,
+      icon: Phone,
+    },
+    {
+      name: "Country",
+      id: "country",
+      type: "standard" as PropertyType,
+      icon: Globe,
+    },
+    {
+      name: "Timezone",
+      id: "timezone",
+      type: "standard" as PropertyType,
+      icon: Clock,
+    },
+    {
+      name: "City",
+      id: "city",
+      type: "standard" as PropertyType,
+      icon: MapPin,
+    },
     ...dbPropertiesFormatted,
     ...filteredCustomProperties,
   ];
@@ -264,6 +304,50 @@ export function StepTwoMatchHeaders() {
               name: propertiesMap?.lastName,
               count: headerCounts?.[propertiesMap?.lastName],
               samples: headerSamples?.[propertiesMap?.lastName],
+            },
+          },
+        ]
+      : []),
+    ...(propertiesMap?.phone
+      ? [
+          {
+            column: {
+              name: propertiesMap?.phone,
+              count: headerCounts?.[propertiesMap?.phone],
+              samples: headerSamples?.[propertiesMap?.phone],
+            },
+          },
+        ]
+      : []),
+    ...(propertiesMap?.country
+      ? [
+          {
+            column: {
+              name: propertiesMap?.country,
+              count: headerCounts?.[propertiesMap?.country],
+              samples: headerSamples?.[propertiesMap?.country],
+            },
+          },
+        ]
+      : []),
+    ...(propertiesMap?.timezone
+      ? [
+          {
+            column: {
+              name: propertiesMap?.timezone,
+              count: headerCounts?.[propertiesMap?.timezone],
+              samples: headerSamples?.[propertiesMap?.timezone],
+            },
+          },
+        ]
+      : []),
+    ...(propertiesMap?.city
+      ? [
+          {
+            column: {
+              name: propertiesMap?.city,
+              count: headerCounts?.[propertiesMap?.city],
+              samples: headerSamples?.[propertiesMap?.city],
             },
           },
         ]
@@ -306,6 +390,10 @@ export function StepTwoMatchHeaders() {
       email: "",
       firstName: "",
       lastName: "",
+      phone: "",
+      country: "",
+      timezone: "",
+      city: "",
     };
 
     for (const standardProperty of standardProperties) {

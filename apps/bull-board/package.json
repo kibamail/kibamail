@@ -1,0 +1,26 @@
+{
+  "name": "@repo/bull-board",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "dotenvx run -f .env.local -- tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@bull-board/api": "^6.10.2",
+    "@bull-board/hono": "^6.10.2",
+    "@dotenvx/dotenvx": "^1.51.1",
+    "@hono/node-server": "^1.13.0",
+    "bullmq": "^5.63.2",
+    "hono": "^4.6.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.3"
+  }
+}

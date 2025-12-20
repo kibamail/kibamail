@@ -89,6 +89,10 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
     email: string;
     firstName: string;
     lastName: string;
+    phone: string;
+    country: string;
+    timezone: string;
+    city: string;
     headers: string[];
     customPropertiesHeaders: string[];
   } {
@@ -134,9 +138,54 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
       "nom",
     ];
 
+    const phonePatterns = [
+      "phone",
+      "phone_number",
+      "phonenumber",
+      "phone number",
+      "telephone",
+      "tel",
+      "mobile",
+      "mobile_number",
+      "cell",
+      "cellphone",
+      "cell_phone",
+    ];
+
+    const countryPatterns = [
+      "country",
+      "country_name",
+      "countryname",
+      "country name",
+      "nation",
+      "country_code",
+      "countrycode",
+    ];
+
+    const timezonePatterns = [
+      "timezone",
+      "time_zone",
+      "time zone",
+      "tz",
+      "time_zone_name",
+    ];
+
+    const cityPatterns = [
+      "city",
+      "city_name",
+      "cityname",
+      "city name",
+      "town",
+      "locality",
+    ];
+
     let email = "";
     let firstName = "";
     let lastName = "";
+    let phone = "";
+    let country = "";
+    let timezone = "";
+    let city = "";
     const customPropertiesHeaders: string[] = [];
 
     headers.forEach((header) => {
@@ -172,6 +221,40 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
         }
       }
 
+      if (!phone) {
+        const isPhone = phonePatterns.some((pattern) => lower === pattern);
+        if (isPhone) {
+          phone = header;
+          return;
+        }
+      }
+
+      if (!country) {
+        const isCountry = countryPatterns.some((pattern) => lower === pattern);
+        if (isCountry) {
+          country = header;
+          return;
+        }
+      }
+
+      if (!timezone) {
+        const isTimezone = timezonePatterns.some(
+          (pattern) => lower === pattern,
+        );
+        if (isTimezone) {
+          timezone = header;
+          return;
+        }
+      }
+
+      if (!city) {
+        const isCity = cityPatterns.some((pattern) => lower === pattern);
+        if (isCity) {
+          city = header;
+          return;
+        }
+      }
+
       customPropertiesHeaders.push(header);
     });
 
@@ -179,6 +262,10 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
       email,
       firstName,
       lastName,
+      phone,
+      country,
+      timezone,
+      city,
       headers,
       customPropertiesHeaders,
     };

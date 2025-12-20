@@ -1,9 +1,3 @@
-/**
- * Broadcast Readiness Checker
- *
- * Validates that a broadcast has all required configuration before sending.
- */
-
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import type {
@@ -197,8 +191,7 @@ export class BroadcastReadinessChecker {
   }
 
   private checkUnsubscribeLink(): ReadinessCheckItem {
-    const contentHtml = this.broadcast.emailContent?.contentHtml || "";
-    const hasUnsubscribeUrl = contentHtml.includes("{{unsubscribe_url}}");
+    const hasUnsubscribeUrl = this.hasUnsubscribeLinkInContent();
 
     return {
       id: "unsubscribe_url",
@@ -209,6 +202,20 @@ export class BroadcastReadinessChecker {
         ? "No unsubscribe link found in email content"
         : undefined,
     };
+  }
+
+  private hasUnsubscribeLinkInContent(): boolean {
+    const contentHtml = this.broadcast.emailContent?.contentHtml || "";
+    if (contentHtml.includes("{{unsubscribe_url}}")) {
+      return true;
+    }
+
+    const contentJson = this.broadcast.emailContent?.contentJson;
+    if (contentJson) {
+      return JSON.stringify(contentJson).includes("{{unsubscribe_url}}");
+    }
+
+    return false;
   }
 
   private checkSendTime(): ReadinessCheckItem {

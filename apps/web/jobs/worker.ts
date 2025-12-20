@@ -1,22 +1,9 @@
-/**
- * Unified Worker Process
- *
- * Single entry point that starts all queue workers in one process.
- * Each queue runs its own worker with configured concurrency.
- *
- * To run:
- * ```bash
- * bun run worker
- * # or
- * tsx jobs/worker.ts
- * ```
- */
-
 import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
 
-// Import all job processors
-import { computeContactsCount } from "./segments/compute-contacts-count";
+import { sendBroadcast } from "./broadcasts/send-broadcast";
 import { processImport } from "./contact-imports/process-import";
+import { computeContactsCount } from "./segments/compute-contacts-count";
+import { checkVerification } from "./sending-domains/check-verification";
 
 const logger = queueLogger.child({ worker: "unified" });
 
@@ -24,7 +11,6 @@ const logger = queueLogger.child({ worker: "unified" });
 // Configure all workers
 // ============================================================
 
-// Segments queue - for segment-related background jobs
 configureWorker("segments", {
   processors: {
     "compute-contacts-count": computeContactsCount,
@@ -32,19 +18,37 @@ configureWorker("segments", {
   concurrency: 3,
 });
 
-// Contact imports queue - for processing CSV imports
 configureWorker("contact-imports", {
   processors: {
     "process-import": processImport,
   },
-  concurrency: 1, // Process one import at a time
+  concurrency: 1,
+});
+
+configureWorker("sending-domains", {
+  processors: {
+    "check-verification": checkVerification,
+  },
+  concurrency: 3,
+});
+
+configureWorker("broadcasts", {
+  processors: {
+    "send-broadcast": sendBroadcast,
+  },
+  concurrency: 5,
 });
 
 // ============================================================
 // Start all workers
 // ============================================================
 
-const queues = ["segments", "contact-imports"] as const;
+const queues = [
+  "segments",
+  "contact-imports",
+  "sending-domains",
+  "broadcasts",
+] as const;
 
 for (const queueName of queues) {
   queue(queueName).start();
@@ -54,8 +58,14 @@ logger.info(
   {
     queues: queues.map((q) => q),
     workers: [
-      { queue: "segments", jobs: ["compute-contacts-count"], concurrency: 3 },
-      { queue: "contact-imports", jobs: ["process-import"], concurrency: 1 },
+      { queue: "segments", jobs: ["compute-contacts-count"], concurrency: 100 },
+      { queue: "contact-imports", jobs: ["process-import"], concurrency: 25 },
+      {
+        queue: "sending-domains",
+        jobs: ["check-verification"],
+        concurrency: 100,
+      },
+      { queue: "broadcasts", jobs: ["send-broadcast"], concurrency: 50 },
     ],
   },
   "All workers started"
@@ -77,9 +87,11 @@ const shutdown = async (signal: string) => {
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 
-// Handle uncaught errors
 process.on("uncaughtException", (error) => {
-  logger.error({ error: error.message, stack: error.stack }, "Uncaught exception");
+  logger.error(
+    { error: error.message, stack: error.stack },
+    "Uncaught exception"
+  );
   shutdown("uncaughtException");
 });
 

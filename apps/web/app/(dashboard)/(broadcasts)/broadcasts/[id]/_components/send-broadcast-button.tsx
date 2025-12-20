@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@kibamail/owly/button";
 import * as Popover from "@kibamail/owly/popover";
@@ -22,6 +23,7 @@ export function SendBroadcastButton({
   isSavingDraft,
 }: SendBroadcastButtonProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
   const { success: toast, error: toastError } = useToast();
 
   const {
@@ -46,6 +48,7 @@ export function SendBroadcastButton({
     onSuccess: () => {
       toast("Broadcast scheduled for sending");
       setOpen(false);
+      router.push("/w/broadcasts");
     },
     onError: (error) => {
       toastError(

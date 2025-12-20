@@ -1,5 +1,9 @@
 import type { ContactProperty } from "@prisma/client";
 
+export type NormalizationResult =
+  | { success: true; value: string }
+  | { success: false; reason: string };
+
 export const STANDARD_FIELDS = [
   "email",
   "firstName",

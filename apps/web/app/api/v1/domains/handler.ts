@@ -18,12 +18,14 @@ import {
 import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
+import { queue } from "@/lib/queue";
 import {
   generateDkimKeyPair,
   generateDkimSubdomain,
 } from "@/lib/sending-domains/dkim";
 import {
   DNS_CONFIG,
+  generateDmarcReportingCode,
   getDnsRecords,
   verifyDnsRecords,
 } from "@/lib/sending-domains/dns";
@@ -44,6 +46,8 @@ function formatSendingDomain(domain: {
   trackingSubDomain: string;
   trackingDomainCnameValue: string;
   trackingDomainVerifiedAt: Date | null;
+  dmarcReportingCode: string;
+  dmarcVerifiedAt: Date | null;
   openTrackingEnabled: boolean;
   clickTrackingEnabled: boolean;
   createdAt: Date;
@@ -54,6 +58,7 @@ function formatSendingDomain(domain: {
     domain.dkimPublicKey,
     domain.returnPathSubDomain,
     domain.trackingSubDomain,
+    domain.dmarcReportingCode,
   );
 
   return {
@@ -62,6 +67,7 @@ function formatSendingDomain(domain: {
     dkimVerified: domain.dkimVerifiedAt !== null,
     returnPathVerified: domain.returnPathDomainVerifiedAt !== null,
     trackingVerified: domain.trackingDomainVerifiedAt !== null,
+    dmarcVerified: domain.dmarcVerifiedAt !== null,
     openTrackingEnabled: domain.openTrackingEnabled,
     clickTrackingEnabled: domain.clickTrackingEnabled,
     dnsRecords,
@@ -98,9 +104,10 @@ export async function createSendingDomain(
     );
   }
 
-  // Generate DKIM key pair
+  // Generate DKIM key pair and DMARC reporting code
   const dkimKeyPair = generateDkimKeyPair(env.APP_KEY);
   const dkimSubDomain = generateDkimSubdomain();
+  const dmarcReportingCode = generateDmarcReportingCode();
 
   // Create the sending domain
   const domain = await prisma.sendingDomain.create({
@@ -114,8 +121,16 @@ export async function createSendingDomain(
       returnPathDomainCnameValue: DNS_CONFIG.bounceHost,
       trackingSubDomain: DNS_CONFIG.trackingSubdomain,
       trackingDomainCnameValue: DNS_CONFIG.trackingHost,
+      dmarcReportingCode,
     },
   });
+
+  // Schedule verification check job to run in 5 minutes
+  await queue("sending-domains").push(
+    "check-verification",
+    { domainId: domain.id, attempt: 1 },
+    { delay: 5 * 60 * 1000 },
+  );
 
   return responseCreated(formatSendingDomain(domain), "sending_domain");
 }
@@ -303,6 +318,7 @@ export async function verifySendingDomain(
     domain.trackingSubDomain,
     domain.returnPathDomainCnameValue,
     domain.trackingDomainCnameValue,
+    domain.dmarcReportingCode,
   );
 
   // Update verification timestamps
@@ -312,6 +328,7 @@ export async function verifySendingDomain(
     dkimVerifiedAt?: Date;
     returnPathDomainVerifiedAt?: Date;
     trackingDomainVerifiedAt?: Date;
+    dmarcVerifiedAt?: Date;
   } = {
     recordsLastVerifiedAt: now,
   };
@@ -332,6 +349,10 @@ export async function verifySendingDomain(
     !domain.trackingDomainVerifiedAt
   ) {
     updateData.trackingDomainVerifiedAt = now;
+  }
+
+  if (verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
+    updateData.dmarcVerifiedAt = now;
   }
 
   const updatedDomain = await prisma.sendingDomain.update({

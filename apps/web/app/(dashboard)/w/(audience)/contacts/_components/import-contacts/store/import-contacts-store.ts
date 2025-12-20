@@ -20,6 +20,10 @@ export interface PropertiesMap {
   email: string;
   firstName: string;
   lastName: string;
+  phone: string;
+  country: string;
+  timezone: string;
+  city: string;
   headers: string[];
   customPropertiesHeaders: string[];
 }
@@ -28,6 +32,10 @@ export interface ContactProperties {
   email: string;
   firstName?: string;
   lastName?: string;
+  phone?: string;
+  country?: string;
+  timezone?: string;
+  city?: string;
   customProperties?: Record<string, CustomProperty>;
 }
 
@@ -62,6 +70,10 @@ const initialState: ImportContactsState = {
     email: "",
     firstName: "",
     lastName: "",
+    phone: "",
+    country: "",
+    timezone: "",
+    city: "",
     headers: [],
     customPropertiesHeaders: [],
   },

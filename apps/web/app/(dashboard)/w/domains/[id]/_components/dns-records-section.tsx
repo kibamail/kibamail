@@ -6,6 +6,7 @@ import { useToast } from "@kibamail/owly/toast";
 import * as Tooltip from "@kibamail/owly/tooltip";
 import type { SendingDomain } from "@prisma/client";
 import { Copy } from "iconoir-react";
+import { buildDmarcPolicy } from "@/lib/sending-domains/dmarc";
 
 interface DnsRecordRowProps {
   type: string;
@@ -235,6 +236,43 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               hostname={getDnsHostname(domain.trackingSubDomain, domain.name)}
               value={domain.trackingDomainCnameValue}
               verified={domain.trackingDomainVerifiedAt !== null}
+            />
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <h3 className="text-sm font-medium text-kb-content-secondary">
+            DMARC Record
+          </h3>
+          <span className="text-sm text-kb-content-tertiary">
+            Protect your domain from email spoofing and improve deliverability.
+          </span>
+        </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-kb-border-tertiary">
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase w-24">
+                Type
+              </th>
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase w-64">
+                Host Name
+              </th>
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase">
+                Value
+              </th>
+              <th className="py-3 text-right text-xs font-medium text-kb-content-tertiary uppercase w-24">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <DnsRecordRow
+              type="TXT"
+              hostname={getDnsHostname("_dmarc", domain.name)}
+              value={buildDmarcPolicy(domain.dmarcReportingCode)}
+              verified={domain.dmarcVerifiedAt !== null}
             />
           </tbody>
         </table>

@@ -45,6 +45,10 @@ export type QueueJobs = {
   broadcasts: {
     "send-broadcast": { broadcastId: string };
   };
+  // Sending domains queue for domain verification checks
+  "sending-domains": {
+    "check-verification": { domainId: string; attempt: number };
+  };
 };
 
 /**

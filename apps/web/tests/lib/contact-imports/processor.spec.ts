@@ -669,6 +669,331 @@ describe("processContactImport", () => {
   });
 });
 
+describe("standard field normalization", () => {
+  let testWorkspace: TestWorkspace;
+
+  beforeAll(() => {
+    testWorkspace = createTestWorkspace();
+  });
+
+  afterAll(async () => {
+    await cleanupWorkspace(testWorkspace.id);
+  });
+
+  beforeEach(async () => {
+    await prisma.contact.deleteMany({
+      where: { workspaceId: testWorkspace.id },
+    });
+    await prisma.contactImport.deleteMany({
+      where: { workspaceId: testWorkspace.id },
+    });
+  });
+
+  it("should normalize phone numbers to E.164 format", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        last_name: "lastName",
+        phone: "phone",
+        country: "country",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const valid1 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid1@example.com" },
+    });
+    expect(valid1?.phone).toBe("+14155552671");
+
+    const valid2 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid2@example.com" },
+    });
+    expect(valid2?.phone).toBe("+14155551234");
+
+    const valid3 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid3@example.com" },
+    });
+    expect(valid3?.phone).toBe("+442079460958");
+  });
+
+  it("should skip invalid phone numbers but still import the contact", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        phone: "phone",
+        country: "country",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const invalidPhone = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "invalid-phone@example.com" },
+    });
+    expect(invalidPhone).not.toBeNull();
+    expect(invalidPhone?.firstName).toBe("Tom");
+    expect(invalidPhone?.phone).toBeNull();
+  });
+
+  it("should normalize country names to ISO alpha-2 codes", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        country: "country",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const valid1 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid1@example.com" },
+    });
+    expect(valid1?.country).toBe("US");
+
+    const valid3 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid3@example.com" },
+    });
+    expect(valid3?.country).toBe("GB");
+
+    const valid4 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid4@example.com" },
+    });
+    expect(valid4?.country).toBe("DE");
+
+    const valid5 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid5@example.com" },
+    });
+    expect(valid5?.country).toBe("ES");
+
+    const mixedCase = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "mixed-case@example.com" },
+    });
+    expect(mixedCase?.country).toBe("DE");
+  });
+
+  it("should skip invalid country values but still import the contact", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        country: "country",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const invalidCountry = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "invalid-country@example.com" },
+    });
+    expect(invalidCountry).not.toBeNull();
+    expect(invalidCountry?.firstName).toBe("Sarah");
+    expect(invalidCountry?.country).toBeNull();
+  });
+
+  it("should normalize timezone values to IANA format", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        timezone: "timezone",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const valid1 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid1@example.com" },
+    });
+    expect(valid1?.timezone).toBe("America/New_York");
+
+    const valid2 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid2@example.com" },
+    });
+    expect(valid2?.timezone).toBe("America/New_York");
+
+    const mixedCase = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "mixed-case@example.com" },
+    });
+    expect(mixedCase?.timezone).toBe("America/Los_Angeles");
+  });
+
+  it("should skip invalid timezone values but still import the contact", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        timezone: "timezone",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const invalidTimezone = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "invalid-timezone@example.com" },
+    });
+    expect(invalidTimezone).not.toBeNull();
+    expect(invalidTimezone?.firstName).toBe("Mike");
+    expect(invalidTimezone?.timezone).toBeNull();
+  });
+
+  it("should normalize city values to title case", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        city: "city",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const valid2 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid2@example.com" },
+    });
+    expect(valid2?.city).toBe("San Francisco");
+
+    const valid3 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid3@example.com" },
+    });
+    expect(valid3?.city).toBe("London");
+
+    const mixedCase = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "mixed-case@example.com" },
+    });
+    expect(mixedCase?.city).toBe("München");
+  });
+
+  it("should skip numeric-only city values but still import the contact", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        city: "city",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const invalidCity = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "invalid-city-numbers@example.com" },
+    });
+    expect(invalidCity).not.toBeNull();
+    expect(invalidCity?.firstName).toBe("Lisa");
+    expect(invalidCity?.city).toBeNull();
+  });
+
+  it("should use country hint for phone number parsing", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        phone: "phone",
+        country: "country",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const valid2 = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid2@example.com" },
+    });
+    expect(valid2?.phone).toBe("+14155551234");
+    expect(valid2?.country).toBe("US");
+  });
+
+  it("should import all 13 contacts even with invalid field values", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        last_name: "lastName",
+        phone: "phone",
+        country: "country",
+        timezone: "timezone",
+        city: "city",
+      },
+      totalRows: 13,
+    });
+
+    const result = await processContactImport(contactImport, csvContent);
+
+    expect(result.success).toBe(true);
+    expect(result.createdCount).toBe(13);
+    expect(result.failedCount).toBe(0);
+
+    const contacts = await prisma.contact.findMany({
+      where: { workspaceId: testWorkspace.id },
+    });
+    expect(contacts.length).toBe(13);
+  });
+
+  it("should handle contacts with all invalid optional fields", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        first_name: "firstName",
+        phone: "phone",
+        country: "country",
+        timezone: "timezone",
+        city: "city",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const allInvalid = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "all-invalid@example.com" },
+    });
+    expect(allInvalid).not.toBeNull();
+    expect(allInvalid?.firstName).toBe("Empty");
+    expect(allInvalid?.phone).toBeNull();
+    expect(allInvalid?.country).toBeNull();
+    expect(allInvalid?.timezone).toBeNull();
+    expect(allInvalid?.city).toBeNull();
+  });
+
+  it("should trim whitespace from field values before normalizing", async () => {
+    const csvContent = loadTestCsv("standard-fields-mixed.csv");
+    const contactImport = await createTestContactImport(testWorkspace.id, {
+      columnMapping: {
+        email: "email",
+        country: "country",
+        city: "city",
+      },
+      totalRows: 13,
+    });
+
+    await processContactImport(contactImport, csvContent);
+
+    const validWithSpaces = await prisma.contact.findFirst({
+      where: { workspaceId: testWorkspace.id, email: "valid-with-spaces@example.com" },
+    });
+    expect(validWithSpaces?.country).toBe("FR");
+    expect(validWithSpaces?.city).toBe("Paris");
+  });
+});
+
 describe("processBatch", () => {
   let testWorkspace: TestWorkspace;
 

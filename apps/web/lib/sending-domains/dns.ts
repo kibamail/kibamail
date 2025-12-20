@@ -2,9 +2,14 @@
  * DNS Configuration and Verification
  *
  * Utilities for generating DNS record values and verifying DNS configuration.
+ * Note: This module uses Node.js dns module and should only be imported in server code.
  */
 
 import dns from "node:dns/promises";
+import { buildDmarcPolicy, generateDmarcReportingCode } from "./dmarc";
+
+// Re-export client-safe functions for convenience
+export { buildDmarcPolicy, generateDmarcReportingCode };
 
 /**
  * DNS configuration for sending domains
@@ -14,6 +19,7 @@ export const DNS_CONFIG = {
   bounceSubdomain: "kb",
   trackingHost: "e.kbmta.net",
   trackingSubdomain: "e",
+  dmarcSubdomain: "_dmarc",
 };
 
 /**
@@ -70,6 +76,17 @@ export function getTrackingRecord(domain: string, subdomain: string) {
 }
 
 /**
+ * Get DMARC DNS record configuration
+ */
+export function getDmarcRecord(domain: string, reportingCode: string) {
+  return {
+    type: "TXT" as const,
+    hostname: `${DNS_CONFIG.dmarcSubdomain}.${domain}`,
+    value: buildDmarcPolicy(reportingCode),
+  };
+}
+
+/**
  * Get all DNS records for a sending domain
  */
 export function getDnsRecords(
@@ -77,12 +94,14 @@ export function getDnsRecords(
   dkimSubdomain: string,
   publicKey: string,
   returnPathSubdomain: string,
-  trackingSubdomain: string
+  trackingSubdomain: string,
+  dmarcReportingCode: string,
 ) {
   return {
     dkim: getDkimRecord(domain, dkimSubdomain, publicKey),
     returnPath: getReturnPathRecord(domain, returnPathSubdomain),
     tracking: getTrackingRecord(domain, trackingSubdomain),
+    dmarc: getDmarcRecord(domain, dmarcReportingCode),
   };
 }
 
@@ -128,6 +147,7 @@ export interface DnsVerificationResult {
   dkim: RecordVerification;
   returnPath: RecordVerification;
   tracking: RecordVerification;
+  dmarc: RecordVerification;
   allVerified: boolean;
 }
 
@@ -141,27 +161,34 @@ export async function verifyDnsRecords(
   returnPathSubdomain: string,
   trackingSubdomain: string,
   returnPathCnameValue: string,
-  trackingCnameValue: string
+  trackingCnameValue: string,
+  dmarcReportingCode: string,
 ): Promise<DnsVerificationResult> {
   const expectedDkim = getDkimRecord(domain, dkimSubdomain, publicKey);
   const expectedReturnPath = getReturnPathRecord(domain, returnPathSubdomain);
   const expectedTracking = getTrackingRecord(domain, trackingSubdomain);
+  const expectedDmarc = getDmarcRecord(domain, dmarcReportingCode);
 
   // Resolve all records in parallel
-  const [dkimRecords, returnPathRecords, trackingRecords] = await Promise.all([
-    resolveTxt(`${dkimSubdomain}.${domain}`),
-    resolveCname(`${returnPathSubdomain}.${domain}`),
-    resolveCname(`${trackingSubdomain}.${domain}`),
-  ]);
+  const [dkimRecords, returnPathRecords, trackingRecords, dmarcRecords] =
+    await Promise.all([
+      resolveTxt(`${dkimSubdomain}.${domain}`),
+      resolveCname(`${returnPathSubdomain}.${domain}`),
+      resolveCname(`${trackingSubdomain}.${domain}`),
+      resolveTxt(`${DNS_CONFIG.dmarcSubdomain}.${domain}`),
+    ]);
 
   const dkimConfigured = dkimRecords.some(
-    (record) => record === expectedDkim.value
+    (record) => record === expectedDkim.value,
   );
   const returnPathConfigured = returnPathRecords.some(
-    (record) => record === returnPathCnameValue
+    (record) => record === returnPathCnameValue,
   );
   const trackingConfigured = trackingRecords.some(
-    (record) => record === trackingCnameValue
+    (record) => record === trackingCnameValue,
+  );
+  const dmarcConfigured = dmarcRecords.some(
+    (record) => record === expectedDmarc.value,
   );
 
   return {
@@ -180,6 +207,15 @@ export async function verifyDnsRecords(
       expected: trackingCnameValue,
       found: trackingRecords,
     },
-    allVerified: dkimConfigured && returnPathConfigured && trackingConfigured,
+    dmarc: {
+      configured: dmarcConfigured,
+      expected: expectedDmarc.value,
+      found: dmarcRecords,
+    },
+    allVerified:
+      dkimConfigured &&
+      returnPathConfigured &&
+      trackingConfigured &&
+      dmarcConfigured,
   };
 }

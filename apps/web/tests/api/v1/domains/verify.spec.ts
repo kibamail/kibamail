@@ -77,6 +77,7 @@ beforeEach(() => {
     dkim: { configured: false, expected: "", found: [] },
     returnPath: { configured: false, expected: "", found: [] },
     tracking: { configured: false, expected: "", found: [] },
+    dmarc: { configured: false, expected: "", found: [] },
     allVerified: false,
   });
 });
@@ -132,6 +133,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
       },
       returnPath: { configured: false, expected: "", found: [] },
       tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
@@ -167,6 +169,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
         found: [expectedReturnPathValue],
       },
       tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
@@ -201,6 +204,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
         expected: expectedTrackingValue,
         found: [expectedTrackingValue],
       },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
@@ -245,6 +249,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
         expected: expectedTrackingValue,
         found: [expectedTrackingValue],
       },
+      dmarc: { configured: true, expected: "", found: [] },
       allVerified: true,
     });
 
@@ -281,6 +286,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
       },
       returnPath: { configured: false, expected: "", found: [] },
       tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
@@ -299,6 +305,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
       dkim: { configured: false, expected: expectedDkimValue, found: [] },
       returnPath: { configured: false, expected: "", found: [] },
       tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
@@ -329,6 +336,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
       dkim: { configured: false, expected: expectedDkimValue, found: [] },
       returnPath: { configured: false, expected: "", found: [] },
       tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
@@ -347,6 +355,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
     expect(responseData.verification.dkim.found).toEqual([]);
     expect(responseData.verification.returnPath.configured).toBe(false);
     expect(responseData.verification.tracking.configured).toBe(false);
+    expect(responseData.verification.dmarc.configured).toBe(false);
     expect(responseData.verification.allVerified).toBe(false);
   });
 
@@ -423,6 +432,7 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
       dkim: { configured: false, expected: "", found: [] },
       returnPath: { configured: false, expected: "", found: [] },
       tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
       allVerified: false,
     });
 
