@@ -64,6 +64,7 @@ export default async function BroadcastEditorPage({
     <BroadcastEditorClient
       broadcastId={id}
       broadcastName={broadcast?.name ?? "Untitled Broadcast"}
+      status={broadcast?.status ?? "DRAFT"}
       initialContent={initialContent}
       initialStyles={initialStyles}
       initialSubject={broadcast?.emailContent?.subject ?? ""}
@@ -72,6 +73,9 @@ export default async function BroadcastEditorPage({
       initialTopicId={broadcast?.topicId ?? undefined}
       initialSegmentId={broadcast?.segmentId ?? undefined}
       initialSendAt={broadcast?.sendAt ?? undefined}
+      initialTrackClicks={broadcast?.trackClicks ?? undefined}
+      initialTrackOpens={broadcast?.trackOpens ?? undefined}
+      initialReplyToIdentityId={broadcast?.replyToIdentityId ?? undefined}
       senderIdentities={senderIdentities}
       domains={domains}
     />

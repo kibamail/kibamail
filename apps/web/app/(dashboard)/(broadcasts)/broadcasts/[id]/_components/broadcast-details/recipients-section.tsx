@@ -16,12 +16,14 @@ interface RecipientsSectionProps {
   topicId?: string;
   segmentId?: string;
   onChange: (updates: Partial<BroadcastDetails>) => void;
+  readonly?: boolean;
 }
 
 export function RecipientsSection({
   topicId,
   segmentId,
   onChange,
+  readonly = false,
 }: RecipientsSectionProps) {
   const { data: topicsData, isLoading: isLoadingTopics } = useTopics();
   const { data: segmentsData, isLoading: isLoadingSegments } = useSegments();
@@ -47,9 +49,13 @@ export function RecipientsSection({
     const newType = type as RecipientType;
     setRecipientType(newType);
 
-    if (newType === "all") {
-      onChange({ topicId: undefined, segmentId: undefined });
-    }
+    const clearMap: Record<RecipientType, Partial<BroadcastDetails>> = {
+      all: { topicId: undefined, segmentId: undefined },
+      topic: { segmentId: undefined },
+      segment: { topicId: undefined },
+    };
+
+    onChange(clearMap[newType]);
   }
 
   function onTopicChange(id: string) {
@@ -69,7 +75,7 @@ export function RecipientsSection({
 
       <Tabs.Root
         value={recipientType}
-        onValueChange={onRecipientTypeChange}
+        onValueChange={readonly ? undefined : onRecipientTypeChange}
         width="full"
       >
         <Tabs.List>
@@ -98,7 +104,7 @@ export function RecipientsSection({
 
         <Tabs.Content value="topic">
           <div className="py-4">
-            <Select.Root value={topicId || ""} onValueChange={onTopicChange}>
+            <Select.Root value={topicId || ""} onValueChange={onTopicChange} disabled={readonly}>
               <Select.Label>Select topic</Select.Label>
               <Select.Trigger
                 placeholder={
@@ -126,6 +132,7 @@ export function RecipientsSection({
             <Select.Root
               value={segmentId || ""}
               onValueChange={onSegmentChange}
+              disabled={readonly}
             >
               <Select.Label>Select segment</Select.Label>
               <Select.Trigger

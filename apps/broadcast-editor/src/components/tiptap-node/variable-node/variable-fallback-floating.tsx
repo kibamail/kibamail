@@ -120,6 +120,7 @@ export function VariableFallbackFloating({
 
     function onClick(event: MouseEvent) {
       if (isInputFocusedRef.current) return;
+      if (!editor?.isEditable) return;
 
       const target = event.target as HTMLElement;
       const variableNode = target.closest('.variable-node');

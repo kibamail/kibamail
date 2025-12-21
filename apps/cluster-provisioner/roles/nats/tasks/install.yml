@@ -1,0 +1,114 @@
+# NATS Installation Tasks
+---
+- name: Create nats user
+  ansible.builtin.user:
+    name: nats
+    system: yes
+    shell: /usr/sbin/nologin
+    home: /var/lib/nats
+    create_home: no
+
+- name: Create NATS directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: nats
+    group: nats
+    mode: "0755"
+  loop:
+    - /etc/nats
+    - /etc/nats/tls
+    - /var/lib/nats
+    - "{{ nats_storage_dir }}"
+    - /var/log/nats
+
+- name: Check if NATS is already installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/nats-server
+  register: nats_binary
+
+- name: Get installed NATS version
+  ansible.builtin.command: /usr/local/bin/nats-server --version
+  register: nats_installed_version
+  changed_when: false
+  failed_when: false
+  when: nats_binary.stat.exists
+
+- name: Set architecture variable
+  ansible.builtin.set_fact:
+    nats_arch: "{{ nats_arch_map[ansible_facts['architecture']] | default('amd64') }}"
+
+- name: Download NATS server
+  ansible.builtin.get_url:
+    url: "https://github.com/nats-io/nats-server/releases/download/v{{ nats_version }}/nats-server-v{{ nats_version }}-linux-{{ nats_arch }}.tar.gz"
+    dest: "/tmp/nats-server-v{{ nats_version }}.tar.gz"
+    mode: "0644"
+  when: not nats_binary.stat.exists or (nats_installed_version.stdout is defined and nats_version not in nats_installed_version.stdout)
+
+- name: Extract NATS server
+  ansible.builtin.unarchive:
+    src: "/tmp/nats-server-v{{ nats_version }}.tar.gz"
+    dest: /tmp
+    remote_src: yes
+  when: not nats_binary.stat.exists or (nats_installed_version.stdout is defined and nats_version not in nats_installed_version.stdout)
+
+- name: Install NATS server binary
+  ansible.builtin.copy:
+    src: "/tmp/nats-server-v{{ nats_version }}-linux-{{ nats_arch }}/nats-server"
+    dest: /usr/local/bin/nats-server
+    mode: "0755"
+    remote_src: yes
+  when: not nats_binary.stat.exists or (nats_installed_version.stdout is defined and nats_version not in nats_installed_version.stdout)
+  notify: Restart nats
+
+- name: Check if NATS CLI is installed
+  ansible.builtin.stat:
+    path: /usr/local/bin/nats
+  register: nats_cli_binary
+
+- name: Install unzip for NATS CLI extraction
+  ansible.builtin.apt:
+    name: unzip
+    state: present
+  when: not nats_cli_binary.stat.exists
+
+- name: Download NATS CLI
+  ansible.builtin.get_url:
+    url: "https://github.com/nats-io/natscli/releases/download/v{{ nats_cli_version }}/nats-{{ nats_cli_version }}-linux-{{ nats_arch }}.zip"
+    dest: "/tmp/nats-cli-v{{ nats_cli_version }}.zip"
+    mode: "0644"
+  when: not nats_cli_binary.stat.exists
+
+- name: Extract NATS CLI
+  ansible.builtin.unarchive:
+    src: "/tmp/nats-cli-v{{ nats_cli_version }}.zip"
+    dest: /tmp
+    remote_src: yes
+  when: not nats_cli_binary.stat.exists
+
+- name: Install NATS CLI binary
+  ansible.builtin.copy:
+    src: "/tmp/nats-{{ nats_cli_version }}-linux-{{ nats_arch }}/nats"
+    dest: /usr/local/bin/nats
+    mode: "0755"
+    remote_src: yes
+  when: not nats_cli_binary.stat.exists
+
+- name: Clean up downloaded archives
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/nats-server-v{{ nats_version }}.tar.gz"
+    - "/tmp/nats-server-v{{ nats_version }}-linux-{{ nats_arch }}"
+    - "/tmp/nats-cli-v{{ nats_cli_version }}.zip"
+    - "/tmp/nats-{{ nats_cli_version }}-linux-{{ nats_arch }}"
+
+- name: Verify NATS server installation
+  ansible.builtin.command: /usr/local/bin/nats-server --version
+  register: nats_version_check
+  changed_when: false
+
+- name: Display NATS version
+  ansible.builtin.debug:
+    msg: "NATS Server installed: {{ nats_version_check.stdout }}"

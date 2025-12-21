@@ -75,6 +75,7 @@ pnpm clean
 ### Apps
 
 #### @repo/web (apps/web)
+
 The main Kibamail control plane Next.js application.
 
 - **Port**: 18092
@@ -86,6 +87,7 @@ See [apps/web/README.md](apps/web/README.md) for more details.
 ### Packages
 
 #### kibamail (packages/nodejs-sdk)
+
 Official Node.js SDK for the Kibamail API.
 
 - **Package**: `kibamail` on npm
@@ -120,6 +122,7 @@ pnpm dlx turbo link
 This project was migrated from Bun to pnpm/Node.js to better support the monorepo architecture with Turborepo.
 
 Key changes:
+
 - `bun` → `pnpm` for package management
 - `bun run` → `pnpm` or `tsx` for running scripts
 - Unified build system with Turborepo
@@ -128,3 +131,18 @@ Key changes:
 ## License
 
 MIT
+
+# Kumomta needs:
+
+### Marketing email
+
+1. Traffic shaping configuration for entire cluster
+2. DKIM credentials for signing all emails sent out
+   - Control plane sends dkim credentials to agent for caching via nats
+   - Agent receives dkim credentials and caches them into redis
+   - Agent runs an HTTP server.
+   - MTA pulls DKIM credentials from agent, and agent pulls it from redis.
+   - If not cached, agent will pull it from control plane via an api endpoint and cache it into redis before returning it to the MTA.
+   - We sign email twice: once with our credentials as the mta and a second time with the dkim credentials of the tenant sending the email.
+3. Incoming email handling, to auto process all bounces, complaints, etc.
+4. Webhooks for all notifications - to be sent to email agent

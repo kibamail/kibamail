@@ -1,0 +1,50 @@
+# NATS Role Defaults
+---
+nats_version: "2.10.24"
+nats_cli_version: "0.3.0"
+nk_version: "0.4.11"
+
+# Architecture mapping for binary downloads
+nats_arch_map:
+  x86_64: amd64
+  amd64: amd64
+  aarch64: arm64
+  arm64: arm64
+
+# Network
+nats_listen_address: "0.0.0.0"
+nats_client_port: 4222
+nats_http_port: 8222
+
+# Connection limits
+nats_max_connections: 65536
+nats_max_payload: 1048576
+
+# Logging
+nats_debug: false
+nats_trace: false
+
+# JetStream
+nats_jetstream_enabled: true
+nats_storage_dir: "/var/lib/nats/jetstream"
+nats_jetstream_max_mem: "256MB"
+nats_jetstream_max_file: "1GB"
+
+# Stream configuration
+nats_stream_commands_max_bytes: "100MB"
+nats_stream_events_max_bytes: "100MB"
+nats_stream_emails_max_bytes: "100MB"
+
+# TLS
+nats_tls_enabled: true
+nats_tls_dir: "/etc/nats/tls"
+
+# Credentials storage (per-cluster)
+nats_credentials_dir: "{{ inventory_dir }}/credentials/nats"
+
+# Account name
+nats_account_name: "KIBAMAIL"
+
+# Certificate validity (days)
+nats_ca_validity_days: 3650
+nats_cert_validity_days: 365

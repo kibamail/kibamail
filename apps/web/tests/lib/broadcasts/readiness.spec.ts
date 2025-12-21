@@ -128,6 +128,7 @@ async function createMinimalBroadcast(
     emailContent?: {
       subject?: string | null;
       contentHtml?: string | null;
+      contentJson?: Record<string, unknown> | null;
     } | null;
   } = {}
 ): Promise<BroadcastWithRelations> {
@@ -138,6 +139,7 @@ async function createMinimalBroadcast(
       data: {
         subject: overrides.emailContent.subject ?? null,
         contentHtml: overrides.emailContent.contentHtml ?? null,
+        contentJson: overrides.emailContent.contentJson ?? undefined,
       },
     });
     emailContentId = emailContent.id;
@@ -651,6 +653,314 @@ describe("BroadcastReadinessChecker", () => {
 
       expect(result.audienceType).toBe("segment");
       expect(result.audienceName).toBe("Test Segment for Readiness");
+    });
+  });
+
+  describe("links validation", () => {
+    test("should return valid when no links in content", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "No Links Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "No links here" }],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.allValid).toBe(true);
+      expect(result.linksValidation.links).toHaveLength(0);
+
+      const linksCheck = result.checklist.find((item) => item.id === "links");
+      expect(linksCheck?.completed).toBe(true);
+      expect(linksCheck?.label).toBe("No links to validate");
+    });
+
+    test("should validate valid variable links", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "Valid Variable Links Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Click here",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "{{unsubscribe_url}}" },
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: "button",
+                attrs: { href: "{{preferences_url}}" },
+                content: [{ type: "text", text: "Preferences" }],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.allValid).toBe(true);
+      expect(result.linksValidation.links).toHaveLength(2);
+      expect(result.linksValidation.validCount).toBe(2);
+      expect(result.linksValidation.invalidCount).toBe(0);
+
+      const linksCheck = result.checklist.find((item) => item.id === "links");
+      expect(linksCheck?.completed).toBe(true);
+      expect(linksCheck?.label).toBe("All 2 links valid");
+    });
+
+    test("should detect invalid variable links", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "Invalid Variable Link Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Click here",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "{{invalid_variable}}" },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.allValid).toBe(false);
+      expect(result.linksValidation.invalidCount).toBe(1);
+
+      const invalidLink = result.linksValidation.links.find(
+        (l) => l.status === "invalid"
+      );
+      expect(invalidLink?.url).toBe("{{invalid_variable}}");
+      expect(invalidLink?.reason).toContain("Unknown link variable");
+
+      const linksCheck = result.checklist.find((item) => item.id === "links");
+      expect(linksCheck?.completed).toBe(false);
+      expect(linksCheck?.reason).toContain("1 link is invalid");
+    });
+
+    test("should detect invalid URL format", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "Invalid URL Format Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Click here",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "not-a-valid-url" },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.allValid).toBe(false);
+
+      const invalidLink = result.linksValidation.links.find(
+        (l) => l.status === "invalid"
+      );
+      expect(invalidLink?.url).toBe("not-a-valid-url");
+      expect(invalidLink?.reason).toBe("Url seems to be not responsive. Please check again.");
+    });
+
+    test("should process URL links", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "URL Link Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "button",
+                attrs: { href: "https://example.com" },
+                content: [{ type: "text", text: "Visit" }],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.links).toHaveLength(1);
+
+      const link = result.linksValidation.links[0];
+      expect(link.url).toBe("https://example.com");
+      expect(link.type).toBe("url");
+      expect(["valid", "invalid"]).toContain(link.status);
+    });
+
+    test("should include linksValidation in result", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "Links Validation Result Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [{ type: "text", text: "No links" }],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result).toHaveProperty("linksValidation");
+      expect(result.linksValidation).toHaveProperty("links");
+      expect(result.linksValidation).toHaveProperty("allValid");
+      expect(result.linksValidation).toHaveProperty("validCount");
+      expect(result.linksValidation).toHaveProperty("invalidCount");
+    });
+
+    test("should extract links from nested content", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "Nested Links Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "panel",
+                content: [
+                  {
+                    type: "paragraph",
+                    content: [
+                      {
+                        type: "text",
+                        text: "Link 1",
+                        marks: [
+                          {
+                            type: "link",
+                            attrs: { href: "{{unsubscribe_url}}" },
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    type: "button",
+                    attrs: { href: "{{preferences_url}}" },
+                    content: [{ type: "text", text: "Button" }],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.links).toHaveLength(2);
+      expect(result.linksValidation.allValid).toBe(true);
+    });
+
+    test("should show correct label for multiple invalid links", async () => {
+      const broadcast = await createMinimalBroadcast(testWorkspace.id, {
+        name: "Multiple Invalid Links Broadcast",
+        emailContent: {
+          subject: "Test Subject",
+          contentJson: {
+            type: "doc",
+            content: [
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Link 1",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "{{bad_var_1}}" },
+                      },
+                    ],
+                  },
+                ],
+              },
+              {
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: "Link 2",
+                    marks: [
+                      {
+                        type: "link",
+                        attrs: { href: "{{bad_var_2}}" },
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+
+      const result = await checkBroadcastReadiness(testWorkspace.id, broadcast);
+
+      expect(result.linksValidation.invalidCount).toBe(2);
+
+      const linksCheck = result.checklist.find((item) => item.id === "links");
+      expect(linksCheck?.completed).toBe(false);
+      expect(linksCheck?.label).toBe("2 of 2 links invalid");
+      expect(linksCheck?.reason).toContain("2 links are invalid");
     });
   });
 });

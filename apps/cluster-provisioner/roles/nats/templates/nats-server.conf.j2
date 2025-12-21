@@ -1,0 +1,102 @@
+# NATS Server Configuration
+# Managed by Ansible - DO NOT EDIT MANUALLY
+
+# Server identification
+server_name: {{ inventory_hostname }}
+
+# Client connections
+port: {{ nats_client_port }}
+host: {{ nats_listen_address }}
+
+# Maximum connections
+max_connections: {{ nats_max_connections }}
+
+# Maximum payload size
+max_payload: {{ nats_max_payload }}
+
+# Logging
+debug: {{ nats_debug | lower }}
+trace: {{ nats_trace | lower }}
+logtime: true
+log_file: "/var/log/nats/nats-server.log"
+
+# PID file
+pid_file: "/var/run/nats/nats-server.pid"
+
+{% if nats_tls_enabled %}
+# TLS Configuration
+tls {
+  cert_file: "{{ nats_tls_dir }}/server.pem"
+  key_file: "{{ nats_tls_dir }}/server-key.pem"
+  ca_file: "{{ nats_tls_dir }}/ca.pem"
+  verify: true
+  timeout: 2
+}
+{% endif %}
+
+{% if nats_jetstream_enabled %}
+# JetStream Configuration
+jetstream {
+  store_dir: "{{ nats_storage_dir }}"
+  max_memory_store: {{ nats_jetstream_max_mem }}
+  max_file_store: {{ nats_jetstream_max_file }}
+}
+{% endif %}
+
+# Authorization - Combined password and NKey-based authentication
+authorization {
+  users = [
+    # Admin user (password-based for CLI access)
+    {
+      user: "admin"
+      password: "{{ nats_admin_password_hash }}"
+      permissions: {
+        publish: ">"
+        subscribe: ">"
+      }
+    },
+    # kibamail-agent: Email agent running on MTA nodes (NKey auth)
+    {
+      nkey: {{ nats_agent_pubkey }}
+      permissions: {
+        publish: {
+          allow: [
+            "kibamail.agent.>",
+            "kibamail.events.>",
+            "$JS.API.>"
+          ]
+        }
+        subscribe: {
+          allow: [
+            "kibamail.commands.>",
+            "_INBOX.>",
+            "$JS.API.>",
+            "$JS.ACK.>"
+          ]
+        }
+      }
+    },
+    # kibamail-control-plane: Control plane for injecting emails (NKey auth)
+    {
+      nkey: {{ nats_cp_pubkey }}
+      permissions: {
+        publish: {
+          allow: [
+            "kibamail.commands.>",
+            "kibamail.emails.>",
+            "$JS.API.>"
+          ]
+        }
+        subscribe: {
+          allow: [
+            "kibamail.agent.>",
+            "kibamail.events.>",
+            "_INBOX.>",
+            "$JS.API.>",
+            "$JS.ACK.>"
+          ]
+        }
+      }
+    }
+  ]
+}

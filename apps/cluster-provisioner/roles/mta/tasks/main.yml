@@ -1,0 +1,15 @@
+# MTA Role
+#
+# Sets up an MTA node with:
+# - Redis (for TSA shared state) - first node only
+# - NATS (for control plane communication) - first node only
+# - KumoMTA (email sending)
+# - TSA daemon (traffic shaping)
+# - Email Agent (Go application)
+#
+# For now, only Redis is configured. Other components will be added.
+#
+---
+- name: Include Redis setup (first MTA node only)
+  ansible.builtin.include_tasks: redis.yml
+  when: mta_node_index == 1

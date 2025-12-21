@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
-import { Xmark, Settings } from "iconoir-react";
+import { Xmark, Settings, StatUp } from "iconoir-react";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import type { SendingDomain } from "@prisma/client";
+import type { SendingDomain, BroadcastStatus } from "@prisma/client";
 
 dayjs.extend(utc);
 import {
@@ -28,11 +29,14 @@ import {
 import { SendBroadcastButton } from "./send-broadcast-button";
 import Link from "next/link";
 
-type EditorTab = "content" | "details" | "preview";
+type EditorTab = "content" | "details" | "preview" | "analytics";
+
+const VALID_TABS: EditorTab[] = ["content", "details", "preview", "analytics"];
 
 interface BroadcastEditorClientProps {
   broadcastId: string;
   broadcastName: string;
+  status: BroadcastStatus;
   initialContent?: Record<string, unknown>;
   initialStyles?: Record<string, unknown>;
   initialSubject: string;
@@ -41,6 +45,9 @@ interface BroadcastEditorClientProps {
   initialTopicId?: string;
   initialSegmentId?: string;
   initialSendAt?: Date;
+  initialTrackClicks?: boolean;
+  initialTrackOpens?: boolean;
+  initialReplyToIdentityId?: string;
   senderIdentities: TransformedSenderIdentity[];
   domains: Pick<SendingDomain, "id" | "name">[];
 }
@@ -48,6 +55,7 @@ interface BroadcastEditorClientProps {
 export function BroadcastEditorClient({
   broadcastId,
   broadcastName,
+  status,
   initialContent,
   initialStyles,
   initialSubject,
@@ -56,14 +64,39 @@ export function BroadcastEditorClient({
   initialTopicId,
   initialSegmentId,
   initialSendAt,
+  initialTrackClicks,
+  initialTrackOpens,
+  initialReplyToIdentityId,
   senderIdentities,
   domains,
 }: BroadcastEditorClientProps) {
+  const isReadonly = status !== "DRAFT";
+  const searchParams = useSearchParams();
+  const router = useRouter();
   const [stylesOpen, setStylesOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<EditorTab>("content");
   const editorRef = useRef<BroadcastEmailEditorRef>(null);
   const queryClient = useQueryClient();
   const { success: toast } = useToast();
+
+  const defaultTab: EditorTab = status === "DRAFT" ? "content" : "analytics";
+  const tabParam = searchParams.get("tab");
+  const activeTab: EditorTab = VALID_TABS.includes(tabParam as EditorTab)
+    ? (tabParam as EditorTab)
+    : defaultTab;
+
+  function setActiveTab(tab: EditorTab) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tab);
+    router.replace(`?${params.toString()}`, { scroll: false });
+  }
+
+  useEffect(() => {
+    if (!tabParam || !VALID_TABS.includes(tabParam as EditorTab)) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("tab", defaultTab);
+      router.replace(`?${params.toString()}`, { scroll: false });
+    }
+  }, [tabParam, defaultTab, searchParams, router]);
 
   // Convert initialSendAt from UTC (database) to local time for display
   const initialSendAtLocal = initialSendAt
@@ -74,22 +107,48 @@ export function BroadcastEditorClient({
     subject: initialSubject,
     previewText: initialPreviewText,
     senderIdentityId: initialSenderIdentityId,
+    replyToIdentityId: initialReplyToIdentityId,
     topicId: initialTopicId,
     segmentId: initialSegmentId,
     sendAt: initialSendAtLocal,
+    trackClicks: initialTrackClicks,
+    trackOpens: initialTrackOpens,
   });
   const [addedDomains, setAddedDomains] = useState<CreatedDomain[]>([]);
   const [senderLocalPart, setSenderLocalPart] = useState("");
   const [senderDomainId, setSenderDomainId] = useState(domains[0]?.id || "");
-  const [isAddingNewSender, setIsAddingNewSender] = useState(!initialSenderIdentityId && senderIdentities.length === 0);
+  const [isAddingNewSender, setIsAddingNewSender] = useState(
+    !initialSenderIdentityId && senderIdentities.length === 0
+  );
 
   const allDomains = [...domains, ...addedDomains];
 
   const onBroadcastDetailsChange = useCallback(
     (updates: Partial<BroadcastDetails>) => {
-      setBroadcastDetails((prev) => ({ ...prev, ...updates }));
+      setBroadcastDetails((prev) => {
+        const next = { ...prev, ...updates };
+
+        // Clear replyToIdentityId if senderIdentityId changes to a different domain
+        if (
+          updates.senderIdentityId !== undefined &&
+          updates.senderIdentityId !== prev.senderIdentityId
+        ) {
+          const prevSender = senderIdentities.find(
+            (s) => s.id === prev.senderIdentityId
+          );
+          const nextSender = senderIdentities.find(
+            (s) => s.id === updates.senderIdentityId
+          );
+
+          if (prevSender?.domainId !== nextSender?.domainId) {
+            next.replyToIdentityId = undefined;
+          }
+        }
+
+        return next;
+      });
     },
-    []
+    [senderIdentities]
   );
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {
@@ -123,9 +182,12 @@ export function BroadcastEditorClient({
           previewText: broadcastDetails.previewText || undefined,
         },
         from,
+        replyToIdentityId: broadcastDetails.replyToIdentityId || null,
         topicId: broadcastDetails.topicId || null,
         segmentId: broadcastDetails.segmentId || null,
         sendAt: sendAtUtc,
+        trackClicks: broadcastDetails.trackClicks ?? null,
+        trackOpens: broadcastDetails.trackOpens ?? null,
       });
     },
     onSuccess: () => {
@@ -183,34 +245,49 @@ export function BroadcastEditorClient({
           >
             Preview
           </Button>
+          <div className="w-12 h-px bg-kb-border-tertiary"></div>
+          <Button
+            className="rounded-full!"
+            variant={activeTab === "analytics" ? "secondary" : "tertiary"}
+            onClick={() => setActiveTab("analytics")}
+          >
+            <StatUp className="w-4 h-4" />
+            Analytics
+          </Button>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Button
-            variant="secondary"
-            onClick={() => setStylesOpen((current) => !current)}
-          >
-            <Settings className="w-4 h-4" />
-            Styles
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={onSaveDraft}
-            disabled={saveDraftMutation.isPending}
-          >
-            {saveDraftMutation.isPending ? "Saving..." : "Save Draft"}
-          </Button>
-          <SendBroadcastButton
-            broadcastId={broadcastId}
-            onSaveDraft={onSaveDraftAsync}
-            isSavingDraft={saveDraftMutation.isPending}
-          />
-        </div>
+        {!isReadonly && (
+          <div className="flex items-center gap-4">
+            <Button
+              variant="secondary"
+              onClick={() => setStylesOpen((current) => !current)}
+            >
+              <Settings className="w-4 h-4" />
+              Styles
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={onSaveDraft}
+              disabled={saveDraftMutation.isPending}
+            >
+              {saveDraftMutation.isPending ? "Saving..." : "Save Draft"}
+            </Button>
+            <SendBroadcastButton
+              broadcastId={broadcastId}
+              onSaveDraft={onSaveDraftAsync}
+              isSavingDraft={saveDraftMutation.isPending}
+            />
+          </div>
+        )}
       </div>
 
-      <div className="grow rounded-lg overflow-hidden relative">
+      <div className="grow rounded-lg overflow-hidden relative border border-kb-border-tertiary">
         <div
-          className={`absolute inset-0 ${activeTab === "content" ? "visible" : "invisible pointer-events-none"}`}
+          className={`absolute inset-0 ${
+            activeTab === "content"
+              ? "visible"
+              : "invisible pointer-events-none"
+          }`}
         >
           <BroadcastEmailEditor
             ref={editorRef}
@@ -219,10 +296,15 @@ export function BroadcastEditorClient({
             onStylesOpenChange={setStylesOpen}
             initialContent={initialContent}
             initialStyles={initialStyles}
+            readonly={isReadonly}
           />
         </div>
         <div
-          className={`absolute inset-0 ${activeTab === "details" ? "visible" : "invisible pointer-events-none"}`}
+          className={`absolute inset-0 ${
+            activeTab === "details"
+              ? "visible"
+              : "invisible pointer-events-none"
+          }`}
         >
           <BroadcastDetailsTab
             broadcast={broadcastDetails}
@@ -242,13 +324,47 @@ export function BroadcastEditorClient({
               onIsAddingNewChange: setIsAddingNewSender,
               onDomainCreated,
             }}
+            readonly={isReadonly}
           />
         </div>
         <div
-          className={`absolute inset-0 ${activeTab === "preview" ? "visible" : "invisible pointer-events-none"}`}
+          className={`absolute inset-0 ${
+            activeTab === "preview"
+              ? "visible"
+              : "invisible pointer-events-none"
+          }`}
         >
-          <BroadcastPreview broadcastId={broadcastId} isActive={activeTab === "preview"} />
+          <BroadcastPreview
+            broadcastId={broadcastId}
+            isActive={activeTab === "preview"}
+          />
         </div>
+        <div
+          className={`absolute inset-0 ${
+            activeTab === "analytics"
+              ? "visible"
+              : "invisible pointer-events-none"
+          }`}
+        >
+          <BroadcastAnalyticsPlaceholder />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BroadcastAnalyticsPlaceholder() {
+  return (
+    <div className="h-full w-full bg-kb-bg-primary flex items-center justify-center">
+      <div className="text-center">
+        <StatUp className="w-12 h-12 text-kb-content-tertiary mx-auto mb-4" />
+        <h2 className="text-lg font-semibold text-kb-content-primary mb-2">
+          Analytics coming soon
+        </h2>
+        <p className="text-kb-content-secondary max-w-md">
+          Track opens, clicks, and engagement metrics for your broadcast once it
+          has been sent.
+        </p>
       </div>
     </div>
   );

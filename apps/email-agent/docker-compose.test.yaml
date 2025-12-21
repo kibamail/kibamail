@@ -1,0 +1,161 @@
+# Docker Compose for integration tests
+# Run with: docker-compose -f docker-compose.test.yaml up -d
+# Uses non-standard ports to avoid conflicts with local services
+
+services:
+  # DNS override - routes all MX lookups to mailpit
+  dnsmasq:
+    build:
+      context: ./dnsmasq
+      dockerfile: Dockerfile
+    container_name: email-agent-test-dnsmasq
+    networks:
+      email-agent-test:
+        ipv4_address: 172.28.0.2
+    healthcheck:
+      test: ["CMD", "nslookup", "mail.testing", "127.0.0.1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Mailpit - receives all emails via DNS override
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: email-agent-test-mailpit
+    environment:
+      MP_MAX_MESSAGES: 10000
+      MP_SMTP_DISABLE_RDNS: "true"
+      MP_SMTP_BIND_ADDR: "0.0.0.0:25"
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+    ports:
+      - "18025:8025"  # Web UI
+    networks:
+      email-agent-test:
+        ipv4_address: 172.28.0.10
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025/api/v1/info"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # KumoMTA - actual email delivery (routed to mailpit via DNS)
+  kumomta:
+    container_name: email-agent-test-kumomta
+    hostname: kumomta
+    image: ghcr.io/kumocorp/kumomta:latest
+    dns: 172.28.0.2
+    volumes:
+      - ./kumomta/policy:/opt/kumomta/etc/policy
+    tmpfs:
+      - /var/spool/kumomta:uid=1000,gid=1000,mode=1777
+      - /var/log/kumomta:uid=1000,gid=1000,mode=1777
+    environment:
+      # Webhook endpoint - host.docker.internal allows container to reach host
+      WEBHOOK_URL: "http://host.docker.internal:18080/webhooks"
+    ports:
+      - "5625:25"
+      - "5680:8000"
+    networks:
+      email-agent-test:
+        ipv4_address: 172.28.0.20
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://localhost:8000/api/admin/bounce/v1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # NATS with JetStream
+  nats:
+    image: nats:2.10-alpine
+    container_name: email-agent-test-nats
+    ports:
+      - "14222:4222"
+      - "18222:8222"
+    command: >
+      -js
+      -sd /data
+      -m 8222
+    volumes:
+      - nats-data:/data
+    networks:
+      email-agent-test:
+        ipv4_address: 172.28.0.30
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: email-agent-test-redis
+    ports:
+      - "16379:6379"
+    networks:
+      email-agent-test:
+        ipv4_address: 172.28.0.40
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # MinIO for S3-compatible storage
+  minio:
+    image: minio/minio:latest
+    container_name: email-agent-test-minio
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      email-agent-test:
+        ipv4_address: 172.28.0.50
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # Create test bucket on startup
+  minio-init:
+    image: minio/mc:latest
+    container_name: email-agent-test-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      email-agent-test:
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/test-bucket --ignore-existing;
+      mc anonymous set download myminio/test-bucket;
+      exit 0;
+      "
+
+networks:
+  email-agent-test:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  nats-data:
+  minio-data:

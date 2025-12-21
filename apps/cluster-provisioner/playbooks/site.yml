@@ -1,0 +1,33 @@
+# Site Playbook - Full Cluster Provisioning
+#
+# This playbook provisions the entire cluster:
+# - Proxy machine
+# - MTA nodes (to be added)
+#
+# Usage:
+#   ansible-playbook playbooks/site.yml
+#
+---
+- name: Provision all machines with common setup
+  hosts: all
+  become: yes
+  roles:
+    - role: common
+      tags: [common]
+    - role: geerlingguy.security
+      tags: [security]
+
+- name: Provision proxy machine
+  hosts: proxy
+  become: yes
+  roles:
+    - role: proxy
+      tags: [proxy]
+
+# MTA node provisioning will be added here
+# - name: Provision MTA nodes
+#   hosts: mta
+#   become: yes
+#   roles:
+#     - role: mta
+#       tags: [mta]

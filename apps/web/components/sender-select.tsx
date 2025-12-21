@@ -36,6 +36,7 @@ interface SenderSelectProps {
   onDomainCreated?: (domain: CreatedDomain) => void;
   label?: string;
   labelHelp?: string;
+  disabled?: boolean;
 }
 
 export function SenderSelect({
@@ -52,6 +53,7 @@ export function SenderSelect({
   onDomainCreated,
   label = "From",
   labelHelp,
+  disabled = false,
 }: SenderSelectProps) {
   const [internalIsAddingNew, setInternalIsAddingNew] = useState(false);
   const [internalLocalPart, setInternalLocalPart] = useState("");
@@ -138,7 +140,7 @@ export function SenderSelect({
 
   if (hasSenderIdentities && !isAddingNew) {
     return (
-      <Select.Root value={value} onValueChange={onSenderSelect}>
+      <Select.Root value={value} onValueChange={onSenderSelect} disabled={disabled}>
         <Select.Label help={labelHelp}>{label}</Select.Label>
         <Select.Trigger placeholder="Select sender" />
         <Select.Content className="z-50">
@@ -161,6 +163,7 @@ export function SenderSelect({
       value={localPart}
       onChange={(event) => setLocalPart(event.target.value)}
       placeholder="newsletter"
+      disabled={disabled}
     >
       <TextField.Label>{label === "From" ? "From email" : label}</TextField.Label>
       <TextField.Slot side="right">

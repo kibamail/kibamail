@@ -1,0 +1,71 @@
+# Email Agent Development Configuration
+# Override values via environment variables with KIBAMAIL_AGENT_ prefix
+# Example: KIBAMAIL_AGENT_LOG_LEVEL=debug
+
+agent:
+  hostname: "" # Auto-detected if empty
+  log_level: "debug"
+  log_format: "console" # "json" for production
+
+nats:
+  urls:
+    - "nats://192.168.56.11:4222"
+  nkey_file: "/etc/email-agent/nats/kibamail-agent.nkeys"
+  tls_enabled: true
+  tls_ca_cert: "/etc/email-agent/nats/ca.pem"
+  max_reconnects: -1 # Infinite reconnects
+  reconnect_wait: 2s
+
+http:
+  host: "127.0.0.1" # Local-only for KumoMTA
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+  shutdown_timeout: 30s
+
+redis:
+  host: "192.168.56.11"
+  port: 6379
+  password: ""
+  db: 0
+  dial_timeout: 5s
+  pool_size: 10
+
+s3:
+  endpoint: "${S3_ENDPOINT}"
+  region: "${S3_REGION}"
+  access_key_id: "${S3_ACCESS_KEY_ID}"
+  secret_access_key: "${S3_SECRET_ACCESS_KEY}"
+  bucket: "${S3_BUCKET}"
+  force_path_style: true # Required for S3-compatible services
+
+kumomta:
+  endpoint: "http://127.0.0.1:8000"
+  timeout: 30s
+  max_idle_conns: 100
+  max_conns_per_host: 100
+  deferred_generation: true
+
+control_api:
+  base_url: "${CONTROL_API_BASE_URL}"
+  api_key: "${CONTROL_API_KEY}"
+  timeout: 10s
+
+worker:
+  stream_name: "EMAILS"
+  consumer_name: "email_agent_consumer"
+  fetch_batch: 100 # Messages per fetch
+  fetch_workers: 30 # Concurrent fetch goroutines
+  ack_timeout: 30s
+  max_retries: 5
+
+metrics:
+  enabled: true
+  port: 9090
+  path: "/metrics"
+
+health:
+  enabled: true
+  port: 8081
+  liveness_path: "/live"
+  readiness_path: "/ready"

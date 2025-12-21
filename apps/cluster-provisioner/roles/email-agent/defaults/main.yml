@@ -1,0 +1,48 @@
+# Email Agent Role Defaults
+---
+# Binary source
+email_agent_binary_url: ""
+email_agent_binary_checksum: ""
+
+# Service management
+email_agent_enable_service: true
+email_agent_start_service: true
+
+# Configuration
+email_agent_log_level: "info"
+email_agent_log_format: "json"
+
+# HTTP server (local-only for KumoMTA)
+email_agent_http_host: "127.0.0.1"
+email_agent_http_port: 8080
+
+# Metrics and health
+email_agent_metrics_enabled: true
+email_agent_metrics_port: 9090
+email_agent_health_enabled: true
+email_agent_health_port: 8081
+
+# NATS configuration
+email_agent_nats_tls_enabled: true
+
+# Worker configuration
+email_agent_stream_name: "EMAILS"
+email_agent_consumer_name: "email_agent_consumer"
+email_agent_fetch_batch: 100
+email_agent_fetch_workers: 30
+
+# KumoMTA configuration
+email_agent_kumomta_endpoint: "http://127.0.0.1:8000"
+email_agent_kumomta_timeout: "30s"
+
+# Cache TTL
+email_agent_dkim_cache_ttl: "5m"
+
+# Directories
+email_agent_config_dir: "/etc/email-agent"
+email_agent_nats_config_dir: "/etc/email-agent/nats"
+email_agent_log_dir: "/var/log/email-agent"
+
+# User/group
+email_agent_user: "email-agent"
+email_agent_group: "email-agent"

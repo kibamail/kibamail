@@ -10,9 +10,12 @@ export interface BroadcastDetails {
   subject: string;
   previewText: string;
   senderIdentityId?: string;
+  replyToIdentityId?: string;
   topicId?: string;
   segmentId?: string;
   sendAt?: Date;
+  trackClicks?: boolean;
+  trackOpens?: boolean;
 }
 
 export type Domain = Pick<SendingDomain, "id" | "name">;

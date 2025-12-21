@@ -75,14 +75,10 @@ export function ButtonCursorFloating({
   } | null>(null);
   const { linkVariables } = useVariables();
 
-  // Custom function to get cursor position instead of selection bounds
   const getCursorBoundingRect = useCallback((): DOMRect | null => {
     if (!editor) return null;
 
     const { selection } = editor.state;
-    const { $from: _ } = selection;
-
-    // Get the DOM coordinates of the cursor position
     const coords = editor.view.coordsAtPos(selection.from);
 
     if (!coords) return null;
@@ -116,8 +112,7 @@ export function ButtonCursorFloating({
     []
   );
 
-  // Get current button href when popover opens
-  const handleLinkPopoverOpen = useCallback(
+  const onLinkPopoverOpen = useCallback(
     (open: boolean) => {
       if (open && editor) {
         const href = editor.getAttributes("button").href || "";
@@ -128,7 +123,7 @@ export function ButtonCursorFloating({
     [editor]
   );
 
-  const handleSetLink = useCallback(() => {
+  const onSetLink = useCallback(() => {
     if (!editor) return;
     editor
       .chain()
@@ -138,14 +133,14 @@ export function ButtonCursorFloating({
     setLinkPopoverOpen(false);
   }, [editor, linkUrl]);
 
-  const handleRemoveLink = useCallback(() => {
+  const onRemoveLink = useCallback(() => {
     if (!editor) return;
     editor.chain().focus().setButtonHref(undefined).run();
     setLinkUrl("");
     setLinkPopoverOpen(false);
   }, [editor]);
 
-  const handleOpenLink = useCallback(() => {
+  const onOpenLink = useCallback(() => {
     if (!linkUrl) return;
     const safeUrl = sanitizeUrl(linkUrl, window.location.href);
     if (safeUrl !== "#") {
@@ -153,46 +148,44 @@ export function ButtonCursorFloating({
     }
   }, [linkUrl]);
 
-  const handleVariableSelect = useCallback((variableName: string) => {
+  const onVariableSelect = useCallback((variableName: string) => {
     setLinkUrl(`{{${variableName}}}`);
     setVariablesOpen(false);
   }, []);
 
-  const handleKeyDown = useCallback(
+  const onKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
-        handleSetLink();
+        onSetLink();
       }
     },
-    [handleSetLink]
+    [onSetLink]
   );
 
   useEffect(() => {
     if (!editor) return;
 
-    const handleSelectionUpdate = () => {
-      const nodeData = getButtonNodeData(editor);
-      if (nodeData) {
-        console.log("[ButtonCursorFloating] Got button node:", {
-          nodeType: nodeData.node.type.name,
-          nodeAttrs: nodeData.node.attrs,
-          customStyle: nodeData.node.attrs.customStyle,
-          pos: nodeData.pos,
-        });
+    function onSelectionUpdate() {
+      if (!editor.isEditable) {
+        setShouldShow(false);
+        setButtonNodeData(null);
+        return;
       }
+
+      const nodeData = getButtonNodeData(editor);
       setShouldShow(nodeData !== null);
       setButtonNodeData(nodeData);
-    };
+    }
 
-    handleSelectionUpdate();
+    onSelectionUpdate();
 
-    editor.on("selectionUpdate", handleSelectionUpdate);
-    editor.on("transaction", handleSelectionUpdate);
+    editor.on("selectionUpdate", onSelectionUpdate);
+    editor.on("transaction", onSelectionUpdate);
 
     return () => {
-      editor.off("selectionUpdate", handleSelectionUpdate);
-      editor.off("transaction", handleSelectionUpdate);
+      editor.off("selectionUpdate", onSelectionUpdate);
+      editor.off("transaction", onSelectionUpdate);
     };
   }, [editor, getButtonNodeData]);
 
@@ -313,7 +306,7 @@ export function ButtonCursorFloating({
         <Separator />
 
         <ToolbarGroup>
-          <Popover open={linkPopoverOpen} onOpenChange={handleLinkPopoverOpen}>
+          <Popover open={linkPopoverOpen} onOpenChange={onLinkPopoverOpen}>
             <PopoverTrigger asChild>
               <Button
                 type="button"
@@ -335,8 +328,8 @@ export function ButtonCursorFloating({
                         type="url"
                         placeholder="Paste a link..."
                         value={linkUrl}
-                        onChange={(e) => setLinkUrl(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        onChange={(event) => setLinkUrl(event.target.value)}
+                        onKeyDown={onKeyDown}
                         autoFocus
                         autoComplete="off"
                         autoCorrect="off"
@@ -347,7 +340,7 @@ export function ButtonCursorFloating({
                     <ButtonGroup orientation="horizontal">
                       <Button
                         type="button"
-                        onClick={handleSetLink}
+                        onClick={onSetLink}
                         title="Apply link"
                         disabled={!linkUrl}
                         data-style="ghost"
@@ -389,7 +382,7 @@ export function ButtonCursorFloating({
                                         type="button"
                                         data-style="ghost"
                                         onClick={() =>
-                                          handleVariableSelect(variable)
+                                          onVariableSelect(variable)
                                         }
                                         style={{ justifyContent: "flex-start" }}
                                       >
@@ -410,7 +403,7 @@ export function ButtonCursorFloating({
                     <ButtonGroup orientation="horizontal">
                       <Button
                         type="button"
-                        onClick={handleOpenLink}
+                        onClick={onOpenLink}
                         title="Open in new window"
                         disabled={!linkUrl}
                         data-style="ghost"
@@ -420,7 +413,7 @@ export function ButtonCursorFloating({
 
                       <Button
                         type="button"
-                        onClick={handleRemoveLink}
+                        onClick={onRemoveLink}
                         title="Remove link"
                         disabled={!linkUrl && !hasLink}
                         data-style="ghost"

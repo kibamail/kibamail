@@ -79,9 +79,12 @@ export const updateBroadcastSchema = z.object({
   from: emailFromSchema.optional(),
   emailContent: emailContentSchema.nullable().optional(),
   replyTo: z.email("Invalid reply-to email format").optional(),
+  replyToIdentityId: z.string().nullable().optional(),
   topicId: z.string().nullable().optional(),
   segmentId: z.string().nullable().optional(),
   sendAt: z.coerce.date().nullable().optional(),
+  trackClicks: z.boolean().nullable().optional(),
+  trackOpens: z.boolean().nullable().optional(),
 });
 
 /**

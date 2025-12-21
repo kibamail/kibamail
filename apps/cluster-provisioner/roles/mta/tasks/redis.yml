@@ -1,0 +1,25 @@
+# Redis Setup for MTA Node
+#
+# Configures Redis for TSA shared state.
+# Only runs on the first MTA node.
+#
+---
+- name: Display Redis setup info
+  ansible.builtin.debug:
+    msg: "Setting up Redis on {{ inventory_hostname }} (MTA node {{ mta_node_index }})"
+
+- name: Verify Redis is running after role execution
+  ansible.builtin.wait_for:
+    port: "{{ redis_port }}"
+    host: "{{ redis_bind_interface }}"
+    delay: 2
+    timeout: 30
+
+- name: Test Redis connectivity
+  ansible.builtin.command: redis-cli ping
+  register: redis_ping
+  changed_when: false
+
+- name: Display Redis status
+  ansible.builtin.debug:
+    msg: "Redis is running - PING response: {{ redis_ping.stdout }}"

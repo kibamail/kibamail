@@ -1,0 +1,65 @@
+# Provision MTA Node
+#
+# This playbook provisions the first MTA node with:
+# - Base system configuration
+# - Security hardening
+# - Redis (for TSA shared state)
+# - NATS (for control plane communication)
+# - KumoMTA (installed but not started)
+#
+# Usage:
+#   ansible-playbook playbooks/provision-mta.yml
+#
+# To provision only the first MTA node:
+#   ansible-playbook playbooks/provision-mta.yml --limit mta-1
+#
+---
+- name: Provision MTA Node
+  hosts: mta-1
+  become: yes
+
+  pre_tasks:
+    - name: Display provisioning info
+      ansible.builtin.debug:
+        msg: |
+          Provisioning MTA node: {{ inventory_hostname }}
+          - Host: {{ ansible_host }}
+          - Node index: {{ mta_node_index }}
+          - Redis port: {{ redis_port }}
+          - NATS port: {{ nats_client_port }}
+
+  roles:
+    - role: common
+      tags: [common]
+
+    - role: geerlingguy.security
+      tags: [security]
+
+    - role: geerlingguy.redis
+      tags: [redis]
+
+    - role: nats
+      tags: [nats]
+
+    - role: kumomta
+      tags: [kumomta]
+
+    - role: mta
+      tags: [mta]
+
+  post_tasks:
+    - name: Display provisioning complete
+      ansible.builtin.debug:
+        msg: |
+          MTA node provisioned successfully.
+
+          Redis: {{ redis_bind_interface }}:{{ redis_port }}
+          NATS: {{ nats_listen_address }}:{{ nats_client_port }}
+          KumoMTA: Installed (not started - requires configuration)
+
+          Credentials stored in: {{ inventory_dir }}/credentials/nats/
+
+          Next steps:
+          - Configure KumoMTA policy
+          - Start KumoMTA and TSA daemon
+          - Deploy Email Agent

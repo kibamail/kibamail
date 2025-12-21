@@ -1,0 +1,174 @@
+# KumoMTA Installation Tasks
+#
+# Includes system preparation as per:
+# https://docs.kumomta.com/userguide/installation/system_prep/
+#
+---
+# System Preparation
+- name: Update apt cache and upgrade packages
+  ansible.builtin.apt:
+    update_cache: yes
+    upgrade: dist
+    cache_valid_time: 3600
+
+- name: Install prerequisites and diagnostic tools
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gnupg
+      - ca-certificates
+      - tree
+      - telnet
+      - git
+      - dnsutils
+    state: present
+
+# Caching DNS Resolver (critical for high-performance mail)
+- name: Install bind9 caching DNS resolver
+  ansible.builtin.apt:
+    name: bind9
+    state: present
+  when: kumomta_install_bind9
+
+- name: Enable and start bind9
+  ansible.builtin.systemd:
+    name: named
+    state: started
+    enabled: yes
+  when: kumomta_install_bind9
+
+# Disable conflicting mail services
+- name: Check if postfix is installed
+  ansible.builtin.command: systemctl list-unit-files postfix.service
+  register: postfix_check
+  changed_when: false
+  failed_when: false
+
+- name: Disable and stop postfix
+  ansible.builtin.systemd:
+    name: postfix
+    state: stopped
+    enabled: no
+  when: postfix_check.rc == 0 and 'postfix.service' in postfix_check.stdout
+
+- name: Check if qpidd is installed
+  ansible.builtin.command: systemctl list-unit-files qpidd.service
+  register: qpidd_check
+  changed_when: false
+  failed_when: false
+
+- name: Disable and stop qpidd
+  ansible.builtin.systemd:
+    name: qpidd
+    state: stopped
+    enabled: no
+  when: qpidd_check.rc == 0 and 'qpidd.service' in qpidd_check.stdout
+
+# Kernel Tuning
+- name: Apply sysctl settings for high-performance mail delivery
+  ansible.posix.sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop: "{{ kumomta_sysctl_settings | dict2items }}"
+
+# File Descriptor Limits
+- name: Configure file descriptor limits for kumod
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/kumomta.conf
+    content: |
+      # KumoMTA file descriptor limits
+      kumod soft nofile {{ kumomta_nofile_limit }}
+      kumod hard nofile {{ kumomta_nofile_limit }}
+      root soft nofile {{ kumomta_nofile_limit }}
+      root hard nofile {{ kumomta_nofile_limit }}
+    mode: "0644"
+
+# KumoMTA Installation
+- name: Check if KumoMTA GPG key exists
+  ansible.builtin.stat:
+    path: /usr/share/keyrings/kumomta.gpg
+  register: kumomta_gpg_key
+
+- name: Add KumoMTA GPG key
+  ansible.builtin.shell: |
+    curl -fsSL {{ kumomta_repo_gpg_url }} | gpg --yes --dearmor -o /usr/share/keyrings/kumomta.gpg
+  args:
+    creates: /usr/share/keyrings/kumomta.gpg
+  when: not kumomta_gpg_key.stat.exists
+
+- name: Set GPG key permissions
+  ansible.builtin.file:
+    path: /usr/share/keyrings/kumomta.gpg
+    mode: "0644"
+
+- name: Add KumoMTA repository
+  ansible.builtin.get_url:
+    url: "{{ kumomta_repo_list_url }}"
+    dest: /etc/apt/sources.list.d/kumomta.list
+    mode: "0644"
+
+- name: Update apt cache after adding repository
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install KumoMTA (version {{ kumomta_version }})
+  ansible.builtin.apt:
+    name: "kumomta={{ kumomta_version }}"
+    state: present
+    allow_downgrade: yes
+
+- name: Verify KumoMTA installation
+  ansible.builtin.command: /opt/kumomta/sbin/kumod --version
+  register: kumomta_installed_version
+  changed_when: false
+
+- name: Display KumoMTA version
+  ansible.builtin.debug:
+    msg: "KumoMTA installed: {{ kumomta_installed_version.stdout }}"
+
+- name: Hold KumoMTA package to prevent automatic upgrades
+  ansible.builtin.dpkg_selections:
+    name: kumomta
+    selection: hold
+
+# Service Management
+- name: Ensure KumoMTA service is stopped
+  ansible.builtin.systemd:
+    name: kumomta
+    state: stopped
+  when: not kumomta_start_services
+
+- name: Ensure TSA daemon service is stopped
+  ansible.builtin.systemd:
+    name: kumo-tsa-daemon
+    state: stopped
+  when: not kumomta_start_services
+
+- name: Configure KumoMTA service enabled state
+  ansible.builtin.systemd:
+    name: kumomta
+    enabled: "{{ kumomta_enable_services }}"
+
+- name: Configure TSA daemon service enabled state
+  ansible.builtin.systemd:
+    name: kumo-tsa-daemon
+    enabled: "{{ kumomta_enable_services }}"
+
+- name: Display installation complete
+  ansible.builtin.debug:
+    msg: |
+      KumoMTA installed successfully with system tuning applied.
+      Services are NOT started - configuration required.
+
+      System preparation completed:
+      - Caching DNS resolver (bind9): {{ 'enabled' if kumomta_install_bind9 else 'skipped' }}
+      - Kernel tuning: applied
+      - File descriptor limits: {{ kumomta_nofile_limit }}
+
+      To configure and start:
+      - Edit /opt/kumomta/etc/policy/*.lua
+      - sudo systemctl start kumomta
+      - sudo systemctl start kumo-tsa-daemon

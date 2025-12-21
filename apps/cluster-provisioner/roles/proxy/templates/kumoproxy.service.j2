@@ -1,0 +1,15 @@
+# KumoProxy SOCKS5 Proxy Service
+# Managed by Ansible - do not edit manually
+[Unit]
+Description=KumoMTA SOCKS5 Proxy service
+After=syslog.target network.target
+
+[Service]
+Type=simple
+Restart=always
+EnvironmentFile=-/opt/kumomta/etc/kumoproxy.env
+ExecStart=/opt/kumomta/sbin/proxy-server --listen ${PROXY_IP}:${PROXY_PORT}
+TimeoutStopSec=10
+
+[Install]
+WantedBy=multi-user.target

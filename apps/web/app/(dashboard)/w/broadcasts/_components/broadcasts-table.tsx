@@ -1,10 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
+import { ConfirmDialog } from "@kibamail/owly/dialog";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
+import { useToast } from "@kibamail/owly/toast";
 import type { Broadcast, BroadcastStatus, EmailContent } from "@prisma/client";
 import Link from "next/link";
 import {
@@ -19,6 +23,9 @@ import {
   WarningTriangle,
   Archive,
 } from "iconoir-react";
+import { useMutation } from "@/hooks/use-mutation";
+import { internalApi } from "@/lib/api/client";
+import { Text } from "@kibamail/owly";
 
 type BroadcastWithEmailContent = Broadcast & {
   emailContent: Pick<EmailContent, "subject"> | null;
@@ -94,39 +101,94 @@ function BroadcastActionsDropdown({
 }: {
   broadcast: BroadcastWithEmailContent;
 }) {
+  const router = useRouter();
+  const { success: toast, error: toastError } = useToast();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      return internalApi.broadcasts().delete(broadcast.id);
+    },
+    onSuccess: () => {
+      toast("Broadcast deleted successfully");
+      setDeleteDialogOpen(false);
+      router.refresh();
+    },
+    onError: (error) => {
+      toastError(error.message || "Failed to delete broadcast");
+    },
+  });
+
+  function onDelete() {
+    setDeleteDialogOpen(true);
+  }
+
+  function onConfirmDelete() {
+    deleteMutation.mutate();
+  }
+
+  const canDelete = ["DRAFT", "QUEUED_FOR_SENDING"].includes(broadcast.status);
+  const broadcastName =
+    broadcast.emailContent?.subject || broadcast.name || "Untitled";
+
   return (
-    <DropdownMenu.Root>
-      <DropdownMenu.Trigger asChild>
-        <Button variant="secondary" size="sm">
-          <MoreHoriz className="w-4 h-4" />
-        </Button>
-      </DropdownMenu.Trigger>
-      <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item asChild>
-          <Link href={`/broadcasts/${broadcast.id}`}>
-            <Eye className="w-4 h-4" />
-            View Details
-          </Link>
-        </DropdownMenu.Item>
-        {broadcast.status === "DRAFT" && (
+    <>
+      <DropdownMenu.Root>
+        <DropdownMenu.Trigger asChild>
+          <Button variant="secondary" size="sm">
+            <MoreHoriz className="w-4 h-4" />
+          </Button>
+        </DropdownMenu.Trigger>
+        <DropdownMenu.Content align="end" className="w-48">
           <DropdownMenu.Item asChild>
             <Link href={`/broadcasts/${broadcast.id}`}>
-              <EditPencil className="w-4 h-4" />
-              Edit
+              <Eye className="w-4 h-4" />
+              View Details
             </Link>
           </DropdownMenu.Item>
-        )}
-        <DropdownMenu.Item>
-          <Copy className="w-4 h-4" />
-          Duplicate
-        </DropdownMenu.Item>
-        <DropdownMenu.Separator />
-        <DropdownMenu.Item className="text-kb-content-error">
-          <Trash className="w-4 h-4" />
-          Delete
-        </DropdownMenu.Item>
-      </DropdownMenu.Content>
-    </DropdownMenu.Root>
+          {broadcast.status === "DRAFT" && (
+            <DropdownMenu.Item asChild>
+              <Link href={`/broadcasts/${broadcast.id}`}>
+                <EditPencil className="w-4 h-4" />
+                Edit
+              </Link>
+            </DropdownMenu.Item>
+          )}
+          <DropdownMenu.Item>
+            <Copy className="w-4 h-4" />
+            Duplicate
+          </DropdownMenu.Item>
+          <DropdownMenu.Separator />
+          <DropdownMenu.Item
+            className="text-kb-content-error"
+            onClick={onDelete}
+            disabled={!canDelete}
+          >
+            <Trash className="w-4 h-4" />
+            Delete
+          </DropdownMenu.Item>
+        </DropdownMenu.Content>
+      </DropdownMenu.Root>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete broadcast"
+        description={`Are you sure you want to delete "${broadcastName}"? This action cannot be undone.`}
+        confirm={{
+          variant: "destructive",
+          children: "Delete",
+          onClick: onConfirmDelete,
+          loading: deleteMutation.isPending,
+          disabled: deleteMutation.isPending,
+        }}
+        cancel={{
+          variant: "secondary",
+          children: "Cancel",
+          disabled: deleteMutation.isPending,
+        }}
+      />
+    </>
   );
 }
 
@@ -163,10 +225,14 @@ export function BroadcastsTable({ broadcasts }: BroadcastsTableProps) {
               <Table.Cell className="font-medium">
                 <Link
                   href={`/broadcasts/${broadcast.id}`}
-                  className="hover:text-kb-content-brand transition-colors"
+                  className="hover:text-kb-content-brand transition-colors underline"
                 >
-                  {broadcast.emailContent?.subject || broadcast.name || "Untitled"}
+                  {broadcast.name || "Untitled"}
                 </Link>
+
+                <Text className="ml-1!" variant="tertiary" size="sm">
+                  {broadcast.emailContent?.subject || "No subject yet"}
+                </Text>
               </Table.Cell>
               <Table.Cell>{getStatusBadge(broadcast.status)}</Table.Cell>
               <Table.Cell>

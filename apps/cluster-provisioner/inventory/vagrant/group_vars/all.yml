@@ -1,0 +1,45 @@
+# Cluster-wide Variables
+#
+# These variables apply to all machines in the cluster.
+# Override in proxy.yml or mta.yml for role-specific settings.
+#
+---
+# Cluster identification
+cluster_id: "vagrant-dev"
+cluster_region: "local"
+
+# Network configuration
+cluster_network: "192.168.56.0/24"
+proxy_host: "192.168.56.10"
+proxy_socks5_port: 5000
+
+# For Vagrant, we simulate a small IP range for testing
+# In production, this would be the real /24 subnet
+sending_ip_subnet: "192.168.56.0/24"
+sending_ip_range_start: 100
+sending_ip_range_end: 110
+
+# Redis configuration (runs on first MTA node)
+redis_host: "192.168.56.11"
+redis_port: 6379
+
+# NATS configuration (runs on first MTA node)
+nats_host: "192.168.56.11"
+nats_port: 4222
+
+# geerlingguy.security role configuration
+security_ssh_port: 22
+security_ssh_password_authentication: "no"
+security_ssh_permit_root_login: "no"
+security_autoupdate_enabled: false
+security_fail2ban_enabled: true
+
+# Common packages to install
+common_packages:
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - jq
+  - unzip

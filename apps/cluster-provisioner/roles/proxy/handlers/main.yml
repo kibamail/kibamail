@@ -1,0 +1,11 @@
+# Proxy Role Handlers
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Restart kumoproxy
+  ansible.builtin.systemd:
+    name: kumoproxy
+    state: restarted
+    enabled: yes

@@ -98,6 +98,7 @@ export interface EmailEditorProps {
   onChange?: (content: JSONContent) => void;
   onStylesChange?: (styles: EditorStylesConfig) => void;
   initialContent?: JSONContent;
+  editable?: boolean;
 }
 
 export interface EditorProviderProps {
@@ -111,6 +112,7 @@ export interface EditorProviderProps {
   editorRef?: React.RefObject<EmailEditorRef>;
   onChange?: (content: JSONContent) => void;
   initialContent?: JSONContent;
+  editable?: boolean;
 }
 
 export function LoadingSpinner({ text = "Connecting..." }: { text?: string }) {
@@ -204,6 +206,7 @@ export function EditorProvider(props: EditorProviderProps) {
     editorRef,
     onChange,
     initialContent,
+    editable = true,
   } = props;
   const { getStyles } = useEditorConfig();
   const { isStylingMode } = useActiveNode();
@@ -239,7 +242,7 @@ export function EditorProvider(props: EditorProviderProps) {
 
   const editor = useEditor({
     immediatelyRender: false,
-    editable: !isStylingMode && !isCanvasOpen,
+    editable: editable && !isStylingMode && !isCanvasOpen,
     content: initialContent,
     onUpdate: ({ editor }) => {
       onChange?.(editor.getJSON());
@@ -317,9 +320,9 @@ export function EditorProvider(props: EditorProviderProps) {
 
   useEffect(() => {
     if (editor) {
-      editor.setEditable(!isStylingMode && !isCanvasOpen);
+      editor.setEditable(editable && !isStylingMode && !isCanvasOpen);
     }
-  }, [editor, isStylingMode, isCanvasOpen]);
+  }, [editor, editable, isStylingMode, isCanvasOpen]);
 
   useImperativeHandle(
     editorRef,
@@ -351,6 +354,7 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
       onChange,
       onStylesChange,
       initialContent,
+      editable = true,
     },
     ref
   ) => {
@@ -372,6 +376,7 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
                   editorRef={ref as React.RefObject<EmailEditorRef>}
                   onChange={onChange}
                   initialContent={initialContent}
+                  editable={editable}
                 />
               </ActiveNodeProvider>
             </AppProvider>
@@ -391,6 +396,7 @@ export function EmailEditorContent({
   editorRef,
   onChange,
   initialContent,
+  editable = true,
 }: {
   placeholder?: string;
   onUpload: (
@@ -402,6 +408,7 @@ export function EmailEditorContent({
   editorRef?: React.RefObject<EmailEditorRef>;
   onChange?: (content: JSONContent) => void;
   initialContent?: JSONContent;
+  editable?: boolean;
 }) {
   return (
     <EditorProvider
@@ -411,6 +418,7 @@ export function EmailEditorContent({
       editorRef={editorRef}
       onChange={onChange}
       initialContent={initialContent}
+      editable={editable}
     />
   );
 }

@@ -9,6 +9,13 @@ import type {
   Topic,
 } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import {
+  validateContentLinks,
+  type LinksValidationResult,
+  type ExtractedLink,
+} from "./links-validator";
+
+export type { LinksValidationResult, ExtractedLink };
 
 dayjs.extend(advancedFormat);
 
@@ -26,6 +33,7 @@ export interface BroadcastReadinessResult {
   recipientCount: number;
   audienceType: "all" | "topic" | "segment";
   audienceName?: string;
+  linksValidation: LinksValidationResult;
 }
 
 type BroadcastWithRelations = Broadcast & {
@@ -44,6 +52,12 @@ export class BroadcastReadinessChecker {
   private topic: Topic | null = null;
   private segment: Segment | null = null;
   private recipientCount = 0;
+  private linksValidation: LinksValidationResult = {
+    links: [],
+    allValid: true,
+    validCount: 0,
+    invalidCount: 0,
+  };
 
   constructor(workspaceId: string, broadcast: BroadcastWithRelations) {
     this.workspaceId = workspaceId;
@@ -51,7 +65,10 @@ export class BroadcastReadinessChecker {
   }
 
   async check(): Promise<BroadcastReadinessResult> {
-    await this.loadAudienceData();
+    await Promise.all([
+      this.loadAudienceData(),
+      this.validateLinks(),
+    ]);
     await this.calculateRecipientCount();
 
     const checklist = this.buildChecklist();
@@ -63,7 +80,15 @@ export class BroadcastReadinessChecker {
       recipientCount: this.recipientCount,
       audienceType,
       audienceName,
+      linksValidation: this.linksValidation,
     };
+  }
+
+  private async validateLinks(): Promise<void> {
+    const contentJson = this.broadcast.emailContent?.contentJson;
+    if (contentJson) {
+      this.linksValidation = await validateContentLinks(contentJson);
+    }
   }
 
   private async loadAudienceData(): Promise<void> {
@@ -140,10 +165,39 @@ export class BroadcastReadinessChecker {
     checklist.push(this.checkFromEmail());
     checklist.push(this.checkSubject());
     checklist.push(this.checkUnsubscribeLink());
+    checklist.push(this.checkLinks());
     checklist.push(this.checkSendTime());
     checklist.push(this.checkRecipients());
 
     return checklist;
+  }
+
+  private checkLinks(): ReadinessCheckItem {
+    const { links, allValid, validCount, invalidCount } = this.linksValidation;
+    const totalLinks = links.length;
+
+    if (totalLinks === 0) {
+      return {
+        id: "links",
+        label: "No links to validate",
+        description: "All links in your email must be valid",
+        completed: true,
+      };
+    }
+
+    const label = allValid
+      ? `All ${totalLinks} link${totalLinks === 1 ? "" : "s"} valid`
+      : `${invalidCount} of ${totalLinks} link${totalLinks === 1 ? "" : "s"} invalid`;
+
+    return {
+      id: "links",
+      label,
+      description: "All links in your email must be valid",
+      completed: allValid,
+      reason: !allValid
+        ? `${invalidCount} link${invalidCount === 1 ? " is" : "s are"} invalid or unreachable`
+        : undefined,
+    };
   }
 
   private checkFromEmail(): ReadinessCheckItem {

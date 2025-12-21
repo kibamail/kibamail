@@ -1,0 +1,22 @@
+# Ansible Galaxy Requirements
+#
+# Install with: ansible-galaxy install -r requirements.yml
+#
+---
+roles:
+  # Security hardening (firewall, fail2ban, SSH hardening)
+  - name: geerlingguy.security
+    version: "2.2.0"
+
+  # Redis installation (used for TSA shared state)
+  - name: geerlingguy.redis
+    version: "1.9.1"
+
+collections:
+  # Community general collection (for various modules)
+  - name: community.general
+    version: ">=8.0.0"
+
+  # POSIX collection (for sysctl, etc.)
+  - name: ansible.posix
+    version: ">=1.5.0"

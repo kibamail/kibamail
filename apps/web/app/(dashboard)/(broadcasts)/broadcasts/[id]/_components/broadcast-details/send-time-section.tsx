@@ -12,6 +12,7 @@ interface SendTimeSectionProps {
   onChange: (updates: Partial<BroadcastDetails>) => void;
   onSave: () => void;
   isSaving: boolean;
+  readonly?: boolean;
 }
 
 export function SendTimeSection({
@@ -19,6 +20,7 @@ export function SendTimeSection({
   onChange,
   onSave,
   isSaving,
+  readonly = false,
 }: SendTimeSectionProps) {
   const {
     selectedDate,
@@ -46,10 +48,11 @@ export function SendTimeSection({
             onValueChange={onDateChange}
             placeholder="Select date"
             label="Date"
+            disabled={readonly}
           />
         </div>
         <div className="flex-1 max-w-36">
-          <Select.Root value={selectedTime} onValueChange={onTimeChange}>
+          <Select.Root value={selectedTime} onValueChange={onTimeChange} disabled={readonly}>
             <Select.Label>Time</Select.Label>
             <Select.Trigger placeholder="Select time" />
             <Select.Content className="z-50 max-h-60">
@@ -69,7 +72,7 @@ export function SendTimeSection({
         </Text>
       )}
 
-      <SectionSaveButton onSave={onSave} isSaving={isSaving} />
+      {!readonly && <SectionSaveButton onSave={onSave} isSaving={isSaving} />}
     </section>
   );
 }

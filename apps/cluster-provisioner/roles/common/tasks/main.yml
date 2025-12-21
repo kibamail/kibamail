@@ -1,0 +1,67 @@
+# Common Role - Base System Setup
+#
+# This role performs basic system configuration that applies to all machines.
+# It delegates security hardening to geerlingguy.security.
+#
+---
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install common packages
+  ansible.builtin.apt:
+    name: "{{ common_packages }}"
+    state: present
+
+- name: Set timezone to UTC
+  community.general.timezone:
+    name: UTC
+
+- name: Configure sysctl for high-performance networking
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    sysctl_set: yes
+    state: present
+    reload: yes
+  loop:
+    # Increase max open files
+    - { name: "fs.file-max", value: "2097152" }
+    # Increase socket buffer sizes
+    - { name: "net.core.rmem_max", value: "16777216" }
+    - { name: "net.core.wmem_max", value: "16777216" }
+    - { name: "net.core.rmem_default", value: "1048576" }
+    - { name: "net.core.wmem_default", value: "1048576" }
+    # TCP buffer sizes
+    - { name: "net.ipv4.tcp_rmem", value: "4096 1048576 16777216" }
+    - { name: "net.ipv4.tcp_wmem", value: "4096 1048576 16777216" }
+    # Connection handling
+    - { name: "net.core.somaxconn", value: "65535" }
+    - { name: "net.core.netdev_max_backlog", value: "65535" }
+    - { name: "net.ipv4.tcp_max_syn_backlog", value: "65535" }
+    # TIME_WAIT handling
+    - { name: "net.ipv4.tcp_tw_reuse", value: "1" }
+    - { name: "net.ipv4.tcp_fin_timeout", value: "15" }
+    # Keepalive settings
+    - { name: "net.ipv4.tcp_keepalive_time", value: "300" }
+    - { name: "net.ipv4.tcp_keepalive_probes", value: "5" }
+    - { name: "net.ipv4.tcp_keepalive_intvl", value: "15" }
+
+- name: Configure file limits for services
+  ansible.builtin.copy:
+    dest: /etc/security/limits.d/99-cluster.conf
+    content: |
+      # Cluster service limits
+      *               soft    nofile          1048576
+      *               hard    nofile          1048576
+      root            soft    nofile          1048576
+      root            hard    nofile          1048576
+    mode: "0644"
+
+- name: Ensure systemd limits are configured
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/system.conf
+    regexp: "^#?DefaultLimitNOFILE="
+    line: "DefaultLimitNOFILE=1048576"
+  notify: Reload systemd

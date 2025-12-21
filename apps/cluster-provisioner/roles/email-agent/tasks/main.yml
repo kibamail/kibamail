@@ -1,0 +1,113 @@
+# Email Agent Role Tasks
+---
+- name: Display email-agent setup info
+  ansible.builtin.debug:
+    msg: |
+      Installing email-agent on {{ inventory_hostname }}
+      - HTTP port: {{ email_agent_http_port }}
+      - Metrics port: {{ email_agent_metrics_port }}
+      - Health port: {{ email_agent_health_port }}
+      - Start service: {{ email_agent_start_service }}
+
+- name: Create email-agent system user
+  ansible.builtin.user:
+    name: "{{ email_agent_user }}"
+    group: "{{ email_agent_group }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+    state: present
+
+- name: Create email-agent group
+  ansible.builtin.group:
+    name: "{{ email_agent_group }}"
+    system: yes
+    state: present
+
+- name: Create configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ email_agent_user }}"
+    group: "{{ email_agent_group }}"
+    mode: "0750"
+  loop:
+    - "{{ email_agent_config_dir }}"
+    - "{{ email_agent_nats_config_dir }}"
+    - "{{ email_agent_log_dir }}"
+
+- name: Copy NATS credentials
+  ansible.builtin.copy:
+    src: "{{ inventory_dir }}/credentials/nats/kibamail-agent.nkeys"
+    dest: "{{ email_agent_nats_config_dir }}/kibamail-agent.nkeys"
+    owner: "{{ email_agent_user }}"
+    group: "{{ email_agent_group }}"
+    mode: "0600"
+  notify: Restart email-agent
+
+- name: Copy NATS CA certificate
+  ansible.builtin.copy:
+    src: "{{ inventory_dir }}/credentials/nats/ca.pem"
+    dest: "{{ email_agent_nats_config_dir }}/ca.pem"
+    owner: "{{ email_agent_user }}"
+    group: "{{ email_agent_group }}"
+    mode: "0644"
+  notify: Restart email-agent
+
+- name: Download email-agent binary
+  ansible.builtin.get_url:
+    url: "{{ email_agent_binary_url }}"
+    dest: /usr/local/bin/email-agent
+    mode: "0755"
+    checksum: "sha256:{{ email_agent_binary_checksum }}"
+  when: email_agent_binary_url != ""
+  notify: Restart email-agent
+
+- name: Template configuration file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ email_agent_config_dir }}/config.yaml"
+    owner: "{{ email_agent_user }}"
+    group: "{{ email_agent_group }}"
+    mode: "0640"
+  notify: Restart email-agent
+
+- name: Template systemd service
+  ansible.builtin.template:
+    src: email-agent.service.j2
+    dest: /etc/systemd/system/email-agent.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart email-agent
+
+- name: Enable email-agent service
+  ansible.builtin.systemd:
+    name: email-agent
+    enabled: "{{ email_agent_enable_service }}"
+    daemon_reload: yes
+
+- name: Start email-agent service
+  ansible.builtin.systemd:
+    name: email-agent
+    state: started
+  when: email_agent_start_service
+
+- name: Display email-agent setup complete
+  ansible.builtin.debug:
+    msg: |
+      Email agent installed successfully.
+
+      Configuration: {{ email_agent_config_dir }}/config.yaml
+      Service: systemctl status email-agent
+      Logs: journalctl -u email-agent -f
+
+      HTTP endpoints:
+      - Tenants: http://{{ email_agent_http_host }}:{{ email_agent_http_port }}/tenants/{id}
+      - Webhooks: http://{{ email_agent_http_host }}:{{ email_agent_http_port }}/webhooks
+
+      Health endpoints:
+      - Liveness: http://0.0.0.0:{{ email_agent_health_port }}/live
+      - Readiness: http://0.0.0.0:{{ email_agent_health_port }}/ready
+
+      Metrics: http://0.0.0.0:{{ email_agent_metrics_port }}/metrics

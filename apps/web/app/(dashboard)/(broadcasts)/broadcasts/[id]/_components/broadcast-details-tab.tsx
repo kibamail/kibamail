@@ -14,6 +14,7 @@ import {
   SenderDetailsSection,
   RecipientsSection,
   SendTimeSection,
+  TrackingSection,
 } from "./broadcast-details";
 
 // Initialize dayjs plugins
@@ -31,6 +32,7 @@ interface BroadcastDetailsTabProps {
   isSaving: boolean;
   senderState: SenderSelectState;
   senderActions: SenderSelectActions;
+  readonly?: boolean;
 }
 
 export function BroadcastDetailsTab({
@@ -42,6 +44,7 @@ export function BroadcastDetailsTab({
   isSaving,
   senderState,
   senderActions,
+  readonly = false,
 }: BroadcastDetailsTabProps) {
   return (
     <div className="h-full overflow-auto bg-kb-surface-primary">
@@ -50,17 +53,20 @@ export function BroadcastDetailsTab({
           subject={broadcast.subject}
           previewText={broadcast.previewText}
           onChange={onChange}
+          readonly={readonly}
         />
 
         <SectionDivider />
 
         <SenderDetailsSection
           senderIdentityId={broadcast.senderIdentityId}
+          replyToIdentityId={broadcast.replyToIdentityId}
           senderIdentities={senderIdentities}
           domains={domains}
           onChange={onChange}
           senderState={senderState}
           senderActions={senderActions}
+          readonly={readonly}
         />
 
         <SectionDivider />
@@ -69,6 +75,16 @@ export function BroadcastDetailsTab({
           topicId={broadcast.topicId}
           segmentId={broadcast.segmentId}
           onChange={onChange}
+          readonly={readonly}
+        />
+
+        <SectionDivider />
+
+        <TrackingSection
+          trackClicks={broadcast.trackClicks}
+          trackOpens={broadcast.trackOpens}
+          onChange={onChange}
+          readonly={readonly}
         />
 
         <SectionDivider />
@@ -78,6 +94,7 @@ export function BroadcastDetailsTab({
           onChange={onChange}
           onSave={onSave}
           isSaving={isSaving}
+          readonly={readonly}
         />
       </div>
     </div>

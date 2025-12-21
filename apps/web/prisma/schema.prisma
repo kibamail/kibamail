@@ -1082,8 +1082,10 @@ model SenderIdentity {
   updatedAt                      DateTime      @updatedAt
   /// Sending domain relation
   sendingDomain                  SendingDomain @relation(fields: [sendingDomainId], references: [id], onDelete: Cascade)
-  /// Broadcasts using this sender identity
-  broadcasts                     Broadcast[]
+  /// Broadcasts using this sender identity as From
+  broadcastsAsSender             Broadcast[]   @relation("BroadcastSender")
+  /// Broadcasts using this sender identity as Reply-To
+  broadcastsAsReplyTo            Broadcast[]   @relation("BroadcastReplyTo")
   /// Email sends using this sender identity
   emailSends                     EmailSend[]
 
@@ -1144,6 +1146,8 @@ model Broadcast {
   emailContentId          String?
   /// Sender identity for the broadcast
   senderIdentityId        String?
+  /// Reply-to sender identity for the broadcast
+  replyToIdentityId       String?
   /// Sending domain for the broadcast
   sendingDomainId         String?
   /// Winning A/B test variant ID (set after test completes)
@@ -1167,7 +1171,9 @@ model Broadcast {
   /// Email content relation
   emailContent            EmailContent?    @relation(fields: [emailContentId], references: [id], onDelete: SetNull)
   /// Sender identity relation
-  senderIdentity          SenderIdentity?  @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  senderIdentity          SenderIdentity?  @relation("BroadcastSender", fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  /// Reply-to sender identity relation
+  replyToIdentity         SenderIdentity?  @relation("BroadcastReplyTo", fields: [replyToIdentityId], references: [id], onDelete: SetNull)
   /// Sending domain relation
   sendingDomain           SendingDomain?   @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
   /// A/B test variants for this broadcast

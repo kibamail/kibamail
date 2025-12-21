@@ -1,0 +1,15 @@
+# Cluster IP Binding Configuration
+#
+# This netplan config adds additional IPs to the network interface
+# for use by KumoProxy SOCKS5 server.
+#
+# Managed by Ansible - do not edit manually.
+#
+network:
+  version: 2
+  ethernets:
+    {{ proxy_network_interface }}:
+      addresses:
+{% for ip in proxy_bind_ips %}
+        - {{ ip }}/{{ proxy_bind_ip_netmask }}
+{% endfor %}

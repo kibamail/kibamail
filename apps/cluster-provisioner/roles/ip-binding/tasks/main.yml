@@ -1,0 +1,33 @@
+# IP Binding Role
+#
+# Binds multiple IP addresses to a network interface for use by SOCKS5 proxy.
+# Compatible with both Vagrant (Netplan) and bare metal (Netplan or systemd-networkd).
+#
+# Ubuntu 24.04 uses Netplan by default, which we leverage here.
+#
+---
+- name: Ensure netplan directory exists
+  ansible.builtin.file:
+    path: /etc/netplan
+    state: directory
+    mode: "0755"
+
+- name: Deploy netplan configuration for additional IPs
+  ansible.builtin.template:
+    src: 99-cluster-ips.yaml.j2
+    dest: /etc/netplan/99-cluster-ips.yaml
+    mode: "0600"
+  notify: Apply netplan
+
+- name: Apply netplan configuration immediately
+  ansible.builtin.command: netplan apply
+  changed_when: false
+
+- name: Verify IPs are bound
+  ansible.builtin.command: "ip addr show {{ proxy_network_interface }}"
+  register: ip_addr_output
+  changed_when: false
+
+- name: Display bound IPs
+  ansible.builtin.debug:
+    msg: "Bound IPs on {{ proxy_network_interface }}: {{ proxy_bind_ips | length }} additional IPs configured"

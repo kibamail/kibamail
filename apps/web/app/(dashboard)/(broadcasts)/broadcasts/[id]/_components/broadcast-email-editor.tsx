@@ -17,6 +17,7 @@ interface BroadcastEmailEditorProps {
   onStylesOpenChange: (open: boolean) => void;
   initialContent?: Record<string, unknown>;
   initialStyles?: EditorStylesConfig;
+  readonly?: boolean;
 }
 
 const defaultStyles: EditorStylesConfig = {
@@ -83,7 +84,7 @@ export const BroadcastEmailEditor = forwardRef<
   BroadcastEmailEditorRef,
   BroadcastEmailEditorProps
 >(function BroadcastEmailEditor(
-  { broadcastId, stylesOpen, onStylesOpenChange, initialContent, initialStyles },
+  { broadcastId, stylesOpen, onStylesOpenChange, initialContent, initialStyles, readonly = false },
   ref
 ) {
   const emailEditorRef = useRef<EmailEditorRef>(null);
@@ -148,6 +149,7 @@ export const BroadcastEmailEditor = forwardRef<
         ]}
         onUpload={onUpload}
         initialContent={initialContent}
+        editable={!readonly}
       />
     </div>
   );

@@ -1,0 +1,32 @@
+# Proxy Machine Variables
+#
+# Configuration specific to the proxy machine running KumoProxy.
+#
+---
+# KumoProxy configuration
+kumoproxy_listen_ip: "0.0.0.0"
+kumoproxy_listen_port: 5000
+
+# IP binding configuration
+# In Vagrant, we use a small range for testing (192.168.56.100-110)
+# In production, this would be the full /24 subnet
+proxy_bind_ips:
+  - "192.168.56.100"
+  - "192.168.56.101"
+  - "192.168.56.102"
+  - "192.168.56.103"
+  - "192.168.56.104"
+  - "192.168.56.105"
+  - "192.168.56.106"
+  - "192.168.56.107"
+  - "192.168.56.108"
+  - "192.168.56.109"
+  - "192.168.56.110"
+
+# Network interface for IP binding
+# In Vagrant with VirtualBox, the host-only adapter is typically eth1
+# In bare metal, this would be the primary interface (e.g., eth0, ens3)
+proxy_network_interface: "eth1"
+
+# Netmask for bound IPs
+proxy_bind_ip_netmask: "24"

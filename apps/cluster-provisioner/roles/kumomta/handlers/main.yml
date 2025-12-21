@@ -1,0 +1,19 @@
+# KumoMTA Role Handlers
+---
+- name: Restart kumomta
+  ansible.builtin.systemd:
+    name: kumomta
+    state: restarted
+  when: kumomta_start_services
+
+- name: Restart kumo-tsa-daemon
+  ansible.builtin.systemd:
+    name: kumo-tsa-daemon
+    state: restarted
+  when: kumomta_start_services
+
+- name: Reload kumomta
+  ansible.builtin.systemd:
+    name: kumomta
+    state: reloaded
+  when: kumomta_start_services

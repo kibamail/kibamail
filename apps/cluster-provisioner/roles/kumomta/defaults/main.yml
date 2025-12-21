@@ -1,0 +1,44 @@
+# KumoMTA Role Defaults
+---
+# Frozen version for consistent deployments
+kumomta_version: "2025.12.02.105429.67ee9e96"
+
+kumomta_repo_gpg_url: "https://openrepo.kumomta.com/kumomta-ubuntu-22/public.gpg"
+kumomta_repo_list_url: "https://openrepo.kumomta.com/files/kumomta-ubuntu22.list"
+
+# Whether to start services after installation (disabled by default)
+kumomta_start_services: false
+
+# Whether to enable services at boot (disabled by default)
+kumomta_enable_services: false
+
+# System preparation - install caching DNS resolver
+kumomta_install_bind9: true
+
+# Kernel tuning for high-performance mail delivery
+kumomta_sysctl_settings:
+  # Maximum number of open file descriptors
+  fs.file-max: 65535
+  # Allow reuse of sockets in TIME_WAIT state
+  net.ipv4.tcp_tw_reuse: 1
+  # Increase socket buffer sizes
+  net.core.rmem_max: 16777216
+  net.core.wmem_max: 16777216
+  net.ipv4.tcp_rmem: "4096 87380 16777216"
+  net.ipv4.tcp_wmem: "4096 65536 16777216"
+  # Increase connection tracking and backlog
+  net.core.somaxconn: 65535
+  net.core.netdev_max_backlog: 65535
+  # TCP keepalive settings
+  net.ipv4.tcp_keepalive_time: 600
+  net.ipv4.tcp_keepalive_intvl: 60
+  net.ipv4.tcp_keepalive_probes: 3
+  # Faster TCP connection handling
+  net.ipv4.tcp_fin_timeout: 30
+  # Enable TCP fast open
+  net.ipv4.tcp_fastopen: 3
+  # Increase local port range
+  net.ipv4.ip_local_port_range: "1024 65535"
+
+# File descriptor limits for kumod user
+kumomta_nofile_limit: 65535

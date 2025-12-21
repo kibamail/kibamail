@@ -9,12 +9,14 @@ interface EmailSubjectSectionProps {
   subject: string;
   previewText: string;
   onChange: (updates: Partial<BroadcastDetails>) => void;
+  readonly?: boolean;
 }
 
 export function EmailSubjectSection({
   subject,
   previewText,
   onChange,
+  readonly = false,
 }: EmailSubjectSectionProps) {
   const subjectFieldId = useId();
   const previewTextFieldId = useId();
@@ -33,6 +35,7 @@ export function EmailSubjectSection({
             value={subject}
             onChange={(event) => onChange({ subject: event.target.value })}
             placeholder="Your weekly newsletter is here!"
+            disabled={readonly}
           >
             <TextField.Label>Subject line</TextField.Label>
             <TextField.Hint>{subject.length}/50 characters</TextField.Hint>
@@ -45,6 +48,7 @@ export function EmailSubjectSection({
             value={previewText}
             onChange={(event) => onChange({ previewText: event.target.value })}
             placeholder="A quick summary of what's inside..."
+            disabled={readonly}
           >
             <TextField.Label>Preview text</TextField.Label>
             <TextField.Hint>

@@ -1,0 +1,46 @@
+# NATS Role - Main Tasks
+#
+# Sets up single-node NATS with:
+# - TLS encryption
+# - NKey authentication for agent and control plane
+# - JetStream for durable messaging
+#
+---
+- name: Display NATS setup info
+  ansible.builtin.debug:
+    msg: |
+      Setting up NATS on {{ inventory_hostname }}
+      - Client port: {{ nats_client_port }}
+      - JetStream: {{ nats_jetstream_enabled }}
+      - TLS: {{ nats_tls_enabled }}
+
+- name: Ensure local credentials directory exists
+  ansible.builtin.file:
+    path: "{{ nats_credentials_dir }}"
+    state: directory
+    mode: "0700"
+  delegate_to: localhost
+  become: no
+  run_once: true
+
+- name: Install NATS server
+  ansible.builtin.include_tasks: install.yml
+
+- name: Generate admin password
+  ansible.builtin.include_tasks: admin_password.yml
+
+- name: Generate NKeys for users
+  ansible.builtin.include_tasks: nkeys.yml
+
+- name: Generate TLS certificates
+  ansible.builtin.include_tasks: certificates.yml
+
+- name: Configure NATS server
+  ansible.builtin.include_tasks: configure.yml
+
+- name: Setup systemd service
+  ansible.builtin.include_tasks: systemd.yml
+
+- name: Setup JetStream streams and consumers
+  ansible.builtin.include_tasks: jetstream.yml
+  when: nats_jetstream_enabled

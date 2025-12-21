@@ -1,0 +1,18 @@
+# Vagrant
+.vagrant/
+
+# Ansible
+.ansible_cache/
+*.retry
+
+# TLS certificates and secrets
+.tls/
+*.key
+*.pem
+*.nkeys
+
+# Cluster credentials (per-inventory)
+**/credentials/
+
+# Local overrides
+*.local.yml

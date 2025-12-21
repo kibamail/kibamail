@@ -5,3 +5,4 @@ export * from "./email-subject-section";
 export * from "./sender-details-section";
 export * from "./recipients-section";
 export * from "./send-time-section";
+export * from "./tracking-section";

@@ -1,0 +1,15 @@
+# KumoMTA Role - Main Tasks
+#
+# Installs KumoMTA and TSA daemon without starting services.
+# Configuration and service management handled by separate playbook.
+#
+---
+- name: Display KumoMTA setup info
+  ansible.builtin.debug:
+    msg: |
+      Installing KumoMTA on {{ inventory_hostname }}
+      - Start services: {{ kumomta_start_services }}
+      - Enable services: {{ kumomta_enable_services }}
+
+- name: Install KumoMTA
+  ansible.builtin.include_tasks: install.yml

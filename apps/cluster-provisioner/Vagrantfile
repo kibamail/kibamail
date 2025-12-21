@@ -1,0 +1,87 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# Cluster Provisioner - Development Environment
+#
+# This Vagrantfile creates a 4-machine cluster for testing:
+# - 1 proxy machine (KumoProxy with IP binding)
+# - 3 MTA nodes (KumoMTA, TSA, NATS, Redis, Email Agent)
+#
+# Network: 192.168.56.0/24 (VirtualBox host-only)
+# - proxy:    192.168.56.10
+# - mta-1:    192.168.56.11
+# - mta-2:    192.168.56.12
+# - mta-3:    192.168.56.13
+
+VAGRANT_BOX = "bento/ubuntu-24.04"
+VAGRANT_BOX_VERSION = "202502.21.0"
+
+# Machine configurations
+MACHINES = {
+  "proxy" => {
+    :ip => "192.168.56.10",
+    :cpus => 1,
+    :memory => 1024,
+    :role => "proxy"
+  },
+  "mta-1" => {
+    :ip => "192.168.56.11",
+    :cpus => 2,
+    :memory => 2048,
+    :role => "mta"
+  },
+  "mta-2" => {
+    :ip => "192.168.56.12",
+    :cpus => 2,
+    :memory => 2048,
+    :role => "mta"
+  },
+  "mta-3" => {
+    :ip => "192.168.56.13",
+    :cpus => 2,
+    :memory => 2048,
+    :role => "mta"
+  }
+}
+
+Vagrant.configure("2") do |config|
+  # Common settings for all machines
+  config.vm.box = VAGRANT_BOX
+  config.vm.box_version = VAGRANT_BOX_VERSION
+
+  # Disable default synced folder
+  config.vm.synced_folder ".", "/vagrant", disabled: true
+
+  MACHINES.each do |name, opts|
+    config.vm.define name do |node|
+      node.vm.hostname = name
+
+      # Private network for inter-machine communication
+      node.vm.network "private_network", ip: opts[:ip]
+
+      # VirtualBox provider settings
+      node.vm.provider "virtualbox" do |vb|
+        vb.name = "cluster-#{name}"
+        vb.cpus = opts[:cpus]
+        vb.memory = opts[:memory]
+        vb.linked_clone = true
+
+        # Disable audio and USB for faster boot
+        vb.customize ["modifyvm", :id, "--audio", "none"]
+        vb.customize ["modifyvm", :id, "--usb", "off"]
+      end
+
+      # Basic provisioning to ensure SSH key auth works
+      node.vm.provision "shell", inline: <<-SHELL
+        # Ensure apt is up to date
+        apt-get update -qq
+
+        # Install Python for Ansible
+        apt-get install -y -qq python3 python3-apt > /dev/null
+
+        # Set timezone
+        timedatectl set-timezone UTC
+      SHELL
+    end
+  end
+end

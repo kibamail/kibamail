@@ -1,0 +1,4 @@
+# IP Binding Role Handlers
+---
+- name: Apply netplan
+  ansible.builtin.command: netplan apply

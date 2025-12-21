@@ -1,0 +1,11 @@
+# Email Agent Role Handlers
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Restart email-agent
+  ansible.builtin.systemd:
+    name: email-agent
+    state: restarted
+  when: email_agent_start_service

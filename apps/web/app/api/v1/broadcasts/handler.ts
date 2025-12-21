@@ -458,6 +458,18 @@ export async function updateBroadcast(
     updateData.sendAt = data.sendAt;
   }
 
+  if (data.trackClicks !== undefined) {
+    updateData.trackClicks = data.trackClicks;
+  }
+
+  if (data.trackOpens !== undefined) {
+    updateData.trackOpens = data.trackOpens;
+  }
+
+  if (data.replyToIdentityId !== undefined) {
+    updateData.replyToIdentityId = data.replyToIdentityId;
+  }
+
   const updatedBroadcast = await prisma.broadcast.update({
     where: { id: broadcastId },
     data: updateData,
@@ -480,7 +492,7 @@ export async function updateBroadcast(
  * DELETE /api/v1/broadcasts/[broadcastId]
  *
  * Delete a specific broadcast by ID.
- * Only DRAFT broadcasts can be deleted.
+ * Only DRAFT or QUEUED broadcasts can be deleted.
  */
 export async function deleteBroadcast(
   workspaceId: string,
@@ -500,9 +512,10 @@ export async function deleteBroadcast(
     );
   }
 
-  if (broadcast.status !== "DRAFT") {
+  const deletableStatuses = ["DRAFT", "QUEUED_FOR_SENDING"];
+  if (!deletableStatuses.includes(broadcast.status)) {
     throw new BadRequestError(
-      "Only draft broadcasts can be deleted",
+      "Only draft or queued broadcasts can be deleted",
       ErrorCode.BROADCAST_NOT_EDITABLE
     );
   }

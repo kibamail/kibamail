@@ -1,0 +1,15 @@
+# Proxy Role
+#
+# Sets up the proxy machine with:
+# - IP binding for all sending IPs
+# - KumoProxy SOCKS5 server
+#
+# KumoProxy installation details will be added based on specific instructions.
+#
+---
+- name: Include IP binding tasks
+  ansible.builtin.include_role:
+    name: ip-binding
+
+- name: Include KumoProxy installation tasks
+  ansible.builtin.include_tasks: kumoproxy.yml
