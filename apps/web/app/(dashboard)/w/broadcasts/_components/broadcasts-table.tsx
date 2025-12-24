@@ -119,12 +119,29 @@ function BroadcastActionsDropdown({
     },
   });
 
+  const duplicateMutation = useMutation({
+    mutationFn: async () => {
+      return internalApi.broadcasts().duplicate(broadcast.id);
+    },
+    onSuccess: (result) => {
+      toast("Broadcast duplicated successfully");
+      router.push(`/broadcasts/${result.id}`);
+    },
+    onError: (error) => {
+      toastError(error.message || "Failed to duplicate broadcast");
+    },
+  });
+
   function onDelete() {
     setDeleteDialogOpen(true);
   }
 
   function onConfirmDelete() {
     deleteMutation.mutate();
+  }
+
+  function onDuplicate() {
+    duplicateMutation.mutate();
   }
 
   const canDelete = ["DRAFT", "QUEUED_FOR_SENDING"].includes(broadcast.status);
@@ -154,9 +171,12 @@ function BroadcastActionsDropdown({
               </Link>
             </DropdownMenu.Item>
           )}
-          <DropdownMenu.Item>
+          <DropdownMenu.Item
+            onClick={onDuplicate}
+            disabled={duplicateMutation.isPending}
+          >
             <Copy className="w-4 h-4" />
-            Duplicate
+            {duplicateMutation.isPending ? "Duplicating..." : "Duplicate"}
           </DropdownMenu.Item>
           <DropdownMenu.Separator />
           <DropdownMenu.Item

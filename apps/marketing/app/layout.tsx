@@ -1,17 +1,18 @@
 import type { Metadata } from "next";
 import { Manrope, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { Header } from "./_components/layout/header";
 import { ToastProvider } from "@kibamail/owly/toast";
-import { Footer } from "./_components/layout/footer";
 
 const manrope = Manrope({
   subsets: ["latin"],
   display: "swap",
+  variable: "--font-manrope",
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   weight: ["400", "500"],
+  subsets: ["latin"],
+  variable: "--font-ibm-plex-mono",
 });
 
 export const metadata: Metadata = {
@@ -26,17 +27,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${manrope.className} ${ibmPlexMono.className} antialiased flex flex-col min-h-screen bg-kb-bg-layout`}
-      >
-        <ToastProvider>
-          <Header />
-
-          <main className="w-full">{children}</main>
-
-          <Footer />
-        </ToastProvider>
+    <html lang="en" className={`${manrope.variable} ${ibmPlexMono.variable}`}>
+      <body className="font-sans antialiased min-h-screen">
+        <ToastProvider>{children}</ToastProvider>
       </body>
     </html>
   );

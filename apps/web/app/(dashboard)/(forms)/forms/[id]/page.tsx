@@ -1,14 +1,8 @@
-import { Badge, Button } from "@kibamail/owly";
-import { Xmark } from "iconoir-react";
-import { FormCanvas } from "./_components/form-canvas";
-import { FormHelpPopover } from "./_components/form-help-popover";
-import { FormHeader } from "./_components/form-header";
-import { PublishFormDialog } from "./_components/publish-form-dialog";
-import { SaveFormButton } from "./_components/save-form-button";
-import { FormEditorWrapper } from "./_components/form-editor-wrapper";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
+import { FormBuilderClient } from "./_components/form-builder";
+import type { FormSchema } from "./_components/form-builder/types";
 
 async function getForm(workspaceId: string, formId: string) {
   const form = await prisma.form.findFirst({
@@ -43,41 +37,13 @@ export default async function FormPage({
     notFound();
   }
 
+  const initialSchema = form.fields as FormSchema | null;
+
   return (
-    <FormEditorWrapper form={form}>
-      <div className="w-full h-screen flex box-border flex-col px-2 pb-2 bg-kb-bg-layout">
-        <div className="h-[60px] w-full flex items-center justify-between px-3 shrink-0">
-          <div className="flex items-center gap-4">
-            <Button variant="tertiary" asChild>
-              <a href={"/w/forms"}>
-                <Xmark className="w-6! h-6!" />
-              </a>
-            </Button>
-
-            <FormHeader form={form} />
-          </div>
-          <FormHelpPopover />
-
-          <div className="flex items-center gap-4">
-            {form.status !== "DRAFT" && (
-              <Badge
-                size="sm"
-                variant={form.status === "PUBLISHED" ? "success" : "warning"}
-              >
-                {form.status === "PUBLISHED" ? "Live" : "Archived"}
-              </Badge>
-            )}
-            <SaveFormButton />
-            <PublishFormDialog formId={form.id} formName={form.name} />
-          </div>
-        </div>
-
-        <div className="grow border border-kb-border-tertiary rounded-lg flex max-w-full">
-          <div className="grow h-[calc(100vh-67px)] overflow-hidden">
-            <FormCanvas />
-          </div>
-        </div>
-      </div>
-    </FormEditorWrapper>
+    <FormBuilderClient
+      formId={form.id}
+      formName={form.name}
+      initialSchema={initialSchema}
+    />
   );
 }

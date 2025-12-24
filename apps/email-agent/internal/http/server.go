@@ -36,18 +36,27 @@ const (
 
 // Server is the HTTP server for the email agent
 type Server struct {
-	server   *http.Server
-	router   *chi.Mux
-	logger   zerolog.Logger
-	metrics  *observability.Metrics
-	config   ServerConfig
+	server  *http.Server
+	router  *chi.Mux
+	logger  zerolog.Logger
+	metrics *observability.Metrics
+	config  ServerConfig
+}
+
+// ServerHandlers contains all HTTP handlers for the server
+type ServerHandlers struct {
+	Tenant  *handlers.TenantHandler
+	Webhook *handlers.WebhookHandler
+	DKIM    *handlers.DKIMHandler
+	Auth    *handlers.AuthHandler
+	Domain  *handlers.DomainHandler
+	DMARC   *handlers.DMARCHandler
 }
 
 // NewServer creates a new HTTP server
 func NewServer(
 	cfg ServerConfig,
-	tenantHandler *handlers.TenantHandler,
-	webhookHandler *handlers.WebhookHandler,
+	h ServerHandlers,
 	logger zerolog.Logger,
 	metrics *observability.Metrics,
 ) *Server {
@@ -62,9 +71,24 @@ func NewServer(
 	router.Use(metricsMiddleware(metrics))
 	router.Use(middleware.Recoverer)
 
-	// Routes
-	router.Get("/tenants/{tenantId}", tenantHandler.GetTenant)
-	router.Post("/webhooks", webhookHandler.HandleWebhook)
+	// Legacy routes (backward compatibility)
+	router.Get("/tenants/{tenantId}", h.Tenant.GetTenant)
+	router.Post("/webhooks", h.Webhook.HandleWebhook)
+
+	// API v1 routes for KumoMTA integration
+	router.Route("/api/v1", func(r chi.Router) {
+		// DKIM lookup for signing emails
+		r.Get("/dkim/{domain}", h.DKIM.GetDKIM)
+
+		// Auth validation for SMTP credentials
+		r.Post("/auth/validate", h.Auth.ValidateAuth)
+
+		// Domain validation for listener domains
+		r.Get("/domains/validate-listener/{domain}", h.Domain.ValidateListenerDomain)
+
+		// DMARC report reception
+		r.Post("/dmarc/reports", h.DMARC.ReceiveDMARCReport)
+	})
 
 	// Health check endpoint (for local debugging)
 	router.Get("/health", func(w http.ResponseWriter, r *http.Request) {

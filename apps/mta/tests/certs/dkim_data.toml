@@ -1,0 +1,13 @@
+# =============================================================================
+# DKIM Signing Configuration for MTA (kbmta.net)
+# =============================================================================
+#
+# This file configures the MTA-level DKIM signature.
+# Tenant DKIM signing is handled via email agent API.
+#
+
+[domain."kbmta.net"]
+selector = "kbmta"
+filename = "/opt/kumomta/etc/tls/mta-dkim-private.pem"
+headers = ["From", "To", "Subject", "Date", "Message-ID", "Content-Type", "MIME-Version"]
+over_sign = true

@@ -19,7 +19,7 @@
  * ```
  */
 
-import { ZodError, type ZodType } from "zod";
+import { z, ZodError, type ZodType } from "zod";
 import {
   type CreateApiKeyInput,
   type CreateApiKeyResponse,
@@ -2069,6 +2069,30 @@ class BroadcastsApi extends HttpClient {
     }
 
     return response.json();
+  }
+
+  /**
+   * Duplicate a broadcast
+   *
+   * Creates a copy of the broadcast with all its settings and email content.
+   *
+   * @param broadcastId - ID of the broadcast to duplicate
+   * @returns New broadcast ID
+   *
+   * @example
+   * ```ts
+   * const { id } = await internalApi.broadcasts().duplicate('broadcast_123')
+   * ```
+   */
+  async duplicate(
+    broadcastId: string
+  ): Promise<{ object: string; id: string }> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/broadcasts/${broadcastId}/duplicate`,
+      null,
+      z.object({ object: z.string(), id: z.string() }),
+    );
   }
 }
 

@@ -669,6 +669,35 @@ export const env = createEnv({
       .string()
       .min(32, "APP_KEY must be at least 32 characters")
       .describe("Application secret key for encryption"),
+
+    // ============================================================================
+    // INTERNAL SERVICE AUTHENTICATION
+    // ============================================================================
+    // Used for service-to-service authentication between internal services
+    // (e.g., email-agent to control-plane).
+
+    /**
+     * Internal Service Key
+     *
+     * A secret key used for authenticating internal service-to-service requests.
+     * Used by email-agent and other internal services to communicate with the control plane.
+     *
+     * Generate a secure key:
+     * ```bash
+     * openssl rand -base64 32
+     * ```
+     *
+     * ⚠️ SECURITY:
+     * - Keep secret and never commit to version control
+     * - Use the same key across all internal services that need to communicate
+     * - Rotate periodically
+     *
+     * @example "base64-encoded-random-string-here"
+     */
+    INTERNAL_SERVICE_KEY: z
+      .string()
+      .min(32, "INTERNAL_SERVICE_KEY must be at least 32 characters")
+      .describe("Secret key for internal service-to-service authentication"),
   },
 
   /**
@@ -731,6 +760,7 @@ export const env = createEnv({
     S3_BUCKET: process.env.S3_BUCKET,
     S3_PUBLIC_URL: process.env.S3_PUBLIC_URL,
     APP_KEY: process.env.APP_KEY,
+    INTERNAL_SERVICE_KEY: process.env.INTERNAL_SERVICE_KEY,
     // Map client environment variables here
     // Example:
     // NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,

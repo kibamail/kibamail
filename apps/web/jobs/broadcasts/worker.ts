@@ -1,21 +1,23 @@
 import { configureWorker, queue, queueLogger } from "@/lib/queue";
 import { sendBroadcast } from "./send-broadcast";
+import { sendBroadcastBatch } from "./send-broadcast-batch";
 
 const logger = queueLogger.child({ worker: "broadcasts" });
 
 configureWorker("broadcasts", {
   processors: {
     "send-broadcast": sendBroadcast,
+    "send-broadcast-batch": sendBroadcastBatch,
   },
-  concurrency: 1,
+  concurrency: 5, // Process multiple batches concurrently
 });
 
 queue("broadcasts").start();
 
 logger.info(
   {
-    jobs: ["send-broadcast"],
-    concurrency: 1,
+    jobs: ["send-broadcast", "send-broadcast-batch"],
+    concurrency: 5,
   },
   "Broadcasts worker started"
 );

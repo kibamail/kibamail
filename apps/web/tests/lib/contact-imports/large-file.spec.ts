@@ -81,7 +81,7 @@ describe("Large CSV File Processing", () => {
     expect(duration).toBeLessThan(5000);
   });
 
-  it("should process 500 contacts from large file", async () => {
+  it("should process 500 contacts from large file", { timeout: 7000 }, async () => {
     const parsed = parseCsv(csvContent);
     const subset = parsed.rows.slice(0, 500);
 

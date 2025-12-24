@@ -19,8 +19,8 @@ const footerSections: FooterSection[] = [
   {
     title: "Products",
     links: [
-      { label: "Transactional emails", href: "/" },
-      { label: "Marketing emails", href: "/" },
+      { label: "Transactional emails", href: "/products/transactional" },
+      { label: "Marketing emails", href: "/products/marketing" },
       { label: "Inbound email", href: "/" },
       { label: "Email validation", href: "/" },
     ],

@@ -1,6 +1,18 @@
+/**
+ * Send Broadcast Job
+ *
+ * Orchestrates the sending of a broadcast by:
+ * 1. Fetching the broadcast and its sending domain limits
+ * 2. Snapshotting all recipient contact IDs
+ * 3. Scheduling batches based on domain warmup limits
+ * 4. Dispatching batch jobs with delays
+ */
+
+import { scheduleBroadcast } from "@/lib/broadcasts/batch-scheduler";
+import { fetchBroadcastRecipientIds } from "@/lib/broadcasts/recipient-fetcher";
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
-import { queueLogger } from "@/lib/queue";
+import { queue, queueLogger } from "@/lib/queue";
 
 const logger = queueLogger.child({ job: "send-broadcast" });
 
@@ -12,6 +24,7 @@ export const sendBroadcast: JobProcessor<
 
   logger.info({ jobId, broadcastId }, "Starting broadcast send job");
 
+  // Fetch broadcast with sender identity and sending domain
   const broadcast = await prisma.broadcast.findUnique({
     where: { id: broadcastId },
     include: {
@@ -37,27 +50,82 @@ export const sendBroadcast: JobProcessor<
     return;
   }
 
-  // Log broadcast details for now (actual sending logic to be implemented later)
+  // Get sending domain limits
+  const sendingDomain = broadcast.senderIdentity?.sendingDomain;
+  if (!sendingDomain) {
+    logger.error({ jobId, broadcastId }, "No sending domain found for broadcast");
+    throw new Error(`Broadcast ${broadcastId} has no sending domain`);
+  }
+
+  const limits = {
+    maxSendPerDay: sendingDomain.maxSendPerDay,
+    maxSendPerHour: sendingDomain.maxSendPerHour,
+  };
+
+  logger.info(
+    { jobId, broadcastId, limits },
+    "Retrieved sending domain limits"
+  );
+
+  // Update status to SENDING
+  await prisma.broadcast.update({
+    where: { id: broadcastId },
+    data: { status: "SENDING" },
+  });
+
+  // Snapshot recipient contact IDs
+  const contactIds = await fetchBroadcastRecipientIds(
+    broadcast.workspaceId,
+    broadcast
+  );
+
+  if (contactIds.length === 0) {
+    logger.warn({ jobId, broadcastId }, "No recipients found for broadcast");
+    await prisma.broadcast.update({
+      where: { id: broadcastId },
+      data: { status: "SENT" },
+    });
+    return;
+  }
+
+  logger.info(
+    { jobId, broadcastId, recipientCount: contactIds.length },
+    "Snapshotted recipient contact IDs"
+  );
+
+  // Schedule batches based on warmup limits
+  const schedule = scheduleBroadcast(contactIds, limits);
+
   logger.info(
     {
       jobId,
       broadcastId,
-      name: broadcast.name,
-      subject: broadcast.emailContent?.subject,
-      sendAt: broadcast.sendAt,
-      topicId: broadcast.topicId,
-      segmentId: broadcast.segmentId,
-      senderEmail: broadcast.senderIdentity
-        ? `${broadcast.senderIdentity.email}@${broadcast.senderIdentity.sendingDomain?.name}`
-        : null,
+      totalRecipients: schedule.totalRecipients,
+      totalBatches: schedule.totalBatches,
+      totalDays: schedule.totalDays,
+      estimatedCompletion: schedule.estimatedCompletion,
     },
-    "Broadcast ready to send - logging details (sending not yet implemented)"
+    "Generated broadcast schedule"
   );
 
-  // TODO: Implement actual broadcast sending logic
-  // 1. Update status to SENDING
-  // 2. Fetch recipients based on topic/segment/all contacts
-  // 3. Render email for each recipient (personalization)
-  // 4. Queue individual email sends
-  // 5. Update status to SENT when complete
+  // Dispatch batch jobs
+  const batchQueue = queue("broadcasts");
+  const batchJobs = schedule.batches.map((batch) => ({
+    name: "send-broadcast-batch" as const,
+    data: {
+      broadcastId,
+      batchId: batch.batchId,
+      contactIds: batch.contactIds,
+    },
+    options: {
+      delay: batch.delayMs,
+    },
+  }));
+
+  await batchQueue.pushBulk(batchJobs);
+
+  logger.info(
+    { jobId, broadcastId, batchCount: batchJobs.length },
+    "Dispatched all batch jobs"
+  );
 };

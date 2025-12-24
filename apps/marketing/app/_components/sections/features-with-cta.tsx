@@ -9,13 +9,30 @@ import {
   ScanBarcode,
 } from "iconoir-react";
 
-interface Feature {
+export interface Feature {
   title: string;
   content: ReactNode;
   icon: ReactNode;
 }
 
-const features: Feature[] = [
+export interface FeaturesWithCTAProps {
+  /** Label text above the title */
+  label?: string;
+  /** Main heading text */
+  title?: string;
+  /** Description text below the title */
+  description?: string;
+  /** CTA button text */
+  buttonText?: string;
+  /** CTA button href */
+  buttonHref?: string;
+  /** Array of features to display */
+  features?: Feature[];
+  /** Whether to show the community section at the bottom */
+  showCommunitySection?: boolean;
+}
+
+const defaultFeatures: Feature[] = [
   {
     title: "Automated email compliance",
     content:
@@ -131,7 +148,23 @@ function DecorativeCorners() {
   );
 }
 
-export function FeaturesWithCTA() {
+export function FeaturesWithCTA({
+  label = "VALUE",
+  title = "Send quality emails effortlessly.",
+  description = "Reach your audience easily with smart, affordable and reliable email delivery. you get complete control without hidden fees or limits.",
+  buttonText = "Start sending now",
+  buttonHref,
+  features = defaultFeatures,
+  showCommunitySection = true,
+}: FeaturesWithCTAProps = {}) {
+  const buttonContent = buttonHref ? (
+    <Link href={buttonHref}>
+      <Button className="mt-4">{buttonText}</Button>
+    </Link>
+  ) : (
+    <Button className="mt-4">{buttonText}</Button>
+  );
+
   return (
     <div className="w-full bg-kb-bg-primary dark:bg-kb-bg-secondary relative px-6 lg:px-0 overflow-hidden">
       <div className="absolute h-px w-full bg-kb-border-tertiary top-20"></div>
@@ -143,19 +176,17 @@ export function FeaturesWithCTA() {
           <DecorativeCorners />
           <div className="flex flex-col items-center justify-center h-full w-full">
             <div className="max-w-lg mx-auto flex flex-col items-center">
-              <Text className="text-kb-content-disabled! text-xs!">VALUE</Text>
+              <Text className="text-kb-content-disabled! text-xs!">{label}</Text>
 
               <Text size="xl" className="mt-2 font-semibold!">
-                Send quality emails effortlessly.
+                {title}
               </Text>
 
               <Text variant="secondary" className="text-center mt-4">
-                Reach your audience easily with smart, affordable and reliable
-                email delivery. you get complete control without hidden fees or
-                limits.
+                {description}
               </Text>
 
-              <Button className="mt-4">Start sending now</Button>
+              {buttonContent}
             </div>
           </div>
         </div>
@@ -193,19 +224,23 @@ export function FeaturesWithCTA() {
               </div>
             ))}
           </div>
-          <div className="w-full justify-center flex items-center mt-12">
-            <Button variant="secondary">
-              <Mail />
-              Join the open email community
-            </Button>
-          </div>
+          {showCommunitySection && (
+            <>
+              <div className="w-full justify-center flex items-center mt-12">
+                <Button variant="secondary">
+                  <Mail />
+                  Join the open email community
+                </Button>
+              </div>
 
-          <p className="mt-4 text-center max-w-sm mx-auto px-6 md:px-0">
-            <Text size="sm" variant="secondary">
-              An open space to share email best practices, ask questions, and
-              connect with other developers and email marketers.
-            </Text>
-          </p>
+              <p className="mt-4 text-center max-w-sm mx-auto px-6 md:px-0">
+                <Text size="sm" variant="secondary">
+                  An open space to share email best practices, ask questions, and
+                  connect with other developers and email marketers.
+                </Text>
+              </p>
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -1,0 +1,72 @@
+# =============================================================================
+# Email Agent Test Configuration
+# =============================================================================
+#
+# Configuration for the email-agent in the integration test environment.
+#
+# =============================================================================
+
+agent:
+  hostname: "test-email-agent"
+  log_level: "debug"
+  log_format: "json"
+
+nats:
+  urls:
+    - "nats://nats:4222"
+  tls_enabled: false
+  max_reconnects: -1
+  reconnect_wait: 2s
+
+http:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: 30s
+  write_timeout: 30s
+  shutdown_timeout: 30s
+
+redis:
+  host: "redis"
+  port: 6379
+  db: 0
+  dial_timeout: 5s
+  pool_size: 10
+
+s3:
+  endpoint: "http://minio:9000"
+  region: "us-east-1"
+  access_key_id: "minioadmin"
+  secret_access_key: "minioadmin"
+  bucket: "kibamail"
+  force_path_style: true
+
+kumomta:
+  endpoint: "http://kumomta:8000"
+  timeout: 30s
+  max_idle_conns: 100
+  max_conns_per_host: 100
+  deferred_generation: true
+
+control_api:
+  base_url: "http://host.docker.internal:3334"
+  api_key: "test-internal-service-key"
+  timeout: 10s
+
+worker:
+  stream_name: "EMAILS"
+  consumer_name: "email_agent_consumer"
+  fetch_batch: 100
+  fetch_workers: 10
+  ack_timeout: 30s
+  max_retries: 5
+
+metrics:
+  enabled: true
+  port: 9090
+  path: "/metrics"
+
+health:
+  enabled: true
+  port: 8081
+  liveness_path: "/live"
+  readiness_path: "/ready"

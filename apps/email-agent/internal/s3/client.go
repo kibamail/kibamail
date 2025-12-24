@@ -2,6 +2,7 @@
 package s3
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"time"
@@ -224,4 +225,40 @@ func (c *Client) DownloadAttachment(ctx context.Context, key string) ([]byte, er
 		Msg("downloaded attachment")
 
 	return data, nil
+}
+
+// Upload uploads data to S3
+func (c *Client) Upload(ctx context.Context, key string, data []byte, contentType string) error {
+	start := time.Now()
+
+	if c.metrics != nil {
+		c.metrics.S3UploadsTotal.Inc()
+	}
+
+	_, err := c.client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:      aws.String(c.bucket),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(data),
+		ContentType: aws.String(contentType),
+	})
+	if err != nil {
+		if c.metrics != nil {
+			c.metrics.S3UploadErrors.Inc()
+		}
+		return kiberrors.Wrapf(err, "failed to upload to S3: %s", key)
+	}
+
+	duration := time.Since(start)
+	if c.metrics != nil {
+		c.metrics.S3UploadDuration.Observe(duration.Seconds())
+	}
+
+	c.logger.Debug().
+		Str("key", key).
+		Int("size_bytes", len(data)).
+		Str("content_type", contentType).
+		Dur("duration_ms", duration).
+		Msg("uploaded to S3")
+
+	return nil
 }

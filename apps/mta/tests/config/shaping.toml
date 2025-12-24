@@ -1,0 +1,14 @@
+# =============================================================================
+# Kibamail Traffic Shaping - Test Environment
+# =============================================================================
+#
+# This file extends the community shaping rules with test-specific settings.
+# The base rules come from /opt/kumomta/share/community/shaping.toml
+#
+# =============================================================================
+
+[default]
+# Use OpenSSL instead of rustls so KumoMTA reads the system CA store
+# This is required for test environments where we add a custom CA
+# Rustls uses Mozilla's bundled CAs which don't include our test CA
+tls_prefer_openssl = true

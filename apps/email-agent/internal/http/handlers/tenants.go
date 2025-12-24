@@ -2,6 +2,7 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -267,4 +268,226 @@ func (c *ControlPlaneAPIClient) GetTenant(ctx context.Context, tenantID string) 
 	}
 
 	return &tenant, nil
+}
+
+// GetTenantByDomain fetches tenant data by sending domain name
+func (c *ControlPlaneAPIClient) GetTenantByDomain(ctx context.Context, domainName string) (*domain.ControlPlaneTenant, error) {
+	start := time.Now()
+
+	if c.metrics != nil {
+		c.metrics.ControlPlaneActiveReqs.Inc()
+		defer c.metrics.ControlPlaneActiveReqs.Dec()
+	}
+
+	url := fmt.Sprintf("%s/api/internal/v1/tenants/by-domain/%s", c.baseURL, domainName)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, kiberrors.Wrap(err, "failed to create request")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+
+	duration := time.Since(start)
+	if c.metrics != nil {
+		c.metrics.ControlPlaneLatency.Observe(duration.Seconds())
+		c.metrics.ControlPlaneRequests.Inc()
+	}
+
+	if err != nil {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Mark(kiberrors.Wrap(err, "request failed"), kiberrors.ErrControlAPIUnavailable)
+	}
+
+	defer func() {
+		io.Copy(io.Discard, io.LimitReader(resp.Body, maxControlPlaneResponseSize))
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, kiberrors.ErrDomainNotFound
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.ErrAuthenticationFailed
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Newf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	limitedReader := io.LimitReader(resp.Body, maxControlPlaneResponseSize)
+	var tenant domain.ControlPlaneTenant
+	if err := json.NewDecoder(limitedReader).Decode(&tenant); err != nil {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Wrap(err, "failed to decode response")
+	}
+
+	return &tenant, nil
+}
+
+// ValidateBounceDomain validates if a bounce domain belongs to a tenant
+func (c *ControlPlaneAPIClient) ValidateBounceDomain(ctx context.Context, bounceDomain string) (*domain.BounceDomainResponse, error) {
+	start := time.Now()
+
+	if c.metrics != nil {
+		c.metrics.ControlPlaneActiveReqs.Inc()
+		defer c.metrics.ControlPlaneActiveReqs.Dec()
+	}
+
+	url := fmt.Sprintf("%s/api/internal/v1/tenants/by-bounce-domain/%s", c.baseURL, bounceDomain)
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, kiberrors.Wrap(err, "failed to create request")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+
+	duration := time.Since(start)
+	if c.metrics != nil {
+		c.metrics.ControlPlaneLatency.Observe(duration.Seconds())
+		c.metrics.ControlPlaneRequests.Inc()
+	}
+
+	if err != nil {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Mark(kiberrors.Wrap(err, "request failed"), kiberrors.ErrControlAPIUnavailable)
+	}
+
+	defer func() {
+		io.Copy(io.Discard, io.LimitReader(resp.Body, maxControlPlaneResponseSize))
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return &domain.BounceDomainResponse{Valid: false}, nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.ErrAuthenticationFailed
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Newf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	limitedReader := io.LimitReader(resp.Body, maxControlPlaneResponseSize)
+	var result domain.BounceDomainResponse
+	if err := json.NewDecoder(limitedReader).Decode(&result); err != nil {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Wrap(err, "failed to decode response")
+	}
+
+	return &result, nil
+}
+
+// ValidateAPIKey validates an API key hash and returns tenant info
+func (c *ControlPlaneAPIClient) ValidateAPIKey(ctx context.Context, keyHash string, requiredScopes []string) (*domain.APIKeyValidationResponse, error) {
+	start := time.Now()
+
+	if c.metrics != nil {
+		c.metrics.ControlPlaneActiveReqs.Inc()
+		defer c.metrics.ControlPlaneActiveReqs.Dec()
+	}
+
+	url := fmt.Sprintf("%s/api/internal/v1/tenants/validate-api-key", c.baseURL)
+
+	reqBody := domain.APIKeyValidationRequest{
+		KeyHash:        keyHash,
+		RequiredScopes: requiredScopes,
+	}
+
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, kiberrors.Wrap(err, "failed to marshal request")
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return nil, kiberrors.Wrap(err, "failed to create request")
+	}
+
+	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := c.httpClient.Do(req)
+
+	duration := time.Since(start)
+	if c.metrics != nil {
+		c.metrics.ControlPlaneLatency.Observe(duration.Seconds())
+		c.metrics.ControlPlaneRequests.Inc()
+	}
+
+	if err != nil {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Mark(kiberrors.Wrap(err, "request failed"), kiberrors.ErrControlAPIUnavailable)
+	}
+
+	defer func() {
+		io.Copy(io.Discard, io.LimitReader(resp.Body, maxControlPlaneResponseSize))
+		resp.Body.Close()
+	}()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return &domain.APIKeyValidationResponse{Valid: false}, nil
+	}
+
+	if resp.StatusCode == http.StatusUnauthorized {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.ErrAuthenticationFailed
+	}
+
+	if resp.StatusCode == http.StatusForbidden {
+		return &domain.APIKeyValidationResponse{Valid: false}, kiberrors.ErrInsufficientScopes
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Newf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	limitedReader := io.LimitReader(resp.Body, maxControlPlaneResponseSize)
+	var result domain.APIKeyValidationResponse
+	if err := json.NewDecoder(limitedReader).Decode(&result); err != nil {
+		if c.metrics != nil {
+			c.metrics.ControlPlaneErrors.Inc()
+		}
+		return nil, kiberrors.Wrap(err, "failed to decode response")
+	}
+
+	return &result, nil
 }

@@ -211,7 +211,7 @@ export function useFileUpload(initialConfig: UseFileUploadProps) {
       event.preventDefault();
       dispatch({ type: FileUploadActionType.DragOver });
     },
-    onDragLeave: (_event: DragEvent) => {
+    onDragLeave: () => {
       if (state.isDisabled || !state.allowDrop) return;
       dispatch({ type: FileUploadActionType.DragLeave });
     },

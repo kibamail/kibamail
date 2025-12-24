@@ -30,11 +30,43 @@ type ControlPlaneTenant struct {
 
 // ControlPlaneDomain represents a sending domain from control plane API
 type ControlPlaneDomain struct {
-	ID                  string `json:"id"`
-	Name                string `json:"name"`
-	DkimSubDomain       string `json:"dkim_sub_domain"`       // e.g., "kibamail._domainkey"
-	DkimPublicKey       string `json:"dkim_public_key"`       // Public key
-	DkimPrivateKey      string `json:"dkim_private_key"`      // Encrypted private key
-	DkimVerifiedAt      string `json:"dkim_verified_at"`      // Verification timestamp
-	ReturnPathDomain    string `json:"return_path_domain"`
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	DkimSubDomain    string `json:"dkim_sub_domain"`    // e.g., "kibamail._domainkey"
+	DkimPublicKey    string `json:"dkim_public_key"`    // Public key
+	DkimPrivateKey   string `json:"dkim_private_key"`   // Encrypted private key
+	DkimVerifiedAt   string `json:"dkim_verified_at"`   // Verification timestamp
+	ReturnPathDomain string `json:"return_path_domain"`
+}
+
+// BounceDomainResponse represents the response from bounce domain validation
+type BounceDomainResponse struct {
+	Valid         bool   `json:"valid"`
+	WorkspaceID   string `json:"workspace_id"`
+	SendingDomain string `json:"sending_domain"`
+}
+
+// APIKeyValidationRequest represents the request for API key validation
+type APIKeyValidationRequest struct {
+	KeyHash        string   `json:"keyHash"`
+	RequiredScopes []string `json:"requiredScopes,omitempty"`
+}
+
+// APIKeyValidationResponse represents the response from API key validation
+type APIKeyValidationResponse struct {
+	Valid       bool     `json:"valid"`
+	WorkspaceID string   `json:"workspace_id"`
+	Scopes      []string `json:"scopes"`
+}
+
+// DMARCCodeResponse represents the response from DMARC code lookup
+type DMARCCodeResponse struct {
+	WorkspaceID string `json:"workspace_id"`
+	Domain      string `json:"domain"`
+}
+
+// DomainLookupResponse represents the response when looking up a domain
+type DomainLookupResponse struct {
+	WorkspaceID string       `json:"workspace_id"`
+	DKIMConfig  *DKIMConfig  `json:"dkim_config,omitempty"`
 }

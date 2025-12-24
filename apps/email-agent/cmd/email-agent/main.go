@@ -15,6 +15,7 @@ import (
 	"github.com/rs/zerolog"
 	"go.uber.org/fx"
 
+	"github.com/kibamail/email-agent/internal/cache"
 	"github.com/kibamail/email-agent/internal/config"
 	agenthttp "github.com/kibamail/email-agent/internal/http"
 	"github.com/kibamail/email-agent/internal/http/handlers"
@@ -61,6 +62,7 @@ func main() {
 			newNATSPublisher,
 			newRedisClient,
 			newDKIMCache,
+			newMemoryCache,
 			newS3Client,
 			newKumoMTAClient,
 			newControlPlaneClient,
@@ -70,6 +72,10 @@ func main() {
 		fx.Provide(
 			newTenantHandler,
 			newWebhookHandler,
+			newDKIMHandler,
+			newAuthHandler,
+			newDomainHandler,
+			newDMARCHandler,
 			newEmailProcessor,
 			newHTTPServer,
 		),
@@ -178,6 +184,11 @@ func newDKIMCache(client *redis.Client, logger zerolog.Logger) *redis.DKIMCache 
 	return redis.NewDKIMCache(client, logger, 5*time.Minute)
 }
 
+// newMemoryCache creates an in-memory cache for sensitive data
+func newMemoryCache() *cache.MemoryCache {
+	return cache.NewMemoryCache(cache.DefaultMemoryCacheConfig())
+}
+
 // newS3Client creates an S3 client
 func newS3Client(cfg *config.Config, logger zerolog.Logger, metrics *observability.Metrics) (*s3.Client, error) {
 	return s3.NewClient(s3.Config{
@@ -218,12 +229,12 @@ func newControlPlaneClient(cfg *config.Config, logger zerolog.Logger, metrics *o
 
 // newTenantHandler creates a tenant handler
 func newTenantHandler(
-	cache *redis.DKIMCache,
+	redisCache *redis.DKIMCache,
 	api *handlers.ControlPlaneAPIClient,
 	logger zerolog.Logger,
 	metrics *observability.Metrics,
 ) *handlers.TenantHandler {
-	return handlers.NewTenantHandler(cache, api, logger, metrics)
+	return handlers.NewTenantHandler(redisCache, api, logger, metrics)
 }
 
 // newWebhookHandler creates a webhook handler
@@ -233,6 +244,47 @@ func newWebhookHandler(
 	metrics *observability.Metrics,
 ) *handlers.WebhookHandler {
 	return handlers.NewWebhookHandler(publisher, logger, metrics)
+}
+
+// newDKIMHandler creates a DKIM handler
+func newDKIMHandler(
+	memCache *cache.MemoryCache,
+	api *handlers.ControlPlaneAPIClient,
+	logger zerolog.Logger,
+	metrics *observability.Metrics,
+) *handlers.DKIMHandler {
+	return handlers.NewDKIMHandler(memCache, api, logger, metrics)
+}
+
+// newAuthHandler creates an auth handler
+func newAuthHandler(
+	memCache *cache.MemoryCache,
+	api *handlers.ControlPlaneAPIClient,
+	logger zerolog.Logger,
+	metrics *observability.Metrics,
+) *handlers.AuthHandler {
+	return handlers.NewAuthHandler(memCache, api, logger, metrics)
+}
+
+// newDomainHandler creates a domain handler
+func newDomainHandler(
+	memCache *cache.MemoryCache,
+	api *handlers.ControlPlaneAPIClient,
+	logger zerolog.Logger,
+	metrics *observability.Metrics,
+) *handlers.DomainHandler {
+	return handlers.NewDomainHandler(memCache, api, logger, metrics)
+}
+
+// newDMARCHandler creates a DMARC handler
+func newDMARCHandler(
+	publisher *agentnats.Publisher,
+	s3Client *s3.Client,
+	logger zerolog.Logger,
+	metrics *observability.Metrics,
+) *handlers.DMARCHandler {
+	storage := handlers.NewS3Adapter(s3Client)
+	return handlers.NewDMARCHandler(publisher, storage, logger, metrics)
 }
 
 // newEmailProcessor creates an email processor
@@ -250,6 +302,10 @@ func newHTTPServer(
 	cfg *config.Config,
 	tenantHandler *handlers.TenantHandler,
 	webhookHandler *handlers.WebhookHandler,
+	dkimHandler *handlers.DKIMHandler,
+	authHandler *handlers.AuthHandler,
+	domainHandler *handlers.DomainHandler,
+	dmarcHandler *handlers.DMARCHandler,
 	logger zerolog.Logger,
 	metrics *observability.Metrics,
 ) *agenthttp.Server {
@@ -261,8 +317,14 @@ func newHTTPServer(
 			WriteTimeout:    cfg.HTTP.WriteTimeout,
 			ShutdownTimeout: cfg.HTTP.ShutdownTimeout,
 		},
-		tenantHandler,
-		webhookHandler,
+		agenthttp.ServerHandlers{
+			Tenant:  tenantHandler,
+			Webhook: webhookHandler,
+			DKIM:    dkimHandler,
+			Auth:    authHandler,
+			Domain:  domainHandler,
+			DMARC:   dmarcHandler,
+		},
 		logger,
 		metrics,
 	)
@@ -332,8 +394,9 @@ func startHealthServer(
 
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			// Use background context - the startup context expires after 15s
 			go func() {
-				if err := healthChecker.Start(ctx); err != nil {
+				if err := healthChecker.Start(context.Background()); err != nil {
 					logger.Error().Err(err).Msg("health server error")
 				}
 			}()
@@ -350,8 +413,9 @@ func startHTTPServer(
 ) {
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			// Use background context - the startup context expires after 15s
 			go func() {
-				if err := server.Start(ctx); err != nil {
+				if err := server.Start(context.Background()); err != nil {
 					logger.Error().Err(err).Msg("HTTP server error")
 				}
 			}()
@@ -378,12 +442,20 @@ func startEmailConsumer(
 		return proc.HandleMessage(ctx, msg)
 	}
 
+	// Create a context that lives for the duration of the app, not just startup
+	var consumerCtx context.Context
+	var consumerCancel context.CancelFunc
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
 			consumerLogger.Info().Msg("starting email consumer")
 
+			// Use a background context for the consumer, not the startup context
+			// The startup context (ctx) has a 15s timeout which would kill the consumer
+			consumerCtx, consumerCancel = context.WithCancel(context.Background())
+
 			go func() {
-				if err := consumer.Start(ctx, handler); err != nil {
+				if err := consumer.Start(consumerCtx, handler); err != nil {
 					consumerLogger.Error().Err(err).Msg("email consumer error")
 				}
 			}()
@@ -391,6 +463,9 @@ func startEmailConsumer(
 		},
 		OnStop: func(ctx context.Context) error {
 			consumerLogger.Info().Msg("stopping email consumer")
+			if consumerCancel != nil {
+				consumerCancel()
+			}
 			return consumer.Stop(ctx)
 		},
 	})
@@ -405,15 +480,22 @@ func startSystemMetricsCollector(
 ) {
 	metricsLogger := logger.With().Str("component", "system-metrics").Logger()
 
+	// Create a context for the metrics collector that lives for the app duration
+	var metricsCtx context.Context
+	var metricsCancel context.CancelFunc
+
 	lc.Append(fx.Hook{
 		OnStart: func(ctx context.Context) error {
+			// Use background context - startup context expires after 15s
+			metricsCtx, metricsCancel = context.WithCancel(context.Background())
+
 			go func() {
 				ticker := time.NewTicker(15 * time.Second)
 				defer ticker.Stop()
 
 				for {
 					select {
-					case <-ctx.Done():
+					case <-metricsCtx.Done():
 						return
 					case <-ticker.C:
 						// Collect goroutine count
@@ -442,6 +524,12 @@ func startSystemMetricsCollector(
 					}
 				}
 			}()
+			return nil
+		},
+		OnStop: func(ctx context.Context) error {
+			if metricsCancel != nil {
+				metricsCancel()
+			}
 			return nil
 		},
 	})

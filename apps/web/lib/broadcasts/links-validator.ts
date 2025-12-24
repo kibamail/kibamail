@@ -157,7 +157,8 @@ function validateVariableLink(url: string): ExtractedLink {
   };
 }
 
-const URL_NOT_RESPONSIVE_MESSAGE = "Url seems to be not responsive. Please check again.";
+const URL_NOT_RESPONSIVE_MESSAGE =
+  "Url seems to be not responsive. Please check again.";
 
 async function pingUrl(url: string): Promise<ExtractedLink> {
   if (!isValidUrl(url)) {
@@ -171,7 +172,7 @@ async function pingUrl(url: string): Promise<ExtractedLink> {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
     const response = await fetch(url, {
       method: "HEAD",
@@ -192,7 +193,6 @@ async function pingUrl(url: string): Promise<ExtractedLink> {
       };
     }
 
-    // Try GET request if HEAD fails (some servers don't support HEAD)
     if (response.status === 405) {
       const getResponse = await fetch(url, {
         method: "GET",

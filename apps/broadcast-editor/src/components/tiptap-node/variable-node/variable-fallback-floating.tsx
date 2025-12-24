@@ -193,15 +193,13 @@ export function VariableFallbackFloating({
           });
 
           if (editor) {
-            const onEditorUpdate = () => update();
-
-            editor.on("selectionUpdate", onEditorUpdate);
-            editor.on("transaction", onEditorUpdate);
+            editor.on("selectionUpdate", update);
+            editor.on("transaction", update);
 
             return () => {
               cleanup();
-              editor.off("selectionUpdate", onEditorUpdate);
-              editor.off("transaction", onEditorUpdate);
+              editor.off("selectionUpdate", update);
+              editor.off("transaction", update);
             };
           }
 

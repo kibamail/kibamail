@@ -1035,6 +1035,10 @@ model SendingDomain {
   openTrackingEnabled         Boolean          @default(false)
   /// Whether click tracking is enabled for this domain
   clickTrackingEnabled        Boolean          @default(false)
+  /// Maximum emails allowed per day (warmup limit, -1 = unlimited)
+  maxSendPerDay               Int              @default(100)
+  /// Maximum emails allowed per hour (warmup limit, -1 = unlimited)
+  maxSendPerHour              Int              @default(10)
   /// When DNS records were last verified
   recordsLastVerifiedAt       DateTime?
   /// When the sending domain was created
@@ -1045,8 +1049,8 @@ model SendingDomain {
   senderIdentities            SenderIdentity[]
   /// Broadcasts using this domain
   broadcasts                  Broadcast[]
-  /// Email sends using this domain
-  emailSends                  EmailSend[]
+  /// Events using this domain
+  events                      Event[]
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
@@ -1086,8 +1090,8 @@ model SenderIdentity {
   broadcastsAsSender             Broadcast[]   @relation("BroadcastSender")
   /// Broadcasts using this sender identity as Reply-To
   broadcastsAsReplyTo            Broadcast[]   @relation("BroadcastReplyTo")
-  /// Email sends using this sender identity
-  emailSends                     EmailSend[]
+  /// Events using this sender identity
+  events                         Event[]
 
   @@index([workspaceId])
 }
@@ -1178,10 +1182,8 @@ model Broadcast {
   sendingDomain           SendingDomain?   @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
   /// A/B test variants for this broadcast
   abTestVariants          AbTestVariant[]
-  /// Email sends for this broadcast
-  emailSends              EmailSend[]
-  /// Email send events for this broadcast
-  emailSendEvents         EmailSendEvent[]
+  /// Events for this broadcast
+  events                  Event[]
 
   @@index([workspaceId])
 }
@@ -1217,116 +1219,112 @@ model AbTestVariant {
 }
 
 /// *
-///  * Email Sends Schema
+///  * Events Schema
 ///  *
-///  * Tracks individual email sends from broadcasts.
-///  * Contains delivery information and tracking data.
-model EmailSend {
-  /// Unique identifier for the email send
-  id                   String           @id @default(cuid())
-  /// MTA sending ID (from mail transfer agent)
-  sendingId            String?          @unique
-  /// Sending domain used
-  sendingDomainId      String?
-  /// Broadcast this send belongs to
-  broadcastId          String?
-  /// Contact ID for the recipient
-  contactId            String?
-  /// Sender identity used for this email
-  senderIdentityId     String?
-  /// Recipient email address
-  recipient            String?          @db.VarChar(255)
-  /// MTA queue name
-  queue                String?          @db.VarChar(80)
-  /// Site name (MTA identifier)
-  siteName             String?          @db.VarChar(80)
-  /// Email size in bytes
-  size                 Int?
-  /// Total delivery attempts
-  totalAttempts        Int?
-  /// Links in the email (for click tracking)
-  links                Json?
-  /// Node ID (MTA node identifier)
-  nodeId               String?          @db.VarChar(48)
-  /// Egress pool name
-  egressPool           String?          @db.VarChar(80)
-  /// Egress source address
-  egressSource         String?          @db.VarChar(80)
-  /// Delivery protocol (SMTP, etc.)
-  deliveryProtocol     String?          @db.VarChar(12)
-  /// Reception protocol
-  receptionProtocol    String?          @db.VarChar(12)
-  /// Whether click tracking is enabled
-  clickTrackingEnabled Boolean          @default(false)
-  /// Whether open tracking is enabled
-  openTrackingEnabled  Boolean          @default(false)
-  /// When the email was sent
-  createdAt            DateTime         @default(now())
-  /// Sending domain relation
-  sendingDomain        SendingDomain?   @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
-  /// Sender identity relation
-  senderIdentity       SenderIdentity?  @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
-  /// Broadcast relation
-  broadcast            Broadcast?       @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
-  /// Email send events
-  events               EmailSendEvent[]
-
-  @@index([broadcastId])
-}
-
-/// *
-///  * Email Send Events Schema
-///  *
-///  * Tracks events for email sends (delivery, bounce, open, click, etc.).
-///  * Used for analytics and deliverability monitoring.
-model EmailSendEvent {
+///  * Unified event tracking for all email-related activities.
+///  * When an email is queued, a Queued event is created with email metadata.
+///  * Subsequent events (Delivery, Bounce, Open, Click) reference the same sendingId.
+model Event {
   /// Unique identifier for the event
-  id                          String         @id @default(cuid())
-  /// Email send this event belongs to
-  emailSendId                 String
+  id                          String          @id @default(cuid())
+  /// MTA sending ID - groups all events for the same email
+  sendingId                   String?
+  /// Workspace ID for tenant segregation
+  workspaceId                 String
   /// Event type
-  type                        EmailEventType @default(Any)
+  type                        EventType       @default(Any)
   /// When the event occurred
-  createdAt                   DateTime       @default(now())
-  /// Contact ID (for contact-level tracking)
-  contactId                   String?
-  /// Broadcast ID (for broadcast-level analytics)
+  createdAt                   DateTime        @default(now())
+
+  // === References ===
+  /// Sending domain used
+  sendingDomainId             String?
+  /// Broadcast this event belongs to
   broadcastId                 String?
+  /// Contact ID for the recipient
+  contactId                   String?
+  /// Sender identity used for this email
+  senderIdentityId            String?
+
+  // === Email details (populated on Queued event) ===
+  /// Recipient email address
+  recipient                   String?         @db.VarChar(255)
+  /// MTA queue name
+  queue                       String?         @db.VarChar(80)
+  /// Site name (MTA identifier)
+  siteName                    String?         @db.VarChar(80)
+  /// Email size in bytes
+  size                        Int?
+  /// Total delivery attempts
+  totalAttempts               Int?
+  /// Links in the email (for click tracking)
+  links                       Json?
+  /// Node ID (MTA node identifier)
+  nodeId                      String?         @db.VarChar(48)
+  /// Egress pool name
+  egressPool                  String?         @db.VarChar(80)
+  /// Egress source address
+  egressSource                String?         @db.VarChar(80)
+  /// Delivery protocol (SMTP, etc.)
+  deliveryProtocol            String?         @db.VarChar(12)
+  /// Reception protocol
+  receptionProtocol           String?         @db.VarChar(12)
+  /// Whether click tracking is enabled
+  clickTrackingEnabled        Boolean?
+  /// Whether open tracking is enabled
+  openTrackingEnabled         Boolean?
+
+  // === Response details (for delivery events) ===
   /// SMTP response code
   responseCode                Int?
   /// SMTP response content
-  responseContent             String?        @db.Text
+  responseContent             String?         @db.Text
   /// SMTP response command
-  responseCommand             String?        @db.VarChar(255)
+  responseCommand             String?         @db.VarChar(255)
   /// Enhanced status code - class
   responseEnhancedCodeClass   Int?
   /// Enhanced status code - subject
   responseEnhancedCodeSubject Int?
   /// Enhanced status code - detail
   responseEnhancedCodeDetail  Int?
-  /// Peer address name (receiving server)
-  peerAddressName             String?        @db.VarChar(255)
-  /// Peer address IP
-  peerAddressAddr             String?        @db.VarChar(255)
-  /// Bounce classification (hard, soft, etc.)
-  bounceClassification        String?        @db.VarChar(120)
-  /// Origin country (for opens/clicks)
-  originCountry               String?        @db.VarChar(10)
-  /// Origin state
-  originState                 String?        @db.VarChar(56)
-  /// Origin city
-  originCity                  String?        @db.VarChar(56)
-  /// Device type
-  originDevice                String?        @db.VarChar(56)
-  /// Browser type
-  originBrowser               String?        @db.VarChar(56)
-  /// Email send relation
-  emailSend                   EmailSend      @relation(fields: [emailSendId], references: [id], onDelete: Cascade)
-  /// Broadcast relation
-  broadcast                   Broadcast?     @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
 
-  @@index([emailSendId])
+  // === Peer address ===
+  /// Peer address name (receiving server)
+  peerAddressName             String?         @db.VarChar(255)
+  /// Peer address IP
+  peerAddressAddr             String?         @db.VarChar(255)
+
+  // === Bounce classification ===
+  /// Bounce classification (hard, soft, etc.)
+  bounceClassification        String?         @db.VarChar(120)
+
+  // === Analytics (for opens/clicks) ===
+  /// Origin country
+  originCountry               String?         @db.VarChar(10)
+  /// Origin state
+  originState                 String?         @db.VarChar(56)
+  /// Origin city
+  originCity                  String?         @db.VarChar(56)
+  /// Device type
+  originDevice                String?         @db.VarChar(56)
+  /// Browser type
+  originBrowser               String?         @db.VarChar(56)
+
+  // === Relations ===
+  /// Sending domain relation
+  sendingDomain               SendingDomain?  @relation(fields: [sendingDomainId], references: [id], onDelete: SetNull)
+  /// Sender identity relation
+  senderIdentity              SenderIdentity? @relation(fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  /// Broadcast relation
+  broadcast                   Broadcast?      @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  @@index([sendingId])
+  @@index([workspaceId])
   @@index([broadcastId])
+  @@index([contactId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("events")
 }
 
 /// Broadcast status
@@ -1347,8 +1345,9 @@ enum WinningCriteria {
   CONVERSIONS // Winner based on conversion rate
 }
 
-/// Email event types
-enum EmailEventType {
+/// Event types
+enum EventType {
+  Queued // Email queued for sending
   Delivery // Email delivered
   Reception // Email received by MTA
   Bounce // Email bounced

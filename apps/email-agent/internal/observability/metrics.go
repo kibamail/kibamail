@@ -56,6 +56,12 @@ type Metrics struct {
 	S3DownloadDuration prometheus.Histogram
 	S3DownloadErrors   prometheus.Counter
 	S3DownloadBytes    prometheus.Counter
+	S3UploadsTotal     prometheus.Counter
+	S3UploadDuration   prometheus.Histogram
+	S3UploadErrors     prometheus.Counter
+
+	// DMARC metrics
+	DMARCReportsReceived prometheus.Counter
 
 	// KumoMTA metrics
 	KumoMTAInjections       prometheus.Counter
@@ -264,6 +270,25 @@ func NewMetrics(registry prometheus.Registerer) *Metrics {
 		S3DownloadBytes: factory.NewCounter(prometheus.CounterOpts{
 			Name: "kibamail_s3_download_bytes_total",
 			Help: "Total bytes downloaded from S3",
+		}),
+		S3UploadsTotal: factory.NewCounter(prometheus.CounterOpts{
+			Name: "kibamail_s3_uploads_total",
+			Help: "Total number of S3 uploads",
+		}),
+		S3UploadDuration: factory.NewHistogram(prometheus.HistogramOpts{
+			Name:    "kibamail_s3_upload_duration_seconds",
+			Help:    "Duration of S3 uploads",
+			Buckets: []float64{.01, .025, .05, .1, .25, .5, 1, 2.5, 5},
+		}),
+		S3UploadErrors: factory.NewCounter(prometheus.CounterOpts{
+			Name: "kibamail_s3_upload_errors_total",
+			Help: "Total number of S3 upload errors",
+		}),
+
+		// DMARC metrics
+		DMARCReportsReceived: factory.NewCounter(prometheus.CounterOpts{
+			Name: "kibamail_dmarc_reports_received_total",
+			Help: "Total number of DMARC reports received",
 		}),
 
 		// KumoMTA metrics

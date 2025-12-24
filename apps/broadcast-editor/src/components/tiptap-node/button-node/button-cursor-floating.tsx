@@ -212,17 +212,13 @@ export function ButtonCursorFloating({
           });
 
           if (editor) {
-            const handleEditorUpdate = () => {
-              update();
-            };
-
-            editor.on("selectionUpdate", handleEditorUpdate);
-            editor.on("transaction", handleEditorUpdate);
+            editor.on("selectionUpdate", update);
+            editor.on("transaction", update);
 
             return () => {
               cleanup();
-              editor.off("selectionUpdate", handleEditorUpdate);
-              editor.off("transaction", handleEditorUpdate);
+              editor.off("selectionUpdate", update);
+              editor.off("transaction", update);
             };
           }
 

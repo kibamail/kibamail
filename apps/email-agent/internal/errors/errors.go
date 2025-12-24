@@ -76,6 +76,18 @@ var (
 
 	// ErrAuthenticationFailed indicates API key is invalid
 	ErrAuthenticationFailed = errors.Mark(errors.New("authentication failed"), ErrPermanent)
+
+	// ErrDomainNotFound indicates sending domain doesn't exist
+	ErrDomainNotFound = errors.Mark(errors.New("domain not found"), ErrPermanent)
+
+	// ErrInvalidBounceDomain indicates bounce domain validation failed
+	ErrInvalidBounceDomain = errors.Mark(errors.New("invalid bounce domain"), ErrPermanent)
+
+	// ErrAPIKeyInvalid indicates the API key hash is invalid
+	ErrAPIKeyInvalid = errors.Mark(errors.New("invalid API key"), ErrPermanent)
+
+	// ErrInsufficientScopes indicates the API key lacks required scopes
+	ErrInsufficientScopes = errors.Mark(errors.New("insufficient scopes"), ErrPermanent)
 )
 
 // Crypto errors

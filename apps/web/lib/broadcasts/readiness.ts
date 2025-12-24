@@ -65,10 +65,7 @@ export class BroadcastReadinessChecker {
   }
 
   async check(): Promise<BroadcastReadinessResult> {
-    await Promise.all([
-      this.loadAudienceData(),
-      this.validateLinks(),
-    ]);
+    await Promise.all([this.loadAudienceData(), this.validateLinks()]);
     await this.calculateRecipientCount();
 
     const checklist = this.buildChecklist();
@@ -173,7 +170,7 @@ export class BroadcastReadinessChecker {
   }
 
   private checkLinks(): ReadinessCheckItem {
-    const { links, allValid, validCount, invalidCount } = this.linksValidation;
+    const { links, allValid, invalidCount } = this.linksValidation;
     const totalLinks = links.length;
 
     if (totalLinks === 0) {
@@ -187,7 +184,9 @@ export class BroadcastReadinessChecker {
 
     const label = allValid
       ? `All ${totalLinks} link${totalLinks === 1 ? "" : "s"} valid`
-      : `${invalidCount} of ${totalLinks} link${totalLinks === 1 ? "" : "s"} invalid`;
+      : `${invalidCount} of ${totalLinks} link${
+          totalLinks === 1 ? "" : "s"
+        } invalid`;
 
     return {
       id: "links",
@@ -195,7 +194,9 @@ export class BroadcastReadinessChecker {
       description: "All links in your email must be valid",
       completed: allValid,
       reason: !allValid
-        ? `${invalidCount} link${invalidCount === 1 ? " is" : "s are"} invalid or unreachable`
+        ? `${invalidCount} link${
+            invalidCount === 1 ? " is" : "s are"
+          } invalid or unreachable`
         : undefined,
     };
   }
@@ -227,13 +228,13 @@ export class BroadcastReadinessChecker {
       reason: !hasSenderIdentity
         ? "No sender email configured"
         : !isDomainVerified
-          ? "Sending domain is not fully verified"
-          : undefined,
+        ? "Sending domain is not fully verified"
+        : undefined,
     };
   }
 
   private checkSubject(): ReadinessCheckItem {
-    const hasSubject = !!(this.broadcast.emailContent?.subject?.trim());
+    const hasSubject = !!this.broadcast.emailContent?.subject?.trim();
 
     return {
       id: "subject",
@@ -315,9 +316,7 @@ export async function checkBroadcastReadiness(
  * Get the reasons why a broadcast is not ready
  * Useful for error messages in the send endpoint
  */
-export function getReadinessErrors(
-  result: BroadcastReadinessResult
-): string[] {
+export function getReadinessErrors(result: BroadcastReadinessResult): string[] {
   return result.checklist
     .filter((item) => !item.completed && item.reason)
     .map((item) => item.reason!);

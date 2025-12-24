@@ -30,7 +30,7 @@ export function PageSection({
       )}
     >
       <section className="w-full max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center max-w-xl mx-auto gap-2">
+        <div className="flex flex-col items-center justify-center max-w-2xl mx-auto gap-2">
           <Text className="uppercase text-kb-content-disabled!" size="xs">
             {label}
           </Text>

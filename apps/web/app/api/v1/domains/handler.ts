@@ -30,6 +30,7 @@ import {
   verifyDnsRecords,
 } from "@/lib/sending-domains/dns";
 import { createSendingDomainSchema, updateSendingDomainSchema } from "./schema";
+import { DEFAULT_WARMUP_TIER } from "@/config/warmup";
 
 /**
  * Format a sending domain for API response
@@ -109,7 +110,7 @@ export async function createSendingDomain(
   const dkimSubDomain = generateDkimSubdomain();
   const dmarcReportingCode = generateDmarcReportingCode();
 
-  // Create the sending domain
+  // Create the sending domain with warmup limits from tier 1
   const domain = await prisma.sendingDomain.create({
     data: {
       workspaceId,
@@ -122,6 +123,8 @@ export async function createSendingDomain(
       trackingSubDomain: DNS_CONFIG.trackingSubdomain,
       trackingDomainCnameValue: DNS_CONFIG.trackingHost,
       dmarcReportingCode,
+      maxSendPerDay: DEFAULT_WARMUP_TIER.dailyLimit,
+      maxSendPerHour: DEFAULT_WARMUP_TIER.hourlyLimit,
     },
   });
 
