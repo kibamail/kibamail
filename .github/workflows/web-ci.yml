@@ -1,0 +1,163 @@
+name: Web CI/CD
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/**'
+      - 'apps/broadcast-editor/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/web-ci.yml'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/kibamail-web
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 15432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create test databases
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE kibamail_test;"
+          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE logto;"
+          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE USER outpost WITH PASSWORD 'outpost';"
+          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE outpost OWNER outpost;"
+
+      - name: Generate Prisma client
+        working-directory: apps/web
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
+        run: pnpm exec prisma generate
+
+      - name: Run database migrations
+        working-directory: apps/web
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
+        run: pnpm exec prisma migrate deploy
+
+      - name: Run tests
+        working-directory: apps/web
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_PASSWORD: ""
+          REDIS_DATABASE: 0
+          LOGTO_TENANT_ID: default
+          LOGTO_ENDPOINT: http://localhost:3001
+          LOGTO_APP_ID: test-app-id
+          LOGTO_APP_SECRET: test-app-secret
+          LOGTO_BASE_URL: http://localhost:18092
+          LOGTO_COOKIE_SECRET: Tl9WvRqMSYz69IXfonKJLLfy1uWJA4eJ
+          LOGTO_COOKIE_SECURE: "false"
+          LOGTO_M2M_APP_ID: test-m2m-app-id
+          LOGTO_M2M_APP_SECRET: test-m2m-app-secret
+          OUTPOST_API_URL: http://localhost:3333
+          OUTPOST_API_KEY: test-api-key
+          OUTPOST_API_JWT_SECRET: test-jwt-secret
+          OUTPOST_AES_ENCRYPTION_SECRET: test-aes-secret
+          OUTPOST_REDIS_HOST: localhost
+          OUTPOST_REDIS_PORT: 6379
+          OUTPOST_REDIS_PASSWORD: ""
+          OUTPOST_REDIS_DATABASE: 1
+          S3_ENDPOINT: http://localhost:9000
+          S3_REGION: us-east-1
+          S3_ACCESS_KEY_ID: test-access-key
+          S3_SECRET_ACCESS_KEY: test-secret-key
+          S3_BUCKET: test-bucket
+          S3_PUBLIC_URL: http://localhost:9000/test-bucket
+          APP_KEY: TestAppKeyForDevelopmentOnly32ch
+          INTERNAL_SERVICE_KEY: TestServiceKeyForDevelopment32
+        run: pnpm test
+
+  build-and-push:
+    name: Build and Push
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=staging
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
