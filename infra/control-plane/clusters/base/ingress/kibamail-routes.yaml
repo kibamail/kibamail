@@ -1,0 +1,115 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kibamail-control-plane
+spec:
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: https
+  hostnames:
+    - example.kibamail.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /w
+      backendRefs:
+        - name: kibamail-control-plane
+          namespace: kibamail-control-plane
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /_kibamail-control-plane
+      backendRefs:
+        - name: kibamail-control-plane
+          namespace: kibamail-control-plane
+          port: 3000
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kibamail-marketing
+spec:
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: https
+  hostnames:
+    - example.kibamail.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: kibamail-marketing
+          namespace: kibamail-marketing
+          port: 80
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-control-plane
+  namespace: kibamail-control-plane
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: default
+  to:
+    - group: ""
+      kind: Service
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-marketing
+  namespace: kibamail-marketing
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: default
+  to:
+    - group: ""
+      kind: Service
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kibamail-api
+spec:
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: https
+  hostnames:
+    - api.example.kibamail.com
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /api
+      backendRefs:
+        - name: kibamail-api
+          namespace: kibamail-api
+          port: 3000
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-api
+  namespace: kibamail-api
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: default
+  to:
+    - group: ""
+      kind: Service

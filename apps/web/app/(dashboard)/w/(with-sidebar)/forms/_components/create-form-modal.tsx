@@ -58,7 +58,7 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
     onSuccess(data) {
       toast("Form created successfully");
       onClose();
-      router.push(`/w/forms/${data.id}`);
+      router.push(`/w/forms/${data.id}/edit`);
       router.refresh();
     },
   });

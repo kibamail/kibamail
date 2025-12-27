@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-control-plane
+  namespace: kibamail-control-plane
+spec:
+  template:
+    spec:
+      containers:
+        - name: web
+          image: ghcr.io/kibamail/kibamail:prod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-marketing
+  namespace: kibamail-marketing
+spec:
+  template:
+    spec:
+      containers:
+        - name: marketing
+          image: ghcr.io/kibamail/kibamail-marketing:prod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-api
+  namespace: kibamail-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/kibamail/kibamail:prod

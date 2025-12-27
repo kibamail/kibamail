@@ -10,7 +10,7 @@ import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { CopyableId } from "./_components/copyable-id";
 import { FormSubmissionsTable } from "./_components/form-submissions-table";
-import { EditFormButton } from "@/app/(dashboard)/w/(with-sidebar)/forms/_components/edit-form-button";
+import { EditFormButton } from "../_components/edit-form-button";
 
 interface FormDetailPageProps {
   params: Promise<{

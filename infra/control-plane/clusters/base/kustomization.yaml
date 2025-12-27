@@ -11,3 +11,7 @@ resources:
   - outpost
   - logto
   - certificates
+  - kibamail-control-plane
+  - kibamail-marketing
+  - kibamail-api
+  - deployment-rbac

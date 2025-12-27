@@ -7,3 +7,4 @@ spec:
     - staging.kibamail.com
     - auth.staging.kibamail.com
     - admin.auth.staging.kibamail.com
+    - api.staging.kibamail.com

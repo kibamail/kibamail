@@ -41,7 +41,7 @@ export function EditFormButton({
     onSuccess(data) {
       toast("New draft created successfully.");
       createDraftDialogState.onOpenChange?.(false);
-      router.push(`/w/forms/${data.id}`);
+      router.push(`/w/forms/${data.id}/edit`);
     },
     onError() {
       errorToast("Failed to create draft. Please try again.");
@@ -51,13 +51,13 @@ export function EditFormButton({
   function handleEdit() {
     // If form is DRAFT, navigate directly to edit page
     if (formStatus === "DRAFT") {
-      router.push(`/w/forms/${formId}`);
+      router.push(`/w/forms/${formId}/edit`);
       return;
     }
 
     // If there's already a draft version, navigate to it
     if (draftVersionId) {
-      router.push(`/w/forms/${draftVersionId}`);
+      router.push(`/w/forms/${draftVersionId}/edit`);
       return;
     }
 

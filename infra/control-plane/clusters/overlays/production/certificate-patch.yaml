@@ -6,3 +6,5 @@ spec:
   dnsNames:
     - kibamail.com
     - auth.kibamail.com
+    - admin.auth.kibamail.com
+    - api.kibamail.com

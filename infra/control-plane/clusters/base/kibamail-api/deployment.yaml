@@ -1,0 +1,190 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-api
+  namespace: kibamail-api
+  labels:
+    app.kubernetes.io/name: kibamail-api
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: kibamail
+  annotations:
+    secrets.infisical.com/auto-reload: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kibamail-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kibamail-api
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: kibamail
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: kibamail-api
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: api
+          image: ghcr.io/kibamail/kibamail:staging
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3000
+              protocol: TCP
+          env:
+            # Database
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-postgres
+                  key: DATABASE_URL
+            # Redis (hardcoded cluster values)
+            - name: REDIS_HOST
+              value: "kibamail-valkey.kibamail-valkey.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-valkey
+                  key: password
+            - name: REDIS_DATABASE
+              value: "0"
+            # Logto (hardcoded endpoints, secrets from Infisical)
+            - name: LOGTO_TENANT_ID
+              value: "default"
+            - name: LOGTO_ENDPOINT
+              value: "http://logto.logto.svc.cluster.local:3001"
+            - name: LOGTO_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: APP_ID
+            - name: LOGTO_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: APP_SECRET
+            - name: LOGTO_BASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: LOGTO_BASE_URL
+            - name: LOGTO_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: LOGTO_COOKIE_SECRET
+            - name: LOGTO_COOKIE_SECURE
+              value: "true"
+            - name: LOGTO_M2M_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: M2M_APP_ID
+            - name: LOGTO_M2M_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: M2M_APP_SECRET
+            # Outpost (hardcoded endpoints, secrets from Infisical)
+            - name: OUTPOST_API_URL
+              value: "http://outpost-api.outpost.svc.cluster.local:3333"
+            - name: OUTPOST_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-outpost
+                  key: API_KEY
+            - name: OUTPOST_API_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-outpost
+                  key: API_JWT_SECRET
+            - name: OUTPOST_AES_ENCRYPTION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-outpost
+                  key: AES_ENCRYPTION_SECRET
+            - name: OUTPOST_REDIS_HOST
+              value: "kibamail-valkey.kibamail-valkey.svc.cluster.local"
+            - name: OUTPOST_REDIS_PORT
+              value: "6379"
+            - name: OUTPOST_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-valkey
+                  key: password
+            - name: OUTPOST_REDIS_DATABASE
+              value: "1"
+            # S3 Storage
+            - name: S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3
+                  key: ENDPOINT
+            - name: S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3
+                  key: REGION
+            - name: S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3
+                  key: ACCESS_KEY_ID
+            - name: S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3
+                  key: SECRET_ACCESS_KEY
+            - name: S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3
+                  key: BUCKET
+            - name: S3_PUBLIC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3
+                  key: PUBLIC_URL
+            # App secrets
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: APP_KEY
+            - name: INTERNAL_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: INTERNAL_SERVICE_KEY
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1024Mi
+          livenessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          readinessProbe:
+            httpGet:
+              path: /api/healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
