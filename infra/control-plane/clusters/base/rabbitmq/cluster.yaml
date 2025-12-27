@@ -1,0 +1,55 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: kibamail-rabbitmq
+  labels:
+    app.kubernetes.io/name: kibamail-rabbitmq
+    app.kubernetes.io/part-of: kibamail
+spec:
+  replicas: 3
+
+  image: rabbitmq:3.13-management
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+  persistence:
+    storageClassName: kibamail-storage
+    storage: 10Gi
+
+  rabbitmq:
+    additionalConfig: |
+      cluster_partition_handling = pause_minority
+      vm_memory_high_watermark_paging_ratio = 0.99
+      disk_free_limit.relative = 1.0
+      collect_statistics_interval = 10000
+
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: kibamail-rabbitmq
+            topologyKey: kubernetes.io/hostname
+
+  override:
+    statefulSet:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: rabbitmq
+                ports:
+                  - containerPort: 5672
+                    name: amqp
+                    protocol: TCP
+                  - containerPort: 15672
+                    name: management
+                    protocol: TCP

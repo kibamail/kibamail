@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: kibamail-tls
+spec:
+  secretName: kibamail-tls
+  issuerRef:
+    name: letsencrypt-production
+    kind: ClusterIssuer
+  dnsNames:
+    - example.kibamail.com
+    - auth.example.kibamail.com

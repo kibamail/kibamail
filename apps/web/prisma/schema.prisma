@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -142,56 +142,56 @@ model Contact {
   propertyFloat33  Float?
   propertyFloat34  Float?
   /// Custom property slots - String (50 slots)
-  propertyString0  String?           @db.VarChar(255)
-  propertyString1  String?           @db.VarChar(255)
-  propertyString2  String?           @db.VarChar(255)
-  propertyString3  String?           @db.VarChar(255)
-  propertyString4  String?           @db.VarChar(255)
-  propertyString5  String?           @db.VarChar(255)
-  propertyString6  String?           @db.VarChar(255)
-  propertyString7  String?           @db.VarChar(255)
-  propertyString8  String?           @db.VarChar(255)
-  propertyString9  String?           @db.VarChar(255)
-  propertyString10 String?           @db.VarChar(255)
-  propertyString11 String?           @db.VarChar(255)
-  propertyString12 String?           @db.VarChar(255)
-  propertyString13 String?           @db.VarChar(255)
-  propertyString14 String?           @db.VarChar(255)
-  propertyString15 String?           @db.VarChar(255)
-  propertyString16 String?           @db.VarChar(255)
-  propertyString17 String?           @db.VarChar(255)
-  propertyString18 String?           @db.VarChar(255)
-  propertyString19 String?           @db.VarChar(255)
-  propertyString20 String?           @db.VarChar(255)
-  propertyString21 String?           @db.VarChar(255)
-  propertyString22 String?           @db.VarChar(255)
-  propertyString23 String?           @db.VarChar(255)
-  propertyString24 String?           @db.VarChar(255)
-  propertyString25 String?           @db.VarChar(255)
-  propertyString26 String?           @db.VarChar(255)
-  propertyString27 String?           @db.VarChar(255)
-  propertyString28 String?           @db.VarChar(255)
-  propertyString29 String?           @db.VarChar(255)
-  propertyString30 String?           @db.VarChar(255)
-  propertyString31 String?           @db.VarChar(255)
-  propertyString32 String?           @db.VarChar(255)
-  propertyString33 String?           @db.VarChar(255)
-  propertyString34 String?           @db.VarChar(255)
-  propertyString35 String?           @db.VarChar(255)
-  propertyString36 String?           @db.VarChar(255)
-  propertyString37 String?           @db.VarChar(255)
-  propertyString38 String?           @db.VarChar(255)
-  propertyString39 String?           @db.VarChar(255)
-  propertyString40 String?           @db.VarChar(255)
-  propertyString41 String?           @db.VarChar(255)
-  propertyString42 String?           @db.VarChar(255)
-  propertyString43 String?           @db.VarChar(255)
-  propertyString44 String?           @db.VarChar(255)
-  propertyString45 String?           @db.VarChar(255)
-  propertyString46 String?           @db.VarChar(255)
-  propertyString47 String?           @db.VarChar(255)
-  propertyString48 String?           @db.VarChar(255)
-  propertyString49 String?           @db.VarChar(255)
+  propertyString0  String?
+  propertyString1  String?
+  propertyString2  String?
+  propertyString3  String?
+  propertyString4  String?
+  propertyString5  String?
+  propertyString6  String?
+  propertyString7  String?
+  propertyString8  String?
+  propertyString9  String?
+  propertyString10 String?
+  propertyString11 String?
+  propertyString12 String?
+  propertyString13 String?
+  propertyString14 String?
+  propertyString15 String?
+  propertyString16 String?
+  propertyString17 String?
+  propertyString18 String?
+  propertyString19 String?
+  propertyString20 String?
+  propertyString21 String?
+  propertyString22 String?
+  propertyString23 String?
+  propertyString24 String?
+  propertyString25 String?
+  propertyString26 String?
+  propertyString27 String?
+  propertyString28 String?
+  propertyString29 String?
+  propertyString30 String?
+  propertyString31 String?
+  propertyString32 String?
+  propertyString33 String?
+  propertyString34 String?
+  propertyString35 String?
+  propertyString36 String?
+  propertyString37 String?
+  propertyString38 String?
+  propertyString39 String?
+  propertyString40 String?
+  propertyString41 String?
+  propertyString42 String?
+  propertyString43 String?
+  propertyString44 String?
+  propertyString45 String?
+  propertyString46 String?
+  propertyString47 String?
+  propertyString48 String?
+  propertyString49 String?
   segments         ContactSegment[]
   topics           ContactTopic[]
   suppressions     SuppressionList[]
@@ -495,7 +495,7 @@ model ContactImport {
   /// @example [{"row": 5, "error": "Invalid email format"}, {"row": 12, "error": "Missing required field"}]
   errors         Json                @default("[]")
   /// Error message if the entire import failed
-  errorMessage   String?             @db.Text
+  errorMessage   String?
   /// When processing started
   startedAt      DateTime?
   /// When processing completed
@@ -652,7 +652,7 @@ model AutomationRun {
   /// When the next scheduled action should occur (for time delays)
   scheduledAt    DateTime?
   /// Error message if the run failed
-  errorMessage   String?             @db.Text
+  errorMessage   String?
   /// Metadata about the run (entry trigger data, custom attributes, execution history, etc.)
   /// @example {"entrySource": "segment", "segmentId": "seg_123", "nodeExecutions": [{...}]}
   metadata       Json?
@@ -821,56 +821,56 @@ model FormSubmission {
   /// IP address of the submitter
   ipAddress      String?
   /// User agent of the submitter
-  userAgent      String?              @db.Text
+  userAgent      String?
   /// Referrer URL
-  referrerUrl    String?              @db.Text
+  referrerUrl    String?
   /// Landing page URL where form was submitted
-  landingPageUrl String?              @db.Text
+  landingPageUrl String?
   /// When the submission was created
   createdAt      DateTime             @default(now())
   /// When the submission was last updated
   updatedAt      DateTime             @updatedAt
   /// Custom field slots - String (40 slots)
-  fieldString0   String?              @db.VarChar(255)
-  fieldString1   String?              @db.VarChar(255)
-  fieldString2   String?              @db.VarChar(255)
-  fieldString3   String?              @db.VarChar(255)
-  fieldString4   String?              @db.VarChar(255)
-  fieldString5   String?              @db.VarChar(255)
-  fieldString6   String?              @db.VarChar(255)
-  fieldString7   String?              @db.VarChar(255)
-  fieldString8   String?              @db.VarChar(255)
-  fieldString9   String?              @db.VarChar(255)
-  fieldString10  String?              @db.VarChar(255)
-  fieldString11  String?              @db.VarChar(255)
-  fieldString12  String?              @db.VarChar(255)
-  fieldString13  String?              @db.VarChar(255)
-  fieldString14  String?              @db.VarChar(255)
-  fieldString15  String?              @db.VarChar(255)
-  fieldString16  String?              @db.VarChar(255)
-  fieldString17  String?              @db.VarChar(255)
-  fieldString18  String?              @db.VarChar(255)
-  fieldString19  String?              @db.VarChar(255)
-  fieldString20  String?              @db.VarChar(255)
-  fieldString21  String?              @db.VarChar(255)
-  fieldString22  String?              @db.VarChar(255)
-  fieldString23  String?              @db.VarChar(255)
-  fieldString24  String?              @db.VarChar(255)
-  fieldString25  String?              @db.VarChar(255)
-  fieldString26  String?              @db.VarChar(255)
-  fieldString27  String?              @db.VarChar(255)
-  fieldString28  String?              @db.VarChar(255)
-  fieldString29  String?              @db.VarChar(255)
-  fieldString30  String?              @db.VarChar(255)
-  fieldString31  String?              @db.VarChar(255)
-  fieldString32  String?              @db.VarChar(255)
-  fieldString33  String?              @db.VarChar(255)
-  fieldString34  String?              @db.VarChar(255)
-  fieldString35  String?              @db.VarChar(255)
-  fieldString36  String?              @db.VarChar(255)
-  fieldString37  String?              @db.VarChar(255)
-  fieldString38  String?              @db.VarChar(255)
-  fieldString39  String?              @db.VarChar(255)
+  fieldString0   String?
+  fieldString1   String?
+  fieldString2   String?
+  fieldString3   String?
+  fieldString4   String?
+  fieldString5   String?
+  fieldString6   String?
+  fieldString7   String?
+  fieldString8   String?
+  fieldString9   String?
+  fieldString10  String?
+  fieldString11  String?
+  fieldString12  String?
+  fieldString13  String?
+  fieldString14  String?
+  fieldString15  String?
+  fieldString16  String?
+  fieldString17  String?
+  fieldString18  String?
+  fieldString19  String?
+  fieldString20  String?
+  fieldString21  String?
+  fieldString22  String?
+  fieldString23  String?
+  fieldString24  String?
+  fieldString25  String?
+  fieldString26  String?
+  fieldString27  String?
+  fieldString28  String?
+  fieldString29  String?
+  fieldString30  String?
+  fieldString31  String?
+  fieldString32  String?
+  fieldString33  String?
+  fieldString34  String?
+  fieldString35  String?
+  fieldString36  String?
+  fieldString37  String?
+  fieldString38  String?
+  fieldString39  String?
   /// Custom field slots - Numeric (15 slots for dates and numbers)
   fieldNum0      Float?
   fieldNum1      Float?
@@ -928,7 +928,7 @@ model PageView {
   /// IP address of the visitor
   ipAddress   String?
   /// Raw user agent string
-  userAgent   String?      @db.Text
+  userAgent   String?
   /// Detected device type (desktop, mobile, tablet)
   device      String?
   /// Detected operating system
@@ -940,7 +940,7 @@ model PageView {
   /// City (derived from IP)
   city        String?
   /// Referrer URL
-  referrerUrl String?      @db.Text
+  referrerUrl String?
   /// When the page was viewed
   createdAt   DateTime     @default(now())
 
@@ -1004,9 +1004,9 @@ model SendingDomain {
   /// DKIM subdomain prefix (e.g., "kiba" for kiba._domainkey.example.com)
   dkimSubDomain               String
   /// DKIM public key for DNS TXT record
-  dkimPublicKey               String           @db.Text
+  dkimPublicKey               String
   /// DKIM private key (encrypted) for signing emails
-  dkimPrivateKey              String           @db.Text
+  dkimPrivateKey              String
   /// When DKIM was verified
   dkimVerifiedAt              DateTime?
   /// Return path subdomain for bounce handling (e.g., "bounce" for bounce.example.com)
@@ -1024,13 +1024,13 @@ model SendingDomain {
   /// When tracking domain SSL was verified
   trackingDomainSslVerifiedAt DateTime?
   /// DMARC reporting shortcode (10 lowercase chars) for aggregate reports
-  dmarcReportingCode          String           @db.VarChar(10)
+  dmarcReportingCode          String
   /// When DMARC record was verified
   dmarcVerifiedAt             DateTime?
   /// SSL certificate key (encrypted)
-  trackingSslCertKey          String?          @db.Text
+  trackingSslCertKey          String?
   /// SSL certificate secret (encrypted)
-  trackingSslCertSecret       String?          @db.Text
+  trackingSslCertSecret       String?
   /// Whether open tracking is enabled for this domain
   openTrackingEnabled         Boolean          @default(false)
   /// Whether click tracking is enabled for this domain
@@ -1109,13 +1109,13 @@ model EmailContent {
   /// Editor styles configuration (canvas styles)
   styles         Json?
   /// Plain text content
-  contentText    String?         @db.Text
+  contentText    String?
   /// HTML content
-  contentHtml    String?         @db.LongText
+  contentHtml    String?
   /// Email subject line
-  subject        String?         @db.VarChar(255)
+  subject        String?
   /// Preview text (shown in inbox preview)
-  previewText    String?         @db.VarChar(255)
+  previewText    String?
   /// When the content was last updated
   updatedAt      DateTime?       @updatedAt
   /// When the content was created
@@ -1201,7 +1201,7 @@ model AbTestVariant {
   /// Email content for this variant
   emailContentId String
   /// Variant name (e.g., "Variant A", "Variant B")
-  name           String       @db.VarChar(50)
+  name           String
   /// Weight percentage for distribution (1-100)
   weight         Int          @default(1)
   /// Scheduled send time for this variant (for staggered sends)
@@ -1248,11 +1248,11 @@ model Event {
 
   // === Email details (populated on Queued event) ===
   /// Recipient email address
-  recipient                   String?         @db.VarChar(255)
+  recipient                   String?
   /// MTA queue name
-  queue                       String?         @db.VarChar(80)
+  queue                       String?
   /// Site name (MTA identifier)
-  siteName                    String?         @db.VarChar(80)
+  siteName                    String?
   /// Email size in bytes
   size                        Int?
   /// Total delivery attempts
@@ -1260,15 +1260,15 @@ model Event {
   /// Links in the email (for click tracking)
   links                       Json?
   /// Node ID (MTA node identifier)
-  nodeId                      String?         @db.VarChar(48)
+  nodeId                      String?
   /// Egress pool name
-  egressPool                  String?         @db.VarChar(80)
+  egressPool                  String?
   /// Egress source address
-  egressSource                String?         @db.VarChar(80)
+  egressSource                String?
   /// Delivery protocol (SMTP, etc.)
-  deliveryProtocol            String?         @db.VarChar(12)
+  deliveryProtocol            String?
   /// Reception protocol
-  receptionProtocol           String?         @db.VarChar(12)
+  receptionProtocol           String?
   /// Whether click tracking is enabled
   clickTrackingEnabled        Boolean?
   /// Whether open tracking is enabled
@@ -1278,9 +1278,9 @@ model Event {
   /// SMTP response code
   responseCode                Int?
   /// SMTP response content
-  responseContent             String?         @db.Text
+  responseContent             String?
   /// SMTP response command
-  responseCommand             String?         @db.VarChar(255)
+  responseCommand             String?
   /// Enhanced status code - class
   responseEnhancedCodeClass   Int?
   /// Enhanced status code - subject
@@ -1290,25 +1290,25 @@ model Event {
 
   // === Peer address ===
   /// Peer address name (receiving server)
-  peerAddressName             String?         @db.VarChar(255)
+  peerAddressName             String?
   /// Peer address IP
-  peerAddressAddr             String?         @db.VarChar(255)
+  peerAddressAddr             String?
 
   // === Bounce classification ===
   /// Bounce classification (hard, soft, etc.)
-  bounceClassification        String?         @db.VarChar(120)
+  bounceClassification        String?
 
   // === Analytics (for opens/clicks) ===
   /// Origin country
-  originCountry               String?         @db.VarChar(10)
+  originCountry               String?
   /// Origin state
-  originState                 String?         @db.VarChar(56)
+  originState                 String?
   /// Origin city
-  originCity                  String?         @db.VarChar(56)
+  originCity                  String?
   /// Device type
-  originDevice                String?         @db.VarChar(56)
+  originDevice                String?
   /// Browser type
-  originBrowser               String?         @db.VarChar(56)
+  originBrowser               String?
 
   // === Relations ===
   /// Sending domain relation

@@ -198,7 +198,6 @@ func runClusterStatus(cmd *cobra.Command, args []string) error {
 	}{
 		{"Cilium", "kube-system", "cilium-operator"},
 		{"cert-manager", "cert-manager", "cert-manager"},
-		{"TiDB Operator", "tidb-admin", "tidb-controller-manager"},
 		{"CloudNativePG", "cnpg-system", "cnpg-controller-manager"},
 		{"RabbitMQ Operator", "rabbitmq-system", "rabbitmq-cluster-operator"},
 	}

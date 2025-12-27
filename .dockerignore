@@ -1,0 +1,71 @@
+# Dependencies
+node_modules
+**/node_modules
+
+# Build outputs (will be created in Docker)
+**/.next
+**/dist
+**/build
+**/.turbo
+**/coverage
+
+# Development files
+**/.env
+**/.env.local
+**/.env.development
+**/.env.test
+!**/.env.example
+
+# Version control
+.git
+.gitignore
+**/.gitkeep
+
+# IDE and editor
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store
+
+# Documentation
+*.md
+!README.md
+docs
+LICENSE
+
+# Test files
+**/*.spec.ts
+**/*.spec.tsx
+**/*.test.ts
+**/*.test.tsx
+**/tests
+**/test
+**/__tests__
+**/__mocks__
+**/vitest.config.ts
+
+# Development tools
+**/.storybook
+**/storybook-static
+Makefile
+
+# Infrastructure (not needed for app builds)
+infra
+logto-helm
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local data
+**/data
+**/*.rdb
+
+# Misc
+.npmrc.local
+*.tgz
+.pnpm-debug.log

@@ -5,6 +5,7 @@ import "./env/schema";
 /** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
   /* config options here */
+  output: "standalone",
   reactCompiler: false,
   images: {
     remotePatterns: [

@@ -1,9 +1,3 @@
-/**
- * Unit tests for Links Validator
- *
- * Tests the link extraction and validation functions.
- */
-
 import { describe, expect, test } from "vitest";
 import {
   extractLinksFromContent,

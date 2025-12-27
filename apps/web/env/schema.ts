@@ -162,18 +162,18 @@ export const env = createEnv({
     /**
      * Database Connection URL
      *
-     * MySQL connection string used to connect to your database.
+     * PostgreSQL connection string used to connect to your database.
      * Must be a valid connection URL with protocol, credentials, host, and database name.
      *
      * Format: postgresql://[user[:password]@][host][:port][/dbname][?param1=value1&...]
      *
-     * @example "mysql://user:password@localhost:5432/mydb"
+     * @example "postgresql://user:password@localhost:5432/mydb"
      */
     DATABASE_URL: z
       .url("DATABASE_URL must be a valid URL")
       .refine(
-        (url) => url.startsWith("mysql://"),
-        "DATABASE_URL must be a Mysql connection string"
+        (url) => url.startsWith("postgresql://"),
+        "DATABASE_URL must be a PostgreSQL connection string"
       ),
 
     // ============================================================================
@@ -210,16 +210,7 @@ export const env = createEnv({
      * @example "https://your-tenant.logto.app/"
      * @see https://docs.logto.io/docs/recipes/integrate-logto/next-js/
      */
-    LOGTO_ENDPOINT: z
-      .url("LOGTO_ENDPOINT must be a valid URL")
-      .refine((url) => {
-        // Allow http in development and test
-        if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
-          return true;
-        }
-        // Require https in production
-        return url.startsWith("https://");
-      }, "LOGTO_ENDPOINT must use HTTPS in production"),
+    LOGTO_ENDPOINT: z.url("LOGTO_ENDPOINT must be a valid URL"),
 
     /**
      * Logto Application ID
@@ -288,13 +279,18 @@ export const env = createEnv({
     LOGTO_BASE_URL: z
       .url("LOGTO_BASE_URL must be a valid URL")
       .refine((url) => {
-        // Allow http://localhost in development and test
-        if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+        // Allow http if URL points to localhost (for local development/testing)
+        const urlObj = new URL(url);
+        if (
+          urlObj.hostname === "localhost" ||
+          urlObj.hostname === "127.0.0.1" ||
+          urlObj.hostname.endsWith(".docker.internal")
+        ) {
           return true;
         }
-        // Require https in production
+        // Require https for non-local endpoints
         return url.startsWith("https://");
-      }, "LOGTO_BASE_URL must use HTTPS in production"),
+      }, "LOGTO_BASE_URL must use HTTPS for non-local endpoints"),
 
     /**
      * Logto Cookie Secret
@@ -564,7 +560,6 @@ export const env = createEnv({
      * @example "https://s3.us-west-004.backblazeb2.com"
      */
     S3_ENDPOINT: z
-      .string()
       .url("S3_ENDPOINT must be a valid URL")
       .describe("S3-compatible storage endpoint URL"),
 
@@ -642,7 +637,6 @@ export const env = createEnv({
      * @example "https://cdn.yourdomain.com" (with Cloudflare CDN)
      */
     S3_PUBLIC_URL: z
-      .string()
       .url("S3_PUBLIC_URL must be a valid URL")
       .describe("Public base URL for accessing uploaded files"),
 

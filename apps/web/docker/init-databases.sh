@@ -11,29 +11,21 @@ EOSQL
 
 echo "Created database: logto"
 
-# Create dev database
+# Create kibamail_dev database
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE dev;
-    GRANT ALL PRIVILEGES ON DATABASE dev TO postgres;
+    CREATE DATABASE kibamail_dev;
+    GRANT ALL PRIVILEGES ON DATABASE kibamail_dev TO postgres;
 EOSQL
 
-echo "Created database: dev"
+echo "Created database: kibamail_dev"
 
-# Create test database
+# Create kibamail_test database
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE test;
-    GRANT ALL PRIVILEGES ON DATABASE test TO postgres;
+    CREATE DATABASE kibamail_test;
+    GRANT ALL PRIVILEGES ON DATABASE kibamail_test TO postgres;
 EOSQL
 
-echo "Created database: test"
-
-# Create test-e2e database
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
-    CREATE DATABASE "test-e2e";
-    GRANT ALL PRIVILEGES ON DATABASE "test-e2e" TO postgres;
-EOSQL
-
-echo "Created database: test-e2e"
+echo "Created database: kibamail_test"
 
 # Create outpost user and database
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL

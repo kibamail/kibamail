@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	ValkeyOperatorVersion   = "v0.0.61-chart"
+	ValkeyOperatorVersion   = "v0.0.61"
 	ValkeyOperatorNamespace = "valkey-operator-system"
 	ValkeyOperatorRepoName  = "hyperspike"
 	ValkeyOperatorRepoURL   = "oci://ghcr.io/hyperspike/valkey-operator"

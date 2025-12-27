@@ -67,7 +67,6 @@
     "ioredis": "^5.8.2",
     "leva": "^0.10.1",
     "libphonenumber-js": "^1.12.33",
-    "mysql2": "^3.15.3",
     "next": "16.0.1",
     "openapi-fetch": "^0.14.0",
     "openapi-typescript": "^7.10.1",

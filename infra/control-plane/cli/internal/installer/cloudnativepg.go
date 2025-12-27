@@ -40,8 +40,8 @@ func (c *CloudNativePGInstaller) Version() string {
 
 // IsInstalled checks if CloudNativePG is already installed
 func (c *CloudNativePGInstaller) IsInstalled(ctx context.Context, client *kubernetes.Clientset) (bool, error) {
-	// Check for CloudNativePG controller manager deployment
-	_, err := client.AppsV1().Deployments(CloudNativePGNamespace).Get(ctx, "cnpg-controller-manager", metav1.GetOptions{})
+	// Check for CloudNativePG deployment (helm release name is "cloudnative-pg")
+	_, err := client.AppsV1().Deployments(CloudNativePGNamespace).Get(ctx, "cloudnative-pg", metav1.GetOptions{})
 	if err != nil {
 		if errors.IsNotFound(err) {
 			return false, nil

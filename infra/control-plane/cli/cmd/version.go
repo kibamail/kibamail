@@ -45,9 +45,11 @@ var versionCmd = &cobra.Command{
 			{"Component", "Version"},
 			{"Cilium", "1.18.4"},
 			{"cert-manager", "v1.19.1"},
-			{"TiDB Operator", "v1.6.3"},
 			{"CloudNativePG", "0.26.1"},
+			{"Barman Cloud Plugin", "v0.9.0"},
 			{"RabbitMQ Operator", "v2.17.2"},
+			{"Valkey Operator", "v0.0.61"},
+			{"External Secrets", "0.12.1"},
 			{"Gateway API", "v1.2.0"},
 		}
 

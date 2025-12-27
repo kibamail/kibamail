@@ -301,9 +301,6 @@ export class BroadcastReadinessChecker {
   }
 }
 
-/**
- * Convenience function to check broadcast readiness
- */
 export async function checkBroadcastReadiness(
   workspaceId: string,
   broadcast: BroadcastWithRelations
@@ -312,10 +309,6 @@ export async function checkBroadcastReadiness(
   return checker.check();
 }
 
-/**
- * Get the reasons why a broadcast is not ready
- * Useful for error messages in the send endpoint
- */
 export function getReadinessErrors(result: BroadcastReadinessResult): string[] {
   return result.checklist
     .filter((item) => !item.completed && item.reason)

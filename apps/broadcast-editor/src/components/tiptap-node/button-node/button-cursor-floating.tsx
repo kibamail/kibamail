@@ -4,11 +4,18 @@ import { useEffect, useState, useCallback } from "react";
 import { type Editor } from "@tiptap/react";
 import type { Node as TiptapNode } from "@tiptap/pm/model";
 import { autoUpdate } from "@floating-ui/react";
-
-// --- Hooks ---
+import {
+  AlignLeft as AlignLeftIcon,
+  AlignCenter as AlignCenterIcon,
+  AlignRight as AlignRightIcon,
+  Link as LinkIcon,
+  Trash as TrashIcon,
+  CornerBottomLeft as CornerDownLeftIcon,
+  OpenNewWindow as ExternalLinkIcon,
+  CodeBrackets as BracesIcon,
+  Expand as MoveHorizontalIcon,
+} from "iconoir-react";
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- UI Components ---
 import { FloatingElement } from "@/components/tiptap-ui-utils/floating-element";
 import {
   Toolbar,
@@ -28,36 +35,12 @@ import {
 import { Input, InputGroup } from "@/components/tiptap-ui-primitive/input";
 import { ButtonGroup } from "@/components/tiptap-ui-primitive/button";
 import { Separator } from "@/components/tiptap-ui-primitive/separator";
-
-// --- Icons ---
-import {
-  AlignLeft as AlignLeftIcon,
-  AlignCenter as AlignCenterIcon,
-  AlignRight as AlignRightIcon,
-  Link as LinkIcon,
-  Trash as TrashIcon,
-  CornerBottomLeft as CornerDownLeftIcon,
-  OpenNewWindow as ExternalLinkIcon,
-  CodeBrackets as BracesIcon,
-  Expand as MoveHorizontalIcon,
-} from "iconoir-react";
-
-// --- Contexts ---
 import { useVariables } from "@/contexts/variables-context";
-
-// --- Tiptap UI ---
 import { CustomNodeStylesButton } from "@/components/tiptap-ui/custom-node-styles-button";
-
-// --- Lib ---
 import { sanitizeUrl } from "@/lib/tiptap-utils";
-
-// --- Styles ---
 import "./button-cursor-floating.scss";
 
 export interface ButtonCursorFloatingProps {
-  /**
-   * The Tiptap editor instance.
-   */
   editor?: Editor | null;
 }
 
@@ -83,12 +66,11 @@ export function ButtonCursorFloating({
 
     if (!coords) return null;
 
-    // Create a proper DOMRect at the cursor position
     return new DOMRect(
       coords.left,
       coords.top,
-      2, // width
-      coords.bottom - coords.top // height
+      2,
+      coords.bottom - coords.top
     );
   }, [editor]);
 
@@ -167,7 +149,7 @@ export function ButtonCursorFloating({
     if (!editor) return;
 
     function onSelectionUpdate() {
-      if (!editor.isEditable) {
+      if (!editor || !editor.isEditable) {
         setShouldShow(false);
         setButtonNodeData(null);
         return;
@@ -433,14 +415,12 @@ export function ButtonCursorFloating({
               const { selection } = editor.state;
               const { $from } = selection;
 
-              // Find the button node and its position
               for (let depth = $from.depth; depth >= 0; depth--) {
                 const node = $from.node(depth);
                 if (node.type.name === "button") {
                   const pos = depth === 0 ? 0 : $from.before(depth);
                   const nodeSize = node.nodeSize;
 
-                  // Delete the entire button node
                   editor
                     .chain()
                     .focus()
@@ -450,7 +430,6 @@ export function ButtonCursorFloating({
                 }
               }
 
-              // Fallback: if we can't find the button node, use deleteSelection
               editor.chain().focus().deleteSelection().run();
             }}
           >

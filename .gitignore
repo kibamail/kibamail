@@ -42,7 +42,6 @@ bun.lockb
 .env*
 !.env.example
 !.env.test
-!.env.tidb.example
 
 # vercel
 .vercel

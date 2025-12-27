@@ -14,13 +14,14 @@ import (
 )
 
 var (
-	skipCilium       bool
-	skipCertManager  bool
-	skipTiDB         bool
-	skipCloudNativePG bool
-	skipRabbitMQ     bool
-	skipValkey       bool
-	dryRun           bool
+	skipCilium          bool
+	skipCertManager     bool
+	skipCloudNativePG   bool
+	skipBarmanCloud     bool
+	skipRabbitMQ        bool
+	skipValkey          bool
+	skipExternalSecrets bool
+	dryRun              bool
 )
 
 var installCmd = &cobra.Command{
@@ -31,10 +32,11 @@ var installCmd = &cobra.Command{
 Components installed:
   - Cilium CNI with Gateway API support
   - cert-manager for certificate management
-  - TiDB Operator for distributed database
   - CloudNativePG for PostgreSQL
+  - Barman Cloud Plugin for PostgreSQL backups
   - RabbitMQ Cluster Operator for message queuing
   - Valkey Operator for in-memory data store
+  - External Secrets Operator for secrets management
 
 All installations are idempotent - running install multiple times is safe.`,
 	RunE: runInstall,
@@ -45,10 +47,11 @@ func init() {
 
 	installCmd.Flags().BoolVar(&skipCilium, "skip-cilium", false, "Skip Cilium installation")
 	installCmd.Flags().BoolVar(&skipCertManager, "skip-cert-manager", false, "Skip cert-manager installation")
-	installCmd.Flags().BoolVar(&skipTiDB, "skip-tidb", false, "Skip TiDB Operator installation")
 	installCmd.Flags().BoolVar(&skipCloudNativePG, "skip-cloudnativepg", false, "Skip CloudNativePG installation")
+	installCmd.Flags().BoolVar(&skipBarmanCloud, "skip-barman-cloud", false, "Skip Barman Cloud Plugin installation")
 	installCmd.Flags().BoolVar(&skipRabbitMQ, "skip-rabbitmq", false, "Skip RabbitMQ Operator installation")
 	installCmd.Flags().BoolVar(&skipValkey, "skip-valkey", false, "Skip Valkey Operator installation")
+	installCmd.Flags().BoolVar(&skipExternalSecrets, "skip-external-secrets", false, "Skip External Secrets Operator installation")
 	installCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Print what would be installed without actually installing")
 }
 
@@ -103,10 +106,11 @@ func runInstall(cmd *cobra.Command, args []string) error {
 	components := []componentDef{
 		{skip: skipCilium, installer: installer.NewCiliumInstaller(kubeconfig)},
 		{skip: skipCertManager, installer: installer.NewCertManagerInstaller(kubeconfig)},
-		{skip: skipTiDB, installer: installer.NewTiDBOperatorInstaller(kubeconfig)},
 		{skip: skipCloudNativePG, installer: installer.NewCloudNativePGInstaller(kubeconfig)},
+		{skip: skipBarmanCloud, installer: installer.NewBarmanCloudInstaller(kubeconfig)},
 		{skip: skipRabbitMQ, installer: installer.NewRabbitMQOperatorInstaller(kubeconfig)},
 		{skip: skipValkey, installer: installer.NewValkeyOperatorInstaller(kubeconfig)},
+		{skip: skipExternalSecrets, installer: installer.NewExternalSecretsInstaller(kubeconfig)},
 	}
 
 	// Print installation plan

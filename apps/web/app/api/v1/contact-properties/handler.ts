@@ -284,7 +284,7 @@ export async function updateContactProperty(
  * DELETE /api/v1/contact-properties/[contactPropertyId]
  *
  * Delete a specific contact property by ID (soft delete).
- * To support unique constraints with soft deletes in MySQL/TiDB,
+ * To support unique constraints with soft deletes,
  * we rename the property on deletion to free up the name for reuse.
  * Workspace is determined from the authenticated API key.
  * Global error handler will catch not found errors.

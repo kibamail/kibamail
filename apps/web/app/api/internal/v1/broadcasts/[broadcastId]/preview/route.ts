@@ -76,7 +76,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
       // Render the broadcast to HTML with styles
       const html = await renderBroadcastToHtml(
-        contentJson as BroadcastDocument,
+        contentJson as unknown as BroadcastDocument,
         {
           // Provide sample variables for preview
           variables: {

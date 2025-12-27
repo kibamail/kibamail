@@ -1,0 +1,27 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kibamail-postgres
+spec:
+  instances: 3
+
+  bootstrap:
+    initdb:
+      database: kibamail
+      owner: kibamail
+      secret:
+        name: kibamail-postgres-credentials
+      postInitSQL:
+        - ALTER USER kibamail WITH CREATEROLE
+        - CREATE DATABASE logto OWNER kibamail
+        - CREATE DATABASE outpost OWNER kibamail
+
+  storage:
+    size: 20Gi
+    storageClass: kibamail-storage
+
+  plugins:
+    - name: barman-cloud.cloudnative-pg.io
+      isWALArchiver: true
+      parameters:
+        barmanObjectName: kibamail-backup-store

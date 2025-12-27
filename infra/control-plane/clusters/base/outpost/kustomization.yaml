@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: outpost
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - config.yaml
+  - api-deployment.yaml
+  - delivery-deployment.yaml
+  - log-deployment.yaml
+  - service.yaml

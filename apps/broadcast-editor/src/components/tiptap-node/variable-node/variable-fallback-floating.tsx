@@ -4,22 +4,14 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { type Editor } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import { autoUpdate } from "@floating-ui/react";
-
-// --- Hooks ---
+import { Trash as TrashIcon, CornerBottomLeft as CornerDownLeftIcon } from "iconoir-react";
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
-
-// --- Lib ---
 import { isNodeSelectionType } from "@/lib/tiptap-utils";
-
-// --- UI Components ---
 import { FloatingElement } from "@/components/tiptap-ui-utils/floating-element";
 import { Card, CardBody, CardItemGroup } from "@/components/tiptap-ui-primitive/card";
 import { Button, ButtonGroup } from "@/components/tiptap-ui-primitive/button";
 import { Input, InputGroup } from "@/components/tiptap-ui-primitive/input";
 import { Separator } from "@/components/tiptap-ui-primitive/separator";
-
-// --- Icons ---
-import { Trash as TrashIcon, CornerBottomLeft as CornerDownLeftIcon } from "iconoir-react";
 
 export interface VariableFallbackFloatingProps {
   editor?: Editor | null;
@@ -94,7 +86,6 @@ export function VariableFallbackFloating({
       fallback: value || null,
     });
 
-    // Re-select the node after updating to maintain focus
     tr.setSelection(NodeSelection.create(tr.doc, selectedNodePos));
 
     editor.view.dispatch(tr);
@@ -103,7 +94,6 @@ export function VariableFallbackFloating({
   function onDelete() {
     if (!editor || selectedNodePos === null) return;
 
-    // Re-select the node before deleting to ensure correct target
     const tr = editor.state.tr.setSelection(
       NodeSelection.create(editor.state.doc, selectedNodePos)
     );
@@ -112,7 +102,6 @@ export function VariableFallbackFloating({
     editor.chain().focus().deleteSelection().run();
   }
 
-  // Only show popup on click, not on keyboard navigation
   useEffect(() => {
     if (!editor) return;
 
@@ -126,7 +115,6 @@ export function VariableFallbackFloating({
       const variableNode = target.closest('.variable-node');
 
       if (variableNode) {
-        // Delay to let the selection update first
         setTimeout(() => {
           const { selected, fallback, pos } = isVariableNodeSelected(editor);
           if (selected) {
