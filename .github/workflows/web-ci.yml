@@ -72,6 +72,12 @@ jobs:
           psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE USER outpost WITH PASSWORD 'outpost';"
           psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE outpost OWNER outpost;"
 
+      - name: Build shared packages
+        run: |
+          pnpm --filter @repo/tracking-utils build
+          cd packages/owly && pnpm build:clean && pnpm build:css && pnpm build:components
+          pnpm --filter @repo/broadcast-editor build
+
       - name: Generate Prisma client
         working-directory: apps/web
         env:
