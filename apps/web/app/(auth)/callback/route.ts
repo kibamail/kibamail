@@ -19,31 +19,19 @@
  */
 
 import { handleSignIn } from "@logto/next/server-actions";
-import { redirect } from "next/navigation";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { logtoConfig } from "@/config/logto";
 import { CookieKey, Cookies } from "@/lib/cookies";
 import { env } from "@/env/schema";
 
 export async function GET(request: NextRequest) {
-  // Debug: Log redirect URL construction
-  const redirectUrl = `${env.LOGTO_BASE_URL}/w`;
-  console.log("[Callback Debug]", {
-    LOGTO_BASE_URL: env.LOGTO_BASE_URL,
-    redirectUrl,
-    requestHost: request.headers.get("host"),
-    requestUrl: request.url,
-  });
-
   await handleSignIn(logtoConfig, request.nextUrl.searchParams);
 
   const intended = await Cookies.get(CookieKey.ROUTE_INTENDED);
 
   if (intended) {
-    console.log("[Callback Debug] Redirecting to intended:", intended);
-    return redirect(intended);
+    return NextResponse.redirect(new URL(intended));
   }
 
-  console.log("[Callback Debug] Redirecting to:", redirectUrl);
-  redirect(redirectUrl);
+  return NextResponse.redirect(new URL(`${env.LOGTO_BASE_URL}/w`));
 }
