@@ -179,7 +179,7 @@ jobs:
 
       - name: Get image tag for deployment
         id: get-tag
-        run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+        run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   deploy-staging:
     name: Deploy to Staging
