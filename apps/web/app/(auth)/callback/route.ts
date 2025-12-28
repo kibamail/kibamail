@@ -19,7 +19,8 @@
  */
 
 import { handleSignIn } from "@logto/next/server-actions";
-import { NextResponse, type NextRequest } from "next/server";
+import { redirect } from "next/navigation";
+import type { NextRequest } from "next/server";
 import { logtoConfig } from "@/config/logto";
 import { CookieKey, Cookies } from "@/lib/cookies";
 import { env } from "@/env/schema";
@@ -30,8 +31,8 @@ export async function GET(request: NextRequest) {
   const intended = await Cookies.get(CookieKey.ROUTE_INTENDED);
 
   if (intended) {
-    return NextResponse.redirect(new URL(intended));
+    return redirect(intended);
   }
 
-  return NextResponse.redirect(new URL(`${env.LOGTO_BASE_URL}/w`));
+  redirect(`${env.LOGTO_BASE_URL}/w`);
 }
