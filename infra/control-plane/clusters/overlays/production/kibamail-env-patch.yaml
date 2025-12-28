@@ -9,6 +9,8 @@ spec:
       containers:
         - name: web
           env:
+            - name: LOGTO_ENDPOINT
+              value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
             - name: OTEL_RESOURCE_ATTRIBUTES
@@ -25,6 +27,8 @@ spec:
       containers:
         - name: api
           env:
+            - name: LOGTO_ENDPOINT
+              value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
             - name: OTEL_RESOURCE_ATTRIBUTES
@@ -41,6 +45,10 @@ spec:
       containers:
         - name: worker
           env:
+            - name: LOGTO_ENDPOINT
+              value: "https://auth.kibamail.com"
+            - name: LOGTO_BASE_URL
+              value: "https://kibamail.com"
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-workers,environment=production.kibamail.com"
 ---

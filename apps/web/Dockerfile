@@ -102,7 +102,8 @@ RUN addgroup --system --gid 1001 nodejs && \
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+# Note: HOSTNAME is intentionally not set here to avoid redirect issues.
+# Next.js will bind to 0.0.0.0 by default in standalone mode.
 
 # Copy standalone build output
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
