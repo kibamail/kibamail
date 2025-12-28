@@ -23,13 +23,16 @@ import { redirect } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { logtoConfig } from "@/config/logto";
 import { CookieKey, Cookies } from "@/lib/cookies";
+import { env } from "@/env/schema";
 
 export async function GET(request: NextRequest) {
   await handleSignIn(logtoConfig, request.nextUrl.searchParams);
 
   const intended = await Cookies.get(CookieKey.ROUTE_INTENDED);
 
-  if (intended) return redirect(intended);
+  if (intended) {
+    return redirect(intended);
+  }
 
-  redirect("/w");
+  redirect(`${env.LOGTO_BASE_URL}/w`);
 }

@@ -36,6 +36,6 @@ export async function signInAction() {
 
   await signIn(logtoConfig, {
     redirectUri,
-    postRedirectUri: `${env.LOGTO_BASE_URL}/w}`,
+    postRedirectUri: `${env.LOGTO_BASE_URL}/w`,
   });
 }
