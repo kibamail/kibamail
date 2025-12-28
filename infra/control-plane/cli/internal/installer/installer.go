@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/kibamail/infra/control-plane/cli/internal/ui"
+	"gopkg.in/yaml.v3"
 	"helm.sh/helm/v3/pkg/action"
 	"helm.sh/helm/v3/pkg/chart/loader"
 	"helm.sh/helm/v3/pkg/cli"
@@ -35,7 +36,8 @@ type HelmInstaller struct {
 	Namespace   string
 	RepoName    string
 	RepoURL     string
-	ChartName   string
+	ChartName   string                 // The actual chart name in the repo (e.g., "opentelemetry-collector")
+	ReleaseName string                 // The release name (e.g., "otel-daemonset"). If empty, uses ChartName
 	Version     string
 	Values      map[string]interface{}
 	ReuseValues bool // Set to true to use --reuse-values flag
@@ -230,10 +232,16 @@ func (h *HelmInstaller) UpgradeOrInstallHelmChart(ctx context.Context, client *k
 		chartRef = fmt.Sprintf("%s/%s", h.RepoName, h.ChartName)
 	}
 
+	// Determine release name
+	releaseName := h.ReleaseName
+	if releaseName == "" {
+		releaseName = h.ChartName
+	}
+
 	// Build helm upgrade command with values
 	args := []string{
 		"upgrade", "--install",
-		h.ChartName,
+		releaseName,
 		chartRef,
 		"--version", h.Version,
 		"--namespace", h.Namespace,
@@ -251,11 +259,25 @@ func (h *HelmInstaller) UpgradeOrInstallHelmChart(ctx context.Context, client *k
 		args = append(args, "--reuse-values")
 	}
 
-	// Flatten and add values as --set flags
-	var setValues []string
-	flattenHelmValues("", h.Values, &setValues)
-	for _, setValue := range setValues {
-		args = append(args, "--set", setValue)
+	// Write values to temp file and use -f flag (handles arrays and complex types correctly)
+	if len(h.Values) > 0 {
+		valuesFile, err := os.CreateTemp("", "helm-values-*.yaml")
+		if err != nil {
+			return fmt.Errorf("failed to create temp values file: %w", err)
+		}
+		defer os.Remove(valuesFile.Name())
+
+		valuesYAML, err := yaml.Marshal(h.Values)
+		if err != nil {
+			return fmt.Errorf("failed to marshal values to YAML: %w", err)
+		}
+
+		if _, err := valuesFile.Write(valuesYAML); err != nil {
+			return fmt.Errorf("failed to write values file: %w", err)
+		}
+		valuesFile.Close()
+
+		args = append(args, "-f", valuesFile.Name())
 	}
 
 	// Execute helm upgrade --install

@@ -1,19 +1,49 @@
 /**
  * BullMQ Connection Configuration
  *
- * Provides Redis connection configuration for BullMQ queues and workers
+ * Provides Redis connection configuration for BullMQ queues and workers.
+ * Supports both standalone Redis and Redis Cluster mode.
  */
 
 import type { ConnectionOptions } from "bullmq";
+import Redis from "ioredis";
 import { env } from "@/env/schema";
+
+/**
+ * BullMQ connection type - can be ConnectionOptions or ioredis Cluster instance
+ */
+type QueueConnection = ConnectionOptions | Redis.Cluster;
 
 /**
  * Get BullMQ connection options
  *
- * BullMQ expects a ConnectionOptions object rather than an ioredis instance
- * for better connection management across queues and workers.
+ * Returns connection configuration for BullMQ queues and workers.
+ * In cluster mode, returns an ioredis Cluster instance.
+ * In standalone mode, returns ConnectionOptions object.
  */
-export function getQueueConnection(): ConnectionOptions {
+export function getQueueConnection(): QueueConnection {
+  if (env.REDIS_CLUSTER_MODE) {
+    // BullMQ requires an ioredis Cluster instance for cluster mode
+    return new Redis.Cluster(
+      [{ host: env.REDIS_HOST, port: env.REDIS_PORT }],
+      {
+        redisOptions: {
+          password: env.REDIS_PASSWORD,
+          connectTimeout: 10000,
+          keepAlive: 30000,
+          maxRetriesPerRequest: null,
+        },
+        clusterRetryStrategy(times) {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        },
+        enableReadyCheck: true,
+        scaleReads: "slave",
+      }
+    );
+  }
+
+  // Standalone mode
   return {
     host: env.REDIS_HOST,
     port: env.REDIS_PORT,

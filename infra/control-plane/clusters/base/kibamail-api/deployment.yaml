@@ -20,6 +20,7 @@ spec:
         app.kubernetes.io/name: kibamail-api
         app.kubernetes.io/component: api
         app.kubernetes.io/part-of: kibamail
+        service.name: kibamail-api
     spec:
       affinity:
         podAntiAffinity:
@@ -39,6 +40,24 @@ spec:
               containerPort: 3000
               protocol: TCP
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-api"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -55,6 +74,8 @@ spec:
                   key: password
             - name: REDIS_DATABASE
               value: "0"
+            - name: REDIS_CLUSTER_MODE
+              value: "true"
             - name: LOGTO_TENANT_ID
               value: "default"
             - name: LOGTO_ENDPOINT
@@ -116,7 +137,6 @@ spec:
                   key: password
             - name: OUTPOST_REDIS_DATABASE
               value: "1"
-            # S3 Public Storage (for broadcast images, logos, etc.)
             - name: S3_PUBLIC_ENDPOINT
               valueFrom:
                 secretKeyRef:
@@ -147,7 +167,6 @@ spec:
                 secretKeyRef:
                   name: control-plane-s3-public
                   key: PUBLIC_URL
-            # S3 Private Storage (for contact imports, exports, etc.)
             - name: S3_PRIVATE_ENDPOINT
               valueFrom:
                 secretKeyRef:
@@ -173,7 +192,6 @@ spec:
                 secretKeyRef:
                   name: control-plane-s3-private
                   key: BUCKET
-            # App secrets
             - name: APP_KEY
               valueFrom:
                 secretKeyRef:
@@ -184,6 +202,11 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: INTERNAL_SERVICE_KEY
+            - name: OTEL_INGESTION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: OTEL_INGESTION_API_KEY
           resources:
             requests:
               cpu: 100m

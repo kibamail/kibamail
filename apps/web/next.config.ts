@@ -6,7 +6,7 @@ import "./env/schema";
 const nextConfig: NextConfig = {
   /* config options here */
   output: "standalone",
-  assetPrefix: "/_kibamail-control-plane",
+  assetPrefix: "/_kibamail-web",
   reactCompiler: false,
   images: {
     remotePatterns: [

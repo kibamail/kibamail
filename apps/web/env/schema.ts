@@ -160,6 +160,17 @@ export const env = createEnv({
       .default("development"),
 
     /**
+     * HyperDX Ingestion API Key
+     *
+     * API key for HyperDX ingestion. Used for sending telemetry data to HyperDX.
+     *
+     * @example "your-hyperdx-api-key"
+     */
+    OTEL_INGESTION_API_KEY: z
+      .string()
+      .min(1, "OTEL_INGESTION_API_KEY is required"),
+
+    /**
      * Database Connection URL
      *
      * PostgreSQL connection string used to connect to your database.
@@ -485,6 +496,25 @@ export const env = createEnv({
       .default(0)
       .describe("Redis database number"),
 
+    /**
+     * Redis Cluster Mode
+     *
+     * Enable cluster mode for Redis/Valkey cluster deployments.
+     * When enabled, the client uses ioredis Cluster mode which
+     * handles automatic slot routing and node discovery.
+     *
+     * Note: In cluster mode, the database number is ignored
+     * as Redis Cluster only supports database 0.
+     *
+     * @example "true"
+     * @default "false"
+     */
+    REDIS_CLUSTER_MODE: z
+      .string()
+      .transform((val) => val === "true")
+      .default("false")
+      .describe("Enable Redis cluster mode"),
+
     // ============================================================================
     // OUTPOST WEBHOOK DELIVERY CONFIGURATION
     // ============================================================================
@@ -788,6 +818,7 @@ export const env = createEnv({
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
     REDIS_DATABASE: process.env.REDIS_DATABASE,
+    REDIS_CLUSTER_MODE: process.env.REDIS_CLUSTER_MODE,
     OUTPOST_API_URL: process.env.OUTPOST_API_URL,
     OUTPOST_API_KEY: process.env.OUTPOST_API_KEY,
     S3_PUBLIC_ENDPOINT: process.env.S3_PUBLIC_ENDPOINT,
@@ -803,6 +834,7 @@ export const env = createEnv({
     S3_PRIVATE_BUCKET: process.env.S3_PRIVATE_BUCKET,
     APP_KEY: process.env.APP_KEY,
     INTERNAL_SERVICE_KEY: process.env.INTERNAL_SERVICE_KEY,
+    OTEL_INGESTION_API_KEY: process.env.OTEL_INGESTION_API_KEY,
     // Map client environment variables here
     // Example:
     // NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,

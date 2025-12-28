@@ -3,30 +3,38 @@
  *
  * Provides a singleton Redis client instance using ioredis.
  * This client is used for session storage, caching, and other Redis operations.
+ * Supports both standalone Redis and Redis Cluster mode.
  *
  * @see https://github.com/redis/ioredis
  */
 
-import Redis from "ioredis";
+import Redis, { Cluster } from "ioredis";
 import { env } from "@/env/schema";
+
+/**
+ * Redis client type - can be either standalone Redis or Cluster
+ */
+type RedisClient = Redis | Cluster;
 
 /**
  * Global Redis client instance
  * Using singleton pattern to reuse the same connection across the application
  */
-let redisClient: Redis | null = null;
+let redisClient: RedisClient | null = null;
 
 /**
  * Get Redis Client Instance
  *
  * Returns a singleton Redis client instance. Creates a new connection
- * if one doesn't exist yet.
+ * if one doesn't exist yet. Automatically uses cluster mode when
+ * REDIS_CLUSTER_MODE is enabled.
  *
  * Features:
  * - Singleton pattern for connection reuse
  * - Automatic reconnection on connection loss
  * - Connection pooling
  * - Error handling and logging
+ * - Redis Cluster support with automatic slot routing
  *
  * @returns Redis client instance
  *
@@ -39,37 +47,56 @@ let redisClient: Redis | null = null;
  * const value = await redis.get('key');
  * ```
  */
-export function getRedisClient(): Redis {
+export function getRedisClient(): RedisClient {
   if (!redisClient) {
-    redisClient = new Redis({
-      host: env.REDIS_HOST,
-      port: env.REDIS_PORT,
-      password: env.REDIS_PASSWORD,
-      db: env.REDIS_DATABASE,
-      // Retry strategy for connection failures
-      retryStrategy(times) {
-        const delay = Math.min(times * 50, 2000);
-        console.log(`Redis connection failed. Retrying in ${delay}ms...`);
-        return delay;
-      },
-      // Reconnect on error
-      reconnectOnError(err) {
-        const targetErrors = ["READONLY", "ETIMEDOUT", "ECONNRESET"];
-        if (
-          targetErrors.some((targetError) => err.message.includes(targetError))
-        ) {
-          // Reconnect when specific errors occur
-          return true;
+    if (env.REDIS_CLUSTER_MODE) {
+      // Cluster mode - ioredis auto-discovers other nodes from this initial node
+      redisClient = new Redis.Cluster(
+        [{ host: env.REDIS_HOST, port: env.REDIS_PORT }],
+        {
+          redisOptions: {
+            password: env.REDIS_PASSWORD,
+            connectTimeout: 10000,
+            keepAlive: 30000,
+            maxRetriesPerRequest: 3,
+          },
+          clusterRetryStrategy(times) {
+            const delay = Math.min(times * 50, 2000);
+            console.log(
+              `Redis cluster connection failed. Retrying in ${delay}ms...`
+            );
+            return delay;
+          },
+          enableReadyCheck: true,
+          scaleReads: "slave",
         }
-        return false;
-      },
-      // Connection timeout
-      connectTimeout: 10000,
-      // Enable keep-alive
-      keepAlive: 30000,
-      // Max retry attempts
-      maxRetriesPerRequest: 3,
-    });
+      );
+    } else {
+      // Standalone mode
+      redisClient = new Redis({
+        host: env.REDIS_HOST,
+        port: env.REDIS_PORT,
+        password: env.REDIS_PASSWORD,
+        db: env.REDIS_DATABASE,
+        retryStrategy(times) {
+          const delay = Math.min(times * 50, 2000);
+          console.log(`Redis connection failed. Retrying in ${delay}ms...`);
+          return delay;
+        },
+        reconnectOnError(err) {
+          const targetErrors = ["READONLY", "ETIMEDOUT", "ECONNRESET"];
+          if (
+            targetErrors.some((targetError) => err.message.includes(targetError))
+          ) {
+            return true;
+          }
+          return false;
+        },
+        connectTimeout: 10000,
+        keepAlive: 30000,
+        maxRetriesPerRequest: 3,
+      });
+    }
 
     // Log connection status
     redisClient.on("connect", () => {

@@ -1,26 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: kibamail-control-plane
-  namespace: kibamail-control-plane
+  name: kibamail-workers
+  namespace: kibamail-workers
   labels:
-    app.kubernetes.io/name: kibamail-control-plane
-    app.kubernetes.io/component: web
+    app.kubernetes.io/name: kibamail-workers
+    app.kubernetes.io/component: worker
     app.kubernetes.io/part-of: kibamail
   annotations:
     secrets.infisical.com/auto-reload: "true"
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
-      app.kubernetes.io/name: kibamail-control-plane
+      app.kubernetes.io/name: kibamail-workers
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: kibamail-control-plane
-        app.kubernetes.io/component: web
+        app.kubernetes.io/name: kibamail-workers
+        app.kubernetes.io/component: worker
         app.kubernetes.io/part-of: kibamail
-        service.name: kibamail-control-plane
+        service.name: kibamail-workers
     spec:
       affinity:
         podAntiAffinity:
@@ -29,17 +29,18 @@ spec:
               podAffinityTerm:
                 labelSelector:
                   matchLabels:
-                    app.kubernetes.io/name: kibamail-control-plane
+                    app.kubernetes.io/name: kibamail-workers
                 topologyKey: kubernetes.io/hostname
       containers:
-        - name: web
-          image: ghcr.io/kibamail/kibamail:staging
+        - name: worker
+          image: ghcr.io/kibamail/kibamail-worker:staging
           imagePullPolicy: Always
           ports:
-            - name: http
-              containerPort: 3000
+            - name: metrics
+              containerPort: 9090
               protocol: TCP
           env:
+            # OTEL K8s metadata from downward API
             - name: POD_NAME
               valueFrom:
                 fieldRef:
@@ -57,8 +58,9 @@ spec:
                 fieldRef:
                   fieldPath: spec.nodeName
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-control-plane"
-
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-workers"
+            - name: METRICS_PORT
+              value: "9090"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -213,21 +215,21 @@ spec:
               cpu: 100m
               memory: 256Mi
             limits:
-              cpu: 1000m
-              memory: 1024Mi
+              cpu: 2000m
+              memory: 2048Mi
           livenessProbe:
             httpGet:
-              path: /healthz
-              port: http
-            initialDelaySeconds: 30
-            periodSeconds: 10
+              path: /health
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 30
             timeoutSeconds: 5
-            failureThreshold: 6
+            failureThreshold: 3
           readinessProbe:
             httpGet:
-              path: /healthz
-              port: http
-            initialDelaySeconds: 10
+              path: /health
+              port: metrics
+            initialDelaySeconds: 5
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3

@@ -1,0 +1,12 @@
+global:
+  deploymentEnvironment: "<staging|production>"
+
+clusterName: "<kibamail-local|kibamail-staging|kibamail-production>"
+otelCollectorEndpoint: "ingest.signoz.kibamail.com"
+otelInsecure: false
+
+signozApiKey: "<replace-me>"
+
+presets:
+  prometheus:
+    enabled: true

@@ -5,7 +5,8 @@
  */
 
 import type { Job } from "bullmq";
-import { Worker } from "bullmq";
+import { MetricsTime, Worker } from "bullmq";
+import { env } from "@/env/schema";
 import { getQueueConnection } from "./connection";
 import { createJobLogger, createQueueLogger } from "./logger";
 import type { JobName, QueueName, WorkerConfig } from "./types";
@@ -58,6 +59,11 @@ export class WorkerWrapper<Q extends QueueName> {
 
     this.logger.info("Starting worker");
 
+    // In cluster mode, use hash tags in prefix to ensure all queue keys
+    // land on the same Redis Cluster slot. Must match the Queue prefix.
+    // @see https://docs.bullmq.io/bull/patterns/redis-cluster
+    const prefix = env.REDIS_CLUSTER_MODE ? `{bull:${this.queueName}}` : "bull";
+
     this.worker = new Worker(
       this.queueName,
       async (job: Job) => {
@@ -86,9 +92,13 @@ export class WorkerWrapper<Q extends QueueName> {
       },
       {
         connection: getQueueConnection(),
+        prefix,
         concurrency: this.config.concurrency ?? 1,
         limiter: this.config.rateLimiter,
         autorun: true,
+        metrics: {
+          maxDataPoints: MetricsTime.ONE_WEEK * 2,
+        },
       },
     );
 

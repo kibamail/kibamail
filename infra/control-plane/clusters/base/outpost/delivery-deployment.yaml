@@ -17,12 +17,31 @@ spec:
         app.kubernetes.io/name: outpost-delivery
         app.kubernetes.io/component: delivery
         app.kubernetes.io/part-of: kibamail
+        service.name: outpost-delivery
     spec:
       containers:
         - name: outpost-delivery
           image: hookdeck/outpost:v0.7.0
           imagePullPolicy: IfNotPresent
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=outpost-delivery"
             - name: SERVICE
               value: delivery
             - name: API_KEY

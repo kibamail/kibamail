@@ -17,6 +17,7 @@ spec:
         app.kubernetes.io/name: logto
         app.kubernetes.io/component: auth
         app.kubernetes.io/part-of: kibamail
+        service.name: logto
     spec:
       affinity:
         podAntiAffinity:
@@ -55,6 +56,24 @@ spec:
               containerPort: 3002
               protocol: TCP
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=logto"
             - name: TRUST_PROXY_HEADER
               value: "true"
             - name: DB_URL

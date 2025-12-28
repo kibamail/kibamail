@@ -14,4 +14,5 @@ resources:
   - kibamail-control-plane
   - kibamail-marketing
   - kibamail-api
+  - kibamail-workers
   - deployment-rbac

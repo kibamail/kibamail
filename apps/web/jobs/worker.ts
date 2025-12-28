@@ -1,3 +1,4 @@
+import express from "express";
 import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
 
 import { sendBroadcast } from "./broadcasts/send-broadcast";
@@ -7,6 +8,7 @@ import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkVerification } from "./sending-domains/check-verification";
 
 const logger = queueLogger.child({ worker: "unified" });
+const METRICS_PORT = process.env.METRICS_PORT || 9090;
 
 // ============================================================
 // Configure all workers
@@ -74,12 +76,44 @@ logger.info(
 );
 
 // ============================================================
+// Prometheus Metrics Server
+// ============================================================
+
+const app = express();
+
+app.get("/metrics", async (_req, res) => {
+  try {
+    const metricsPromises = queues.map((queueName) =>
+      queue(queueName).getQueue().getQueue().exportPrometheusMetrics()
+    );
+
+    const allMetrics = await Promise.all(metricsPromises);
+    const combinedMetrics = allMetrics.join("\n");
+
+    res.set("Content-Type", "text/plain");
+    res.send(combinedMetrics);
+  } catch (error) {
+    logger.error({ error }, "Failed to export metrics");
+    res.status(500).send("Failed to export metrics");
+  }
+});
+
+app.get("/health", (_req, res) => {
+  res.status(200).send("OK");
+});
+
+const metricsServer = app.listen(METRICS_PORT, () => {
+  logger.info({ port: METRICS_PORT }, "Metrics server started");
+});
+
+// ============================================================
 // Graceful shutdown
 // ============================================================
 
 const shutdown = async (signal: string) => {
   logger.info({ signal }, "Shutting down all workers");
 
+  metricsServer.close();
   await closeAll();
 
   logger.info("All workers stopped");
