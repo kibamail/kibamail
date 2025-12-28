@@ -268,8 +268,18 @@ func (o *OtelCollectorInstaller) getDaemonSetValues() map[string]interface{} {
 			"rules": []map[string]interface{}{
 				{
 					"apiGroups": []string{""},
-					"resources": []string{"nodes/proxy"},
-					"verbs":     []string{"get"},
+					"resources": []string{"nodes/proxy", "nodes/stats", "nodes/metrics"},
+					"verbs":     []string{"get", "list", "watch"},
+				},
+				{
+					"apiGroups": []string{""},
+					"resources": []string{"nodes"},
+					"verbs":     []string{"get", "list", "watch"},
+				},
+				{
+					"apiGroups": []string{""},
+					"resources": []string{"pods", "namespaces"},
+					"verbs":     []string{"get", "list", "watch"},
 				},
 			},
 		},
@@ -315,7 +325,7 @@ func (o *OtelCollectorInstaller) getDaemonSetValues() map[string]interface{} {
 				"kubeletstats": map[string]interface{}{
 					"collection_interval":   "20s",
 					"auth_type":             "serviceAccount",
-					"endpoint":              "${env:K8S_NODE_NAME}:10250",
+					"endpoint":              "${env:K8S_NODE_IP}:10250",
 					"insecure_skip_verify":  true,
 					"metrics": map[string]interface{}{
 						"k8s.pod.cpu_limit_utilization":          map[string]interface{}{"enabled": true},

@@ -287,21 +287,7 @@ export const env = createEnv({
      * @example "https://yourdomain.com" (production)
      * @see https://docs.logto.io/docs/recipes/integrate-logto/next-js/#configure-redirect-uris
      */
-    LOGTO_BASE_URL: z
-      .url("LOGTO_BASE_URL must be a valid URL")
-      .refine((url) => {
-        // Allow http if URL points to localhost (for local development/testing)
-        const urlObj = new URL(url);
-        if (
-          urlObj.hostname === "localhost" ||
-          urlObj.hostname === "127.0.0.1" ||
-          urlObj.hostname.endsWith(".docker.internal")
-        ) {
-          return true;
-        }
-        // Require https for non-local endpoints
-        return url.startsWith("https://");
-      }, "LOGTO_BASE_URL must use HTTPS for non-local endpoints"),
+    LOGTO_BASE_URL: z.url("LOGTO_BASE_URL must be a valid URL"),
 
     /**
      * Logto Cookie Secret

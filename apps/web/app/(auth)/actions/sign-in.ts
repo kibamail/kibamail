@@ -32,9 +32,10 @@ export async function signInAction() {
 
   await Cookies.delete(CookieKey.ACTIVE_WORKSPACE_ID);
 
-  // Explicitly use LOGTO_BASE_URL for the callback to avoid issues with
-  // internal Kubernetes hostnames (0.0.0.0:3000) being used instead
   const redirectUri = `${env.LOGTO_BASE_URL}/callback`;
 
-  await signIn(logtoConfig, { redirectUri });
+  await signIn(logtoConfig, {
+    redirectUri,
+    postRedirectUri: `${env.LOGTO_BASE_URL}/w}`,
+  });
 }
