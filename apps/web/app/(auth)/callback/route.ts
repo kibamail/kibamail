@@ -26,13 +26,24 @@ import { CookieKey, Cookies } from "@/lib/cookies";
 import { env } from "@/env/schema";
 
 export async function GET(request: NextRequest) {
+  // Debug: Log redirect URL construction
+  const redirectUrl = `${env.LOGTO_BASE_URL}/w`;
+  console.log("[Callback Debug]", {
+    LOGTO_BASE_URL: env.LOGTO_BASE_URL,
+    redirectUrl,
+    requestHost: request.headers.get("host"),
+    requestUrl: request.url,
+  });
+
   await handleSignIn(logtoConfig, request.nextUrl.searchParams);
 
   const intended = await Cookies.get(CookieKey.ROUTE_INTENDED);
 
   if (intended) {
+    console.log("[Callback Debug] Redirecting to intended:", intended);
     return redirect(intended);
   }
 
-  redirect(`${env.LOGTO_BASE_URL}/w`);
+  console.log("[Callback Debug] Redirecting to:", redirectUrl);
+  redirect(redirectUrl);
 }
