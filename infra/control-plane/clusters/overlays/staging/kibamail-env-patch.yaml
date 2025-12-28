@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-control-plane
+  namespace: kibamail-control-plane
+spec:
+  template:
+    spec:
+      containers:
+        - name: web
+          env:
+            - name: LOGTO_BASE_URL
+              value: "https://auth.staging.kibamail.com"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-api
+  namespace: kibamail-api
+spec:
+  template:
+    spec:
+      containers:
+        - name: api
+          env:
+            - name: LOGTO_BASE_URL
+              value: "https://auth.staging.kibamail.com"

@@ -8,7 +8,7 @@ import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
-import { uploadPublicFile } from "@/lib/storage/s3-client";
+import { uploadPublicFile } from "@/lib/storage";
 
 // Supported file MIME types for broadcast uploads
 const ALLOWED_FILE_TYPES = [

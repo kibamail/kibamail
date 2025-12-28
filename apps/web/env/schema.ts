@@ -540,105 +540,148 @@ export const env = createEnv({
       .describe("Outpost API key for webhook delivery authentication"),
 
     // ============================================================================
-    // S3-COMPATIBLE STORAGE CONFIGURATION
+    // S3-COMPATIBLE STORAGE CONFIGURATION (PUBLIC BUCKET)
     // ============================================================================
-    // Configuration for S3-compatible object storage (Backblaze B2, AWS S3, etc.)
-    // Used for file uploads, organization logos, and other storage operations.
-    // @see https://www.backblaze.com/docs/cloud-storage-s3-compatible-api
+    // Configuration for publicly accessible storage (broadcast images, logos, etc.)
+    // This bucket should have public read access enabled.
+    // @see https://developers.cloudflare.com/r2/
 
     /**
-     * S3 Endpoint
+     * S3 Public Bucket - Endpoint
      *
-     * The URL endpoint for the S3-compatible object storage service.
-     * Used for file uploads and object storage operations.
+     * The URL endpoint for the public S3-compatible object storage service.
+     * For Cloudflare R2: https://<account-id>.r2.cloudflarestorage.com
      *
-     * Common values:
-     * - Backblaze B2: https://s3.us-west-004.backblazeb2.com
-     * - AWS S3: https://s3.amazonaws.com
-     * - MinIO: http://localhost:9000
-     *
-     * @example "https://s3.us-west-004.backblazeb2.com"
+     * @example "https://abc123.r2.cloudflarestorage.com"
      */
-    S3_ENDPOINT: z
-      .url("S3_ENDPOINT must be a valid URL")
-      .describe("S3-compatible storage endpoint URL"),
+    S3_PUBLIC_ENDPOINT: z
+      .url("S3_PUBLIC_ENDPOINT must be a valid URL")
+      .describe("S3-compatible storage endpoint URL for public bucket"),
 
     /**
-     * S3 Region
+     * S3 Public Bucket - Region
      *
      * The region identifier for S3 storage.
-     * For Backblaze B2, use the region from your bucket URL (e.g., "us-west-004").
+     * For Cloudflare R2, use "auto".
      *
-     * @example "us-west-004"
+     * @example "auto"
      */
-    S3_REGION: z
+    S3_PUBLIC_REGION: z
       .string()
-      .min(1, "S3_REGION is required")
-      .describe("S3 region identifier"),
+      .min(1, "S3_PUBLIC_REGION is required")
+      .describe("S3 region identifier for public bucket"),
 
     /**
-     * S3 Access Key ID
+     * S3 Public Bucket - Access Key ID
      *
-     * The access key ID for authenticating with S3.
-     * For Backblaze B2, this is the "keyID" from your Application Key.
+     * The access key ID for authenticating with the public bucket.
      *
-     * ⚠️ SECURITY:
-     * - Keep this secret and never commit to version control
-     * - Use different keys for each environment
-     * - Rotate if compromised
-     *
-     * @example "004a1b2c3d4e5f60000000001"
+     * @example "abc123def456"
      */
-    S3_ACCESS_KEY_ID: z
+    S3_PUBLIC_ACCESS_KEY_ID: z
       .string()
-      .min(1, "S3_ACCESS_KEY_ID is required")
-      .describe("S3 access key ID"),
+      .min(1, "S3_PUBLIC_ACCESS_KEY_ID is required")
+      .describe("S3 access key ID for public bucket"),
 
     /**
-     * S3 Secret Access Key
+     * S3 Public Bucket - Secret Access Key
      *
-     * The secret access key for authenticating with S3.
-     * For Backblaze B2, this is the "applicationKey" from your Application Key.
-     *
-     * ⚠️ SECURITY:
-     * - Keep this secret and never commit to version control
-     * - Never log or expose in error messages
-     * - Use different keys for each environment
-     * - Rotate if compromised
-     *
-     * @example "K004abcdefghijklmnopqrstuvwxyz"
+     * The secret access key for authenticating with the public bucket.
      */
-    S3_SECRET_ACCESS_KEY: z
+    S3_PUBLIC_SECRET_ACCESS_KEY: z
       .string()
-      .min(1, "S3_SECRET_ACCESS_KEY is required")
-      .describe("S3 secret access key"),
+      .min(1, "S3_PUBLIC_SECRET_ACCESS_KEY is required")
+      .describe("S3 secret access key for public bucket"),
 
     /**
-     * S3 Bucket Name
+     * S3 Public Bucket - Bucket Name
      *
-     * The bucket name to use for storing files.
-     * For Backblaze B2, this is the bucket name you created in the B2 console.
+     * The bucket name for publicly accessible files (images, logos, etc.).
      *
-     * @example "kibamail-uploads"
+     * @example "kibamail-public"
      */
-    S3_BUCKET: z
+    S3_PUBLIC_BUCKET: z
       .string()
-      .min(1, "S3_BUCKET is required")
-      .describe("S3 bucket name"),
+      .min(1, "S3_PUBLIC_BUCKET is required")
+      .describe("S3 bucket name for public files"),
 
     /**
-     * S3 Public URL
+     * S3 Public Bucket - Public URL
      *
      * The public base URL for accessing uploaded files.
-     * For Backblaze B2 with CDN/Cloudflare, use your custom domain.
-     * For native B2, use the "Friendly URL" from your bucket settings.
+     * For R2 with custom domain: https://assets.kibamail.com
      *
-     * @example "https://f004.backblazeb2.com/file/kibamail-uploads"
-     * @example "https://cdn.yourdomain.com" (with Cloudflare CDN)
+     * @example "https://assets.kibamail.com"
      */
     S3_PUBLIC_URL: z
       .url("S3_PUBLIC_URL must be a valid URL")
-      .describe("Public base URL for accessing uploaded files"),
+      .describe("Public base URL for accessing public files"),
+
+    // ============================================================================
+    // S3-COMPATIBLE STORAGE CONFIGURATION (PRIVATE BUCKET)
+    // ============================================================================
+    // Configuration for private storage (contact imports, exports, etc.)
+    // This bucket should NOT have public access. Files are accessed via signed URLs.
+    // @see https://developers.cloudflare.com/r2/
+
+    /**
+     * S3 Private Bucket - Endpoint
+     *
+     * The URL endpoint for the private S3-compatible object storage service.
+     * For Cloudflare R2: https://<account-id>.r2.cloudflarestorage.com
+     *
+     * @example "https://abc123.r2.cloudflarestorage.com"
+     */
+    S3_PRIVATE_ENDPOINT: z
+      .url("S3_PRIVATE_ENDPOINT must be a valid URL")
+      .describe("S3-compatible storage endpoint URL for private bucket"),
+
+    /**
+     * S3 Private Bucket - Region
+     *
+     * The region identifier for S3 storage.
+     * For Cloudflare R2, use "auto".
+     *
+     * @example "auto"
+     */
+    S3_PRIVATE_REGION: z
+      .string()
+      .min(1, "S3_PRIVATE_REGION is required")
+      .describe("S3 region identifier for private bucket"),
+
+    /**
+     * S3 Private Bucket - Access Key ID
+     *
+     * The access key ID for authenticating with the private bucket.
+     *
+     * @example "xyz789abc123"
+     */
+    S3_PRIVATE_ACCESS_KEY_ID: z
+      .string()
+      .min(1, "S3_PRIVATE_ACCESS_KEY_ID is required")
+      .describe("S3 access key ID for private bucket"),
+
+    /**
+     * S3 Private Bucket - Secret Access Key
+     *
+     * The secret access key for authenticating with the private bucket.
+     */
+    S3_PRIVATE_SECRET_ACCESS_KEY: z
+      .string()
+      .min(1, "S3_PRIVATE_SECRET_ACCESS_KEY is required")
+      .describe("S3 secret access key for private bucket"),
+
+    /**
+     * S3 Private Bucket - Bucket Name
+     *
+     * The bucket name for private files (contact imports, exports, etc.).
+     *
+     * @example "kibamail-private"
+     */
+    S3_PRIVATE_BUCKET: z
+      .string()
+      .min(1, "S3_PRIVATE_BUCKET is required")
+      .describe("S3 bucket name for private files"),
 
     /**
      * Application Key
@@ -747,12 +790,17 @@ export const env = createEnv({
     REDIS_DATABASE: process.env.REDIS_DATABASE,
     OUTPOST_API_URL: process.env.OUTPOST_API_URL,
     OUTPOST_API_KEY: process.env.OUTPOST_API_KEY,
-    S3_ENDPOINT: process.env.S3_ENDPOINT,
-    S3_REGION: process.env.S3_REGION,
-    S3_ACCESS_KEY_ID: process.env.S3_ACCESS_KEY_ID,
-    S3_SECRET_ACCESS_KEY: process.env.S3_SECRET_ACCESS_KEY,
-    S3_BUCKET: process.env.S3_BUCKET,
+    S3_PUBLIC_ENDPOINT: process.env.S3_PUBLIC_ENDPOINT,
+    S3_PUBLIC_REGION: process.env.S3_PUBLIC_REGION,
+    S3_PUBLIC_ACCESS_KEY_ID: process.env.S3_PUBLIC_ACCESS_KEY_ID,
+    S3_PUBLIC_SECRET_ACCESS_KEY: process.env.S3_PUBLIC_SECRET_ACCESS_KEY,
+    S3_PUBLIC_BUCKET: process.env.S3_PUBLIC_BUCKET,
     S3_PUBLIC_URL: process.env.S3_PUBLIC_URL,
+    S3_PRIVATE_ENDPOINT: process.env.S3_PRIVATE_ENDPOINT,
+    S3_PRIVATE_REGION: process.env.S3_PRIVATE_REGION,
+    S3_PRIVATE_ACCESS_KEY_ID: process.env.S3_PRIVATE_ACCESS_KEY_ID,
+    S3_PRIVATE_SECRET_ACCESS_KEY: process.env.S3_PRIVATE_SECRET_ACCESS_KEY,
+    S3_PRIVATE_BUCKET: process.env.S3_PRIVATE_BUCKET,
     APP_KEY: process.env.APP_KEY,
     INTERNAL_SERVICE_KEY: process.env.INTERNAL_SERVICE_KEY,
     // Map client environment variables here

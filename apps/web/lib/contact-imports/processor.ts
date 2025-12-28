@@ -1,6 +1,6 @@
 import type { ContactImport, ContactProperty } from "@prisma/client";
 import { prisma } from "@/lib/db";
-import { downloadFile } from "@/lib/storage/s3-client";
+import { downloadPrivateFile } from "@/lib/storage";
 import { parseCsv, type ParsedRow } from "@/lib/csv";
 import { BatchProcessor } from "./batch-processor";
 import type {
@@ -66,7 +66,7 @@ export class ContactImportProcessor {
   ): Promise<string> {
     if (csvContent !== null) return csvContent;
 
-    const file = await downloadFile(contactImport.fileKey);
+    const file = await downloadPrivateFile(contactImport.fileKey);
     if (!file.body) throw new Error("Failed to download CSV file from S3");
     return file.body.transformToString();
   }

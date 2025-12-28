@@ -8,7 +8,7 @@ import { BadRequestError } from "@/lib/api/errors";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
-import { uploadFile } from "@/lib/storage/s3-client";
+import { uploadPrivateFile } from "@/lib/storage";
 import type { CreateContactImportResponse } from "./schema";
 
 const ALLOWED_FILE_TYPES = ["text/csv", "application/csv"] as const;
@@ -61,7 +61,7 @@ export async function createContactImport(
   const arrayBuffer = await file.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
 
-  await uploadFile(key, buffer, "text/csv");
+  await uploadPrivateFile(key, buffer, "text/csv");
 
   const contactImport = await prisma.contactImport.create({
     data: {

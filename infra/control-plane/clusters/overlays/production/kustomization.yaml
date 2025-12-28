@@ -8,3 +8,4 @@ patches:
   - path: certificate-patch.yaml
   - path: kibamail-routes-patch.yaml
   - path: kibamail-images-patch.yaml
+  - path: kibamail-env-patch.yaml
