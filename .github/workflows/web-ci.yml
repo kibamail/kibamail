@@ -174,7 +174,9 @@ jobs:
           file: apps/web/Dockerfile
           target: runner
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ steps.meta.outputs.tags }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -223,7 +225,9 @@ jobs:
           file: apps/web/Dockerfile
           target: cli
           push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta.outputs.tags }}-cli
+          tags: |
+            ${{ steps.meta.outputs.tags }}-cli
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-cli
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -264,27 +268,15 @@ jobs:
           tags: |
             type=sha,prefix=
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
+            type=raw,value=staging-worker,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push (production runner)
+      - name: Build and push (worker)
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/web/Dockerfile
-          target: runner
+          file: apps/web/Dockerfile.worker
           push: ${{ github.event_name == 'push' }}
           tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build and push (CLI stage)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/web/Dockerfile
-          target: cli
-          push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta.outputs.tags }}-cli
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -317,6 +309,19 @@ jobs:
           kubectl set image deployment/kibamail-control-plane \
             -n kibamail-control-plane \
             web=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-runner.outputs.image-tag }}
+
+      - name: Patch initContainers in Web deployment
+        run: |
+          kubectl patch deployment kibamail-control-plane \
+            -n kibamail-control-plane \
+            --type=json \
+            -p='[
+              {
+                "op": "replace",
+                "path": "/spec/template/spec/initContainers/0/image",
+                "value": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-cli"
+              }
+            ]'
 
       - name: Deploy API to Kubernetes
         run: |
