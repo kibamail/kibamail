@@ -31,6 +31,51 @@ spec:
                   matchLabels:
                     app.kubernetes.io/name: kibamail-control-plane
                 topologyKey: kubernetes.io/hostname
+      initContainers:
+        - name: migrations
+          image: ghcr.io/kibamail/kibamail:staging-cli
+          imagePullPolicy: Always
+          command: ["sh", "-c"]
+          args:
+            - |
+              echo "Checking for pending migrations..."
+              PENDING=$(pnpm exec prisma migrate status 2>&1 | grep -c "Following migration" || true)
+              if [ "$PENDING" -gt 0 ]; then
+                echo "Running Prisma migrations..."
+                pnpm exec prisma migrate deploy
+              else
+                echo "No pending migrations, skipping."
+              fi
+              echo "Running RBAC sync..."
+              pnpm exec tsx scripts/rbac-sync.ts
+              echo "Init complete!"
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-postgres
+                  key: DATABASE_URL
+            - name: LOGTO_TENANT_ID
+              value: "default"
+            - name: LOGTO_ENDPOINT
+              value: "https://auth.staging.kibamail.com"
+            - name: LOGTO_M2M_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: M2M_APP_ID
+            - name: LOGTO_M2M_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: M2M_APP_SECRET
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
       containers:
         - name: web
           image: ghcr.io/kibamail/kibamail:staging
@@ -92,7 +137,7 @@ spec:
                   name: control-plane-logto
                   key: APP_SECRET
             - name: LOGTO_BASE_URL
-              value: "https://auth.staging.kibamail.com"
+              value: "https://staging.kibamail.com"
             - name: LOGTO_COOKIE_SECRET
               valueFrom:
                 secretKeyRef:

@@ -94,7 +94,7 @@ spec:
                   name: control-plane-logto
                   key: APP_SECRET
             - name: LOGTO_BASE_URL
-              value: "https://auth.staging.kibamail.com"
+              value: "https://staging.kibamail.com"
             - name: LOGTO_COOKIE_SECRET
               valueFrom:
                 secretKeyRef:

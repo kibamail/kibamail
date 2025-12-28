@@ -17,6 +17,7 @@
     "rbac:sync": "dotenvx run -f .env.local -- tsx scripts/rbac-sync.ts",
     "rbac:sync:dry": "dotenvx run -f .env.local -- tsx scripts/rbac-sync.ts --dry-run",
     "rbac:sync:force": "dotenvx run -f .env.local -- tsx scripts/rbac-sync.ts --force",
+    "rbac:sync:dev": "dotenvx run -f .env.local -- tsx scripts/rbac-sync.ts --dev-users-and-orgs",
     "outpost:types": "openapi-typescript https://raw.githubusercontent.com/hookdeck/outpost/refs/tags/v0.8.0/docs/apis/openapi.yaml -o ./webhooks/client/schema.ts",
     "logto:types": "openapi-typescript http://localhost:3001/api/.well-known/management.openapi.json -o ./auth/logto.types.ts",
     "seed": "dotenvx run -f .env.local -- tsx scripts/seed.ts",

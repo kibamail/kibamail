@@ -12,7 +12,7 @@ spec:
             - name: LOGTO_ENDPOINT
               value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
-              value: "https://auth.kibamail.com"
+              value: "https://kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -28,7 +28,7 @@ spec:
             - name: LOGTO_ENDPOINT
               value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
-              value: "https://auth.kibamail.com"
+              value: "https://kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -44,4 +44,4 @@ spec:
             - name: LOGTO_ENDPOINT
               value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
-              value: "https://auth.kibamail.com"
+              value: "https://kibamail.com"

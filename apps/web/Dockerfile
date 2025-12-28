@@ -62,7 +62,33 @@ ENV SKIP_ENV_VALIDATION=true
 RUN pnpm --filter web build
 
 # ============================================
-# Stage 4: Production runner
+# Stage 4: CLI runner (for migrations, rbac:sync, etc.)
+# ============================================
+FROM base AS cli
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+
+# Copy source code (needed for scripts, prisma, config)
+COPY apps/web ./apps/web
+COPY packages ./packages
+
+# Generate Prisma client
+RUN cd apps/web && DATABASE_URL="postgresql://build:build@localhost:5432/build" pnpm exec prisma generate
+
+WORKDIR /app/apps/web
+
+# Skip env validation for CLI commands (only required env vars will be used)
+ENV SKIP_ENV_VALIDATION=true
+
+# Default command shows available commands
+CMD ["sh", "-c", "echo 'Available commands:' && echo '  prisma migrate deploy' && echo '  tsx scripts/rbac-sync.ts' && echo '  tsx scripts/rbac-sync.ts --dry-run'"]
+
+# ============================================
+# Stage 5: Production runner
 # ============================================
 FROM node:22-alpine AS runner
 

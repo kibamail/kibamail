@@ -9,13 +9,16 @@
  * @usage
  * ```bash
  * # Sync RBAC to Logto
- * bun run scripts/rbac-sync.ts
+ * pnpm exec tsx scripts/rbac-sync.ts
  *
  * # Dry run (preview changes without applying)
- * bun run scripts/rbac-sync.ts --dry-run
+ * pnpm exec tsx scripts/rbac-sync.ts --dry-run
  *
  * # Force update (delete and recreate all roles/permissions)
- * bun run scripts/rbac-sync.ts --force
+ * pnpm exec tsx scripts/rbac-sync.ts --force
+ *
+ * # Seed dev users and organization (for local development only)
+ * pnpm exec tsx scripts/rbac-sync.ts --dev-users-and-orgs
  * ```
  *
  * ============================================================================
@@ -45,6 +48,7 @@
 import { createManagementApi } from "@logto/api/management";
 import { env } from "@/env/schema";
 import { RBAC_CONFIG } from "@/config/rbac";
+import { logto } from "@/auth/logto";
 
 // ============================================================================
 // TYPES
@@ -63,6 +67,13 @@ interface LogtoRole {
   name: string;
   description: string | null;
   type: "User" | "MachineToMachine";
+}
+
+interface LogtoUser {
+  id: string;
+  username: string | null;
+  primaryEmail: string | null;
+  name: string | null;
 }
 
 // ============================================================================
@@ -105,11 +116,16 @@ const log = {
 /**
  * Parse command line arguments
  */
-function parseArgs(): { dryRun: boolean; force: boolean } {
+function parseArgs(): {
+  dryRun: boolean;
+  force: boolean;
+  devUsersAndOrgs: boolean;
+} {
   const args = process.argv.slice(2);
   return {
     dryRun: args.includes("--dry-run"),
     force: args.includes("--force"),
+    devUsersAndOrgs: args.includes("--dev-users-and-orgs"),
   };
 }
 
@@ -515,6 +531,233 @@ async function syncRoles(
 }
 
 // ============================================================================
+// DEV SEEDING FUNCTIONS
+// ============================================================================
+
+/**
+ * Generate a unique organization identifier
+ */
+function generateOrgIdentifier(): string {
+  const adjectives = [
+    "swift",
+    "bright",
+    "cosmic",
+    "digital",
+    "quantum",
+    "nexus",
+    "apex",
+    "stellar",
+    "prime",
+    "vertex",
+  ];
+  const nouns = [
+    "labs",
+    "systems",
+    "tech",
+    "solutions",
+    "ventures",
+    "dynamics",
+    "innovations",
+    "group",
+    "industries",
+    "collective",
+  ];
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const noun = nouns[Math.floor(Math.random() * nouns.length)];
+  const timestamp = Date.now().toString().slice(-6);
+  return `${adjective}-${noun}-${timestamp}`;
+}
+
+/**
+ * Generate fake user data
+ */
+function generateUserData(index: number, orgSlug: string) {
+  const firstNames = [
+    "Emma",
+    "Liam",
+    "Olivia",
+    "Noah",
+    "Ava",
+    "Ethan",
+    "Sophia",
+    "Mason",
+    "Isabella",
+    "William",
+    "Mia",
+    "James",
+    "Charlotte",
+    "Benjamin",
+    "Amelia",
+    "Lucas",
+    "Harper",
+    "Henry",
+    "Evelyn",
+    "Alexander",
+  ];
+  const lastNames = [
+    "Smith",
+    "Johnson",
+    "Williams",
+    "Brown",
+    "Jones",
+    "Garcia",
+    "Miller",
+    "Davis",
+    "Rodriguez",
+    "Martinez",
+    "Hernandez",
+    "Lopez",
+    "Gonzalez",
+    "Wilson",
+    "Anderson",
+    "Thomas",
+    "Taylor",
+    "Moore",
+    "Jackson",
+    "Martin",
+  ];
+
+  const firstName = firstNames[index % firstNames.length];
+  const lastName =
+    lastNames[Math.floor(index / firstNames.length) % lastNames.length];
+  const username = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${index}`;
+  const email = `${username}@${orgSlug}.dev`;
+  const name = `${firstName} ${lastName}`;
+
+  return { username, email, name };
+}
+
+/**
+ * Distribute users across roles (10% owners, 30% admins, 60% members)
+ */
+function getUserRole(index: number, totalUsers: number): string {
+  const ownerCount = Math.ceil(totalUsers * 0.1);
+  const adminCount = Math.ceil(totalUsers * 0.3);
+
+  if (index < ownerCount) return "owner";
+  if (index < ownerCount + adminCount) return "admin";
+  return "member";
+}
+
+/**
+ * Seed dev users and organization
+ */
+async function seedDevUsersAndOrgs(
+  apiClient: ReturnType<typeof createManagementApi>["apiClient"],
+  dryRun: boolean
+): Promise<{ organizationId: string; usersCreated: number } | null> {
+  log.section("SEEDING DEV USERS AND ORGANIZATION");
+
+  if (dryRun) {
+    log.warn("[DRY RUN] Would create test organization and 100 users");
+    return null;
+  }
+
+  // Generate unique organization identifier
+  const orgSlug = generateOrgIdentifier();
+  const orgName = orgSlug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  // Create organization
+  log.step("Creating test organization...");
+  log.detail(`Organization: ${orgName} (${orgSlug})`);
+
+  const organization = await logto.workspaces().create({
+    name: orgName,
+    description: `Test organization for development and testing (${orgSlug})`,
+  });
+
+  log.success(
+    `Created organization: ${organization.name} (ID: ${organization.id})`
+  );
+
+  // Get role IDs
+  log.step("Fetching role IDs...");
+  const rolesResponse = await apiClient.GET("/api/organization-roles");
+  if (rolesResponse.error) {
+    throw new Error(`Failed to fetch roles: ${rolesResponse.error}`);
+  }
+
+  const roles = rolesResponse.data || [];
+  const roleMap = new Map(roles.map((r) => [r.name, r.id]));
+
+  if (
+    !roleMap.has("owner") ||
+    !roleMap.has("admin") ||
+    !roleMap.has("member")
+  ) {
+    log.error("Required roles (owner, admin, member) not found.");
+    throw new Error("Missing required roles");
+  }
+
+  // Create users
+  const userCount = 100;
+  log.step(`Creating ${userCount} dummy users...`);
+  log.detail(`Email domain: @${orgSlug}.dev`);
+
+  const users: LogtoUser[] = [];
+
+  for (let i = 0; i < userCount; i++) {
+    const userData = generateUserData(i, orgSlug);
+
+    const userResponse = await apiClient.POST("/api/users", {
+      body: {
+        primaryEmail: userData.email,
+        password: "TestPassword123!",
+      },
+    });
+
+    if (userResponse.error || !userResponse.data) {
+      log.warn(`Failed to create user ${userData.username}`);
+      continue;
+    }
+
+    const user = userResponse.data;
+
+    // Update user name
+    await apiClient.PATCH("/api/users/{userId}", {
+      params: { path: { userId: user.id } },
+      body: { name: userData.name },
+    });
+
+    users.push(user);
+
+    // Add user to organization with role
+    const roleName = getUserRole(i, userCount);
+    const roleId = roleMap.get(roleName);
+
+    if (roleId) {
+      try {
+        await logto
+          .workspaces()
+          .members(organization.id)
+          .add(user.id, [roleId]);
+      } catch (error) {
+        log.warn(`Failed to add user ${userData.username} to organization`);
+      }
+    }
+
+    if ((i + 1) % 20 === 0) {
+      log.detail(`Created ${i + 1}/${userCount} users...`);
+    }
+  }
+
+  log.success(`Created ${users.length} users and added them to organization`);
+  log.detail(
+    `Owners: ${Math.ceil(userCount * 0.1)}, Admins: ${Math.ceil(
+      userCount * 0.3
+    )}, Members: ${Math.ceil(userCount * 0.6)}`
+  );
+  log.info(`\nTest credentials:`);
+  log.detail(`Email: emma.smith0@${orgSlug}.dev (or similar)`);
+  log.detail(`Password: TestPassword123!`);
+
+  return { organizationId: organization.id, usersCreated: users.length };
+}
+
+// ============================================================================
 // MAIN FUNCTION
 // ============================================================================
 
@@ -542,6 +785,12 @@ async function main() {
 
   if (args.force) {
     log.warn("FORCE MODE - Will delete permissions/roles not in config");
+  }
+
+  if (args.devUsersAndOrgs) {
+    log.warn(
+      "DEV SEED MODE - Will create test organization and users after sync"
+    );
   }
 
   // Validate configuration
@@ -591,6 +840,13 @@ async function main() {
     args.force
   );
 
+  // Seed dev users and organization if requested
+  let seedResults: { organizationId: string; usersCreated: number } | null =
+    null;
+  if (args.devUsersAndOrgs) {
+    seedResults = await seedDevUsersAndOrgs(apiClient, args.dryRun);
+  }
+
   // Print summary
   log.section("SYNC SUMMARY");
 
@@ -606,6 +862,12 @@ async function main() {
   log.info(`  Updated: ${roleResults.updated}`);
   if (roleResults.deleted > 0) {
     log.warn(`  Deleted: ${roleResults.deleted}`);
+  }
+
+  if (seedResults) {
+    console.log("\n📊 Dev Seed:");
+    log.success(`  Organization: ${seedResults.organizationId}`);
+    log.success(`  Users created: ${seedResults.usersCreated}`);
   }
 
   const totalChanges =

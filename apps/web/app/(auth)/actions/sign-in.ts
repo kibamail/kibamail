@@ -19,6 +19,7 @@ import { signIn, getLogtoContext } from "@logto/next/server-actions";
 import { logtoConfig } from "@/config/logto";
 import { invalidateUserCache } from "@/lib/auth/user-cache";
 import { Cookies, CookieKey } from "@/lib/cookies";
+import { env } from "@/env/schema";
 
 export async function signInAction() {
   // Clear any existing session data before signing in
@@ -31,5 +32,9 @@ export async function signInAction() {
 
   await Cookies.delete(CookieKey.ACTIVE_WORKSPACE_ID);
 
-  await signIn(logtoConfig);
+  // Explicitly use LOGTO_BASE_URL for the callback to avoid issues with
+  // internal Kubernetes hostnames (0.0.0.0:3000) being used instead
+  const redirectUri = `${env.LOGTO_BASE_URL}/callback`;
+
+  await signIn(logtoConfig, { redirectUri });
 }

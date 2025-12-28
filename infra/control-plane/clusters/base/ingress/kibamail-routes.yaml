@@ -49,6 +49,14 @@ spec:
         - name: kibamail-control-plane
           namespace: kibamail-control-plane
           port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /callback
+      backendRefs:
+        - name: kibamail-control-plane
+          namespace: kibamail-control-plane
+          port: 3000
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
