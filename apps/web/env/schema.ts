@@ -511,8 +511,8 @@ export const env = createEnv({
      */
     REDIS_CLUSTER_MODE: z
       .string()
-      .transform((val) => val === "true")
       .default("false")
+      .transform((val) => val === "true")
       .describe("Enable Redis cluster mode"),
 
     // ============================================================================

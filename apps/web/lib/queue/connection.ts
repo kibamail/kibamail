@@ -6,13 +6,13 @@
  */
 
 import type { ConnectionOptions } from "bullmq";
-import Redis from "ioredis";
+import Redis, { Cluster } from "ioredis";
 import { env } from "@/env/schema";
 
 /**
  * BullMQ connection type - can be ConnectionOptions or ioredis Cluster instance
  */
-type QueueConnection = ConnectionOptions | Redis.Cluster;
+type QueueConnection = ConnectionOptions | Cluster;
 
 /**
  * Get BullMQ connection options
@@ -24,7 +24,7 @@ type QueueConnection = ConnectionOptions | Redis.Cluster;
 export function getQueueConnection(): QueueConnection {
   if (env.REDIS_CLUSTER_MODE) {
     // BullMQ requires an ioredis Cluster instance for cluster mode
-    return new Redis.Cluster(
+    return new Cluster(
       [{ host: env.REDIS_HOST, port: env.REDIS_PORT }],
       {
         redisOptions: {
