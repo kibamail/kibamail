@@ -11,6 +11,8 @@ spec:
           env:
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-control-plane,environment=production.kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -25,3 +27,32 @@ spec:
           env:
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-api,environment=production.kibamail.com"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-workers
+  namespace: kibamail-workers
+spec:
+  template:
+    spec:
+      containers:
+        - name: worker
+          env:
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-workers,environment=production.kibamail.com"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-marketing
+spec:
+  template:
+    spec:
+      containers:
+        - name: marketing
+          env:
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-marketing,environment=production.kibamail.com"

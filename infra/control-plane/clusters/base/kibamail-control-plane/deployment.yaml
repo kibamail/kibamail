@@ -103,6 +103,8 @@ spec:
                   fieldPath: spec.nodeName
             - name: OTEL_RESOURCE_ATTRIBUTES
               value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-control-plane"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "https://ingest.monitor.kibamail.com"
 
             - name: DATABASE_URL
               valueFrom:
