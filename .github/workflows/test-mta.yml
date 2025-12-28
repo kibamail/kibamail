@@ -16,7 +16,6 @@ name: test-mta
 on:
   push:
     branches: [main]
-    paths: ["apps/mta/**"]
   pull_request:
     branches: [main]
     paths: ["apps/mta/**"]
