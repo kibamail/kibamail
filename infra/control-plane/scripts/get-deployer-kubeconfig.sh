@@ -61,8 +61,8 @@ if [ -z "$CA_CERT" ]; then
     exit 1
 fi
 
-# Generate kubeconfig
-cat <<EOF
+# Generate kubeconfig YAML
+KUBECONFIG_YAML=$(cat <<EOF
 apiVersion: v1
 kind: Config
 clusters:
@@ -81,11 +81,47 @@ users:
     user:
       token: $TOKEN
 EOF
+)
 
+# Generate base64 encoded version (works on both macOS and Linux)
+if command -v base64 &> /dev/null; then
+    # Check if we're on macOS (BSD base64) or Linux (GNU base64)
+    if base64 --version 2>&1 | grep -q "GNU"; then
+        KUBECONFIG_BASE64=$(echo "$KUBECONFIG_YAML" | base64 -w0)
+    else
+        KUBECONFIG_BASE64=$(echo "$KUBECONFIG_YAML" | base64)
+    fi
+fi
+
+# Output plain YAML
+echo "================================================================================"
+echo "PLAIN KUBECONFIG (save to file for local use)"
+echo "================================================================================"
 echo ""
-echo "# Kubeconfig generated successfully!"
-echo "# Save the above YAML to a file or use as a GitHub secret"
-echo "#"
-echo "# To test:"
-echo "#   export KUBECONFIG=<saved-file>"
-echo "#   kubectl get deployments -n kibamail-control-plane"
+echo "$KUBECONFIG_YAML"
+echo ""
+
+# Output base64 encoded
+echo "================================================================================"
+echo "BASE64 ENCODED (copy this for GitHub Secrets: KUBE_CONFIG_STAGING)"
+echo "================================================================================"
+echo ""
+echo "$KUBECONFIG_BASE64"
+echo ""
+
+# Instructions
+echo "================================================================================"
+echo "INSTRUCTIONS"
+echo "================================================================================"
+echo ""
+echo "For local use:"
+echo "  1. Copy the PLAIN KUBECONFIG above"
+echo "  2. Save to a file: ~/.kube/deployer-config"
+echo "  3. Test: KUBECONFIG=~/.kube/deployer-config kubectl get deployments -A"
+echo ""
+echo "For GitHub Actions:"
+echo "  1. Copy the BASE64 ENCODED string above"
+echo "  2. Go to GitHub repo -> Settings -> Secrets -> Actions"
+echo "  3. Create secret named: KUBE_CONFIG_STAGING"
+echo "  4. Paste the base64 string as the value"
+echo ""

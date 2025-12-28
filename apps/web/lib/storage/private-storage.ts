@@ -204,8 +204,9 @@ export async function privateFileExists(key: string): Promise<boolean> {
 
     await privateS3Client.send(command);
     return true;
-  } catch (error: any) {
-    if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
+  } catch (error) {
+    const s3Error = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+    if (s3Error.name === "NotFound" || s3Error.$metadata?.httpStatusCode === 404) {
       return false;
     }
     throw error;

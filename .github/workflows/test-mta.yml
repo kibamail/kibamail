@@ -158,7 +158,7 @@ jobs:
 
       - name: Upload debug artifacts
         if: failure() || cancelled()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: mta-test-debug-logs-${{ github.run_number }}
           path: apps/mta/tests/debug-logs/
