@@ -14,7 +14,6 @@ import { recordOpen } from "../queue.js";
 
 export const openRoute = new Hono();
 
-// 1x1 transparent GIF
 const TRACKING_PIXEL = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
   "base64"
@@ -23,7 +22,6 @@ const TRACKING_PIXEL = Buffer.from(
 openRoute.get("/:encoded", async (c) => {
   const { encoded } = c.req.param();
 
-  // Always return the pixel first (don't block on tracking)
   const pixelResponse = c.body(TRACKING_PIXEL, 200, {
     "Content-Type": "image/gif",
     "Cache-Control": "no-store, no-cache, must-revalidate, private",
@@ -31,11 +29,9 @@ openRoute.get("/:encoded", async (c) => {
     Expires: "0",
   });
 
-  // Decode and verify the payload
   const payload = decodeTrackingPayload(encoded, env.APP_KEY);
 
   if (payload) {
-    // Record the open event asynchronously
     recordOpen({
       emailSendId: payload.id,
       timestamp: Date.now(),

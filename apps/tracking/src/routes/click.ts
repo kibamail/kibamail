@@ -14,21 +14,17 @@ import { recordClick } from "../queue.js";
 
 export const clickRoute = new Hono();
 
-// Fallback URL if decoding fails
 const FALLBACK_URL = "https://kibamail.com";
 
 clickRoute.get("/:encoded", async (c) => {
   const { encoded } = c.req.param();
 
-  // Decode and verify the payload
   const payload = decodeTrackingPayload(encoded, env.APP_KEY);
 
   if (!payload || !payload.url) {
-    // Invalid or tampered payload - redirect to fallback
     return c.redirect(FALLBACK_URL, 302);
   }
 
-  // Record the click event asynchronously (don't block redirect)
   recordClick({
     emailSendId: payload.id,
     originalUrl: payload.url,
@@ -39,6 +35,5 @@ clickRoute.get("/:encoded", async (c) => {
     console.error("Failed to record click:", err);
   });
 
-  // Redirect to the original URL
   return c.redirect(payload.url, 302);
 });

@@ -7,7 +7,6 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  // Server configuration
   PORT: z
     .string()
     .default("3100")
@@ -17,7 +16,7 @@ const envSchema = z.object({
   // App secret for HMAC signing (must match apps/web)
   APP_KEY: z.string().min(32),
 
-  // Redis configuration for BullMQ
+  // Redis configuration for BullMQ - connects to the same instance as apps/web
   REDIS_HOST: z.string().min(1).default("localhost"),
   REDIS_PORT: z
     .string()

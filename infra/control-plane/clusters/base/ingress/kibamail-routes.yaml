@@ -25,6 +25,30 @@ spec:
         - name: kibamail-control-plane
           namespace: kibamail-control-plane
           port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api
+      backendRefs:
+        - name: kibamail-control-plane
+          namespace: kibamail-control-plane
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /healthz
+      backendRefs:
+        - name: kibamail-control-plane
+          namespace: kibamail-control-plane
+          port: 3000
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /p
+      backendRefs:
+        - name: kibamail-control-plane
+          namespace: kibamail-control-plane
+          port: 3000
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
