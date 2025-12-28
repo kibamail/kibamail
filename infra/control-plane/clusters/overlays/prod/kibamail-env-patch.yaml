@@ -10,9 +10,9 @@ spec:
         - name: web
           env:
             - name: LOGTO_ENDPOINT
-              value: "https://auth.staging.kibamail.com"
+              value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
-              value: "https://auth.staging.kibamail.com"
+              value: "https://auth.kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -26,6 +26,6 @@ spec:
         - name: api
           env:
             - name: LOGTO_ENDPOINT
-              value: "https://auth.staging.kibamail.com"
+              value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
-              value: "https://auth.staging.kibamail.com"
+              value: "https://auth.kibamail.com"

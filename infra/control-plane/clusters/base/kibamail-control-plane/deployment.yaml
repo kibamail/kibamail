@@ -45,7 +45,6 @@ spec:
                 secretKeyRef:
                   name: control-plane-postgres
                   key: DATABASE_URL
-            # Redis (hardcoded cluster values)
             - name: REDIS_HOST
               value: "kibamail-valkey.kibamail-valkey.svc.cluster.local"
             - name: REDIS_PORT
@@ -57,11 +56,10 @@ spec:
                   key: password
             - name: REDIS_DATABASE
               value: "0"
-            # Logto (hardcoded endpoints, secrets from Infisical)
             - name: LOGTO_TENANT_ID
               value: "default"
             - name: LOGTO_ENDPOINT
-              value: "http://logto.logto.svc.cluster.local:3001"
+              value: "https://auth.staging.kibamail.com"
             - name: LOGTO_APP_ID
               valueFrom:
                 secretKeyRef:
@@ -73,7 +71,7 @@ spec:
                   name: control-plane-logto
                   key: APP_SECRET
             - name: LOGTO_BASE_URL
-              value: "https://auth.example.kibamail.com"
+              value: "https://auth.staging.kibamail.com"
             - name: LOGTO_COOKIE_SECRET
               valueFrom:
                 secretKeyRef:
@@ -91,7 +89,6 @@ spec:
                 secretKeyRef:
                   name: control-plane-logto
                   key: M2M_APP_SECRET
-            # Outpost (hardcoded endpoints, secrets from Infisical)
             - name: OUTPOST_API_URL
               value: "http://outpost-api.outpost.svc.cluster.local:3333"
             - name: OUTPOST_API_KEY
@@ -120,7 +117,6 @@ spec:
                   key: password
             - name: OUTPOST_REDIS_DATABASE
               value: "1"
-            # S3 Public Storage (for broadcast images, logos, etc.)
             - name: S3_PUBLIC_ENDPOINT
               valueFrom:
                 secretKeyRef:
@@ -151,7 +147,6 @@ spec:
                 secretKeyRef:
                   name: control-plane-s3-public
                   key: PUBLIC_URL
-            # S3 Private Storage (for contact imports, exports, etc.)
             - name: S3_PRIVATE_ENDPOINT
               valueFrom:
                 secretKeyRef:
@@ -177,7 +172,6 @@ spec:
                 secretKeyRef:
                   name: control-plane-s3-private
                   key: BUCKET
-            # App secrets
             - name: APP_KEY
               valueFrom:
                 secretKeyRef:
