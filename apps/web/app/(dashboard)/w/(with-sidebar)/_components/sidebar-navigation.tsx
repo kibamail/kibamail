@@ -4,7 +4,7 @@ import {
   DashboardLayoutSidebarGroup,
   DashboardLayoutSidebarItem,
 } from "@kibamail/owly/dashboard-layout";
-import { HomeAltSlimHoriz, Settings, NetworkReverse, User, Component, SendDiagonal, Globe } from "iconoir-react";
+import { HomeAltSlimHoriz, Settings, NetworkReverse, User, Component, SendDiagonal, Globe, Mail } from "iconoir-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -23,52 +23,81 @@ export function SidebarNavigation() {
   const isBroadcastsActive = pathname.startsWith("/w/broadcasts");
   const isDomainsActive = pathname.startsWith("/w/domains");
   const isAudienceActive = pathname.startsWith("/w/contacts") || pathname.startsWith("/w/segments") || pathname.startsWith("/w/topics") || pathname.startsWith("/w/properties");
-  const isDashboardActive = !isSettingsActive && !isAutomationsActive && !isAudienceActive && !isFormsActive && !isBroadcastsActive && !isDomainsActive;
+  const isTemplatesActive = pathname.startsWith("/w/templates");
+  const isEmailsActive = pathname.startsWith("/w/emails");
+  const isDashboardActive = !isSettingsActive && !isAutomationsActive && !isAudienceActive && !isFormsActive && !isBroadcastsActive && !isDomainsActive && !isTemplatesActive && !isEmailsActive;
 
   return (
-    <DashboardLayoutSidebarGroup>
-      <DashboardLayoutSidebarItem asChild active={isDashboardActive}>
-        <Link href="/w/">
-          <HomeAltSlimHoriz />
-          Dashboard
-        </Link>
-      </DashboardLayoutSidebarItem>
-      <DashboardLayoutSidebarItem asChild active={isAudienceActive}>
-        <Link href="/w/contacts">
-          <User />
-          Audience
-        </Link>
-      </DashboardLayoutSidebarItem>
-      <DashboardLayoutSidebarItem asChild active={isBroadcastsActive}>
-        <Link href="/w/broadcasts">
-          <SendDiagonal />
-          Broadcasts
-        </Link>
-      </DashboardLayoutSidebarItem>
-      <DashboardLayoutSidebarItem asChild active={isFormsActive}>
-        <Link href="/w/forms">
-          <Component />
-          Forms
-        </Link>
-      </DashboardLayoutSidebarItem>
-      <DashboardLayoutSidebarItem asChild active={isAutomationsActive}>
-        <Link href="/w/automations">
-          <NetworkReverse />
-          Automations
-        </Link>
-      </DashboardLayoutSidebarItem>
-      <DashboardLayoutSidebarItem asChild active={isDomainsActive}>
-        <Link href="/w/domains">
-          <Globe />
-          Domains
-        </Link>
-      </DashboardLayoutSidebarItem>
-      <DashboardLayoutSidebarItem asChild active={isSettingsActive}>
-        <Link href="/w/settings">
-          <Settings />
-          Settings
-        </Link>
-      </DashboardLayoutSidebarItem>
-    </DashboardLayoutSidebarGroup>
+    <>
+      {/* Dashboard - standalone at top */}
+      <DashboardLayoutSidebarGroup>
+        <DashboardLayoutSidebarItem asChild active={isDashboardActive}>
+          <Link href="/w/">
+            <HomeAltSlimHoriz />
+            Dashboard
+          </Link>
+        </DashboardLayoutSidebarItem>
+      </DashboardLayoutSidebarGroup>
+
+      {/* Marketing Group */}
+      <DashboardLayoutSidebarGroup title="Marketing">
+        <DashboardLayoutSidebarItem asChild active={isAudienceActive}>
+          <Link href="/w/contacts">
+            <User />
+            Audience
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isBroadcastsActive}>
+          <Link href="/w/broadcasts">
+            <SendDiagonal />
+            Broadcasts
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isFormsActive}>
+          <Link href="/w/forms">
+            <Component />
+            Forms
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isAutomationsActive}>
+          <Link href="/w/automations">
+            <NetworkReverse />
+            Automations
+          </Link>
+        </DashboardLayoutSidebarItem>
+      </DashboardLayoutSidebarGroup>
+
+      {/* Transactional Group */}
+      <DashboardLayoutSidebarGroup title="Transactional">
+        <DashboardLayoutSidebarItem asChild active={isTemplatesActive}>
+          <Link href="/w/templates">
+            <Component />
+            Templates
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isEmailsActive}>
+          <Link href="/w/emails">
+            <Mail />
+            Emails
+          </Link>
+        </DashboardLayoutSidebarItem>
+      </DashboardLayoutSidebarGroup>
+
+      {/* Workspace Group */}
+      <DashboardLayoutSidebarGroup title="Workspace">
+        <DashboardLayoutSidebarItem asChild active={isDomainsActive}>
+          <Link href="/w/domains">
+            <Globe />
+            Domains
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isSettingsActive}>
+          <Link href="/w/settings">
+            <Settings />
+            Settings
+          </Link>
+        </DashboardLayoutSidebarItem>
+      </DashboardLayoutSidebarGroup>
+    </>
   );
 }

@@ -60,7 +60,7 @@ export function WorkspaceProfileCard() {
     pendingLogoUrl !== null || workspaceName !== organization.name;
 
   const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>,
+    event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -75,7 +75,7 @@ export function WorkspaceProfileCard() {
     ];
     if (!allowedTypes.includes(file.type)) {
       toast.error(
-        "Invalid file type. Please upload a JPEG, PNG, GIF, WebP, or SVG image.",
+        "Invalid file type. Please upload a JPEG, PNG, GIF, WebP, or SVG image."
       );
       return;
     }
@@ -101,7 +101,7 @@ export function WorkspaceProfileCard() {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to upload logo. Please try again.",
+          : "Failed to upload logo. Please try again."
       );
     } finally {
       setIsUploading(false);
@@ -138,7 +138,7 @@ export function WorkspaceProfileCard() {
             <div className="flex items-center gap-4 mt-2">
               {currentAvatar ? (
                 <div className="w-12 h-12 rounded-md overflow-hidden relative">
-                  <Image
+                  <img
                     src={currentAvatar}
                     alt="Workspace avatar"
                     fill

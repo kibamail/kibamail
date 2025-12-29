@@ -33,6 +33,10 @@
     "Open Sans (Custom)", system-ui, sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji";
 
+  --default-font-family-code: "IBM Plex Mono", "Fira Code", "Operator Mono",
+    "SF Mono", Monaco, Inconsolata, "Roboto Mono", "Source Code Pro", Menlo,
+    Consolas, "DejaVu Sans Mono", monospace;
+
   --default-font-family-body: var(--default-font-family);
   --default-font-family-heading: var(--default-font-family);
 }

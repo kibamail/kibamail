@@ -57,7 +57,7 @@ export default async function InvitationsPage() {
           priority
         />
       </div>
-      <div className="w-full max-w-[32rem] bg-kb-bg-secondary mx-auto h-fit rounded-md border border-kb-border-tertiary shadow-sm">
+      <div className="w-full max-w-lg bg-kb-bg-secondary mx-auto h-fit rounded-md border border-kb-border-tertiary shadow-sm">
         <div className="w-full border border-transparent p-6">
           <h1 className="mb-8 text-xl font-semibold font-heading text-kb-bg-brand">
             You've been invited

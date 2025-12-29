@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { logtoConfig } from "./config/logto";
 import { CookieKey, Cookies } from "./lib/cookies";
+import { getBaseUrl } from "./lib/url";
 
 export default async function proxy(request: NextRequest) {
   const headers = new Headers(request.headers);
@@ -15,11 +16,12 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next({ headers });
   }
 
-  await Cookies.set(CookieKey.ROUTE_INTENDED, request.url);
+  const baseUrl = getBaseUrl(request);
+  const intendedPath = request.nextUrl.pathname + request.nextUrl.search;
 
-  return NextResponse.redirect(new URL("/api/auth/signin", request.url), {
-    headers,
-  });
+  await Cookies.set(CookieKey.ROUTE_INTENDED, intendedPath);
+
+  return NextResponse.redirect(`${baseUrl}/api/auth/signin`, { headers });
 }
 
 export const config = {

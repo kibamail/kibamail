@@ -51,7 +51,7 @@ export function UserSessionDropdown({ session }: UserDropdownComponentProps) {
       <UserDropdown.Root>
         <UserDropdown.Trigger>
           {session.currentOrganization?.branding?.logoUrl ? (
-            <Image
+            <img
               src={session.currentOrganization.branding.logoUrl}
               alt={session.currentOrganization.name}
               width={20}

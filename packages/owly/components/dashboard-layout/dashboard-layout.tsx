@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import * as React from "react";
 import cn from "classnames";
@@ -10,13 +10,15 @@ const DASHBOARD_LAYOUT_NAME = "DashboardLayout";
 type DashboardLayoutElement = React.ElementRef<"div">;
 type DashboardLayoutContentShellElement = React.ElementRef<"div">;
 type DashboardLayoutContentElement = React.ElementRef<"div">;
-type DashboardLayoutStickyContentHeaderContainerElement = React.ElementRef<"div">;
+type DashboardLayoutStickyContentHeaderContainerElement =
+  React.ElementRef<"div">;
 type DashboardLayoutContentHeaderElement = React.ElementRef<"div">;
 type DashboardLayoutContentActionsElement = React.ElementRef<"div">;
 type DashboardLayoutStickyDetailHeaderElement = React.ElementRef<"div">;
 type DashboardLayoutStickyDetailHeaderIconElement = React.ElementRef<"div">;
 type DashboardLayoutStickyDetailHeaderTitleElement = React.ElementRef<"h1">;
-type DashboardLayoutStickyDetailHeaderDescriptionElement = React.ElementRef<"p">;
+type DashboardLayoutStickyDetailHeaderDescriptionElement =
+  React.ElementRef<"p">;
 type DashboardLayoutStickyDetailActionsElement = React.ElementRef<"div">;
 type DashboardLayoutSidebarElement = React.ElementRef<"div">;
 type DashboardLayoutSidebarDropdownElement = React.ElementRef<"div">;
@@ -210,14 +212,18 @@ const DashboardLayoutStickyContentHeaderContainer = React.forwardRef<
     <div
       {...divProps}
       ref={forwardedRef}
-      className={cn("kb-dashboard-layout-sticky-content-header-container", className)}
+      className={cn(
+        "kb-dashboard-layout-sticky-content-header-container",
+        className
+      )}
     >
       {children}
     </div>
   );
 });
 
-DashboardLayoutStickyContentHeaderContainer.displayName = "DashboardLayout.StickyContentHeaderContainer";
+DashboardLayoutStickyContentHeaderContainer.displayName =
+  "DashboardLayout.StickyContentHeaderContainer";
 
 const DashboardLayoutContentHeader = React.forwardRef<
   DashboardLayoutContentHeaderElement,
@@ -277,7 +283,8 @@ const DashboardLayoutStickyDetailHeader = React.forwardRef<
   );
 });
 
-DashboardLayoutStickyDetailHeader.displayName = "DashboardLayout.StickyDetailHeader";
+DashboardLayoutStickyDetailHeader.displayName =
+  "DashboardLayout.StickyDetailHeader";
 
 const DashboardLayoutStickyDetailHeaderIcon = React.forwardRef<
   DashboardLayoutStickyDetailHeaderIconElement,
@@ -298,7 +305,8 @@ const DashboardLayoutStickyDetailHeaderIcon = React.forwardRef<
   );
 });
 
-DashboardLayoutStickyDetailHeaderIcon.displayName = "DashboardLayout.StickyDetailHeaderIcon";
+DashboardLayoutStickyDetailHeaderIcon.displayName =
+  "DashboardLayout.StickyDetailHeaderIcon";
 
 const DashboardLayoutStickyDetailHeaderTitle = React.forwardRef<
   DashboardLayoutStickyDetailHeaderTitleElement,
@@ -310,14 +318,18 @@ const DashboardLayoutStickyDetailHeaderTitle = React.forwardRef<
     <h1
       {...h1Props}
       ref={forwardedRef}
-      className={cn("kb-dashboard-layout-sticky-detail-header-title", className)}
+      className={cn(
+        "kb-dashboard-layout-sticky-detail-header-title",
+        className
+      )}
     >
       {children}
     </h1>
   );
 });
 
-DashboardLayoutStickyDetailHeaderTitle.displayName = "DashboardLayout.StickyDetailHeaderTitle";
+DashboardLayoutStickyDetailHeaderTitle.displayName =
+  "DashboardLayout.StickyDetailHeaderTitle";
 
 const DashboardLayoutStickyDetailHeaderDescription = React.forwardRef<
   DashboardLayoutStickyDetailHeaderDescriptionElement,
@@ -329,14 +341,18 @@ const DashboardLayoutStickyDetailHeaderDescription = React.forwardRef<
     <p
       {...pProps}
       ref={forwardedRef}
-      className={cn("kb-dashboard-layout-sticky-detail-header-description", className)}
+      className={cn(
+        "kb-dashboard-layout-sticky-detail-header-description",
+        className
+      )}
     >
       {children}
     </p>
   );
 });
 
-DashboardLayoutStickyDetailHeaderDescription.displayName = "DashboardLayout.StickyDetailHeaderDescription";
+DashboardLayoutStickyDetailHeaderDescription.displayName =
+  "DashboardLayout.StickyDetailHeaderDescription";
 
 const DashboardLayoutStickyDetailActions = React.forwardRef<
   DashboardLayoutStickyDetailActionsElement,
@@ -355,7 +371,8 @@ const DashboardLayoutStickyDetailActions = React.forwardRef<
   );
 });
 
-DashboardLayoutStickyDetailActions.displayName = "DashboardLayout.StickyDetailActions";
+DashboardLayoutStickyDetailActions.displayName =
+  "DashboardLayout.StickyDetailActions";
 
 const DashboardLayoutSidebar = React.forwardRef<
   DashboardLayoutSidebarElement,

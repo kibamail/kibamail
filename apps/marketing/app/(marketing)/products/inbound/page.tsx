@@ -127,7 +127,7 @@ export default function InboundProductPage() {
           <div className="w-full min-h-[728px] overflow-hidden">
             <div className="mt-24 sm:mt-32 lg:mt-48 w-full mx-auto lg:max-w-2xl flex flex-col items-center">
               <h1 className="w-full font-heading text-kb-content-brand max-w-xl text-2xl lg:text-3xl xl:text-5xl text-left sm:text-center font-bold">
-                Programmable inbound email infrastructure
+                Receive emails using webhooks. Automate your inbox.
               </h1>
               <p className="mt-2 font-sans text-left sm:text-center w-full mx-auto sm:max-w-lg text-kb-content-secondary font-medium text-lg">
                 Receive, parse, reply, and thread emails within mailboxes. Build
