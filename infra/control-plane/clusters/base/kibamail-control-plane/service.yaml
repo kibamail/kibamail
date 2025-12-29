@@ -12,6 +12,6 @@ spec:
     app.kubernetes.io/name: kibamail-control-plane
   ports:
     - name: http
-      port: 3000
-      targetPort: http
+      port: 80
+      targetPort: nginx-http
       protocol: TCP

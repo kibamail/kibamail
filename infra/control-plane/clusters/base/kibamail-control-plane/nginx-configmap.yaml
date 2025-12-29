@@ -1,0 +1,128 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibamail-control-plane-nginx
+  namespace: kibamail-control-plane
+data:
+  nginx.conf: |
+    worker_processes auto;
+    error_log /dev/stderr warn;
+    pid /tmp/nginx.pid;
+
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /dev/stdout main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+
+        gzip on;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
+
+        # Cache for static assets
+        proxy_cache_path /tmp/nginx-cache levels=1:2 keys_zone=static_cache:10m max_size=100m inactive=60m use_temp_path=off;
+
+        upstream nextjs {
+            server 127.0.0.1:3000;
+            keepalive 32;
+        }
+
+        server {
+            listen 80;
+            server_name _;
+
+            # Security headers
+            add_header X-Content-Type-Options nosniff always;
+            add_header X-Frame-Options DENY always;
+
+            # Cache static assets from Next.js
+            location /_next/static/ {
+                proxy_pass http://nextjs;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header Connection "";
+
+                # Cache static assets
+                proxy_cache static_cache;
+                proxy_cache_valid 200 365d;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+                add_header X-Cache-Status $upstream_cache_status;
+
+                # Immutable cache headers for hashed assets
+                expires 365d;
+                add_header Cache-Control "public, max-age=31536000, immutable";
+            }
+
+            # Cache kibamail control plane static assets
+            location /_kibamail-control-plane/ {
+                proxy_pass http://nextjs;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header Connection "";
+
+                # Cache static assets
+                proxy_cache static_cache;
+                proxy_cache_valid 200 30d;
+                proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504;
+                add_header X-Cache-Status $upstream_cache_status;
+
+                expires 30d;
+                add_header Cache-Control "public, max-age=2592000";
+            }
+
+            # All other requests - no caching, just proxy
+            location / {
+                proxy_pass http://nextjs;
+                proxy_http_version 1.1;
+                proxy_set_header Host $host;
+                proxy_set_header X-Real-IP $remote_addr;
+                proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $host;
+                proxy_set_header Connection "";
+                proxy_set_header Upgrade $http_upgrade;
+
+                # No caching for dynamic content
+                proxy_no_cache 1;
+                proxy_cache_bypass 1;
+
+                # Timeouts
+                proxy_connect_timeout 60s;
+                proxy_send_timeout 60s;
+                proxy_read_timeout 60s;
+            }
+
+            # Health check endpoint
+            location /nginx-health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+        }
+    }

@@ -215,8 +215,8 @@ jobs:
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
-            type=sha,prefix=
-            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
+            type=sha,prefix=,suffix=-cli
+            type=raw,value=staging-cli,enable=${{ github.ref == 'refs/heads/main' }}
 
       - name: Build and push (CLI stage)
         uses: docker/build-push-action@v6
@@ -225,9 +225,7 @@ jobs:
           file: apps/web/Dockerfile
           target: cli
           push: ${{ github.event_name == 'push' }}
-          tags: |
-            ${{ steps.meta.outputs.tags }}-cli
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:staging-cli
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
