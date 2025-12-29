@@ -19,20 +19,57 @@
  */
 
 import { handleSignIn } from "@logto/next/server-actions";
-import { redirect } from "next/navigation";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { logtoConfig } from "@/config/logto";
 import { CookieKey, Cookies } from "@/lib/cookies";
 import { env } from "@/env/schema";
 
+/**
+ * Constructs the correct base URL from forwarded headers or falls back to env.
+ * This is needed because Next.js in Docker/K8s sees its internal hostname
+ * instead of the public-facing domain.
+ */
+function getBaseUrl(request: NextRequest): string {
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("host");
+
+  console.log("[callback] Headers:", {
+    "x-forwarded-host": forwardedHost,
+    "x-forwarded-proto": forwardedProto,
+    host: host,
+    "request.nextUrl.origin": request.nextUrl.origin,
+    "env.LOGTO_BASE_URL": env.LOGTO_BASE_URL,
+  });
+
+  if (forwardedHost) {
+    return `${forwardedProto}://${forwardedHost}`;
+  }
+
+  // Fall back to LOGTO_BASE_URL from environment
+  return env.LOGTO_BASE_URL;
+}
+
 export async function GET(request: NextRequest) {
   await handleSignIn(logtoConfig, request.nextUrl.searchParams);
 
+  const baseUrl = getBaseUrl(request);
   const intended = await Cookies.get(CookieKey.ROUTE_INTENDED);
 
+  let redirectUrl: string;
+
   if (intended) {
-    return redirect(intended);
+    // If intended is a relative path, make it absolute
+    if (intended.startsWith("/")) {
+      redirectUrl = `${baseUrl}${intended}`;
+    } else {
+      redirectUrl = intended;
+    }
+  } else {
+    redirectUrl = `${baseUrl}/w`;
   }
 
-  redirect(`${env.LOGTO_BASE_URL}/w`);
+  console.log("[callback] Redirecting to:", redirectUrl);
+
+  return NextResponse.redirect(redirectUrl);
 }
