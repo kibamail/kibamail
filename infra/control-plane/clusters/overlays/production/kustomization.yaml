@@ -10,3 +10,4 @@ patches:
   - path: kibamail-routes-patch.yaml
   - path: kibamail-images-patch.yaml
   - path: kibamail-env-patch.yaml
+  - path: cluster-secret-store-patch.yaml

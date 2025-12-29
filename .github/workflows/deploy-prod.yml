@@ -8,6 +8,7 @@ env:
   REGISTRY: ghcr.io
   WEB_IMAGE: ${{ github.repository_owner }}/kibamail
   MARKETING_IMAGE: ${{ github.repository_owner }}/kibamail-marketing
+  WORKER_IMAGE: ${{ github.repository_owner }}/kibamail-worker
 
 jobs:
   build-web:
@@ -42,11 +43,60 @@ jobs:
             type=semver,pattern={{version}}
             type=raw,value=prod
 
-      - name: Build and push
+      - name: Build and push (production runner)
         uses: docker/build-push-action@v6
         with:
           context: .
           file: apps/web/Dockerfile
+          target: runner
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Get image tag
+        id: get-tag
+        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
+  build-cli:
+    name: Build CLI Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.get-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}},suffix=-cli
+            type=raw,value=prod-cli
+
+      - name: Build and push (CLI stage)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          target: cli
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
@@ -104,9 +154,56 @@ jobs:
         id: get-tag
         run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
 
+  build-worker:
+    name: Build Worker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.get-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.WORKER_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=prod
+
+      - name: Build and push (worker)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile.worker
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Get image tag
+        id: get-tag
+        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+
   deploy:
     name: Deploy to Production
-    needs: [build-web, build-marketing]
+    needs: [build-web, build-cli, build-marketing, build-worker]
     runs-on: ubuntu-latest
     environment: production
 
@@ -128,6 +225,19 @@ jobs:
             -n kibamail-control-plane \
             web=${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:${{ needs.build-web.outputs.image-tag }}
 
+      - name: Patch initContainers in Web deployment
+        run: |
+          kubectl patch deployment kibamail-control-plane \
+            -n kibamail-control-plane \
+            --type=json \
+            -p='[
+              {
+                "op": "replace",
+                "path": "/spec/template/spec/initContainers/0/image",
+                "value": "${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:prod-cli"
+              }
+            ]'
+
       - name: Deploy Marketing to Kubernetes
         run: |
           kubectl set image deployment/kibamail-marketing \
@@ -139,6 +249,12 @@ jobs:
           kubectl set image deployment/kibamail-api \
             -n kibamail-api \
             api=${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:${{ needs.build-web.outputs.image-tag }}
+
+      - name: Deploy Workers to Kubernetes
+        run: |
+          kubectl set image deployment/kibamail-workers \
+            -n kibamail-workers \
+            worker=${{ env.REGISTRY }}/${{ env.WORKER_IMAGE }}:${{ needs.build-worker.outputs.image-tag }}
 
       - name: Wait for Web rollout
         run: |
@@ -156,4 +272,10 @@ jobs:
         run: |
           kubectl rollout status deployment/kibamail-api \
             -n kibamail-api \
+            --timeout=300s
+
+      - name: Wait for Workers rollout
+        run: |
+          kubectl rollout status deployment/kibamail-workers \
+            -n kibamail-workers \
             --timeout=300s

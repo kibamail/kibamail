@@ -14,15 +14,16 @@ import (
 )
 
 var (
-	skipCilium          bool
-	skipCertManager     bool
-	skipCloudNativePG   bool
-	skipBarmanCloud     bool
-	skipRabbitMQ        bool
-	skipValkey          bool
-	skipExternalSecrets bool
-	skipOtelCollector   bool
-	dryRun              bool
+	skipCilium                bool
+	skipCertManager           bool
+	skipCloudNativePG         bool
+	skipBarmanCloud           bool
+	skipRabbitMQ              bool
+	skipValkey                bool
+	skipExternalSecrets       bool
+	skipOtelCollector         bool
+	enableLonghornStorageClass bool
+	dryRun                    bool
 )
 
 var installCmd = &cobra.Command{
@@ -40,6 +41,9 @@ Components installed:
   - External Secrets Operator for secrets management
   - OpenTelemetry Collector for observability (logs and metrics to HyperDX)
 
+Optional components (require explicit flags):
+  - Longhorn StorageClass (--enable-longhorn-storage-class)
+
 All installations are idempotent - running install multiple times is safe.`,
 	RunE: runInstall,
 }
@@ -55,6 +59,7 @@ func init() {
 	installCmd.Flags().BoolVar(&skipValkey, "skip-valkey", false, "Skip Valkey Operator installation")
 	installCmd.Flags().BoolVar(&skipExternalSecrets, "skip-external-secrets", false, "Skip External Secrets Operator installation")
 	installCmd.Flags().BoolVar(&skipOtelCollector, "skip-otel-collector", false, "Skip OpenTelemetry Collector installation")
+	installCmd.Flags().BoolVar(&enableLonghornStorageClass, "enable-longhorn-storage-class", false, "Enable Longhorn StorageClass installation (optional)")
 	installCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Print what would be installed without actually installing")
 }
 
@@ -115,6 +120,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		{skip: skipValkey, installer: installer.NewValkeyOperatorInstaller(kubeconfig)},
 		{skip: skipExternalSecrets, installer: installer.NewExternalSecretsInstaller(kubeconfig)},
 		{skip: skipOtelCollector, installer: installer.NewOtelCollectorInstaller(kubeconfig)},
+		{skip: !enableLonghornStorageClass, installer: installer.NewLonghornStorageClassInstaller(kubeconfig)},
 	}
 
 	// Print installation plan

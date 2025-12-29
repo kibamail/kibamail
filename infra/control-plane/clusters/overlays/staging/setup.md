@@ -62,6 +62,10 @@ sudo k8s status --wait-ready
 sudo k8s enable local-storage
 ```
 
+```
+7?D42uHUwm978w
+```
+
 5. enable gateway
 
 ```bash
@@ -90,3 +94,102 @@ kubectl create secret generic infisical-auth \
 create a bucket with the name as used in the kuztomize resources. create an api key granting object read & write permissions to that specific bucket.
 
 Then add these values to infisical
+
+8. prepare for longhorn:
+
+first identify the disk to use:
+
+in the below snippet its nvme1n1
+
+```bash
+# Wipe the existing partition table
+wipefs -a /dev/nvme1n1
+
+# Format the entire drive
+mkfs.ext4 /dev/nvme1n1
+
+# Create mount point
+mkdir -p /mnt/longhorn
+
+# Mount it
+mount /dev/nvme1n1 /mnt/longhorn
+
+# Get UUID and add to fstab
+UUID=$(blkid -s UUID -o value /dev/nvme1n1)
+echo "UUID=$UUID /mnt/longhorn ext4 defaults 0 2" >> /etc/fstab
+
+# Verify
+df -h | grep longhorn
+```
+
+install longhorn prerequisites:
+
+```bash
+apt update
+apt install -y open-iscsi nfs-common
+systemctl enable --now iscsid
+```
+
+install prerequisites:
+
+```bash
+# Update package lists
+apt-get update
+
+# Install open-iscsi (required)
+apt-get install -y open-iscsi
+
+# Enable and start iscsid
+systemctl enable iscsid
+systemctl start iscsid
+
+# Load iscsi_tcp module
+modprobe iscsi_tcp
+
+# Install NFSv4 client (required for RWX volumes and backups)
+apt-get install -y nfs-common
+
+# Install cryptsetup (for volume encryption)
+apt-get install -y cryptsetup
+
+# Install device-mapper (for dm-crypt)
+apt-get install -y dmsetup
+
+# Verify required utilities are present (should already be on Ubuntu)
+which bash curl findmnt grep awk blkid lsblk
+```
+
+verify prerequisites:
+
+```bash
+# Verify iscsid is running
+systemctl status iscsid
+
+# Verify iscsi_tcp module is loaded
+lsmod | grep iscsi_tcp
+
+# Check NFSv4 kernel support
+cat /boot/config-$(uname -r) | grep CONFIG_NFS_V4
+
+# Check Kubernetes version (must be >= 1.25)
+kubectl version
+```
+
+install helm:
+
+```bash
+# Install Helm if not already installed
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# Add Longhorn Helm repo
+helm repo add longhorn https://charts.longhorn.io
+helm repo update
+
+# Install Longhorn with single-replica config
+helm install longhorn longhorn/longhorn \
+  --namespace longhorn-system \
+  --create-namespace \
+  --set defaultSettings.defaultReplicaCount=1 \
+  --set defaultSettings.defaultDataPath="/mnt/longhorn" \
+  --version 1.10.1
+```
