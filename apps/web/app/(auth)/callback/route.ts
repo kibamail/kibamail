@@ -56,6 +56,9 @@ export async function GET(request: NextRequest) {
   const baseUrl = getBaseUrl(request);
   const intended = await Cookies.get(CookieKey.ROUTE_INTENDED);
 
+  console.log("[callback] Base URL:", baseUrl);
+  console.log("[callback] Intended URL:", intended);
+
   let redirectUrl: string;
 
   if (intended) {
