@@ -141,7 +141,6 @@ export function WorkspaceProfileCard() {
                   <img
                     src={currentAvatar}
                     alt="Workspace avatar"
-                    fill
                     className="object-cover"
                   />
                 </div>
