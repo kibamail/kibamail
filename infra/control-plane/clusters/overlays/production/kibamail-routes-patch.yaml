@@ -13,6 +13,7 @@ metadata:
 spec:
   hostnames:
     - kibamail.com
+    - www.kibamail.com
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

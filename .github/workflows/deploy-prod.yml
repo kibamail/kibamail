@@ -57,7 +57,7 @@ jobs:
 
       - name: Get image tag
         id: get-tag
-        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
   build-cli:
     name: Build CLI Image
@@ -105,7 +105,7 @@ jobs:
 
       - name: Get image tag
         id: get-tag
-        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
   build-marketing:
     name: Build Marketing Image
@@ -152,7 +152,7 @@ jobs:
 
       - name: Get image tag
         id: get-tag
-        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
   build-worker:
     name: Build Worker Image
@@ -199,7 +199,7 @@ jobs:
 
       - name: Get image tag
         id: get-tag
-        run: echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
   deploy:
     name: Deploy to Production
