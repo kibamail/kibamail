@@ -5,6 +5,7 @@ metadata:
 spec:
   dnsNames:
     - kibamail.com
+    - www.kibamail.com
     - auth.kibamail.com
     - admin.auth.kibamail.com
     - api.kibamail.com

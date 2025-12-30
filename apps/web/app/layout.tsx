@@ -6,15 +6,14 @@ import "./globals.css";
 const manrope = Manrope();
 
 const description =
-  "The open source aws ses alternative. send emails that land in the inbox, save 95% on your email bill.";
+  "send emails that land in the inbox, save 95% on your email bill.";
 
 export const metadata: Metadata = {
   title: {
-    default: "Kibamail",
+    default: "kibamail · the open source aws ses alternative",
     template: "%s | Kibamail"
   },
-  description:
-    "The open source aws ses alternative. send emails that land in the inbox, save 95% on your email bill.",
+  description,
   keywords: ["email", "ses", "aws", "alternative", "open source", "transactional", "marketing"],
   authors: [{ name: "Kibamail" }],
   creator: "Kibamail",
@@ -32,23 +31,23 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://kibamail.com",
-    title: "kibamail",
+    title: "kibamail · the open source aws ses alternative",
     description,
-    siteName: "kibamail",
+    siteName: "Kibamail",
     images: [
       {
-        url: "/android-chrome-512x512.png",
-        width: 512,
-        height: 512,
-         alt: "Kibamail logo",
+        url: "/kibamail-og-meta-image.webp",
+        width: 5550,
+        height: 2880,
+        alt: "Kibamail - Open Source AWS SES Alternative",
       },
     ],
   },
-   twitter: {
+  twitter: {
     card: "summary_large_image",
-    title: "Kibamail",
-    description: "The open source aws ses alternative. send emails that land in the inbox, save 95% on your email bill.",
-    images: ["/android-chrome-512x512.png"],
+    title: "kibamail · the open source aws ses alternative",
+    description,
+    images: ["/kibamail-og-meta-image.webp"],
   },
   icons: {
     icon: [
