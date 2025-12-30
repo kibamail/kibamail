@@ -12,8 +12,9 @@ export function HomePageHero() {
             Open-source <br /> alternative to aws ses
           </h1>
           <p className="mt-2 font-sans text-left sm:text-center w-full mx-auto sm:max-w-lg text-kb-content-secondary font-medium text-lg">
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Veniam
-            blanditiis vel ipsa inventore qui accopritum.
+            Send transactional and marketing emails with a simple API.
+            Pay only for what you send, with automatic deliverability
+            best practices built in.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-6 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
