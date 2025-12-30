@@ -6,6 +6,11 @@ metadata:
 spec:
   template:
     spec:
+      initContainers:
+        - name: migrations
+          env:
+            - name: LOGTO_ENDPOINT
+              value: "https://auth.kibamail.com"
       containers:
         - name: web
           env:

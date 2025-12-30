@@ -1,0 +1,16 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logto
+spec:
+  template:
+    spec:
+      containers:
+        - name: logto
+          env:
+            - name: ENDPOINT
+              value: "https://auth.kibamail.com"
+            - name: ADMIN_ENDPOINT
+              value: "https://admin.auth.kibamail.com"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=logto,environment=production.kibamail.com"
