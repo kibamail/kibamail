@@ -287,8 +287,9 @@ export const companyNavigation: SectionNavigation = [
   {
     title: "Legal",
     items: [
-      ["Privacy", "/docs/company/privacy"],
-      ["Terms", "/docs/company/terms"],
+      ["Privacy Policy", "/legal/privacy-policy"],
+      ["Terms of Service", "/legal/terms-of-service"],
+      ["Acceptable Use Policy", "/legal/acceptable-use-policy"],
     ],
   },
 ];

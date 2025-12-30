@@ -37,8 +37,8 @@ interface BlogPostFrontmatter {
  * Parse frontmatter from markdown content
  * Frontmatter is YAML between --- delimiters at the start of the file
  */
-function parseFrontmatter(content: string): {
-  data: BlogPostFrontmatter;
+export function parseFrontmatter<T = Record<string, string>>(content: string): {
+  data: T;
   content: string;
 } {
   const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
@@ -69,7 +69,7 @@ function parseFrontmatter(content: string): {
   }
 
   return {
-    data: data as unknown as BlogPostFrontmatter,
+    data: data as unknown as T,
     content: markdownContent.trim(),
   };
 }
@@ -216,4 +216,61 @@ export async function getAllCategories(): Promise<
     ...category,
     count,
   }));
+}
+
+// ============================================
+// Legal Documents
+// ============================================
+
+const LEGAL_CONTENT_DIR = path.join(process.cwd(), "content", "legal");
+
+export interface LegalDocument {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  lastUpdated: string;
+  content: string;
+}
+
+interface LegalFrontmatter {
+  title: string;
+  description: string;
+  date: string;
+  lastUpdated: string;
+}
+
+/**
+ * Get a single legal document by slug
+ */
+export async function getLegalDocumentBySlug(
+  slug: string
+): Promise<LegalDocument | null> {
+  const filePath = path.join(LEGAL_CONTENT_DIR, `${slug}.md`);
+
+  if (!fs.existsSync(filePath)) {
+    return null;
+  }
+
+  const fileContent = fs.readFileSync(filePath, "utf-8");
+  const { data, content } = parseFrontmatter<LegalFrontmatter>(fileContent);
+
+  return {
+    slug,
+    title: data.title,
+    description: data.description,
+    date: data.date,
+    lastUpdated: data.lastUpdated,
+    content,
+  };
+}
+
+/**
+ * Get all legal document slugs for static generation
+ */
+export async function getAllLegalSlugs(): Promise<string[]> {
+  const files = fs.readdirSync(LEGAL_CONTENT_DIR);
+  return files
+    .filter((file) => file.endsWith(".md"))
+    .map((file) => file.replace(".md", ""));
 }
