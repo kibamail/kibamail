@@ -2,7 +2,7 @@ import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { FormBuilderClient } from "./_components/form-builder";
-import type { FormSchema } from "./_components/form-builder/types";
+import type { FormBuilderSchema } from "./_components/form-builder/types";
 
 async function getForm(workspaceId: string, formId: string) {
   const form = await prisma.form.findFirst({
@@ -37,7 +37,7 @@ export default async function FormPage({
     notFound();
   }
 
-  const initialSchema = form.fields as FormSchema | null;
+  const initialSchema = form.fields as FormBuilderSchema | null;
 
   return (
     <FormBuilderClient
