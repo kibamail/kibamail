@@ -5,7 +5,7 @@
  * - GET /api/v1/segments - List segments with cursor-based pagination
  */
 
-import { POST, GET } from "@/app/api/v1/segments/route";
+import { POST, GET } from "@/app/(main)/api/v1/segments/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

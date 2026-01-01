@@ -43,8 +43,8 @@ vi.mock("@/lib/sending-domains/dns", async (importOriginal) => {
 });
 
 // Import after mock setup
-import { POST as VerifyPOST } from "@/app/api/v1/domains/[domainId]/verify/route";
-import { POST as CreatePOST } from "@/app/api/v1/domains/route";
+import { POST as VerifyPOST } from "@/app/(main)/api/v1/domains/[domainId]/verify/route";
+import { POST as CreatePOST } from "@/app/(main)/api/v1/domains/route";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;

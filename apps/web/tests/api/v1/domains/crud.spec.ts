@@ -8,8 +8,8 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { DELETE, GET, PUT } from "@/app/api/v1/domains/[domainId]/route";
-import { POST } from "@/app/api/v1/domains/route";
+import { DELETE, GET, PUT } from "@/app/(main)/api/v1/domains/[domainId]/route";
+import { POST } from "@/app/(main)/api/v1/domains/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
   type CreatedApiKey,

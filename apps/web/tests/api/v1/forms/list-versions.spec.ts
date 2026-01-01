@@ -5,7 +5,7 @@
  * - GET /api/v1/forms/{formId}/versions - List all versions of a form
  */
 
-import { GET } from "@/app/api/v1/forms/[formId]/versions/route";
+import { GET } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

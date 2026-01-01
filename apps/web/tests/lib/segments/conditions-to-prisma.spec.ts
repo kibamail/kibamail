@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, test } from "vitest";
-import type { ConditionInput } from "@/app/api/v1/segments/schema";
+import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import { conditionsToPrismaWhere } from "@/lib/segments/conditions-to-prisma";
 
 describe("conditionsToPrismaWhere", () => {

@@ -5,7 +5,7 @@ import {
   isTriggerNode,
   getNodeConfig,
 } from "./config";
-import { conditionSchema } from "@/app/api/v1/segments/schema";
+import { conditionSchema } from "@/app/(main)/api/v1/segments/schema";
 
 export interface ValidationError {
   nodeId: string;

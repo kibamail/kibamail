@@ -8,9 +8,9 @@
  * - Mapping inheritance from parent forms
  */
 
-import { POST as PUBLISH_FORM } from "@/app/api/v1/forms/[formId]/publish/route";
-import { POST as CREATE_VERSION } from "@/app/api/v1/forms/[formId]/versions/route";
-import { POST as CREATE_FORM } from "@/app/api/v1/forms/route";
+import { POST as PUBLISH_FORM } from "@/app/(main)/api/v1/forms/[formId]/publish/route";
+import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
+import { POST as CREATE_FORM } from "@/app/(main)/api/v1/forms/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

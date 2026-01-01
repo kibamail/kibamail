@@ -6,7 +6,7 @@
  */
 
 import type { Prisma } from "@prisma/client";
-import type { ConditionInput } from "@/app/api/v1/segments/schema";
+import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
 /**
  * Contact property definition for field mapping

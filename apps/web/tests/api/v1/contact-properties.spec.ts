@@ -14,11 +14,11 @@ import {
   DELETE as DELETE_PROPERTY,
   GET as GET_PROPERTY,
   PUT as UPDATE_PROPERTY,
-} from "@/app/api/v1/contact-properties/[contactPropertyId]/route";
+} from "@/app/(main)/api/v1/contact-properties/[contactPropertyId]/route";
 import {
   POST as CREATE_PROPERTY,
   GET as LIST_PROPERTIES,
-} from "@/app/api/v1/contact-properties/route";
+} from "@/app/(main)/api/v1/contact-properties/route";
 import {
   type CreatedApiKey,
   cleanupWorkspace,

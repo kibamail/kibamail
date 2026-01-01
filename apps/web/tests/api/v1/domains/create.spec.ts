@@ -5,7 +5,7 @@
  * - POST /api/v1/domains - Create new sending domain
  */
 
-import { POST } from "@/app/api/v1/domains/route";
+import { POST } from "@/app/(main)/api/v1/domains/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

@@ -5,7 +5,7 @@
  * - POST /api/v1/segments - Create new segment
  */
 
-import { POST } from "@/app/api/v1/segments/route";
+import { POST } from "@/app/(main)/api/v1/segments/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

@@ -6,7 +6,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { GET as ListBroadcasts, POST as CreateBroadcast } from "@/app/api/v1/broadcasts/route";
+import { GET as ListBroadcasts, POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
 import { ErrorCode } from "@/lib/api/error-codes";
 import {
   type CreatedApiKey,

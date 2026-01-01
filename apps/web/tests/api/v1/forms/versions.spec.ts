@@ -5,9 +5,9 @@
  * - POST /api/v1/forms/[formId]/versions - Create new version
  */
 
-import { POST as CREATE_VERSION } from "@/app/api/v1/forms/[formId]/versions/route";
-import { POST } from "@/app/api/v1/forms/route";
-import { GET } from "@/app/api/v1/forms/[formId]/route";
+import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
+import { POST } from "@/app/(main)/api/v1/forms/route";
+import { GET } from "@/app/(main)/api/v1/forms/[formId]/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

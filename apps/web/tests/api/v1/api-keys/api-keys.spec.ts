@@ -10,8 +10,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
-import { DELETE } from "@/app/api/v1/api-keys/[keyId]/route";
-import { GET, POST } from "@/app/api/v1/api-keys/route";
+import { DELETE } from "@/app/(main)/api/v1/api-keys/[keyId]/route";
+import { GET, POST } from "@/app/(main)/api/v1/api-keys/route";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
 import { prisma } from "@/lib/db";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";

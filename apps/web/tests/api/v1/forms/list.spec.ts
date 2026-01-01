@@ -5,7 +5,7 @@
  * - GET /api/v1/forms - List all root forms with cursor-based pagination
  */
 
-import { GET } from "@/app/api/v1/forms/route";
+import { GET } from "@/app/(main)/api/v1/forms/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

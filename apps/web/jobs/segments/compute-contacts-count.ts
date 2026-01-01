@@ -5,7 +5,7 @@
  * This job runs in the background to update segment contact counts.
  */
 
-import type { ConditionInput } from "@/app/api/v1/segments/schema";
+import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";

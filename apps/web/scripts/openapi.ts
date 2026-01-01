@@ -13,7 +13,7 @@ import {
   createApiKeyResponseSchema,
   createApiKeySchema,
   apiKeyDeleteResponseSchema,
-} from "@/app/api/v1/api-keys/schema";
+} from "@/app/(main)/api/v1/api-keys/schema";
 import {
   createContactSchema,
   updateContactSchema,
@@ -21,28 +21,28 @@ import {
   contactListResponseSchema,
   contactDeleteResponseSchema,
   searchContactsSchema,
-} from "@/app/api/v1/contacts/schema";
+} from "@/app/(main)/api/v1/contacts/schema";
 import {
   createContactPropertySchema,
   updateContactPropertySchema,
   contactPropertyResponseSchema,
   contactPropertyListResponseSchema,
   contactPropertyDeleteResponseSchema,
-} from "@/app/api/v1/contact-properties/schema";
+} from "@/app/(main)/api/v1/contact-properties/schema";
 import {
   createTopicSchema,
   updateTopicSchema,
   topicResponseSchema,
   topicListResponseSchema,
   topicDeleteResponseSchema,
-} from "@/app/api/v1/topics/schema";
+} from "@/app/(main)/api/v1/topics/schema";
 import {
   createSegmentSchema,
   updateSegmentSchema,
   segmentResponseSchema,
   segmentListResponseSchema,
   segmentDeleteResponseSchema,
-} from "@/app/api/v1/segments/schema";
+} from "@/app/(main)/api/v1/segments/schema";
 import {
   createFormSchema,
   updateFormSchema,
@@ -50,7 +50,7 @@ import {
   formListResponseSchema,
   formVersionListResponseSchema,
   formDeleteResponseSchema,
-} from "@/app/api/v1/forms/schema";
+} from "@/app/(main)/api/v1/forms/schema";
 
 /**
  * Validation error detail structure

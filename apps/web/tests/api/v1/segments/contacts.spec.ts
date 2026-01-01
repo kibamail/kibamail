@@ -6,9 +6,9 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { GET } from "@/app/api/v1/segments/[segmentId]/contacts/route";
-import { POST as CREATE_SEGMENT } from "@/app/api/v1/segments/route";
-import { POST as CREATE_PROPERTY } from "@/app/api/v1/contact-properties/route";
+import { GET } from "@/app/(main)/api/v1/segments/[segmentId]/contacts/route";
+import { POST as CREATE_SEGMENT } from "@/app/(main)/api/v1/segments/route";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { prisma } from "@/lib/db";
 import {
   createTestWorkspace,

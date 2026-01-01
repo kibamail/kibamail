@@ -6,7 +6,7 @@
  */
 
 import type { Broadcast } from "@prisma/client";
-import type { ConditionInput } from "@/app/api/v1/segments/schema";
+import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import { prisma } from "@/lib/db";
 import { conditionsToPrismaWhere } from "@/lib/segments/conditions-to-prisma";
 

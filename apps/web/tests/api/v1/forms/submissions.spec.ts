@@ -5,7 +5,7 @@
  * - POST /api/v1/forms/[formId]/submissions - Submit data to a form
  */
 
-import { POST } from "@/app/api/v1/forms/[formId]/submissions/route";
+import { POST } from "@/app/(main)/api/v1/forms/[formId]/submissions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

@@ -29,13 +29,13 @@ import {
   deleteApiKeyResponseSchema,
   type ListApiKeysResponse,
   listApiKeysResponseSchema,
-} from "@/app/api/internal/v1/api-keys/schema";
+} from "@/app/(main)/api/internal/v1/api-keys/schema";
 import {
   type UpdateInvitationStatusInput,
   type UpdateInvitationStatusResponse,
   updateInvitationStatusResponseSchema,
   updateInvitationStatusSchema,
-} from "@/app/api/internal/v1/invitations/[id]/status/schema";
+} from "@/app/(main)/api/internal/v1/invitations/[id]/status/schema";
 import {
   type CreateWebhookDestinationInput,
   createWebhookDestinationSchema,
@@ -48,15 +48,15 @@ import {
   type WebhookEventDeliveriesResponse,
   webhookDestinationResponseSchema,
   webhookEventDeliveriesResponseSchema,
-} from "@/app/api/internal/v1/webhooks/schema";
+} from "@/app/(main)/api/internal/v1/webhooks/schema";
 import {
   type ActivateWorkspaceResponse,
   activateWorkspaceResponseSchema,
-} from "@/app/api/internal/v1/workspaces/[id]/activate/schema";
+} from "@/app/(main)/api/internal/v1/workspaces/[id]/activate/schema";
 import {
   type UpdateLogoResponse,
   updateLogoResponseSchema,
-} from "@/app/api/internal/v1/workspaces/[id]/logo/schema";
+} from "@/app/(main)/api/internal/v1/workspaces/[id]/logo/schema";
 import {
   type ChangeMemberRoleInput,
   type ChangeMemberRoleResponse,
@@ -66,19 +66,19 @@ import {
   type InviteMembersResponse,
   inviteMembersResponseSchema,
   inviteMembersSchema,
-} from "@/app/api/internal/v1/workspaces/[id]/members/schema";
+} from "@/app/(main)/api/internal/v1/workspaces/[id]/members/schema";
 import {
   type UpdateWorkspaceInput,
   type UpdateWorkspaceResponse,
   updateWorkspaceResponseSchema,
   updateWorkspaceSchema,
-} from "@/app/api/internal/v1/workspaces/[id]/schema";
+} from "@/app/(main)/api/internal/v1/workspaces/[id]/schema";
 import {
   type CreateWorkspaceInput,
   type CreateWorkspaceResponse,
   createWorkspaceResponseSchema,
   createWorkspaceSchema,
-} from "@/app/api/internal/v1/workspaces/schema";
+} from "@/app/(main)/api/internal/v1/workspaces/schema";
 import {
   type AutomationListResponse,
   type AutomationResponse,
@@ -86,7 +86,7 @@ import {
   automationResponseSchema,
   type CreateAutomationInput,
   type UpdateAutomationInput,
-} from "@/app/api/v1/automations/schema";
+} from "@/app/(main)/api/v1/automations/schema";
 import {
   type BroadcastListResponse,
   type BroadcastResponse,
@@ -94,15 +94,15 @@ import {
   broadcastResponseSchema,
   type CreateBroadcastRequest,
   type UpdateBroadcastRequest,
-} from "@/app/api/v1/broadcasts/schema";
-import { type UploadBroadcastFilesResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/files/schema";
+} from "@/app/(main)/api/v1/broadcasts/schema";
+import { type UploadBroadcastFilesResponse } from "@/app/(main)/api/internal/v1/broadcasts/[broadcastId]/files/schema";
 import {
   type CreateContactImportResponse,
   type UpdateContactImportRequest,
   type UpdateContactImportResponse,
   type ContactImportResponse,
-} from "@/app/api/internal/v1/contact-imports/schema";
-import type { BroadcastReadinessResponse } from "@/app/api/internal/v1/broadcasts/[broadcastId]/readiness/route";
+} from "@/app/(main)/api/internal/v1/contact-imports/schema";
+import type { BroadcastReadinessResponse } from "@/app/(main)/api/internal/v1/broadcasts/[broadcastId]/readiness/route";
 import {
   type ContactPropertyListResponse,
   type ContactPropertyResponse,
@@ -110,7 +110,7 @@ import {
   contactPropertyListResponseSchema,
   contactPropertyResponseSchema,
   createContactPropertySchema,
-} from "@/app/api/v1/contact-properties/schema";
+} from "@/app/(main)/api/v1/contact-properties/schema";
 import {
   type ContactDeleteResponse,
   type ContactResponse,
@@ -120,7 +120,7 @@ import {
   createContactSchema,
   type UpdateContactRequest,
   updateContactSchema,
-} from "@/app/api/v1/contacts/schema";
+} from "@/app/(main)/api/v1/contacts/schema";
 import {
   type CreateSendingDomainRequest,
   createSendingDomainSchema,
@@ -131,7 +131,7 @@ import {
   sendingDomainResponseSchema,
   sendingDomainVerifyResponseSchema,
   type UpdateSendingDomainRequest,
-} from "@/app/api/v1/domains/schema";
+} from "@/app/(main)/api/v1/domains/schema";
 import {
   type CreateFormRequest,
   createFormSchema,
@@ -141,7 +141,7 @@ import {
   formListResponseSchema,
   formResponseSchema,
   formSubmissionResponseSchema,
-} from "@/app/api/v1/forms/schema";
+} from "@/app/(main)/api/v1/forms/schema";
 import {
   type CreateSegmentRequest,
   createSegmentSchema,
@@ -149,7 +149,7 @@ import {
   type SegmentResponse,
   segmentListResponseSchema,
   segmentResponseSchema,
-} from "@/app/api/v1/segments/schema";
+} from "@/app/(main)/api/v1/segments/schema";
 import {
   type CreateTopicRequest,
   createTopicSchema,
@@ -157,7 +157,7 @@ import {
   type TopicResponse,
   topicListResponseSchema,
   topicResponseSchema,
-} from "@/app/api/v1/topics/schema";
+} from "@/app/(main)/api/v1/topics/schema";
 
 type ApiErrorResponse = {
   error:

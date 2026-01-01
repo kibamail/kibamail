@@ -6,7 +6,7 @@
  * - Focus on authentication and authorization
  */
 
-import { POST } from "@/app/api/v1/forms/route";
+import { POST } from "@/app/(main)/api/v1/forms/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

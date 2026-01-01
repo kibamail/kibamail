@@ -1,6 +1,6 @@
-import { POST as CREATE_POST } from "@/app/api/v1/automations/route";
-import { PUT } from "@/app/api/v1/automations/[automationId]/route";
-import { POST as PUBLISH_POST } from "@/app/api/v1/automations/[automationId]/publish/route";
+import { POST as CREATE_POST } from "@/app/(main)/api/v1/automations/route";
+import { PUT } from "@/app/(main)/api/v1/automations/[automationId]/route";
+import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

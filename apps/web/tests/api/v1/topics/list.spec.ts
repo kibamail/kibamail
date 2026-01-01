@@ -5,7 +5,7 @@
  * - GET /api/v1/topics - List topics with cursor-based pagination
  */
 
-import { GET } from "@/app/api/v1/topics/route";
+import { GET } from "@/app/(main)/api/v1/topics/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { Topic } from "@prisma/client";
 import {

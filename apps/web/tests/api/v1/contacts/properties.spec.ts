@@ -5,9 +5,9 @@
  * and that values are properly mapped from slot columns to property names.
  */
 
-import { GET as GET_CONTACT } from "@/app/api/v1/contacts/[contactId]/route";
-import { GET as LIST_CONTACTS } from "@/app/api/v1/contacts/route";
-import { POST as CREATE_PROPERTY } from "@/app/api/v1/contact-properties/route";
+import { GET as GET_CONTACT } from "@/app/(main)/api/v1/contacts/[contactId]/route";
+import { GET as LIST_CONTACTS } from "@/app/(main)/api/v1/contacts/route";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

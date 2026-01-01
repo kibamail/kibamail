@@ -8,11 +8,11 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { DELETE, GET, PUT } from "@/app/api/v1/broadcasts/[broadcastId]/route";
-import { POST as CreateBroadcast } from "@/app/api/v1/broadcasts/route";
-import { POST as CreateDomain } from "@/app/api/v1/domains/route";
-import { POST as CreateTopic } from "@/app/api/v1/topics/route";
-import { POST as CreateSegment } from "@/app/api/v1/segments/route";
+import { DELETE, GET, PUT } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
+import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
+import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
+import { POST as CreateTopic } from "@/app/(main)/api/v1/topics/route";
+import { POST as CreateSegment } from "@/app/(main)/api/v1/segments/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {

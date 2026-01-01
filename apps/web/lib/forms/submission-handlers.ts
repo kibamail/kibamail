@@ -12,7 +12,7 @@ import { responseCreated } from "@/lib/api/responses";
 import { ValidationError, type ValidationErrorDetail } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
-import { createContactSchema } from "@/app/api/v1/contacts/schema";
+import { createContactSchema } from "@/app/(main)/api/v1/contacts/schema";
 
 /**
  * Submission metadata from request headers

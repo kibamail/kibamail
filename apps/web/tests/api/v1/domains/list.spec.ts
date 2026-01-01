@@ -5,7 +5,7 @@
  * - GET /api/v1/domains - List sending domains with pagination
  */
 
-import { POST, GET } from "@/app/api/v1/domains/route";
+import { POST, GET } from "@/app/(main)/api/v1/domains/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

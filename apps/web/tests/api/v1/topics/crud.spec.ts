@@ -7,8 +7,8 @@
  * - DELETE /api/v1/topics/[topicId] - Delete specific topic
  */
 
-import { GET, PUT, DELETE } from "@/app/api/v1/topics/[topicId]/route";
-import { POST } from "@/app/api/v1/topics/route";
+import { GET, PUT, DELETE } from "@/app/(main)/api/v1/topics/[topicId]/route";
+import { POST } from "@/app/(main)/api/v1/topics/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

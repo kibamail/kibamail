@@ -5,7 +5,7 @@
  * - POST /api/v1/topics - Create new topic
  */
 
-import { POST } from "@/app/api/v1/topics/route";
+import { POST } from "@/app/(main)/api/v1/topics/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

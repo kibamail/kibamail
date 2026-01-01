@@ -6,9 +6,9 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { GET } from "@/app/api/v1/topics/[topicId]/contacts/route";
-import { POST as CREATE_TOPIC } from "@/app/api/v1/topics/route";
-import { POST as CREATE_PROPERTY } from "@/app/api/v1/contact-properties/route";
+import { GET } from "@/app/(main)/api/v1/topics/[topicId]/contacts/route";
+import { POST as CREATE_TOPIC } from "@/app/(main)/api/v1/topics/route";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { prisma } from "@/lib/db";
 import {
   createTestWorkspace,

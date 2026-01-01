@@ -11,9 +11,9 @@ import {
   GET,
   PUT,
   DELETE,
-} from "@/app/api/v1/automations/[automationId]/route";
-import { POST } from "@/app/api/v1/automations/route";
-import { POST as PUBLISH_POST } from "@/app/api/v1/automations/[automationId]/publish/route";
+} from "@/app/(main)/api/v1/automations/[automationId]/route";
+import { POST } from "@/app/(main)/api/v1/automations/route";
+import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

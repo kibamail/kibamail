@@ -12,8 +12,8 @@ import type {
   SendingDomain,
   SenderIdentity,
 } from "@prisma/client";
-import { POST as CreateDomain } from "@/app/api/v1/domains/route";
-import { POST as CreateBroadcast } from "@/app/api/v1/broadcasts/route";
+import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
+import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
 import {
   checkBroadcastReadiness,
   getReadinessErrors,

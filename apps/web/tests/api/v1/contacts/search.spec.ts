@@ -6,10 +6,10 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { POST as SEARCH } from "@/app/api/v1/contacts/search/route";
-import { POST as CREATE_CONTACT } from "@/app/api/v1/contacts/route";
-import { POST as CREATE_TOPIC } from "@/app/api/v1/topics/route";
-import { POST as CREATE_PROPERTY } from "@/app/api/v1/contact-properties/route";
+import { POST as SEARCH } from "@/app/(main)/api/v1/contacts/search/route";
+import { POST as CREATE_CONTACT } from "@/app/(main)/api/v1/contacts/route";
+import { POST as CREATE_TOPIC } from "@/app/(main)/api/v1/topics/route";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { prisma } from "@/lib/db";
 import {
   createTestWorkspace,

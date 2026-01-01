@@ -5,7 +5,7 @@
  * - GET /api/v1/contacts/[contactId] - Get specific contact
  */
 
-import { GET } from "@/app/api/v1/contacts/[contactId]/route";
+import { GET } from "@/app/(main)/api/v1/contacts/[contactId]/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { Contact } from "@prisma/client";
 import {

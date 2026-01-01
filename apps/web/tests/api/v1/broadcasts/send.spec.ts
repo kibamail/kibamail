@@ -6,11 +6,11 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { POST as SendBroadcast } from "@/app/api/v1/broadcasts/[broadcastId]/send/route";
-import { GET as GetBroadcast } from "@/app/api/v1/broadcasts/[broadcastId]/route";
-import { PUT as UpdateBroadcast } from "@/app/api/v1/broadcasts/[broadcastId]/route";
-import { POST as CreateBroadcast } from "@/app/api/v1/broadcasts/route";
-import { POST as CreateDomain } from "@/app/api/v1/domains/route";
+import { POST as SendBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/send/route";
+import { GET as GetBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
+import { PUT as UpdateBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
+import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
+import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {

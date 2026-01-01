@@ -1,4 +1,4 @@
-import { POST } from "@/app/api/v1/automations/route";
+import { POST } from "@/app/(main)/api/v1/automations/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

@@ -1,11 +1,11 @@
-import { POST as CreateAutomation } from "@/app/api/v1/automations/route";
-import { GET as GetAutomation } from "@/app/api/v1/automations/[automationId]/route";
-import { POST as PublishAutomation } from "@/app/api/v1/automations/[automationId]/publish/route";
-import { POST as ArchiveAutomation } from "@/app/api/v1/automations/[automationId]/archive/route";
+import { POST as CreateAutomation } from "@/app/(main)/api/v1/automations/route";
+import { GET as GetAutomation } from "@/app/(main)/api/v1/automations/[automationId]/route";
+import { POST as PublishAutomation } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
+import { POST as ArchiveAutomation } from "@/app/(main)/api/v1/automations/[automationId]/archive/route";
 import {
   GET as ListVersions,
   POST as CreateVersion,
-} from "@/app/api/v1/automations/[automationId]/versions/route";
+} from "@/app/(main)/api/v1/automations/[automationId]/versions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
   createTestWorkspace,

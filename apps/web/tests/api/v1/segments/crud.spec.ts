@@ -8,8 +8,8 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { GET, PUT, DELETE } from "@/app/api/v1/segments/[segmentId]/route";
-import { POST } from "@/app/api/v1/segments/route";
+import { GET, PUT, DELETE } from "@/app/(main)/api/v1/segments/[segmentId]/route";
+import { POST } from "@/app/(main)/api/v1/segments/route";
 import {
   createTestWorkspace,
   createFullAccessApiKey,
