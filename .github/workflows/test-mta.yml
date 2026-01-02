@@ -54,7 +54,7 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
-          cache-dependency-path: apps/mta/tests/go.sum
+          cache-dependency-path: apps/mta/testing/go.sum
 
       - name: Verify Docker and Docker Compose
         run: |
@@ -76,7 +76,7 @@ jobs:
 
       - name: Generate test certificates
         run: |
-          cd apps/mta/tests
+          cd apps/mta/testing
           echo "Generating TLS and DKIM certificates..."
           if [[ -x "./certs/generate-certs.sh" ]]; then
             ./certs/generate-certs.sh
@@ -96,7 +96,7 @@ jobs:
 
       - name: Run MTA integration tests
         run: |
-          cd apps/mta/tests
+          cd apps/mta/testing
 
           echo "Starting MTA integration test suite..."
           echo "Available memory:"
@@ -122,7 +122,7 @@ jobs:
       - name: Collect test artifacts
         if: failure() || cancelled()
         run: |
-          cd apps/mta/tests
+          cd apps/mta/testing
 
           echo "Collecting debugging information..."
 
@@ -161,7 +161,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mta-test-debug-logs-${{ github.run_number }}
-          path: apps/mta/tests/debug-logs/
+          path: apps/mta/testing/debug-logs/
           retention-days: 7
 
       # =============================================================================
@@ -171,7 +171,7 @@ jobs:
       - name: Cleanup test environment
         if: always()
         run: |
-          cd apps/mta/tests
+          cd apps/mta/testing
 
           echo "Cleaning up test environment..."
 
