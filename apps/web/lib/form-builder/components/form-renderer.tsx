@@ -41,6 +41,7 @@ import type {
   FormSubmissionData,
   FormTheme,
 } from "../schema";
+import { ContentBlockRenderer } from "./content-block-renderer";
 
 // =============================================================================
 // THEME UTILITIES
@@ -133,6 +134,15 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
   const widthClass = fieldWidthClasses[field.appearance.width];
   const isRequired = field.validation?.required;
   const isInvalid = !!error;
+
+  // For content type - presentational only, no form input
+  if (field.type === "content") {
+    return (
+      <div className={cn(widthClass)}>
+        <ContentBlockRenderer content={field.richContent} />
+      </div>
+    );
+  }
 
   // For checkbox type, we use horizontal orientation with label after
   if (field.type === "checkbox") {
@@ -783,13 +793,15 @@ export function FormRenderer({
         }}
       >
         {/* Container - card-like wrapper */}
-        <div style={theme.container as React.CSSProperties}>
+        <div
+          style={{
+            ...(theme.container as React.CSSProperties),
+            margin: "0 auto",
+          }}
+        >
           {/* Theme variables wrapper */}
           <div
-            className={cn(
-              "bg-background text-foreground",
-              theme.mode === "dark" && "dark"
-            )}
+            className={cn(theme.mode === "dark" && "dark")}
             style={themeStyles}
           >
             <form
@@ -851,7 +863,9 @@ export function FormRenderer({
                   <div
                     className={cn(
                       "flex pt-4",
-                      isFullWidth ? "flex-col gap-1 items-center" : "flex-row gap-3",
+                      isFullWidth
+                        ? "flex-col gap-1 items-center"
+                        : "flex-row gap-3",
                       !isFullWidth &&
                         (isMultiPage
                           ? "justify-between"

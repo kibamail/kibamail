@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Computer, SmartphoneDevice, Laptop, Refresh } from "iconoir-react";
 import { useFormBuilder } from "./form-builder-context";
 import { cn } from "@/lib/utils";
@@ -13,10 +13,20 @@ const DEVICE_SIZES: Record<DeviceMode, { width: string }> = {
   mobile: { width: "375px" },
 };
 
-export function FormLivePreview() {
+interface FormLivePreviewProps {
+  isActive?: boolean;
+}
+
+export function FormLivePreview({ isActive }: FormLivePreviewProps) {
   const { formId } = useFormBuilder();
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [refreshKey, setRefreshKey] = useState(Date.now());
+
+  useEffect(() => {
+    if (isActive) {
+      setRefreshKey(Date.now());
+    }
+  }, [isActive]);
 
   return (
     <div className="h-full w-full bg-kb-bg-layout flex flex-col">
@@ -82,10 +92,10 @@ export function FormLivePreview() {
       </div>
 
       {/* Preview area */}
-      <div className="flex-1 overflow-auto p-6 flex items-start justify-center">
+      <div className="flex-1 overflow-auto flex items-start justify-center">
         <div
           className={cn(
-            "bg-white rounded-lg shadow-lg overflow-hidden transition-all duration-300",
+            "overflow-hidden transition-all duration-300",
             deviceMode !== "desktop" && "border border-kb-border-secondary"
           )}
           style={{

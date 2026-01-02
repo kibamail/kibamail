@@ -1549,6 +1549,26 @@ class FormsApi extends HttpClient {
       method: "POST",
     });
   }
+
+  /**
+   * Delete a form
+   *
+   * @param formId - ID of the form to delete
+   * @returns Deleted form info
+   *
+   * @example
+   * ```ts
+   * await internalApi.forms().delete('form_123')
+   * ```
+   */
+  async delete(formId: string): Promise<FormResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/forms/${formId}`,
+      null,
+      formResponseSchema,
+    );
+  }
 }
 
 /**

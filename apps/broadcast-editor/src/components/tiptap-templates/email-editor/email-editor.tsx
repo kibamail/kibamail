@@ -1,8 +1,8 @@
 "use client";
 
-import { useContext, useEffect, forwardRef, useImperativeHandle } from "react";
+import { useContext, useEffect, forwardRef, useImperativeHandle, useMemo } from "react";
 import { EditorContent, EditorContext, useEditor } from "@tiptap/react";
-import type { Editor, JSONContent } from "@tiptap/react";
+import type { Editor, JSONContent, AnyExtension } from "@tiptap/react";
 import { createPortal } from "react-dom";
 
 import { StarterKit } from "@tiptap/starter-kit";
@@ -67,13 +67,14 @@ import { VariableNodeExtension } from "@/components/tiptap-node/variable-node/va
 import { VariableFallbackFloating } from "@/components/tiptap-node/variable-node/variable-fallback-floating";
 import { CustomStyles } from "@/components/tiptap-extension/custom-styles-extension";
 
-import type { EditorStylesConfig } from "@/types/editor-config";
+import type { EditorStylesConfig, EditorFeatureConfig } from "@/types/editor-config";
+import { EMAIL_EDITOR_PRESET } from "@/types/editor-config";
 import {
   EditorConfigProvider,
   useEditorConfig,
 } from "@/contexts/editor-config-context";
 
-export type { EditorStylesConfig };
+export type { EditorStylesConfig, EditorFeatureConfig };
 
 export interface EmailEditorRef {
   editor: Editor | null;
@@ -88,7 +89,9 @@ export interface CanvasConfiguration {
 export interface EmailEditorProps {
   placeholder?: string;
   styles?: EditorStylesConfig;
-  onUpload: (
+  /** Feature configuration - controls which features are enabled */
+  features?: EditorFeatureConfig;
+  onUpload?: (
     file: File,
     onProgress?: (event: { progress: number }) => void,
     abortSignal?: AbortSignal
@@ -103,7 +106,7 @@ export interface EmailEditorProps {
 
 export interface EditorProviderProps {
   placeholder?: string;
-  onUpload: (
+  onUpload?: (
     file: File,
     onProgress?: (event: { progress: number }) => void,
     abortSignal?: AbortSignal
@@ -136,7 +139,7 @@ export function EditorContentArea({
 }) {
   const { editor } = useContext(EditorContext)!;
   const { isDragging } = useUiEditorState(editor);
-  const { getStyles } = useEditorConfig();
+  const { getStyles, isEnabled } = useEditorConfig();
 
   useScrollToHash();
 
@@ -151,41 +154,62 @@ export function EditorContentArea({
   const { isStylingMode, exitStylingMode } = useActiveNode();
   const isCanvasOpen = canvasConfiguration?.open ?? false;
 
+  // Feature flags
+  const showLeftPanel = isEnabled("ui", "leftPanel");
+  const showRightPanel = isEnabled("ui", "rightPanel");
+  const showFloatingToolbar = isEnabled("ui", "floatingToolbar");
+  const showMobileToolbar = isEnabled("ui", "mobileToolbar");
+  const showSlashMenu = isEnabled("ui", "slashMenu");
+  const showDragHandles = isEnabled("ui", "dragHandles");
+  const showEmailWrapper = isEnabled("ui", "emailWrapper");
+  const showEmoji = isEnabled("media", "emoji");
+  const showMentions = isEnabled("email", "mentions");
+  const showVariables = isEnabled("email", "variables");
+  const showButton = isEnabled("media", "button");
+
+  // Apply body styles only if email wrapper is enabled
+  const contentStyles = showEmailWrapper
+    ? {
+        cursor: isDragging ? "grabbing" : "auto",
+        "--link-text-color": linkColor,
+        ...bodyStyles,
+      }
+    : {
+        cursor: isDragging ? "grabbing" : "auto",
+        "--link-text-color": linkColor,
+      };
+
   return (
-    <div className="email-editor-wrapper">
-      <EmailEditorLeftPanel canvasConfiguration={canvasConfiguration} />
+    <div className={`email-editor-wrapper ${!showEmailWrapper ? "email-editor-wrapper--minimal" : ""}`}>
+      {showLeftPanel && <EmailEditorLeftPanel canvasConfiguration={canvasConfiguration} />}
 
       <div style={{ position: "relative", flex: 1, minWidth: 0 }}>
         <EditorContent
           editor={editor}
           role="presentation"
-          className="email-editor-content"
-          style={{
-            cursor: isDragging ? "grabbing" : "auto",
-            "--link-text-color": linkColor,
-            ...bodyStyles,
-          } as React.CSSProperties}
+          className={`email-editor-content ${!showEmailWrapper ? "email-editor-content--minimal" : ""}`}
+          style={contentStyles as React.CSSProperties}
         >
-          <DragContextMenu />
-          <EmojiDropdownMenu />
-          <MentionDropdownMenu />
-          <VariableDropdownMenu />
-          <SlashDropdownMenu />
-          <EmailToolbarFloating />
-          <ButtonCursorFloating />
-          <VariableFallbackFloating />
+          {showDragHandles && <DragContextMenu />}
+          {showEmoji && <EmojiDropdownMenu />}
+          {showMentions && <MentionDropdownMenu />}
+          {showVariables && <VariableDropdownMenu />}
+          {showSlashMenu && <SlashDropdownMenu />}
+          {showFloatingToolbar && <EmailToolbarFloating />}
+          {showButton && <ButtonCursorFloating />}
+          {showVariables && <VariableFallbackFloating />}
 
-          {createPortal(<MobileToolbar />, document.body)}
+          {showMobileToolbar && createPortal(<MobileToolbar />, document.body)}
         </EditorContent>
 
-        {isCanvasOpen && (
+        {showLeftPanel && isCanvasOpen && (
           <div
             className="email-editor-styling-overlay email-editor-styling-overlay-left"
             onClick={() => canvasConfiguration?.onOpenChange(false)}
           />
         )}
 
-        {isStylingMode && (
+        {showRightPanel && isStylingMode && (
           <div
             className="email-editor-styling-overlay email-editor-styling-overlay-right"
             onClick={exitStylingMode}
@@ -193,7 +217,7 @@ export function EditorContentArea({
         )}
       </div>
 
-      <EmailEditorRightPanel />
+      {showRightPanel && <EmailEditorRightPanel />}
     </div>
   );
 }
@@ -208,15 +232,41 @@ export function EditorProvider(props: EditorProviderProps) {
     initialContent,
     editable = true,
   } = props;
-  const { getStyles } = useEditorConfig();
+  const { getStyles, isEnabled, enabledHeadingLevels } = useEditorConfig();
   const { isStylingMode } = useActiveNode();
   const isCanvasOpen = canvasConfiguration?.open ?? false;
+
+  // Feature flags for extensions
+  const showEmailWrapper = isEnabled("ui", "emailWrapper");
+  const showImage = isEnabled("media", "image");
+  const showEmoji = isEnabled("media", "emoji");
+  const showButton = isEnabled("media", "button");
+  const showPanel = isEnabled("media", "panel");
+  const showMentions = isEnabled("email", "mentions");
+  const showVariables = isEnabled("email", "variables");
+  const showHeading = isEnabled("blocks", "heading");
+  const showBlockquote = isEnabled("blocks", "blockquote");
+  const showCodeBlock = isEnabled("blocks", "codeBlock");
+  const showBulletList = isEnabled("blocks", "bulletList");
+  const showNumberedList = isEnabled("blocks", "numberedList");
+  const showTaskList = isEnabled("blocks", "taskList");
+  const showHorizontalRule = isEnabled("blocks", "horizontalRule");
+  const showTextAlign = isEnabled("textFormatting", "textAlign");
+  const showSuperscript = isEnabled("textFormatting", "superscript");
+  const showSubscript = isEnabled("textFormatting", "subscript");
+  const showTextColor = isEnabled("textFormatting", "textColor");
+  const showHighlight = isEnabled("textFormatting", "highlight");
+  const showNodeStyleEditing = isEnabled("ui", "nodeStyleEditing");
 
   async function wrappedUpload(
     file: File,
     onProgress?: (event: { progress: number }) => void,
     abortSignal?: AbortSignal
   ): Promise<string> {
+    if (!onUpload) {
+      throw new Error("Upload function not provided");
+    }
+
     if (!file) {
       throw new Error("No file provided");
     }
@@ -231,7 +281,8 @@ export function EditorProvider(props: EditorProviderProps) {
   }
 
   const containerStyles = getStyles("container");
-  const containerStyleString = containerStyles
+  // Only apply container styles if email wrapper is enabled
+  const containerStyleString = showEmailWrapper && containerStyles
     ? Object.entries(containerStyles)
         .map(([key, value]) => {
           const kebabKey = key.replace(/([A-Z])/g, "-$1").toLowerCase();
@@ -239,6 +290,163 @@ export function EditorProvider(props: EditorProviderProps) {
         })
         .join("; ")
     : "";
+
+  // Build extensions array based on feature config
+  const extensions = useMemo(() => {
+    const exts: AnyExtension[] = [
+      StarterKit.configure({
+        horizontalRule: false,
+        paragraph: false,
+        heading: false,
+        blockquote: showBlockquote ? undefined : false,
+        codeBlock: showCodeBlock ? undefined : false,
+        bulletList: showBulletList ? undefined : false,
+        orderedList: showNumberedList ? undefined : false,
+        dropcursor: {
+          width: 2,
+        },
+        link: { openOnClick: false },
+      }),
+      Paragraph,
+      Placeholder.configure({
+        placeholder,
+        emptyNodeClass: "is-empty with-slash",
+      }),
+      Typography,
+      UiState,
+      Selection,
+    ];
+
+    // Heading extension
+    if (showHeading && enabledHeadingLevels.length > 0) {
+      exts.push(Heading);
+    }
+
+    // Horizontal rule
+    if (showHorizontalRule) {
+      exts.push(HorizontalRule);
+    }
+
+    // Custom styles for node editing
+    if (showNodeStyleEditing) {
+      exts.push(
+        CustomStyles.configure({
+          types: [
+            "button",
+            "panel",
+            "paragraph",
+            "heading",
+            "image",
+            "bulletList",
+            "orderedList",
+            "horizontalRule",
+          ],
+        })
+      );
+      exts.push(NodeBackground);
+      exts.push(NodeAlignment);
+    }
+
+    // Text formatting extensions
+    if (showTextAlign) {
+      exts.push(TextAlign.configure({ types: ["heading", "paragraph"] }));
+    }
+
+    if (showTextColor) {
+      exts.push(TextStyle);
+      exts.push(Color);
+    }
+
+    if (showHighlight) {
+      exts.push(Highlight.configure({ multicolor: true }));
+    }
+
+    if (showSuperscript) {
+      exts.push(Superscript);
+    }
+
+    if (showSubscript) {
+      exts.push(Subscript);
+    }
+
+    // Task list
+    if (showTaskList) {
+      exts.push(TaskList);
+      exts.push(TaskItem.configure({ nested: true }));
+    }
+
+    // Media extensions
+    if (showEmoji) {
+      exts.push(
+        Emoji.configure({
+          emojis: gitHubEmojis.filter(
+            (emoji) => !emoji.name.includes("regional")
+          ),
+          forceFallbackImages: true,
+        })
+      );
+    }
+
+    if (showImage) {
+      exts.push(Image);
+      if (onUpload) {
+        exts.push(
+          ImageUploadNode.configure({
+            accept: "image/*",
+            maxSize: MAX_FILE_SIZE,
+            limit: 3,
+            upload: wrappedUpload,
+            onError: (error) => console.error("Upload failed:", error),
+          })
+        );
+      }
+    }
+
+    if (showButton) {
+      exts.push(ButtonNodeExtension);
+    }
+
+    if (showPanel) {
+      exts.push(PanelNodeExtension);
+    }
+
+    // Email-specific extensions
+    if (showMentions) {
+      exts.push(Mention);
+    }
+
+    if (showVariables) {
+      exts.push(VariableNodeExtension);
+    }
+
+    // Math support (always enabled for now)
+    exts.push(Mathematics);
+
+    return exts;
+  }, [
+    placeholder,
+    showHeading,
+    enabledHeadingLevels,
+    showHorizontalRule,
+    showNodeStyleEditing,
+    showTextAlign,
+    showTextColor,
+    showHighlight,
+    showSuperscript,
+    showSubscript,
+    showTaskList,
+    showEmoji,
+    showImage,
+    showButton,
+    showPanel,
+    showMentions,
+    showVariables,
+    showBlockquote,
+    showCodeBlock,
+    showBulletList,
+    showNumberedList,
+    onUpload,
+  ]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -249,73 +457,11 @@ export function EditorProvider(props: EditorProviderProps) {
     },
     editorProps: {
       attributes: {
-        class: "email-editor",
+        class: `email-editor ${!showEmailWrapper ? "email-editor--minimal" : ""}`,
         ...(containerStyleString ? { style: containerStyleString } : {}),
       },
     },
-    extensions: [
-      StarterKit.configure({
-        horizontalRule: false,
-        paragraph: false,
-        heading: false,
-        dropcursor: {
-          width: 2,
-        },
-        link: { openOnClick: false },
-      }),
-      HorizontalRule,
-      Paragraph,
-      Heading,
-      CustomStyles.configure({
-        types: [
-          "button",
-          "panel",
-          "paragraph",
-          "heading",
-          "image",
-          "bulletList",
-          "orderedList",
-          "horizontalRule",
-        ],
-      }),
-      TextAlign.configure({ types: ["heading", "paragraph"] }),
-
-      Placeholder.configure({
-        placeholder,
-        emptyNodeClass: "is-empty with-slash",
-      }),
-      Mention,
-      VariableNodeExtension,
-      ButtonNodeExtension,
-      PanelNodeExtension,
-      Emoji.configure({
-        emojis: gitHubEmojis.filter(
-          (emoji) => !emoji.name.includes("regional")
-        ),
-        forceFallbackImages: true,
-      }),
-      NodeBackground,
-      NodeAlignment,
-      TextStyle,
-      Mathematics,
-      Superscript,
-      Subscript,
-      Color,
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Highlight.configure({ multicolor: true }),
-      Selection,
-      Image,
-      ImageUploadNode.configure({
-        accept: "image/*",
-        maxSize: MAX_FILE_SIZE,
-        limit: 3,
-        upload: wrappedUpload,
-        onError: (error) => console.error("Upload failed:", error),
-      }),
-      Typography,
-      UiState,
-    ],
+    extensions,
   });
 
   useEffect(() => {
@@ -348,6 +494,7 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
     {
       placeholder = "Start writing...",
       styles,
+      features = EMAIL_EDITOR_PRESET,
       onUpload,
       canvasConfiguration,
       variables = [],
@@ -365,7 +512,11 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
 
     return (
       <div className="email-editor-root">
-        <EditorConfigProvider config={{ styles: mergedStyles }} onStylesChange={onStylesChange}>
+        <EditorConfigProvider
+          config={{ styles: mergedStyles }}
+          features={features}
+          onStylesChange={onStylesChange}
+        >
           <VariablesProvider variables={variables}>
             <AppProvider>
               <ActiveNodeProvider>
@@ -399,7 +550,7 @@ export function EmailEditorContent({
   editable = true,
 }: {
   placeholder?: string;
-  onUpload: (
+  onUpload?: (
     file: File,
     onProgress?: (event: { progress: number }) => void,
     abortSignal?: AbortSignal

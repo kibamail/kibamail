@@ -62,6 +62,7 @@ export const SuggestionMenu = ({
     internalDecorationNode,
     1000,
     {
+      strategy: "fixed",
       placement: "bottom-start",
       middleware: [
         offset(10),

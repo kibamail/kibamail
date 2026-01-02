@@ -19,27 +19,12 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { validFormFields } from "@/tests/utils/form-fixtures";
 import { prisma } from "@/lib/db";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
-
-const validFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "email",
-          title: "Email",
-          inputType: "email",
-          isRequired: true,
-        },
-      ],
-    },
-  ],
-};
 
 /**
  * Setup: Create a test workspace and API keys for authentication
@@ -262,15 +247,37 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const createResponse = await POST(createRequest);
     const rootForm = await createResponse.json();
 
+    // New fields with updated structure (must include email for sign-up forms)
     const newFields = {
+      ...validFormFields,
+      id: "updated_form",
+      title: "Updated Form",
       pages: [
         {
-          elements: [
+          id: "page_1",
+          sections: [
             {
-              type: "text",
-              name: "firstName",
-              title: "First Name",
-              isRequired: true,
+              id: "section_1",
+              fields: [
+                {
+                  id: "field_email",
+                  type: "email",
+                  name: "email",
+                  label: "Email Address",
+                  validation: { required: true },
+                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                },
+                {
+                  id: "field_firstName",
+                  type: "text",
+                  name: "firstName",
+                  label: "First Name",
+                  validation: { required: true },
+                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
             },
           ],
         },

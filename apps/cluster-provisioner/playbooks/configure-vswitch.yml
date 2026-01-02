@@ -1,0 +1,547 @@
+# Configure Hetzner vSwitch Private Networking
+#
+# This playbook configures VLAN-tagged private networking on Hetzner bare metal
+# servers using vSwitch infrastructure.
+#
+# IMPORTANT: This playbook MUST target exactly ONE host per execution.
+# Use --limit <hostname> to target a specific server.
+#
+# Prerequisites:
+#   - Hetzner vSwitch created in Robot panel
+#   - Target server attached to the vSwitch
+#   - SSH access via public IP
+#
+# Usage:
+#   ansible-playbook playbooks/configure-vswitch.yml --limit mta-1 -i inventory/helsinki/hosts.yml
+#
+# Tags:
+#   - preflight: Only run validation checks
+#   - configure: Only run configuration tasks
+#   - verify: Only run verification tasks
+#   - firewall: Only run firewall tasks
+#   - all: Run everything (default)
+#
+---
+- name: Configure Hetzner vSwitch Private Networking
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars:
+    vswitch_interface_name: "{{ vswitch_physical_interface }}.{{ vswitch_vlan_id }}"
+    vswitch_backup_dir: "/root/netplan-backups"
+    vswitch_cron_marker: "# ANSIBLE_VSWITCH_MTU_FIX"
+
+  pre_tasks:
+    # ==========================================================================
+    # SAFETY CHECK - Ensure only one host is targeted
+    # ==========================================================================
+    - name: Safety check - ensure only one host is targeted
+      ansible.builtin.fail:
+        msg: |
+          SAFETY ERROR: This playbook must target exactly ONE host at a time.
+
+          Use --limit <hostname> to target a specific server.
+
+          Targeted hosts: {{ ansible_play_hosts | join(', ') }}
+
+          Example: ansible-playbook playbooks/configure-vswitch.yml --limit mta-1
+      when: ansible_play_hosts | length > 1
+      run_once: true
+      tags: [always]
+
+  tasks:
+    # ==========================================================================
+    # PREFLIGHT CHECKS
+    # ==========================================================================
+    - name: Preflight checks
+      tags: [preflight, always]
+      block:
+        - name: Verify running with elevated privileges
+          ansible.builtin.assert:
+            that:
+              - ansible_user_id == 'root' or ansible_become
+            fail_msg: "This playbook must run as root or with become privileges"
+            success_msg: "Running with elevated privileges"
+
+        - name: Validate required variables are defined
+          ansible.builtin.assert:
+            that:
+              - vswitch_vlan_id is defined
+              - vswitch_private_ip is defined
+              - vswitch_private_subnet is defined
+              - vswitch_physical_interface is defined
+              - vswitch_mtu is defined
+              - vswitch_netplan_file is defined
+            fail_msg: |
+              Missing required variables. Ensure these are defined:
+                - vswitch_vlan_id
+                - vswitch_private_ip
+                - vswitch_private_subnet
+                - vswitch_physical_interface
+                - vswitch_mtu
+                - vswitch_netplan_file
+            success_msg: "All required variables are defined"
+
+        - name: Validate VLAN ID is in Hetzner's allowed range (4000-4091)
+          ansible.builtin.assert:
+            that:
+              - vswitch_vlan_id | int >= 4000
+              - vswitch_vlan_id | int <= 4091
+            fail_msg: "vswitch_vlan_id must be between 4000 and 4091 (Hetzner requirement). Got: {{ vswitch_vlan_id }}"
+            success_msg: "VLAN ID {{ vswitch_vlan_id }} is valid"
+
+        - name: Validate private IP is a valid IPv4 address
+          ansible.builtin.assert:
+            that:
+              - vswitch_private_ip | ansible.utils.ipaddr('address')
+            fail_msg: "vswitch_private_ip must be a valid IPv4 address without CIDR. Got: {{ vswitch_private_ip }}"
+            success_msg: "Private IP {{ vswitch_private_ip }} is valid"
+
+        - name: Validate private subnet is valid CIDR notation
+          ansible.builtin.assert:
+            that:
+              - vswitch_private_subnet | ansible.utils.ipaddr('network/prefix')
+            fail_msg: "vswitch_private_subnet must be valid CIDR notation. Got: {{ vswitch_private_subnet }}"
+            success_msg: "Private subnet {{ vswitch_private_subnet }} is valid"
+
+        - name: Warn if MTU is not 1400 (Hetzner requirement)
+          ansible.builtin.assert:
+            that:
+              - vswitch_mtu | int == 1400
+            fail_msg: |
+              WARNING: Hetzner vSwitch REQUIRES MTU of exactly 1400.
+              You specified: {{ vswitch_mtu }}
+              This will likely cause connectivity issues!
+            success_msg: "MTU is correctly set to 1400"
+
+        - name: Check Ubuntu version is 24.04
+          ansible.builtin.assert:
+            that:
+              - ansible_distribution == 'Ubuntu'
+              - ansible_distribution_version is version('24.04', '>=')
+            fail_msg: "This playbook targets Ubuntu 24.04+. Found: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+            success_msg: "Ubuntu {{ ansible_distribution_version }} detected"
+
+        - name: Check physical interface exists
+          ansible.builtin.command:
+            cmd: "ip link show {{ vswitch_physical_interface }}"
+          register: interface_check
+          changed_when: false
+          failed_when: interface_check.rc != 0
+
+        - name: Verify physical interface is UP
+          ansible.builtin.assert:
+            that:
+              - "'state UP' in interface_check.stdout or 'state UNKNOWN' in interface_check.stdout"
+            fail_msg: "Physical interface {{ vswitch_physical_interface }} is not UP"
+            success_msg: "Physical interface {{ vswitch_physical_interface }} is available"
+
+        - name: Check systemd-networkd is available
+          ansible.builtin.command:
+            cmd: systemctl is-enabled systemd-networkd
+          register: networkd_check
+          changed_when: false
+          failed_when: false
+
+        - name: Verify systemd-networkd is enabled
+          ansible.builtin.assert:
+            that:
+              - networkd_check.rc == 0
+            fail_msg: "systemd-networkd is not enabled. This playbook requires networkd renderer."
+            success_msg: "systemd-networkd is enabled"
+
+        - name: Check if 8021q kernel module is loaded
+          ansible.builtin.shell:
+            cmd: lsmod | grep -q 8021q
+          register: vlan_module_check
+          changed_when: false
+          failed_when: false
+
+        - name: Load 8021q kernel module if not loaded
+          community.general.modprobe:
+            name: 8021q
+            state: present
+          when: vlan_module_check.rc != 0
+
+        - name: Ensure 8021q module loads on boot
+          ansible.builtin.lineinfile:
+            path: /etc/modules-load.d/8021q.conf
+            line: 8021q
+            create: yes
+            mode: '0644'
+
+        - name: Display preflight summary
+          ansible.builtin.debug:
+            msg: |
+              Preflight checks passed:
+                - Server: {{ inventory_hostname }} ({{ ansible_host }})
+                - Physical interface: {{ vswitch_physical_interface }}
+                - VLAN ID: {{ vswitch_vlan_id }}
+                - Private IP: {{ vswitch_private_ip }}
+                - Private subnet: {{ vswitch_private_subnet }}
+                - MTU: {{ vswitch_mtu }}
+                - VLAN interface will be: {{ vswitch_interface_name }}
+
+    # ==========================================================================
+    # BACKUP EXISTING CONFIGURATION
+    # ==========================================================================
+    - name: Backup existing configuration
+      tags: [configure]
+      block:
+        - name: Create backup directory
+          ansible.builtin.file:
+            path: "{{ vswitch_backup_dir }}"
+            state: directory
+            mode: '0700'
+            owner: root
+            group: root
+
+        - name: Generate backup timestamp
+          ansible.builtin.set_fact:
+            backup_timestamp: "{{ ansible_date_time.iso8601_basic_short }}"
+
+        - name: Find existing netplan configs
+          ansible.builtin.find:
+            paths: /etc/netplan
+            patterns: "*.yaml,*.yml"
+          register: existing_netplan_files
+
+        - name: Backup existing netplan configs
+          ansible.builtin.copy:
+            src: "{{ item.path }}"
+            dest: "{{ vswitch_backup_dir }}/{{ item.path | basename }}.{{ backup_timestamp }}.bak"
+            remote_src: yes
+            mode: preserve
+          loop: "{{ existing_netplan_files.files }}"
+          when: existing_netplan_files.files | length > 0
+
+        - name: Store backup info as fact
+          ansible.builtin.set_fact:
+            vswitch_backup_path: "{{ vswitch_backup_dir }}"
+            vswitch_backup_timestamp: "{{ backup_timestamp }}"
+
+        - name: Display backup info
+          ansible.builtin.debug:
+            msg: "Netplan configs backed up to: {{ vswitch_backup_dir }}/*{{ backup_timestamp }}.bak"
+
+    # ==========================================================================
+    # CONFIGURE VLAN INTERFACE
+    # ==========================================================================
+    - name: Configure VLAN interface
+      tags: [configure]
+      block:
+        - name: Generate netplan vSwitch configuration
+          ansible.builtin.template:
+            src: "{{ playbook_dir }}/../templates/netplan-vswitch.yaml.j2"
+            dest: "{{ vswitch_netplan_file }}"
+            owner: root
+            group: root
+            mode: '0600'
+            backup: yes
+          register: netplan_config
+
+        - name: Validate netplan configuration syntax
+          ansible.builtin.command:
+            cmd: netplan generate
+          register: netplan_validate
+          changed_when: false
+          failed_when: false
+
+        - name: Fail if netplan validation failed
+          ansible.builtin.fail:
+            msg: |
+              Netplan configuration validation failed!
+
+              Error: {{ netplan_validate.stderr }}
+
+              The configuration file has been written but NOT applied.
+              Please review: {{ vswitch_netplan_file }}
+
+              To rollback, restore from backup:
+                cp {{ vswitch_backup_dir }}/*.{{ backup_timestamp }}.bak /etc/netplan/
+          when: netplan_validate.rc != 0
+
+      rescue:
+        - name: Display configuration error
+          ansible.builtin.debug:
+            msg: |
+              ERROR: Failed to configure VLAN interface.
+
+              Backup location: {{ vswitch_backup_dir }}
+
+              To manually rollback:
+                1. Remove the failed config: rm {{ vswitch_netplan_file }}
+                2. Restore backups: cp {{ vswitch_backup_dir }}/*.bak /etc/netplan/
+                3. Apply: netplan apply
+
+        - name: Fail the playbook
+          ansible.builtin.fail:
+            msg: "VLAN interface configuration failed. See above for rollback instructions."
+
+    # ==========================================================================
+    # APPLY NETWORK CONFIGURATION
+    # ==========================================================================
+    - name: Apply network configuration
+      tags: [configure]
+      block:
+        - name: Apply netplan configuration
+          ansible.builtin.command:
+            cmd: netplan apply
+          register: netplan_apply
+          changed_when: true
+          when: netplan_config.changed
+
+        - name: Wait for interface to stabilize
+          ansible.builtin.pause:
+            seconds: 5
+          when: netplan_config.changed
+
+        - name: Apply MTU fix immediately (workaround for netplan bug)
+          ansible.builtin.command:
+            cmd: "ip link set mtu {{ vswitch_mtu }} dev {{ vswitch_interface_name }}"
+          register: mtu_fix
+          changed_when: true
+          failed_when: false
+
+        - name: Warn if MTU fix failed
+          ansible.builtin.debug:
+            msg: |
+              WARNING: Could not set MTU on {{ vswitch_interface_name }}.
+              The interface may not exist yet. This will be retried on reboot via cron.
+          when: mtu_fix.rc != 0
+
+      rescue:
+        - name: Display apply error
+          ansible.builtin.debug:
+            msg: |
+              ERROR: Failed to apply network configuration.
+
+              Your SSH connection may have been interrupted if this was a critical interface.
+
+              If you can still connect, try:
+                1. Check interface: ip link show
+                2. Check netplan: netplan generate
+                3. Rollback: cp {{ vswitch_backup_dir }}/*.bak /etc/netplan/ && netplan apply
+
+        - name: Fail the playbook
+          ansible.builtin.fail:
+            msg: "Network configuration apply failed. See above for recovery steps."
+
+    # ==========================================================================
+    # MTU BUG WORKAROUND (PERSISTENT)
+    # ==========================================================================
+    - name: Configure persistent MTU fix
+      tags: [configure]
+      block:
+        - name: Check for existing MTU fix cron entry
+          ansible.builtin.shell:
+            cmd: "crontab -l 2>/dev/null | grep -F '{{ vswitch_cron_marker }}' || true"
+          register: existing_cron
+          changed_when: false
+
+        - name: Remove old MTU fix cron entries (if any)
+          ansible.builtin.shell:
+            cmd: "(crontab -l 2>/dev/null | grep -v '{{ vswitch_cron_marker }}') | crontab -"
+          when: existing_cron.stdout | length > 0
+          changed_when: true
+
+        - name: Add MTU fix cron entry for reboot
+          ansible.builtin.cron:
+            name: "vSwitch MTU fix for {{ vswitch_interface_name }}"
+            special_time: reboot
+            job: "sleep 10 && /sbin/ip link set mtu {{ vswitch_mtu }} dev {{ vswitch_interface_name }} {{ vswitch_cron_marker }}"
+            user: root
+            state: present
+
+    # ==========================================================================
+    # FIREWALL CONFIGURATION
+    # ==========================================================================
+    - name: Configure firewall
+      tags: [configure, firewall]
+      block:
+        - name: Check if ufw is active
+          ansible.builtin.command:
+            cmd: ufw status
+          register: ufw_status
+          changed_when: false
+          failed_when: false
+
+        - name: Allow traffic from private subnet (ufw)
+          community.general.ufw:
+            rule: allow
+            from_ip: "{{ vswitch_private_subnet }}"
+            comment: "Allow vSwitch private network"
+          when:
+            - ufw_status.rc == 0
+            - "'Status: active' in ufw_status.stdout"
+
+        - name: Allow traffic on VLAN interface (ufw)
+          community.general.ufw:
+            rule: allow
+            interface_in: "{{ vswitch_interface_name }}"
+            comment: "Allow all traffic on vSwitch interface"
+          when:
+            - ufw_status.rc == 0
+            - "'Status: active' in ufw_status.stdout"
+
+        - name: Check if iptables has custom rules (non-ufw)
+          ansible.builtin.shell:
+            cmd: "iptables -L INPUT -n 2>/dev/null | grep -v 'Chain\\|target' | grep -v '^$' | wc -l"
+          register: iptables_rules
+          changed_when: false
+          failed_when: false
+          when: ufw_status.rc != 0 or "'Status: inactive' in ufw_status.stdout"
+
+        - name: Add iptables rule for private subnet (if not using ufw)
+          ansible.builtin.iptables:
+            chain: INPUT
+            source: "{{ vswitch_private_subnet }}"
+            jump: ACCEPT
+            comment: "Allow vSwitch private network"
+          when:
+            - ufw_status.rc != 0 or "'Status: inactive' in ufw_status.stdout"
+            - iptables_rules.stdout | int > 0
+
+        - name: Check if iptables-persistent is installed
+          ansible.builtin.stat:
+            path: /etc/iptables/rules.v4
+          register: iptables_persistent
+
+        - name: Save iptables rules if persistent is available
+          ansible.builtin.shell:
+            cmd: iptables-save > /etc/iptables/rules.v4
+          when:
+            - iptables_persistent.stat.exists
+            - ufw_status.rc != 0 or "'Status: inactive' in ufw_status.stdout"
+          changed_when: true
+
+    # ==========================================================================
+    # POST-CONFIGURATION VERIFICATION
+    # ==========================================================================
+    - name: Verify configuration
+      tags: [verify]
+      block:
+        - name: Check VLAN interface exists
+          ansible.builtin.command:
+            cmd: "ip link show {{ vswitch_interface_name }}"
+          register: vlan_interface_check
+          changed_when: false
+          failed_when: false
+
+        - name: Verify VLAN interface exists
+          ansible.builtin.assert:
+            that:
+              - vlan_interface_check.rc == 0
+            fail_msg: |
+              VLAN interface {{ vswitch_interface_name }} does not exist!
+
+              Troubleshooting:
+                1. Check physical interface: ip link show {{ vswitch_physical_interface }}
+                2. Check netplan config: cat {{ vswitch_netplan_file }}
+                3. Try applying again: netplan apply
+            success_msg: "VLAN interface {{ vswitch_interface_name }} exists"
+
+        - name: Check VLAN interface has correct IP
+          ansible.builtin.command:
+            cmd: "ip addr show {{ vswitch_interface_name }}"
+          register: vlan_ip_check
+          changed_when: false
+
+        - name: Verify IP address is assigned
+          ansible.builtin.assert:
+            that:
+              - "vswitch_private_ip in vlan_ip_check.stdout"
+            fail_msg: "IP {{ vswitch_private_ip }} is not assigned to {{ vswitch_interface_name }}"
+            success_msg: "IP {{ vswitch_private_ip }} is correctly assigned"
+
+        - name: Check MTU setting
+          ansible.builtin.shell:
+            cmd: "ip link show {{ vswitch_interface_name }} | grep -oP 'mtu \\K[0-9]+'"
+          register: mtu_check
+          changed_when: false
+
+        - name: Verify MTU is 1400
+          ansible.builtin.assert:
+            that:
+              - mtu_check.stdout | int == 1400
+            fail_msg: |
+              MTU is {{ mtu_check.stdout }}, expected 1400!
+
+              Fix manually: ip link set mtu 1400 dev {{ vswitch_interface_name }}
+              The cron job will fix this on next reboot.
+            success_msg: "MTU is correctly set to 1400"
+
+        - name: Check interface is UP
+          ansible.builtin.assert:
+            that:
+              - "'state UP' in vlan_interface_check.stdout"
+            fail_msg: |
+              Interface {{ vswitch_interface_name }} is not UP!
+
+              Try: ip link set {{ vswitch_interface_name }} up
+            success_msg: "Interface {{ vswitch_interface_name }} is UP"
+
+        - name: Check route to private subnet exists
+          ansible.builtin.command:
+            cmd: "ip route show {{ vswitch_private_subnet }}"
+          register: route_check
+          changed_when: false
+          failed_when: false
+
+        - name: Verify route exists
+          ansible.builtin.assert:
+            that:
+              - route_check.stdout | length > 0
+            fail_msg: "No route to {{ vswitch_private_subnet }} found"
+            success_msg: "Route to {{ vswitch_private_subnet }} exists"
+
+  # ============================================================================
+  # HANDLERS
+  # ============================================================================
+  handlers:
+    - name: restart systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        state: restarted
+
+    - name: reload netplan
+      ansible.builtin.command:
+        cmd: netplan apply
+      changed_when: true
+
+  # ============================================================================
+  # POST TASKS - SUMMARY
+  # ============================================================================
+  post_tasks:
+    - name: Display configuration summary
+      tags: [always]
+      ansible.builtin.debug:
+        msg: |
+          ============================================================
+          vSwitch Configuration Complete
+          ============================================================
+
+          Server: {{ inventory_hostname }}
+
+          Configuration:
+            - VLAN Interface: {{ vswitch_interface_name }}
+            - Private IP: {{ vswitch_private_ip }}/{{ vswitch_private_subnet | ansible.utils.ipaddr('prefix') }}
+            - Physical Interface: {{ vswitch_physical_interface }}
+            - VLAN ID: {{ vswitch_vlan_id }}
+            - MTU: {{ vswitch_mtu }}
+
+          Files:
+            - Netplan config: {{ vswitch_netplan_file }}
+            - Backups: {{ vswitch_backup_dir | default('/root/netplan-backups') }}/
+
+          Verification command:
+            ip addr show {{ vswitch_interface_name }}
+
+          Next steps:
+            Run this playbook on other servers with:
+              ansible-playbook playbooks/configure-vswitch.yml --limit <other-hostname>
+
+          To test connectivity (after all servers are configured):
+            ping {{ vswitch_private_ip }}  (from another server in the vSwitch)
+          ============================================================

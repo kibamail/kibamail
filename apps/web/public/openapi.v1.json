@@ -8960,7 +8960,7 @@
       },
       "post": {
         "summary": "Create Form",
-        "description": "Create a new embeddable form for lead capture and contact collection.\n\n**Use Cases:**\n- Build newsletter signup forms for your website\n- Create lead generation forms\n- Capture event registrations\n- Collect customer feedback\n- Build preference center forms\n\n**Behavior:**\n- Form is created in DRAFT status (not yet public)\n- Uses SurveyJS JSON configuration for flexibility\n- Form gets a unique ID and slug for embedding\n- Initial version is created automatically\n- Form must be published to make it publicly accessible\n- Submissions are tracked and stored\n\n**Required Scope:** `write:forms`\n\n**Form Configuration:**\n- **name:** Internal form name for identification\n- **title:** Display title shown to users\n- **description:** Form purpose/instructions (optional)\n- **surveyJson:** SurveyJS JSON schema defining fields\n- **redirectUrl:** Where to send users after submission (optional)\n- **submitText:** Custom submit button text (optional)\n\n**SurveyJS Integration:**\n- Supports all SurveyJS question types\n- Flexible field validation and logic\n- Conditional field display\n- Multi-page forms supported\n- Custom styling via themes\n\n**Form Lifecycle:**\n1. Create form (DRAFT status)\n2. Configure fields and settings\n3. Test form submission\n4. Publish form (PUBLISHED status)\n5. Embed on website\n6. Create versions for updates\n7. Publish new versions (previous auto-archived)\n\n**Note:** Forms in DRAFT status cannot receive public submissions. Publish the form to make it live.",
+        "description": "Create a new embeddable form for lead capture and contact collection.\n\n**Use Cases:**\n- Build newsletter signup forms for your website\n- Create lead generation forms\n- Capture event registrations\n- Collect customer feedback\n- Build preference center forms\n\n**Behavior:**\n- Form is created in DRAFT status (not yet public)\n- Uses form builder JSON schema for flexibility\n- Form gets a unique ID and slug for embedding\n- Initial version is created automatically\n- Form must be published to make it publicly accessible\n- Submissions are tracked and stored\n\n**Required Scope:** `write:forms`\n\n**Form Configuration:**\n- **name:** Internal form name for identification\n- **title:** Display title shown to users\n- **description:** Form purpose/instructions (optional)\n- **fields:** Form builder JSON schema defining fields\n- **redirectUrl:** Where to send users after submission (optional)\n- **submitText:** Custom submit button text (optional)\n\n**Form Builder Features:**\n- Supports all standard field types (text, email, number, phone, etc.)\n- Flexible field validation and conditional logic\n- Multi-page and multi-section forms\n- Custom styling and appearance options\n\n**Form Lifecycle:**\n1. Create form (DRAFT status)\n2. Configure fields and settings\n3. Test form submission\n4. Publish form (PUBLISHED status)\n5. Embed on website\n6. Create versions for updates\n7. Publish new versions (previous auto-archived)\n\n**Note:** Forms in DRAFT status cannot receive public submissions. Publish the form to make it live.",
         "tags": [
           "Forms"
         ],
@@ -9008,11 +9008,897 @@
                       "INLINE_EMBED"
                     ]
                   },
-                  "fields": {}
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "version": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "pages": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "sections": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "title": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "fields": {
+                                    "minItems": 1,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "text",
+                                            "email",
+                                            "number",
+                                            "phone",
+                                            "url",
+                                            "textarea",
+                                            "select",
+                                            "multi_select",
+                                            "radio",
+                                            "choice_card",
+                                            "checkbox",
+                                            "checkbox_group",
+                                            "date",
+                                            "time",
+                                            "datetime",
+                                            "file",
+                                            "rating",
+                                            "slider",
+                                            "hidden",
+                                            "content"
+                                          ]
+                                        },
+                                        "name": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "placeholder": {
+                                          "type": "string"
+                                        },
+                                        "description": {
+                                          "type": "string"
+                                        },
+                                        "defaultValue": {
+                                          "anyOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "type": "boolean"
+                                            },
+                                            {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "options": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "label": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "value": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "description": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "id",
+                                              "label",
+                                              "value"
+                                            ]
+                                          }
+                                        },
+                                        "validation": {
+                                          "type": "object",
+                                          "properties": {
+                                            "required": {
+                                              "type": "boolean"
+                                            },
+                                            "requiredMessage": {
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "type": "object",
+                                              "properties": {
+                                                "minLength": {
+                                                  "type": "integer",
+                                                  "minimum": 0,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "maxLength": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "pattern": {
+                                                  "type": "string"
+                                                },
+                                                "patternMessage": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "number": {
+                                              "type": "object",
+                                              "properties": {
+                                                "min": {
+                                                  "type": "number"
+                                                },
+                                                "max": {
+                                                  "type": "number"
+                                                },
+                                                "step": {
+                                                  "type": "number"
+                                                },
+                                                "integer": {
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "date": {
+                                              "type": "object",
+                                              "properties": {
+                                                "minDate": {
+                                                  "type": "string"
+                                                },
+                                                "maxDate": {
+                                                  "type": "string"
+                                                },
+                                                "disablePastDates": {
+                                                  "type": "boolean"
+                                                },
+                                                "disableFutureDates": {
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "file": {
+                                              "type": "object",
+                                              "properties": {
+                                                "maxSize": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "maxFiles": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "allowedTypes": {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "rating": {
+                                              "type": "object",
+                                              "properties": {
+                                                "maxRating": {
+                                                  "type": "integer",
+                                                  "minimum": 2,
+                                                  "maximum": 10
+                                                }
+                                              }
+                                            },
+                                            "slider": {
+                                              "type": "object",
+                                              "properties": {
+                                                "min": {
+                                                  "type": "number"
+                                                },
+                                                "max": {
+                                                  "type": "number"
+                                                },
+                                                "step": {
+                                                  "type": "number"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "conditionalLogic": {
+                                          "type": "object",
+                                          "properties": {
+                                            "enabled": {
+                                              "type": "boolean"
+                                            },
+                                            "action": {
+                                              "type": "string",
+                                              "enum": [
+                                                "show",
+                                                "hide"
+                                              ]
+                                            },
+                                            "logicalOperator": {
+                                              "type": "string",
+                                              "enum": [
+                                                "and",
+                                                "or"
+                                              ]
+                                            },
+                                            "conditions": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "fieldId": {
+                                                    "type": "string",
+                                                    "minLength": 1
+                                                  },
+                                                  "operator": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "equals",
+                                                      "not_equals",
+                                                      "contains",
+                                                      "not_contains",
+                                                      "greater_than",
+                                                      "less_than",
+                                                      "greater_than_or_equals",
+                                                      "less_than_or_equals",
+                                                      "is_empty",
+                                                      "is_not_empty",
+                                                      "starts_with",
+                                                      "ends_with"
+                                                    ]
+                                                  },
+                                                  "value": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      },
+                                                      {
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string"
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "fieldId",
+                                                  "operator"
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "enabled",
+                                            "action",
+                                            "logicalOperator",
+                                            "conditions"
+                                          ]
+                                        },
+                                        "appearance": {
+                                          "type": "object",
+                                          "properties": {
+                                            "width": {
+                                              "type": "string",
+                                              "enum": [
+                                                "full",
+                                                "half",
+                                                "third",
+                                                "quarter"
+                                              ]
+                                            },
+                                            "labelPosition": {
+                                              "type": "string",
+                                              "enum": [
+                                                "top",
+                                                "left",
+                                                "hidden"
+                                              ]
+                                            },
+                                            "size": {
+                                              "type": "string",
+                                              "enum": [
+                                                "sm",
+                                                "default",
+                                                "lg"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "width",
+                                            "labelPosition",
+                                            "size"
+                                          ]
+                                        },
+                                        "richContent": {
+                                          "type": "object",
+                                          "propertyNames": {
+                                            "type": "string"
+                                          },
+                                          "additionalProperties": {}
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "type",
+                                        "name",
+                                        "label",
+                                        "appearance"
+                                      ]
+                                    }
+                                  },
+                                  "conditionalLogic": {
+                                    "type": "object",
+                                    "properties": {
+                                      "enabled": {
+                                        "type": "boolean"
+                                      },
+                                      "action": {
+                                        "type": "string",
+                                        "enum": [
+                                          "show",
+                                          "hide"
+                                        ]
+                                      },
+                                      "logicalOperator": {
+                                        "type": "string",
+                                        "enum": [
+                                          "and",
+                                          "or"
+                                        ]
+                                      },
+                                      "conditions": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "fieldId": {
+                                              "type": "string",
+                                              "minLength": 1
+                                            },
+                                            "operator": {
+                                              "type": "string",
+                                              "enum": [
+                                                "equals",
+                                                "not_equals",
+                                                "contains",
+                                                "not_contains",
+                                                "greater_than",
+                                                "less_than",
+                                                "greater_than_or_equals",
+                                                "less_than_or_equals",
+                                                "is_empty",
+                                                "is_not_empty",
+                                                "starts_with",
+                                                "ends_with"
+                                              ]
+                                            },
+                                            "value": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "fieldId",
+                                            "operator"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "enabled",
+                                      "action",
+                                      "logicalOperator",
+                                      "conditions"
+                                    ]
+                                  },
+                                  "collapsible": {
+                                    "type": "boolean"
+                                  },
+                                  "defaultCollapsed": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "fields",
+                                  "collapsible",
+                                  "defaultCollapsed"
+                                ]
+                              }
+                            },
+                            "conditionalLogic": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {
+                                  "type": "boolean"
+                                },
+                                "action": {
+                                  "type": "string",
+                                  "enum": [
+                                    "show",
+                                    "hide"
+                                  ]
+                                },
+                                "logicalOperator": {
+                                  "type": "string",
+                                  "enum": [
+                                    "and",
+                                    "or"
+                                  ]
+                                },
+                                "conditions": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "fieldId": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "operator": {
+                                        "type": "string",
+                                        "enum": [
+                                          "equals",
+                                          "not_equals",
+                                          "contains",
+                                          "not_contains",
+                                          "greater_than",
+                                          "less_than",
+                                          "greater_than_or_equals",
+                                          "less_than_or_equals",
+                                          "is_empty",
+                                          "is_not_empty",
+                                          "starts_with",
+                                          "ends_with"
+                                        ]
+                                      },
+                                      "value": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          },
+                                          {
+                                            "type": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "fieldId",
+                                      "operator"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "enabled",
+                                "action",
+                                "logicalOperator",
+                                "conditions"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sections"
+                          ]
+                        }
+                      },
+                      "settings": {
+                        "type": "object",
+                        "properties": {
+                          "submitButton": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "loadingText": {
+                                "type": "string"
+                              },
+                              "variant": {
+                                "type": "string",
+                                "enum": [
+                                  "default",
+                                  "secondary",
+                                  "outline",
+                                  "ghost"
+                                ]
+                              },
+                              "size": {
+                                "type": "string",
+                                "enum": [
+                                  "sm",
+                                  "default",
+                                  "lg"
+                                ]
+                              },
+                              "fullWidth": {
+                                "type": "boolean"
+                              },
+                              "position": {
+                                "type": "string",
+                                "enum": [
+                                  "left",
+                                  "center",
+                                  "right"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "loadingText",
+                              "variant",
+                              "size",
+                              "fullWidth",
+                              "position"
+                            ]
+                          },
+                          "successAction": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "message"
+                                  },
+                                  "message": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "message"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "redirect"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  },
+                                  "openInNewTab": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "url",
+                                  "openInNewTab"
+                                ]
+                              }
+                            ],
+                            "type": "object"
+                          },
+                          "showProgressBar": {
+                            "type": "boolean"
+                          },
+                          "allowSaveAndContinue": {
+                            "type": "boolean"
+                          },
+                          "preventDuplicateSubmissions": {
+                            "type": "boolean"
+                          },
+                          "theme": {
+                            "type": "object",
+                            "properties": {
+                              "mode": {
+                                "type": "string",
+                                "enum": [
+                                  "light",
+                                  "dark"
+                                ]
+                              },
+                              "radius": {
+                                "type": "string"
+                              },
+                              "colors": {
+                                "type": "object",
+                                "properties": {
+                                  "background": {
+                                    "type": "string"
+                                  },
+                                  "foreground": {
+                                    "type": "string"
+                                  },
+                                  "card": {
+                                    "type": "string"
+                                  },
+                                  "cardForeground": {
+                                    "type": "string"
+                                  },
+                                  "popover": {
+                                    "type": "string"
+                                  },
+                                  "popoverForeground": {
+                                    "type": "string"
+                                  },
+                                  "primary": {
+                                    "type": "string"
+                                  },
+                                  "primaryForeground": {
+                                    "type": "string"
+                                  },
+                                  "secondary": {
+                                    "type": "string"
+                                  },
+                                  "secondaryForeground": {
+                                    "type": "string"
+                                  },
+                                  "muted": {
+                                    "type": "string"
+                                  },
+                                  "mutedForeground": {
+                                    "type": "string"
+                                  },
+                                  "accent": {
+                                    "type": "string"
+                                  },
+                                  "accentForeground": {
+                                    "type": "string"
+                                  },
+                                  "destructive": {
+                                    "type": "string"
+                                  },
+                                  "border": {
+                                    "type": "string"
+                                  },
+                                  "input": {
+                                    "type": "string"
+                                  },
+                                  "ring": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "background",
+                                  "foreground",
+                                  "card",
+                                  "cardForeground",
+                                  "popover",
+                                  "popoverForeground",
+                                  "primary",
+                                  "primaryForeground",
+                                  "secondary",
+                                  "secondaryForeground",
+                                  "muted",
+                                  "mutedForeground",
+                                  "accent",
+                                  "accentForeground",
+                                  "destructive",
+                                  "border",
+                                  "input",
+                                  "ring"
+                                ]
+                              },
+                              "font": {
+                                "type": "object",
+                                "properties": {
+                                  "family": {
+                                    "type": "string"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": [
+                                  "family",
+                                  "url"
+                                ]
+                              },
+                              "body": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              },
+                              "container": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "mode",
+                              "radius",
+                              "colors",
+                              "font",
+                              "body",
+                              "container"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "submitButton",
+                          "successAction",
+                          "showProgressBar",
+                          "allowSaveAndContinue",
+                          "preventDuplicateSubmissions",
+                          "theme"
+                        ]
+                      },
+                      "styling": {
+                        "type": "object",
+                        "properties": {
+                          "layout": {
+                            "type": "string",
+                            "enum": [
+                              "stacked",
+                              "inline"
+                            ]
+                          },
+                          "labelStyle": {
+                            "type": "string",
+                            "enum": [
+                              "default",
+                              "floating"
+                            ]
+                          },
+                          "borderRadius": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "sm",
+                              "md",
+                              "lg",
+                              "full"
+                            ]
+                          },
+                          "spacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "default",
+                              "relaxed"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "layout",
+                          "labelStyle",
+                          "borderRadius",
+                          "spacing"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "version",
+                      "title",
+                      "pages",
+                      "settings",
+                      "styling"
+                    ]
+                  }
                 },
                 "required": [
-                  "name",
-                  "fields"
+                  "name"
                 ]
               }
             }
@@ -9049,7 +9935,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid SurveyJS JSON configuration or malformed input",
+            "description": "Bad Request - Invalid form builder JSON configuration or malformed input",
             "content": {
               "application/json": {
                 "schema": {
@@ -9221,7 +10107,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values, missing required fields, or invalid SurveyJS schema",
+            "description": "Validation Error - Invalid field values, missing required fields, or invalid form builder schema",
             "content": {
               "application/json": {
                 "schema": {
@@ -9312,7 +10198,7 @@
     "/v1/forms/{formId}": {
       "get": {
         "summary": "Get Form",
-        "description": "Retrieve a specific form by ID with full configuration.\n\n**Use Cases:**\n- Fetch form details for rendering\n- Check form status before editing\n- Retrieve form configuration for frontend\n- Verify form settings\n- Get embed code parameters\n\n**Behavior:**\n- Returns forms in any status (DRAFT, PUBLISHED, ARCHIVED)\n- Includes complete SurveyJS configuration\n- Shows form version information\n- Published forms include publishedAt timestamp\n- Includes submission statistics\n- Form must belong to your workspace\n\n**Required Scope:** `read:forms`\n\n**Response Includes:**\n- Form identification (id, name, slug)\n- Display information (title, description)\n- Status (DRAFT, PUBLISHED, ARCHIVED)\n- SurveyJS configuration (surveyJson)\n- Settings (redirectUrl, submitText)\n- Version information (rootFormId, publishedVersionId)\n- Statistics (submission count)\n- Timestamps (createdAt, updatedAt, publishedAt)\n\n**Form Status:**\n- **DRAFT:** Editable, not publicly accessible\n- **PUBLISHED:** Live and accepting submissions, immutable\n- **ARCHIVED:** Previous version, read-only\n\n**Note:** Use the slug or ID to embed forms on your website.",
+        "description": "Retrieve a specific form by ID with full configuration.\n\n**Use Cases:**\n- Fetch form details for rendering\n- Check form status before editing\n- Retrieve form configuration for frontend\n- Verify form settings\n- Get embed code parameters\n\n**Behavior:**\n- Returns forms in any status (DRAFT, PUBLISHED, ARCHIVED)\n- Includes complete form builder configuration\n- Shows form version information\n- Published forms include publishedAt timestamp\n- Includes submission statistics\n- Form must belong to your workspace\n\n**Required Scope:** `read:forms`\n\n**Response Includes:**\n- Form identification (id, name, slug)\n- Display information (title, description)\n- Status (DRAFT, PUBLISHED, ARCHIVED)\n- Form builder configuration (fields)\n- Settings (redirectUrl, submitText)\n- Version information (rootFormId, publishedVersionId)\n- Statistics (submission count)\n- Timestamps (createdAt, updatedAt, publishedAt)\n\n**Form Status:**\n- **DRAFT:** Editable, not publicly accessible\n- **PUBLISHED:** Live and accepting submissions, immutable\n- **ARCHIVED:** Previous version, read-only\n\n**Note:** Use the slug or ID to embed forms on your website.",
         "tags": [
           "Forms"
         ],
@@ -9538,7 +10424,7 @@
       },
       "put": {
         "summary": "Update Form",
-        "description": "Update an existing form's configuration (DRAFT forms only).\n\n**Use Cases:**\n- Modify form fields and layout\n- Update form title or description\n- Change redirect URL after submission\n- Customize submit button text\n- Refine SurveyJS configuration\n\n**Behavior:**\n- Only DRAFT forms can be updated\n- PUBLISHED and ARCHIVED forms are immutable\n- To update published forms, create a new version first\n- All fields are optional (partial updates supported)\n- UpdatedAt timestamp is automatically refreshed\n- Returns the complete updated form object\n\n**Required Scope:** `write:forms`\n\n**Updatable Fields (DRAFT only):**\n- name (internal identifier)\n- title (displayed to users)\n- description (form instructions)\n- surveyJson (SurveyJS configuration)\n- redirectUrl (post-submission redirect)\n- submitText (button text)\n\n**Update Workflow for Published Forms:**\n1. Create new version: POST /v1/forms/{formId}/versions\n2. Update the new DRAFT version: PUT /v1/forms/{newVersionId}\n3. Publish the updated version: POST /v1/forms/{newVersionId}/publish\n4. Previous published version automatically becomes ARCHIVED\n\n**Important:**\n- Cannot update PUBLISHED or ARCHIVED forms\n- Changes to DRAFT don't affect live form until published\n- Test changes before publishing\n- SurveyJS configuration must be valid JSON\n\n**Note:** For published forms, create a new version instead of updating directly.",
+        "description": "Update an existing form's configuration (DRAFT forms only).\n\n**Use Cases:**\n- Modify form fields and layout\n- Update form title or description\n- Change redirect URL after submission\n- Customize submit button text\n- Refine form builder configuration\n\n**Behavior:**\n- Only DRAFT forms can be updated\n- PUBLISHED and ARCHIVED forms are immutable\n- To update published forms, create a new version first\n- All fields are optional (partial updates supported)\n- UpdatedAt timestamp is automatically refreshed\n- Returns the complete updated form object\n\n**Required Scope:** `write:forms`\n\n**Updatable Fields (DRAFT only):**\n- name (internal identifier)\n- title (displayed to users)\n- description (form instructions)\n- fields (form builder configuration)\n- redirectUrl (post-submission redirect)\n- submitText (button text)\n\n**Update Workflow for Published Forms:**\n1. Create new version: POST /v1/forms/{formId}/versions\n2. Update the new DRAFT version: PUT /v1/forms/{newVersionId}\n3. Publish the updated version: POST /v1/forms/{newVersionId}/publish\n4. Previous published version automatically becomes ARCHIVED\n\n**Important:**\n- Cannot update PUBLISHED or ARCHIVED forms\n- Changes to DRAFT don't affect live form until published\n- Test changes before publishing\n- Form builder configuration must be valid JSON\n\n**Note:** For published forms, create a new version instead of updating directly.",
         "tags": [
           "Forms"
         ],
@@ -9595,7 +10481,894 @@
                       "INLINE_EMBED"
                     ]
                   },
-                  "fields": {},
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "version": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "pages": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "sections": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "title": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "fields": {
+                                    "minItems": 1,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "text",
+                                            "email",
+                                            "number",
+                                            "phone",
+                                            "url",
+                                            "textarea",
+                                            "select",
+                                            "multi_select",
+                                            "radio",
+                                            "choice_card",
+                                            "checkbox",
+                                            "checkbox_group",
+                                            "date",
+                                            "time",
+                                            "datetime",
+                                            "file",
+                                            "rating",
+                                            "slider",
+                                            "hidden",
+                                            "content"
+                                          ]
+                                        },
+                                        "name": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "placeholder": {
+                                          "type": "string"
+                                        },
+                                        "description": {
+                                          "type": "string"
+                                        },
+                                        "defaultValue": {
+                                          "anyOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "type": "boolean"
+                                            },
+                                            {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "options": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "label": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "value": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "description": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "id",
+                                              "label",
+                                              "value"
+                                            ]
+                                          }
+                                        },
+                                        "validation": {
+                                          "type": "object",
+                                          "properties": {
+                                            "required": {
+                                              "type": "boolean"
+                                            },
+                                            "requiredMessage": {
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "type": "object",
+                                              "properties": {
+                                                "minLength": {
+                                                  "type": "integer",
+                                                  "minimum": 0,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "maxLength": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "pattern": {
+                                                  "type": "string"
+                                                },
+                                                "patternMessage": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "number": {
+                                              "type": "object",
+                                              "properties": {
+                                                "min": {
+                                                  "type": "number"
+                                                },
+                                                "max": {
+                                                  "type": "number"
+                                                },
+                                                "step": {
+                                                  "type": "number"
+                                                },
+                                                "integer": {
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "date": {
+                                              "type": "object",
+                                              "properties": {
+                                                "minDate": {
+                                                  "type": "string"
+                                                },
+                                                "maxDate": {
+                                                  "type": "string"
+                                                },
+                                                "disablePastDates": {
+                                                  "type": "boolean"
+                                                },
+                                                "disableFutureDates": {
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "file": {
+                                              "type": "object",
+                                              "properties": {
+                                                "maxSize": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "maxFiles": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "allowedTypes": {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "rating": {
+                                              "type": "object",
+                                              "properties": {
+                                                "maxRating": {
+                                                  "type": "integer",
+                                                  "minimum": 2,
+                                                  "maximum": 10
+                                                }
+                                              }
+                                            },
+                                            "slider": {
+                                              "type": "object",
+                                              "properties": {
+                                                "min": {
+                                                  "type": "number"
+                                                },
+                                                "max": {
+                                                  "type": "number"
+                                                },
+                                                "step": {
+                                                  "type": "number"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "conditionalLogic": {
+                                          "type": "object",
+                                          "properties": {
+                                            "enabled": {
+                                              "type": "boolean"
+                                            },
+                                            "action": {
+                                              "type": "string",
+                                              "enum": [
+                                                "show",
+                                                "hide"
+                                              ]
+                                            },
+                                            "logicalOperator": {
+                                              "type": "string",
+                                              "enum": [
+                                                "and",
+                                                "or"
+                                              ]
+                                            },
+                                            "conditions": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "fieldId": {
+                                                    "type": "string",
+                                                    "minLength": 1
+                                                  },
+                                                  "operator": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "equals",
+                                                      "not_equals",
+                                                      "contains",
+                                                      "not_contains",
+                                                      "greater_than",
+                                                      "less_than",
+                                                      "greater_than_or_equals",
+                                                      "less_than_or_equals",
+                                                      "is_empty",
+                                                      "is_not_empty",
+                                                      "starts_with",
+                                                      "ends_with"
+                                                    ]
+                                                  },
+                                                  "value": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      },
+                                                      {
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string"
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "fieldId",
+                                                  "operator"
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "enabled",
+                                            "action",
+                                            "logicalOperator",
+                                            "conditions"
+                                          ]
+                                        },
+                                        "appearance": {
+                                          "type": "object",
+                                          "properties": {
+                                            "width": {
+                                              "type": "string",
+                                              "enum": [
+                                                "full",
+                                                "half",
+                                                "third",
+                                                "quarter"
+                                              ]
+                                            },
+                                            "labelPosition": {
+                                              "type": "string",
+                                              "enum": [
+                                                "top",
+                                                "left",
+                                                "hidden"
+                                              ]
+                                            },
+                                            "size": {
+                                              "type": "string",
+                                              "enum": [
+                                                "sm",
+                                                "default",
+                                                "lg"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "width",
+                                            "labelPosition",
+                                            "size"
+                                          ]
+                                        },
+                                        "richContent": {
+                                          "type": "object",
+                                          "propertyNames": {
+                                            "type": "string"
+                                          },
+                                          "additionalProperties": {}
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "type",
+                                        "name",
+                                        "label",
+                                        "appearance"
+                                      ]
+                                    }
+                                  },
+                                  "conditionalLogic": {
+                                    "type": "object",
+                                    "properties": {
+                                      "enabled": {
+                                        "type": "boolean"
+                                      },
+                                      "action": {
+                                        "type": "string",
+                                        "enum": [
+                                          "show",
+                                          "hide"
+                                        ]
+                                      },
+                                      "logicalOperator": {
+                                        "type": "string",
+                                        "enum": [
+                                          "and",
+                                          "or"
+                                        ]
+                                      },
+                                      "conditions": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "fieldId": {
+                                              "type": "string",
+                                              "minLength": 1
+                                            },
+                                            "operator": {
+                                              "type": "string",
+                                              "enum": [
+                                                "equals",
+                                                "not_equals",
+                                                "contains",
+                                                "not_contains",
+                                                "greater_than",
+                                                "less_than",
+                                                "greater_than_or_equals",
+                                                "less_than_or_equals",
+                                                "is_empty",
+                                                "is_not_empty",
+                                                "starts_with",
+                                                "ends_with"
+                                              ]
+                                            },
+                                            "value": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "fieldId",
+                                            "operator"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "enabled",
+                                      "action",
+                                      "logicalOperator",
+                                      "conditions"
+                                    ]
+                                  },
+                                  "collapsible": {
+                                    "type": "boolean"
+                                  },
+                                  "defaultCollapsed": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "fields",
+                                  "collapsible",
+                                  "defaultCollapsed"
+                                ]
+                              }
+                            },
+                            "conditionalLogic": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {
+                                  "type": "boolean"
+                                },
+                                "action": {
+                                  "type": "string",
+                                  "enum": [
+                                    "show",
+                                    "hide"
+                                  ]
+                                },
+                                "logicalOperator": {
+                                  "type": "string",
+                                  "enum": [
+                                    "and",
+                                    "or"
+                                  ]
+                                },
+                                "conditions": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "fieldId": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "operator": {
+                                        "type": "string",
+                                        "enum": [
+                                          "equals",
+                                          "not_equals",
+                                          "contains",
+                                          "not_contains",
+                                          "greater_than",
+                                          "less_than",
+                                          "greater_than_or_equals",
+                                          "less_than_or_equals",
+                                          "is_empty",
+                                          "is_not_empty",
+                                          "starts_with",
+                                          "ends_with"
+                                        ]
+                                      },
+                                      "value": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          },
+                                          {
+                                            "type": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "fieldId",
+                                      "operator"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "enabled",
+                                "action",
+                                "logicalOperator",
+                                "conditions"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sections"
+                          ]
+                        }
+                      },
+                      "settings": {
+                        "type": "object",
+                        "properties": {
+                          "submitButton": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "loadingText": {
+                                "type": "string"
+                              },
+                              "variant": {
+                                "type": "string",
+                                "enum": [
+                                  "default",
+                                  "secondary",
+                                  "outline",
+                                  "ghost"
+                                ]
+                              },
+                              "size": {
+                                "type": "string",
+                                "enum": [
+                                  "sm",
+                                  "default",
+                                  "lg"
+                                ]
+                              },
+                              "fullWidth": {
+                                "type": "boolean"
+                              },
+                              "position": {
+                                "type": "string",
+                                "enum": [
+                                  "left",
+                                  "center",
+                                  "right"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "loadingText",
+                              "variant",
+                              "size",
+                              "fullWidth",
+                              "position"
+                            ]
+                          },
+                          "successAction": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "message"
+                                  },
+                                  "message": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "message"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "redirect"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  },
+                                  "openInNewTab": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "url",
+                                  "openInNewTab"
+                                ]
+                              }
+                            ],
+                            "type": "object"
+                          },
+                          "showProgressBar": {
+                            "type": "boolean"
+                          },
+                          "allowSaveAndContinue": {
+                            "type": "boolean"
+                          },
+                          "preventDuplicateSubmissions": {
+                            "type": "boolean"
+                          },
+                          "theme": {
+                            "type": "object",
+                            "properties": {
+                              "mode": {
+                                "type": "string",
+                                "enum": [
+                                  "light",
+                                  "dark"
+                                ]
+                              },
+                              "radius": {
+                                "type": "string"
+                              },
+                              "colors": {
+                                "type": "object",
+                                "properties": {
+                                  "background": {
+                                    "type": "string"
+                                  },
+                                  "foreground": {
+                                    "type": "string"
+                                  },
+                                  "card": {
+                                    "type": "string"
+                                  },
+                                  "cardForeground": {
+                                    "type": "string"
+                                  },
+                                  "popover": {
+                                    "type": "string"
+                                  },
+                                  "popoverForeground": {
+                                    "type": "string"
+                                  },
+                                  "primary": {
+                                    "type": "string"
+                                  },
+                                  "primaryForeground": {
+                                    "type": "string"
+                                  },
+                                  "secondary": {
+                                    "type": "string"
+                                  },
+                                  "secondaryForeground": {
+                                    "type": "string"
+                                  },
+                                  "muted": {
+                                    "type": "string"
+                                  },
+                                  "mutedForeground": {
+                                    "type": "string"
+                                  },
+                                  "accent": {
+                                    "type": "string"
+                                  },
+                                  "accentForeground": {
+                                    "type": "string"
+                                  },
+                                  "destructive": {
+                                    "type": "string"
+                                  },
+                                  "border": {
+                                    "type": "string"
+                                  },
+                                  "input": {
+                                    "type": "string"
+                                  },
+                                  "ring": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "background",
+                                  "foreground",
+                                  "card",
+                                  "cardForeground",
+                                  "popover",
+                                  "popoverForeground",
+                                  "primary",
+                                  "primaryForeground",
+                                  "secondary",
+                                  "secondaryForeground",
+                                  "muted",
+                                  "mutedForeground",
+                                  "accent",
+                                  "accentForeground",
+                                  "destructive",
+                                  "border",
+                                  "input",
+                                  "ring"
+                                ]
+                              },
+                              "font": {
+                                "type": "object",
+                                "properties": {
+                                  "family": {
+                                    "type": "string"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": [
+                                  "family",
+                                  "url"
+                                ]
+                              },
+                              "body": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              },
+                              "container": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "mode",
+                              "radius",
+                              "colors",
+                              "font",
+                              "body",
+                              "container"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "submitButton",
+                          "successAction",
+                          "showProgressBar",
+                          "allowSaveAndContinue",
+                          "preventDuplicateSubmissions",
+                          "theme"
+                        ]
+                      },
+                      "styling": {
+                        "type": "object",
+                        "properties": {
+                          "layout": {
+                            "type": "string",
+                            "enum": [
+                              "stacked",
+                              "inline"
+                            ]
+                          },
+                          "labelStyle": {
+                            "type": "string",
+                            "enum": [
+                              "default",
+                              "floating"
+                            ]
+                          },
+                          "borderRadius": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "sm",
+                              "md",
+                              "lg",
+                              "full"
+                            ]
+                          },
+                          "spacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "default",
+                              "relaxed"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "layout",
+                          "labelStyle",
+                          "borderRadius",
+                          "spacing"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "version",
+                      "title",
+                      "pages",
+                      "settings",
+                      "styling"
+                    ]
+                  },
                   "settings": {}
                 }
               }
@@ -9887,7 +11660,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid SurveyJS configuration or field values",
+            "description": "Validation Error - Invalid form builder configuration or field values",
             "content": {
               "application/json": {
                 "schema": {
@@ -10538,7 +12311,894 @@
                       "INLINE_EMBED"
                     ]
                   },
-                  "fields": {},
+                  "fields": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "version": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "maximum": 9007199254740991
+                      },
+                      "title": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "description": {
+                        "type": "string"
+                      },
+                      "pages": {
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "title": {
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "sections": {
+                              "minItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "id": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  },
+                                  "title": {
+                                    "type": "string"
+                                  },
+                                  "description": {
+                                    "type": "string"
+                                  },
+                                  "fields": {
+                                    "minItems": 1,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "properties": {
+                                        "id": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "type": {
+                                          "type": "string",
+                                          "enum": [
+                                            "text",
+                                            "email",
+                                            "number",
+                                            "phone",
+                                            "url",
+                                            "textarea",
+                                            "select",
+                                            "multi_select",
+                                            "radio",
+                                            "choice_card",
+                                            "checkbox",
+                                            "checkbox_group",
+                                            "date",
+                                            "time",
+                                            "datetime",
+                                            "file",
+                                            "rating",
+                                            "slider",
+                                            "hidden",
+                                            "content"
+                                          ]
+                                        },
+                                        "name": {
+                                          "type": "string",
+                                          "minLength": 1,
+                                          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+                                        },
+                                        "label": {
+                                          "type": "string",
+                                          "minLength": 1
+                                        },
+                                        "placeholder": {
+                                          "type": "string"
+                                        },
+                                        "description": {
+                                          "type": "string"
+                                        },
+                                        "defaultValue": {
+                                          "anyOf": [
+                                            {
+                                              "type": "string"
+                                            },
+                                            {
+                                              "type": "number"
+                                            },
+                                            {
+                                              "type": "boolean"
+                                            },
+                                            {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "string"
+                                              }
+                                            }
+                                          ]
+                                        },
+                                        "options": {
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "properties": {
+                                              "id": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "label": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "value": {
+                                                "type": "string",
+                                                "minLength": 1
+                                              },
+                                              "description": {
+                                                "type": "string"
+                                              }
+                                            },
+                                            "required": [
+                                              "id",
+                                              "label",
+                                              "value"
+                                            ]
+                                          }
+                                        },
+                                        "validation": {
+                                          "type": "object",
+                                          "properties": {
+                                            "required": {
+                                              "type": "boolean"
+                                            },
+                                            "requiredMessage": {
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "type": "object",
+                                              "properties": {
+                                                "minLength": {
+                                                  "type": "integer",
+                                                  "minimum": 0,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "maxLength": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "pattern": {
+                                                  "type": "string"
+                                                },
+                                                "patternMessage": {
+                                                  "type": "string"
+                                                }
+                                              }
+                                            },
+                                            "number": {
+                                              "type": "object",
+                                              "properties": {
+                                                "min": {
+                                                  "type": "number"
+                                                },
+                                                "max": {
+                                                  "type": "number"
+                                                },
+                                                "step": {
+                                                  "type": "number"
+                                                },
+                                                "integer": {
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "date": {
+                                              "type": "object",
+                                              "properties": {
+                                                "minDate": {
+                                                  "type": "string"
+                                                },
+                                                "maxDate": {
+                                                  "type": "string"
+                                                },
+                                                "disablePastDates": {
+                                                  "type": "boolean"
+                                                },
+                                                "disableFutureDates": {
+                                                  "type": "boolean"
+                                                }
+                                              }
+                                            },
+                                            "file": {
+                                              "type": "object",
+                                              "properties": {
+                                                "maxSize": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "maxFiles": {
+                                                  "type": "integer",
+                                                  "minimum": 1,
+                                                  "maximum": 9007199254740991
+                                                },
+                                                "allowedTypes": {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            "rating": {
+                                              "type": "object",
+                                              "properties": {
+                                                "maxRating": {
+                                                  "type": "integer",
+                                                  "minimum": 2,
+                                                  "maximum": 10
+                                                }
+                                              }
+                                            },
+                                            "slider": {
+                                              "type": "object",
+                                              "properties": {
+                                                "min": {
+                                                  "type": "number"
+                                                },
+                                                "max": {
+                                                  "type": "number"
+                                                },
+                                                "step": {
+                                                  "type": "number"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        "conditionalLogic": {
+                                          "type": "object",
+                                          "properties": {
+                                            "enabled": {
+                                              "type": "boolean"
+                                            },
+                                            "action": {
+                                              "type": "string",
+                                              "enum": [
+                                                "show",
+                                                "hide"
+                                              ]
+                                            },
+                                            "logicalOperator": {
+                                              "type": "string",
+                                              "enum": [
+                                                "and",
+                                                "or"
+                                              ]
+                                            },
+                                            "conditions": {
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "properties": {
+                                                  "fieldId": {
+                                                    "type": "string",
+                                                    "minLength": 1
+                                                  },
+                                                  "operator": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                      "equals",
+                                                      "not_equals",
+                                                      "contains",
+                                                      "not_contains",
+                                                      "greater_than",
+                                                      "less_than",
+                                                      "greater_than_or_equals",
+                                                      "less_than_or_equals",
+                                                      "is_empty",
+                                                      "is_not_empty",
+                                                      "starts_with",
+                                                      "ends_with"
+                                                    ]
+                                                  },
+                                                  "value": {
+                                                    "anyOf": [
+                                                      {
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "type": "number"
+                                                      },
+                                                      {
+                                                        "type": "boolean"
+                                                      },
+                                                      {
+                                                        "type": "array",
+                                                        "items": {
+                                                          "type": "string"
+                                                        }
+                                                      }
+                                                    ]
+                                                  }
+                                                },
+                                                "required": [
+                                                  "fieldId",
+                                                  "operator"
+                                                ]
+                                              }
+                                            }
+                                          },
+                                          "required": [
+                                            "enabled",
+                                            "action",
+                                            "logicalOperator",
+                                            "conditions"
+                                          ]
+                                        },
+                                        "appearance": {
+                                          "type": "object",
+                                          "properties": {
+                                            "width": {
+                                              "type": "string",
+                                              "enum": [
+                                                "full",
+                                                "half",
+                                                "third",
+                                                "quarter"
+                                              ]
+                                            },
+                                            "labelPosition": {
+                                              "type": "string",
+                                              "enum": [
+                                                "top",
+                                                "left",
+                                                "hidden"
+                                              ]
+                                            },
+                                            "size": {
+                                              "type": "string",
+                                              "enum": [
+                                                "sm",
+                                                "default",
+                                                "lg"
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "width",
+                                            "labelPosition",
+                                            "size"
+                                          ]
+                                        },
+                                        "richContent": {
+                                          "type": "object",
+                                          "propertyNames": {
+                                            "type": "string"
+                                          },
+                                          "additionalProperties": {}
+                                        }
+                                      },
+                                      "required": [
+                                        "id",
+                                        "type",
+                                        "name",
+                                        "label",
+                                        "appearance"
+                                      ]
+                                    }
+                                  },
+                                  "conditionalLogic": {
+                                    "type": "object",
+                                    "properties": {
+                                      "enabled": {
+                                        "type": "boolean"
+                                      },
+                                      "action": {
+                                        "type": "string",
+                                        "enum": [
+                                          "show",
+                                          "hide"
+                                        ]
+                                      },
+                                      "logicalOperator": {
+                                        "type": "string",
+                                        "enum": [
+                                          "and",
+                                          "or"
+                                        ]
+                                      },
+                                      "conditions": {
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "properties": {
+                                            "fieldId": {
+                                              "type": "string",
+                                              "minLength": 1
+                                            },
+                                            "operator": {
+                                              "type": "string",
+                                              "enum": [
+                                                "equals",
+                                                "not_equals",
+                                                "contains",
+                                                "not_contains",
+                                                "greater_than",
+                                                "less_than",
+                                                "greater_than_or_equals",
+                                                "less_than_or_equals",
+                                                "is_empty",
+                                                "is_not_empty",
+                                                "starts_with",
+                                                "ends_with"
+                                              ]
+                                            },
+                                            "value": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "type": "number"
+                                                },
+                                                {
+                                                  "type": "boolean"
+                                                },
+                                                {
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "string"
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          },
+                                          "required": [
+                                            "fieldId",
+                                            "operator"
+                                          ]
+                                        }
+                                      }
+                                    },
+                                    "required": [
+                                      "enabled",
+                                      "action",
+                                      "logicalOperator",
+                                      "conditions"
+                                    ]
+                                  },
+                                  "collapsible": {
+                                    "type": "boolean"
+                                  },
+                                  "defaultCollapsed": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "id",
+                                  "fields",
+                                  "collapsible",
+                                  "defaultCollapsed"
+                                ]
+                              }
+                            },
+                            "conditionalLogic": {
+                              "type": "object",
+                              "properties": {
+                                "enabled": {
+                                  "type": "boolean"
+                                },
+                                "action": {
+                                  "type": "string",
+                                  "enum": [
+                                    "show",
+                                    "hide"
+                                  ]
+                                },
+                                "logicalOperator": {
+                                  "type": "string",
+                                  "enum": [
+                                    "and",
+                                    "or"
+                                  ]
+                                },
+                                "conditions": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "properties": {
+                                      "fieldId": {
+                                        "type": "string",
+                                        "minLength": 1
+                                      },
+                                      "operator": {
+                                        "type": "string",
+                                        "enum": [
+                                          "equals",
+                                          "not_equals",
+                                          "contains",
+                                          "not_contains",
+                                          "greater_than",
+                                          "less_than",
+                                          "greater_than_or_equals",
+                                          "less_than_or_equals",
+                                          "is_empty",
+                                          "is_not_empty",
+                                          "starts_with",
+                                          "ends_with"
+                                        ]
+                                      },
+                                      "value": {
+                                        "anyOf": [
+                                          {
+                                            "type": "string"
+                                          },
+                                          {
+                                            "type": "number"
+                                          },
+                                          {
+                                            "type": "boolean"
+                                          },
+                                          {
+                                            "type": "array",
+                                            "items": {
+                                              "type": "string"
+                                            }
+                                          }
+                                        ]
+                                      }
+                                    },
+                                    "required": [
+                                      "fieldId",
+                                      "operator"
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "enabled",
+                                "action",
+                                "logicalOperator",
+                                "conditions"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "sections"
+                          ]
+                        }
+                      },
+                      "settings": {
+                        "type": "object",
+                        "properties": {
+                          "submitButton": {
+                            "type": "object",
+                            "properties": {
+                              "text": {
+                                "type": "string"
+                              },
+                              "loadingText": {
+                                "type": "string"
+                              },
+                              "variant": {
+                                "type": "string",
+                                "enum": [
+                                  "default",
+                                  "secondary",
+                                  "outline",
+                                  "ghost"
+                                ]
+                              },
+                              "size": {
+                                "type": "string",
+                                "enum": [
+                                  "sm",
+                                  "default",
+                                  "lg"
+                                ]
+                              },
+                              "fullWidth": {
+                                "type": "boolean"
+                              },
+                              "position": {
+                                "type": "string",
+                                "enum": [
+                                  "left",
+                                  "center",
+                                  "right"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "text",
+                              "loadingText",
+                              "variant",
+                              "size",
+                              "fullWidth",
+                              "position"
+                            ]
+                          },
+                          "successAction": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "message"
+                                  },
+                                  "message": {
+                                    "type": "string",
+                                    "minLength": 1
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "message"
+                                ]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "type": {
+                                    "type": "string",
+                                    "const": "redirect"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  },
+                                  "openInNewTab": {
+                                    "type": "boolean"
+                                  }
+                                },
+                                "required": [
+                                  "type",
+                                  "url",
+                                  "openInNewTab"
+                                ]
+                              }
+                            ],
+                            "type": "object"
+                          },
+                          "showProgressBar": {
+                            "type": "boolean"
+                          },
+                          "allowSaveAndContinue": {
+                            "type": "boolean"
+                          },
+                          "preventDuplicateSubmissions": {
+                            "type": "boolean"
+                          },
+                          "theme": {
+                            "type": "object",
+                            "properties": {
+                              "mode": {
+                                "type": "string",
+                                "enum": [
+                                  "light",
+                                  "dark"
+                                ]
+                              },
+                              "radius": {
+                                "type": "string"
+                              },
+                              "colors": {
+                                "type": "object",
+                                "properties": {
+                                  "background": {
+                                    "type": "string"
+                                  },
+                                  "foreground": {
+                                    "type": "string"
+                                  },
+                                  "card": {
+                                    "type": "string"
+                                  },
+                                  "cardForeground": {
+                                    "type": "string"
+                                  },
+                                  "popover": {
+                                    "type": "string"
+                                  },
+                                  "popoverForeground": {
+                                    "type": "string"
+                                  },
+                                  "primary": {
+                                    "type": "string"
+                                  },
+                                  "primaryForeground": {
+                                    "type": "string"
+                                  },
+                                  "secondary": {
+                                    "type": "string"
+                                  },
+                                  "secondaryForeground": {
+                                    "type": "string"
+                                  },
+                                  "muted": {
+                                    "type": "string"
+                                  },
+                                  "mutedForeground": {
+                                    "type": "string"
+                                  },
+                                  "accent": {
+                                    "type": "string"
+                                  },
+                                  "accentForeground": {
+                                    "type": "string"
+                                  },
+                                  "destructive": {
+                                    "type": "string"
+                                  },
+                                  "border": {
+                                    "type": "string"
+                                  },
+                                  "input": {
+                                    "type": "string"
+                                  },
+                                  "ring": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "background",
+                                  "foreground",
+                                  "card",
+                                  "cardForeground",
+                                  "popover",
+                                  "popoverForeground",
+                                  "primary",
+                                  "primaryForeground",
+                                  "secondary",
+                                  "secondaryForeground",
+                                  "muted",
+                                  "mutedForeground",
+                                  "accent",
+                                  "accentForeground",
+                                  "destructive",
+                                  "border",
+                                  "input",
+                                  "ring"
+                                ]
+                              },
+                              "font": {
+                                "type": "object",
+                                "properties": {
+                                  "family": {
+                                    "type": "string"
+                                  },
+                                  "url": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": [
+                                  "family",
+                                  "url"
+                                ]
+                              },
+                              "body": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              },
+                              "container": {
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "number"
+                                    }
+                                  ]
+                                }
+                              }
+                            },
+                            "required": [
+                              "mode",
+                              "radius",
+                              "colors",
+                              "font",
+                              "body",
+                              "container"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "submitButton",
+                          "successAction",
+                          "showProgressBar",
+                          "allowSaveAndContinue",
+                          "preventDuplicateSubmissions",
+                          "theme"
+                        ]
+                      },
+                      "styling": {
+                        "type": "object",
+                        "properties": {
+                          "layout": {
+                            "type": "string",
+                            "enum": [
+                              "stacked",
+                              "inline"
+                            ]
+                          },
+                          "labelStyle": {
+                            "type": "string",
+                            "enum": [
+                              "default",
+                              "floating"
+                            ]
+                          },
+                          "borderRadius": {
+                            "type": "string",
+                            "enum": [
+                              "none",
+                              "sm",
+                              "md",
+                              "lg",
+                              "full"
+                            ]
+                          },
+                          "spacing": {
+                            "type": "string",
+                            "enum": [
+                              "compact",
+                              "default",
+                              "relaxed"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "layout",
+                          "labelStyle",
+                          "borderRadius",
+                          "spacing"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "version",
+                      "title",
+                      "pages",
+                      "settings",
+                      "styling"
+                    ]
+                  },
                   "settings": {}
                 }
               }
@@ -10830,7 +13490,7 @@
             }
           },
           "422": {
-            "description": "Validation Error - Invalid field values or SurveyJS configuration",
+            "description": "Validation Error - Invalid field values or form builder configuration",
             "content": {
               "application/json": {
                 "schema": {

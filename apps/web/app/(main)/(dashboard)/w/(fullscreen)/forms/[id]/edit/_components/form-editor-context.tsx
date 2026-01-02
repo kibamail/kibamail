@@ -11,6 +11,7 @@ import {
 } from "react";
 import { useMutation } from "@/hooks/use-mutation";
 import { internalApi } from "@/lib/api/client";
+import type { UpdateFormRequest } from "@/app/(main)/api/v1/forms/schema";
 
 type SaveStatus = "idle" | "saving" | "success" | "error";
 
@@ -61,7 +62,7 @@ export function FormEditorProvider({
   }, [theme]);
 
   const { mutate: updateForm } = useMutation({
-    mutationFn: async (data: { fields?: object; settings?: object }) => {
+    mutationFn: async (data: Partial<UpdateFormRequest>) => {
       return await internalApi.forms().update(formId, data);
     },
     onSuccess: () => {
@@ -96,7 +97,10 @@ export function FormEditorProvider({
     }
 
     setSaveStatus("saving");
-    updateForm({ fields: schemaRef.current, settings: themeRef.current });
+    updateForm({
+      fields: schemaRef.current as UpdateFormRequest["fields"],
+      settings: themeRef.current,
+    });
   }, [updateForm]);
 
   const triggerAutoSave = useCallback(() => {
@@ -108,7 +112,10 @@ export function FormEditorProvider({
     // Set new debounce timer (2 seconds)
     debounceTimerRef.current = setTimeout(() => {
       setSaveStatus("saving");
-      updateForm({ fields: schemaRef.current, settings: themeRef.current });
+      updateForm({
+        fields: schemaRef.current as UpdateFormRequest["fields"],
+        settings: themeRef.current,
+      });
     }, 2000);
   }, [updateForm]);
 

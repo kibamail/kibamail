@@ -12,6 +12,7 @@ import { responseCreated } from "@/lib/api/responses";
 import { ValidationError, type ValidationErrorDetail } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
+import { transformToContactData } from "@/lib/forms/field-mapping";
 import { createContactSchema } from "@/app/(main)/api/v1/contacts/schema";
 
 /**
@@ -83,7 +84,11 @@ export async function handleSignUpSubmission(
   fieldMapping: FormFieldMapping,
   metadata: SubmissionMetadata
 ) {
-  const validationResult = createContactSchema.safeParse(rawData);
+  // Transform field names to contact property IDs
+  // e.g., { field_abc123: "test@example.com" } -> { email: "test@example.com" }
+  const contactData = transformToContactData(rawData, fieldMapping);
+
+  const validationResult = createContactSchema.safeParse(contactData);
 
   if (!validationResult.success) {
     const errors: ValidationErrorDetail[] = validationResult.error.issues.map(
@@ -173,11 +178,16 @@ export async function handleSurveySubmission(
     );
   }
 
-  // Try to find existing contact if form has an "email" field
+  // Try to find existing contact if form has a field mapped to the "email" contact property
   let contactId: string | null = null;
 
-  if ("email" in fieldMapping) {
-    const email = rawData.email;
+  // Find the field that is mapped to the email contact property
+  const emailFieldName = Object.entries(fieldMapping).find(
+    ([, mapping]) => mapping.contactPropertyId === "email"
+  )?.[0];
+
+  if (emailFieldName) {
+    const email = rawData[emailFieldName];
 
     if (typeof email === "string" && email.includes("@")) {
       const contact = await prisma.contact.findUnique({

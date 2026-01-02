@@ -4,8 +4,15 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import type { FormBuilderSchema } from "@/lib/form-builder";
 import { FormPageClient } from "./_components/form-page-client";
+import { trackUniqueFormView } from "@/lib/forms/view-tracking";
 
-async function getPublishedForm(formId: string) {
+interface PublishedFormData {
+  fields: unknown;
+  settings: unknown;
+  workspaceId: string;
+}
+
+async function getPublishedForm(formId: string): Promise<PublishedFormData | null> {
   // First, get the root form
   const rootForm = await prisma.form.findFirst({
     where: {
@@ -16,6 +23,7 @@ async function getPublishedForm(formId: string) {
       id: true,
       fields: true,
       settings: true,
+      workspaceId: true,
       publishedVersionId: true,
     },
   });
@@ -37,12 +45,20 @@ async function getPublishedForm(formId: string) {
     });
 
     if (publishedVersion) {
-      return publishedVersion;
+      return {
+        fields: publishedVersion.fields,
+        settings: publishedVersion.settings,
+        workspaceId: rootForm.workspaceId,
+      };
     }
   }
 
   // Fall back to the root form's schema (for preview before publishing)
-  return rootForm;
+  return {
+    fields: rootForm.fields,
+    settings: rootForm.settings,
+    workspaceId: rootForm.workspaceId,
+  };
 }
 
 export default async function PublicFormPage({
@@ -64,5 +80,8 @@ export default async function PublicFormPage({
     notFound();
   }
 
-  return <FormPageClient schema={schema} />;
+  // Track unique page view (server-side creates record, client sets cookie)
+  const { tracked } = await trackUniqueFormView(id, form.workspaceId);
+
+  return <FormPageClient formId={id} schema={schema} shouldSetViewCookie={tracked} />;
 }

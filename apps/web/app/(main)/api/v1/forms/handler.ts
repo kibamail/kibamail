@@ -22,9 +22,11 @@ import {
 } from "@/lib/api/pagination";
 import {
   extractFieldsFromSchema,
+  extractFieldsWithContactProperty,
   generateFieldMapping,
   type FormFieldMapping,
 } from "@/lib/forms/field-mapping";
+import { createEmptyForm, DEFAULT_FORM_SETTINGS } from "@/lib/form-builder/schema";
 
 /**
  * POST /api/v1/forms
@@ -36,14 +38,22 @@ import {
 export async function createForm(workspaceId: string, request: NextRequest) {
   const data = await validateRequestBody(createFormSchema, request);
 
+  // Generate a unique ID for the form first
+  const formId = crypto.randomUUID();
+
+  // Use provided fields or create an empty form schema
+  const fields = data.fields ?? createEmptyForm(formId, data.name);
+
   const form = await prisma.form.create({
     data: {
+      id: formId,
       workspaceId,
       name: data.name,
       description: data.description,
       type: data.type,
       display: data.display,
-      fields: data.fields as never,
+      fields: fields as never,
+      settings: DEFAULT_FORM_SETTINGS as never,
       status: "DRAFT",
       version: 1,
     },
@@ -266,6 +276,7 @@ export async function updateForm(
  * DELETE /api/v1/forms/[formId]
  *
  * Delete a specific form by ID.
+ * Only forms in DRAFT status can be deleted.
  * Workspace is determined from the authenticated API key.
  * Returns 404 if form not found or belongs to a different workspace.
  * Cascade deletes all form submissions and child versions (if root form).
@@ -284,6 +295,14 @@ export async function deleteForm(workspaceId: string, formId: string) {
 
   if (!form) {
     throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
+  }
+
+  // Only allow deletion of DRAFT forms
+  if (form.status !== "DRAFT") {
+    throw new BadRequestError(
+      "Only forms in DRAFT status can be deleted. Published or archived forms cannot be deleted.",
+      ErrorCode.FORM_NOT_DELETABLE
+    );
   }
 
   // If it's a root form (parentId=null), delete all child versions first
@@ -451,11 +470,26 @@ export async function publishForm(workspaceId: string, formId: string) {
     );
   }
 
-  // Check for required email field with name "email"
-  const emailField = fields.find((field) => field.name === "email");
-  if (!emailField) {
+  // Get fields with contact property mappings for validation
+  const fieldsWithMappings = extractFieldsWithContactProperty(form.fields);
+
+  // Check for unmapped fields (all input fields must have a contact property mapping)
+  const unmappedFields = fieldsWithMappings.filter((field) => !field.contactProperty);
+  if (unmappedFields.length > 0) {
+    const unmappedNames = unmappedFields.map((f) => f.label || f.name).join(", ");
     throw new BadRequestError(
-      "Form must have an email field with the name 'email' to be published.",
+      `Cannot publish form with unmapped fields. The following fields need to be mapped to a contact property: ${unmappedNames}`,
+      ErrorCode.FORM_UNMAPPED_FIELDS
+    );
+  }
+
+  // Check for required email field - must have a field mapped to the "email" contact property
+  const emailMappedField = fieldsWithMappings.find(
+    (field) => field.contactProperty?.id === "email"
+  );
+  if (!emailMappedField) {
+    throw new BadRequestError(
+      "Form must have a field mapped to the 'Email address' contact property to be published.",
       ErrorCode.FORM_MISSING_EMAIL_FIELD
     );
   }

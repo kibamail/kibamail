@@ -1,15 +1,45 @@
 "use client"
 
+import { useEffect } from "react"
 import { FormRenderer } from "@/lib/form-builder"
 import type { FormBuilderSchema, FormSubmissionData } from "@/lib/form-builder"
 
+const VIEW_COOKIE_PREFIX = "kiba_fv_"
+const VIEW_COOKIE_MAX_AGE_DAYS = 30
+
 interface FormPageClientProps {
+  formId: string
   schema: FormBuilderSchema
+  shouldSetViewCookie?: boolean
 }
 
-export function FormPageClient({ schema }: FormPageClientProps) {
-  const handleSubmit = (data: FormSubmissionData) => {
-    console.log("Form submitted:", data)
+export function FormPageClient({ formId, schema, shouldSetViewCookie }: FormPageClientProps) {
+  // Set the view cookie client-side if tracking happened server-side
+  useEffect(() => {
+    if (shouldSetViewCookie) {
+      const cookieName = `${VIEW_COOKIE_PREFIX}${formId}`
+      const maxAge = VIEW_COOKIE_MAX_AGE_DAYS * 24 * 60 * 60
+      document.cookie = `${cookieName}=1; path=/; max-age=${maxAge}; SameSite=Lax`
+    }
+  }, [formId, shouldSetViewCookie])
+
+  const handleSubmit = async (data: FormSubmissionData) => {
+    try {
+      const response = await fetch(`/api/internal/v1/forms/${formId}/submissions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("Form submission failed:", errorData)
+      }
+    } catch (error) {
+      console.error("Form submission error:", error)
+    }
   }
 
   return <FormRenderer schema={schema} onSubmit={handleSubmit} />

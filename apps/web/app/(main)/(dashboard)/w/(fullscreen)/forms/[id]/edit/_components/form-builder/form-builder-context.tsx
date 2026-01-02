@@ -27,6 +27,8 @@ import {
   FIELD_TYPE_CONFIGS,
 } from "./types";
 
+export const SUBMIT_BUTTON_ID = "__submit_button__";
+
 function generateId(): string {
   return Math.random().toString(36).substring(2, 11);
 }
@@ -154,6 +156,9 @@ interface FormBuilderContextValue {
   updateSettings: (updates: Partial<FormSettings>) => void;
   updateStyling: (updates: Partial<FormStyling>) => void;
   updateTheme: (updates: Partial<FormTheme>) => void;
+
+  // Submit button operations
+  updateSubmitButton: (updates: Partial<import("./types").FormSubmitButton>) => void;
 
   // Form metadata operations
   updateFormMeta: (updates: { title?: string; description?: string }) => void;
@@ -702,6 +707,19 @@ export function FormBuilderProvider({
     }));
   }, []);
 
+  const updateSubmitButton = useCallback(
+    (updates: Partial<import("./types").FormSubmitButton>) => {
+      setSchema((prev) => ({
+        ...prev,
+        settings: {
+          ...prev.settings,
+          submitButton: { ...prev.settings.submitButton, ...updates },
+        },
+      }));
+    },
+    []
+  );
+
   // Form metadata operations
   const updateFormMeta = useCallback(
     (updates: { title?: string; description?: string }) => {
@@ -770,6 +788,7 @@ export function FormBuilderProvider({
         updateSettings,
         updateStyling,
         updateTheme,
+        updateSubmitButton,
         updateFormMeta,
         clearSelection,
         getFieldLocation,

@@ -18,35 +18,11 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { validFormFields, multiFieldFormSchema } from "@/tests/utils/form-fixtures";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
-
-/**
- * Valid SurveyJS form configuration for testing
- */
-const validFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "firstName",
-          title: "First Name",
-          isRequired: true,
-        },
-        {
-          type: "text",
-          name: "email",
-          title: "Email",
-          inputType: "email",
-          isRequired: true,
-        },
-      ],
-    },
-  ],
-};
 
 /**
  * Setup: Create a test workspace and API keys for authentication
@@ -334,12 +310,10 @@ describe("POST /api/v1/forms - Validation", () => {
   });
 
   test("should create form with minimal valid fields", async () => {
-    const minimalFields = {
-      pages: [],
-    };
+    // Minimal valid form requires at least one page with one section with one field (including email for publishing)
     const formData = {
       name: "Minimal Form",
-      fields: minimalFields,
+      fields: validFormFields, // validFormFields is already the minimal valid form (one email field)
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -366,44 +340,11 @@ describe("POST /api/v1/forms - Validation", () => {
     expect(responseData.id).toBeDefined();
   });
 
-  test("should create form with complex SurveyJS configuration", async () => {
-    const complexFields = {
-      pages: [
-        {
-          elements: [
-            {
-              type: "radiogroup",
-              name: "satisfaction",
-              title: "How satisfied are you?",
-              choices: [
-                "Very Satisfied",
-                "Satisfied",
-                "Neutral",
-                "Dissatisfied",
-              ],
-            },
-            {
-              type: "comment",
-              name: "feedback",
-              title: "Additional feedback",
-            },
-            {
-              type: "rating",
-              name: "rating",
-              title: "Rate us",
-              rateMin: 1,
-              rateMax: 5,
-            },
-          ],
-        },
-      ],
-      showProgressBar: "top",
-      showQuestionNumbers: "on",
-    };
+  test("should create form with multiple field types", async () => {
     const formData = {
       name: "Customer Satisfaction Survey",
       description: "Help us improve our service",
-      fields: complexFields,
+      fields: multiFieldFormSchema,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 

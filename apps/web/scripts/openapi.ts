@@ -2603,7 +2603,7 @@ Find contacts missing a property:
 
 **Behavior:**
 - Form is created in DRAFT status (not yet public)
-- Uses SurveyJS JSON configuration for flexibility
+- Uses form builder JSON schema for flexibility
 - Form gets a unique ID and slug for embedding
 - Initial version is created automatically
 - Form must be published to make it publicly accessible
@@ -2615,16 +2615,15 @@ Find contacts missing a property:
 - **name:** Internal form name for identification
 - **title:** Display title shown to users
 - **description:** Form purpose/instructions (optional)
-- **surveyJson:** SurveyJS JSON schema defining fields
+- **fields:** Form builder JSON schema defining fields
 - **redirectUrl:** Where to send users after submission (optional)
 - **submitText:** Custom submit button text (optional)
 
-**SurveyJS Integration:**
-- Supports all SurveyJS question types
-- Flexible field validation and logic
-- Conditional field display
-- Multi-page forms supported
-- Custom styling via themes
+**Form Builder Features:**
+- Supports all standard field types (text, email, number, phone, etc.)
+- Flexible field validation and conditional logic
+- Multi-page and multi-section forms
+- Custom styling and appearance options
 
 **Form Lifecycle:**
 1. Create form (DRAFT status)
@@ -2660,7 +2659,7 @@ Find contacts missing a property:
           },
           "400": {
             description:
-              "Bad Request - Invalid SurveyJS JSON configuration or malformed input",
+              "Bad Request - Invalid form builder JSON configuration or malformed input",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2674,7 +2673,7 @@ Find contacts missing a property:
           },
           "422": {
             description:
-              "Validation Error - Invalid field values, missing required fields, or invalid SurveyJS schema",
+              "Validation Error - Invalid field values, missing required fields, or invalid form builder schema",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2696,7 +2695,7 @@ Find contacts missing a property:
 
 **Behavior:**
 - Returns forms in any status (DRAFT, PUBLISHED, ARCHIVED)
-- Includes complete SurveyJS configuration
+- Includes complete form builder configuration
 - Shows form version information
 - Published forms include publishedAt timestamp
 - Includes submission statistics
@@ -2708,7 +2707,7 @@ Find contacts missing a property:
 - Form identification (id, name, slug)
 - Display information (title, description)
 - Status (DRAFT, PUBLISHED, ARCHIVED)
-- SurveyJS configuration (surveyJson)
+- Form builder configuration (fields)
 - Settings (redirectUrl, submitText)
 - Version information (rootFormId, publishedVersionId)
 - Statistics (submission count)
@@ -2772,7 +2771,7 @@ Find contacts missing a property:
 - Update form title or description
 - Change redirect URL after submission
 - Customize submit button text
-- Refine SurveyJS configuration
+- Refine form builder configuration
 
 **Behavior:**
 - Only DRAFT forms can be updated
@@ -2788,7 +2787,7 @@ Find contacts missing a property:
 - name (internal identifier)
 - title (displayed to users)
 - description (form instructions)
-- surveyJson (SurveyJS configuration)
+- fields (form builder configuration)
 - redirectUrl (post-submission redirect)
 - submitText (button text)
 
@@ -2802,7 +2801,7 @@ Find contacts missing a property:
 - Cannot update PUBLISHED or ARCHIVED forms
 - Changes to DRAFT don't affect live form until published
 - Test changes before publishing
-- SurveyJS configuration must be valid JSON
+- Form builder configuration must be valid JSON
 
 **Note:** For published forms, create a new version instead of updating directly.`,
         tags: ["Forms"],
@@ -2855,7 +2854,7 @@ Find contacts missing a property:
           },
           "422": {
             description:
-              "Validation Error - Invalid SurveyJS configuration or field values",
+              "Validation Error - Invalid form builder configuration or field values",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -3116,7 +3115,7 @@ Find contacts missing a property:
           },
           "422": {
             description:
-              "Validation Error - Invalid field values or SurveyJS configuration",
+              "Validation Error - Invalid field values or form builder configuration",
             content: {
               "application/json": { schema: errorResponseSchema },
             },

@@ -14,12 +14,38 @@ spec:
       containers:
         - name: web
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_SERVICE_NAME
+              value: "kibamail-control-plane"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=kibamail-control-plane,deployment.environment=production,host.name=$(NODE_NAME),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-control-plane"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(HOST_IP):4318"
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
             - name: LOGTO_ENDPOINT
               value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
-            - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-control-plane,environment=production.kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -32,12 +58,38 @@ spec:
       containers:
         - name: api
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_SERVICE_NAME
+              value: "kibamail-api"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=kibamail-api,deployment.environment=production,host.name=$(NODE_NAME),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-api"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(HOST_IP):4318"
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
             - name: LOGTO_ENDPOINT
               value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
-            - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-api,environment=production.kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -50,12 +102,38 @@ spec:
       containers:
         - name: worker
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_SERVICE_NAME
+              value: "kibamail-workers"
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=kibamail-workers,deployment.environment=production,host.name=$(NODE_NAME),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-workers"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(HOST_IP):4318"
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
             - name: LOGTO_ENDPOINT
               value: "https://auth.kibamail.com"
             - name: LOGTO_BASE_URL
               value: "https://kibamail.com"
-            - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-workers,environment=production.kibamail.com"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -67,5 +145,31 @@ spec:
       containers:
         - name: marketing
           env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_UID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.uid
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_SERVICE_NAME
+              value: "kibamail-marketing"
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-marketing,environment=production.kibamail.com"
+              value: "service.name=kibamail-marketing,deployment.environment=production,host.name=$(NODE_NAME),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-marketing"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://$(HOST_IP):4318"
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"

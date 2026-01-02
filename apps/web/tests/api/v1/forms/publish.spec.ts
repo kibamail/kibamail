@@ -18,30 +18,12 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { validFormFields, formWithoutEmailField, formWithUnmappedFields } from "@/tests/utils/form-fixtures";
 import { prisma } from "@/lib/db";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
-
-/**
- * Valid SurveyJS form configuration for testing
- */
-const validFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "email",
-          title: "Email",
-          inputType: "email",
-          isRequired: true,
-        },
-      ],
-    },
-  ],
-};
 
 /**
  * Setup: Create a test workspace and API keys for authentication
@@ -511,5 +493,107 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       where: { id: rootForm.id },
     });
     expect(updatedRoot?.publishedVersionId).toBe(version3.id);
+  });
+});
+
+describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () => {
+  test("should reject publishing form with unmapped fields", async () => {
+    // Create a form with unmapped fields
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Unmapped Fields Form",
+        fields: formWithUnmappedFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await CREATE_FORM(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Try to publish
+    const publishRequest = post(
+      `/forms/${createdForm.id}/publish`,
+      {},
+      fullAccessApiKey.key
+    );
+
+    const response = await PUBLISH_FORM(publishRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.code).toBe(ErrorCode.FORM_UNMAPPED_FIELDS);
+    expect(responseData.error.message).toContain("unmapped fields");
+    expect(responseData.error.message).toContain("Name"); // The unmapped field's label
+  });
+
+  test("should reject publishing form without email contact property mapping", async () => {
+    // Create a form without email mapping
+    const createRequest = post(
+      "/forms",
+      {
+        name: "No Email Mapping Form",
+        fields: formWithoutEmailField,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await CREATE_FORM(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Try to publish
+    const publishRequest = post(
+      `/forms/${createdForm.id}/publish`,
+      {},
+      fullAccessApiKey.key
+    );
+
+    const response = await PUBLISH_FORM(publishRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.code).toBe(ErrorCode.FORM_MISSING_EMAIL_FIELD);
+    expect(responseData.error.message).toContain("Email address");
+  });
+
+  test("should allow publishing form with all fields mapped including email", async () => {
+    // Create a form with all fields properly mapped
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Properly Mapped Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await CREATE_FORM(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Publish
+    const publishRequest = post(
+      `/forms/${createdForm.id}/publish`,
+      {},
+      fullAccessApiKey.key
+    );
+
+    const response = await PUBLISH_FORM(publishRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.object).toBe("form");
+    expect(responseData.id).toBe(createdForm.id);
+
+    // Verify form is published
+    const publishedForm = await prisma.form.findUnique({
+      where: { id: createdForm.id },
+    });
+    expect(publishedForm?.status).toBe("PUBLISHED");
   });
 });

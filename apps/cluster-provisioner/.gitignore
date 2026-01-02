@@ -14,5 +14,9 @@
 # Cluster credentials (per-inventory)
 **/credentials/
 
+# SSH keys and secrets (per-inventory)
+**/secrets/*
+!**/secrets/.gitkeep
+
 # Local overrides
 *.local.yml

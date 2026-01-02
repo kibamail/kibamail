@@ -2,7 +2,7 @@
  * Integration tests for Form Field Mapping
  *
  * Tests the field mapping generation during form publishing:
- * - Field extraction from SurveyJS schemas
+ * - Field extraction from form builder schemas
  * - Slot assignment (string vs numeric)
  * - Slot preservation across versions
  * - Mapping inheritance from parent forms
@@ -20,6 +20,14 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import {
+  validFormFields,
+  multiFieldFormSchema,
+  formWithoutEmailField,
+  emptyFormSchema,
+  allFieldTypesFormSchema,
+  DEFAULT_FIELD_APPEARANCE,
+} from "@/tests/utils/form-fixtures";
 import { prisma } from "@/lib/db";
 import {
   extractFieldsFromSchema,
@@ -41,18 +49,30 @@ afterAll(async () => {
 });
 
 describe("extractFieldsFromSchema - Unit Tests", () => {
-  test("should extract fields from paged schema", () => {
+  test("should extract fields from paged schema with sections", () => {
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "firstName", title: "First Name" },
-            { type: "text", name: "lastName", title: "Last Name" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "text", name: "firstName", label: "First Name" },
+                { type: "text", name: "lastName", label: "Last Name" },
+              ],
+            },
           ],
         },
         {
-          elements: [
-            { type: "text", name: "email", title: "Email" },
+          id: "page_2",
+          sections: [
+            {
+              id: "section_2",
+              fields: [
+                { type: "email", name: "email", label: "Email" },
+              ],
+            },
           ],
         },
       ],
@@ -61,16 +81,31 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
     const fields = extractFieldsFromSchema(schema);
 
     expect(fields).toHaveLength(3);
-    expect(fields[0]).toEqual({ name: "firstName", type: "text", title: "First Name" });
-    expect(fields[1]).toEqual({ name: "lastName", type: "text", title: "Last Name" });
-    expect(fields[2]).toEqual({ name: "email", type: "text", title: "Email" });
+    expect(fields[0]).toEqual({ name: "firstName", type: "text", label: "First Name" });
+    expect(fields[1]).toEqual({ name: "lastName", type: "text", label: "Last Name" });
+    expect(fields[2]).toEqual({ name: "email", type: "email", label: "Email" });
   });
 
-  test("should extract fields from flat schema", () => {
+  test("should extract fields from multiple sections in a page", () => {
     const schema = {
-      elements: [
-        { type: "text", name: "name" },
-        { type: "dropdown", name: "country" },
+      pages: [
+        {
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "text", name: "name", label: "Name" },
+              ],
+            },
+            {
+              id: "section_2",
+              fields: [
+                { type: "select", name: "country", label: "Country" },
+              ],
+            },
+          ],
+        },
       ],
     };
 
@@ -81,17 +116,17 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
     expect(fields[1].name).toBe("country");
   });
 
-  test("should extract nested fields from panels", () => {
+  test("should skip presentation fields like content", () => {
     const schema = {
       pages: [
         {
-          elements: [
+          id: "page_1",
+          sections: [
             {
-              type: "panel",
-              name: "contactPanel",
-              elements: [
-                { type: "text", name: "phone", title: "Phone" },
-                { type: "text", name: "address", title: "Address" },
+              id: "section_1",
+              fields: [
+                { type: "content", name: "intro", label: "Introduction" },
+                { type: "text", name: "validField", label: "Valid Field" },
               ],
             },
           ],
@@ -101,48 +136,23 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
 
     const fields = extractFieldsFromSchema(schema);
 
-    expect(fields).toHaveLength(2);
-    expect(fields[0].name).toBe("phone");
-    expect(fields[1].name).toBe("address");
+    expect(fields).toHaveLength(1);
+    expect(fields[0].name).toBe("validField");
   });
 
-  test("should handle deeply nested panels", () => {
+  test("should skip fields without name", () => {
     const schema = {
       pages: [
         {
-          elements: [
+          id: "page_1",
+          sections: [
             {
-              type: "panel",
-              name: "outer",
-              elements: [
-                { type: "text", name: "field1" },
-                {
-                  type: "panel",
-                  name: "inner",
-                  elements: [
-                    { type: "text", name: "field2" },
-                  ],
-                },
+              id: "section_1",
+              fields: [
+                { type: "text", label: "No Name Field" }, // No name
+                { type: "text", name: "validField", label: "Valid Field" },
               ],
             },
-          ],
-        },
-      ],
-    };
-
-    const fields = extractFieldsFromSchema(schema);
-
-    expect(fields).toHaveLength(2);
-    expect(fields.map(f => f.name)).toEqual(["field1", "field2"]);
-  });
-
-  test("should skip elements without name", () => {
-    const schema = {
-      pages: [
-        {
-          elements: [
-            { type: "html", content: "<p>Hello</p>" }, // No name
-            { type: "text", name: "validField" },
           ],
         },
       ],
@@ -160,21 +170,28 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
     expect(extractFieldsFromSchema({})).toEqual([]);
   });
 
-  test("should extract all SurveyJS field types", () => {
+  test("should extract all supported field types", () => {
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "textField" },
-            { type: "comment", name: "commentField" },
-            { type: "dropdown", name: "dropdownField" },
-            { type: "checkbox", name: "checkboxField" },
-            { type: "radiogroup", name: "radioField" },
-            { type: "rating", name: "ratingField" },
-            { type: "file", name: "fileField" },
-            { type: "boolean", name: "booleanField" },
-            { type: "matrix", name: "matrixField" },
-            { type: "multipletext", name: "multipletextField" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "text", name: "textField", label: "Text" },
+                { type: "email", name: "emailField", label: "Email" },
+                { type: "number", name: "numberField", label: "Number" },
+                { type: "phone", name: "phoneField", label: "Phone" },
+                { type: "url", name: "urlField", label: "URL" },
+                { type: "textarea", name: "textareaField", label: "Textarea" },
+                { type: "select", name: "selectField", label: "Select" },
+                { type: "rating", name: "ratingField", label: "Rating" },
+                { type: "slider", name: "sliderField", label: "Slider" },
+                { type: "date", name: "dateField", label: "Date" },
+                { type: "checkbox", name: "checkboxField", label: "Checkbox" },
+              ],
+            },
           ],
         },
       ],
@@ -182,31 +199,31 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
 
     const fields = extractFieldsFromSchema(schema);
 
-    expect(fields).toHaveLength(10);
+    expect(fields).toHaveLength(11);
     expect(fields.map(f => f.type)).toEqual([
-      "text", "comment", "dropdown", "checkbox", "radiogroup",
-      "rating", "file", "boolean", "matrix", "multipletext",
+      "text", "email", "number", "phone", "url",
+      "textarea", "select", "rating", "slider", "date", "checkbox",
     ]);
   });
 });
 
 describe("getStorageType - Unit Tests", () => {
   test("should return 'number' for numeric field types", () => {
+    expect(getStorageType("number")).toBe("number");
     expect(getStorageType("rating")).toBe("number");
-    expect(getStorageType("nouislider")).toBe("number");
     expect(getStorageType("slider")).toBe("number");
-    expect(getStorageType("expression")).toBe("number");
   });
 
   test("should return 'string' for all other field types", () => {
     expect(getStorageType("text")).toBe("string");
-    expect(getStorageType("comment")).toBe("string");
-    expect(getStorageType("dropdown")).toBe("string");
+    expect(getStorageType("email")).toBe("string");
+    expect(getStorageType("phone")).toBe("string");
+    expect(getStorageType("url")).toBe("string");
+    expect(getStorageType("textarea")).toBe("string");
+    expect(getStorageType("select")).toBe("string");
     expect(getStorageType("checkbox")).toBe("string");
-    expect(getStorageType("radiogroup")).toBe("string");
+    expect(getStorageType("date")).toBe("string");
     expect(getStorageType("file")).toBe("string");
-    expect(getStorageType("boolean")).toBe("string");
-    expect(getStorageType("matrix")).toBe("string");
   });
 });
 
@@ -215,10 +232,16 @@ describe("generateFieldMapping - Unit Tests", () => {
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "email", title: "Email Address" },
-            { type: "text", name: "name" },
-            { type: "rating", name: "satisfaction" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "email", name: "email", label: "Email Address" },
+                { type: "text", name: "name" },
+                { type: "rating", name: "satisfaction" },
+              ],
+            },
           ],
         },
       ],
@@ -229,36 +252,42 @@ describe("generateFieldMapping - Unit Tests", () => {
     expect(mapping.email).toEqual({
       slot: "fieldString0",
       type: "string",
-      fieldType: "text",
-      title: "Email Address",
+      fieldType: "email",
+      label: "Email Address",
     });
     expect(mapping.name).toEqual({
       slot: "fieldString1",
       type: "string",
       fieldType: "text",
-      title: undefined,
+      label: undefined,
     });
     expect(mapping.satisfaction).toEqual({
       slot: "fieldNum0",
       type: "number",
       fieldType: "rating",
-      title: undefined,
+      label: undefined,
     });
   });
 
   test("should preserve existing slot assignments from parent mapping", () => {
     const existingMapping = {
-      email: { slot: "fieldString5", type: "string" as const, fieldType: "text" },
+      email: { slot: "fieldString5", type: "string" as const, fieldType: "email" },
       rating: { slot: "fieldNum3", type: "number" as const, fieldType: "rating" },
     };
 
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "email" }, // Existing field
-            { type: "rating", name: "rating" }, // Existing field
-            { type: "text", name: "newField" }, // New field
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "email", name: "email" }, // Existing field
+                { type: "rating", name: "rating" }, // Existing field
+                { type: "text", name: "newField" }, // New field
+              ],
+            },
           ],
         },
       ],
@@ -279,12 +308,18 @@ describe("generateFieldMapping - Unit Tests", () => {
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "field1" },
-            { type: "text", name: "field2" },
-            { type: "text", name: "field3" },
-            { type: "rating", name: "num1" },
-            { type: "rating", name: "num2" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "text", name: "field1" },
+                { type: "text", name: "field2" },
+                { type: "text", name: "field3" },
+                { type: "rating", name: "num1" },
+                { type: "rating", name: "num2" },
+              ],
+            },
           ],
         },
       ],
@@ -299,16 +334,22 @@ describe("generateFieldMapping - Unit Tests", () => {
     expect(mapping.num2.slot).toBe("fieldNum1");
   });
 
-  test("should update title for existing fields if changed", () => {
+  test("should update label for existing fields if changed", () => {
     const existingMapping = {
-      email: { slot: "fieldString0", type: "string" as const, fieldType: "text", title: "Old Title" },
+      email: { slot: "fieldString0", type: "string" as const, fieldType: "email", label: "Old Label" },
     };
 
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "email", title: "New Title" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "email", name: "email", label: "New Label" },
+              ],
+            },
           ],
         },
       ],
@@ -317,20 +358,26 @@ describe("generateFieldMapping - Unit Tests", () => {
     const mapping = generateFieldMapping(schema, existingMapping);
 
     expect(mapping.email.slot).toBe("fieldString0"); // Slot preserved
-    expect(mapping.email.title).toBe("New Title"); // Title updated
+    expect(mapping.email.label).toBe("New Label"); // Label updated
   });
 
   test("should keep removed fields in mapping for historical data", () => {
     const existingMapping = {
-      email: { slot: "fieldString0", type: "string" as const, fieldType: "text" },
+      email: { slot: "fieldString0", type: "string" as const, fieldType: "email" },
       removedField: { slot: "fieldString1", type: "string" as const, fieldType: "text" },
     };
 
     const schema = {
       pages: [
         {
-          elements: [
-            { type: "text", name: "email" }, // Only email remains
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                { type: "email", name: "email" }, // Only email remains
+              ],
+            },
           ],
         },
       ],
@@ -364,22 +411,10 @@ describe("getSlotCounts - Unit Tests", () => {
 
 describe("Field Mapping Integration - Publishing", () => {
   test("should generate field mapping when publishing root form", async () => {
-    const formFields = {
-      pages: [
-        {
-          elements: [
-            { type: "text", name: "email", title: "Email Address" },
-            { type: "comment", name: "message", title: "Your Message" },
-            { type: "rating", name: "satisfaction", title: "Satisfaction" },
-          ],
-        },
-      ],
-    };
-
-    // Create form
+    // Create form using multi-field schema
     const createRequest = post(
       "/forms",
-      { name: "Contact Form", fields: formFields },
+      { name: "Contact Form", fields: multiFieldFormSchema },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -407,39 +442,28 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(mapping.email).toEqual({
       slot: "fieldString0",
       type: "string",
-      fieldType: "text",
-      title: "Email Address",
+      fieldType: "email",
+      label: "Email Address",
     });
-    expect(mapping.message).toEqual({
+    expect(mapping.name).toEqual({
       slot: "fieldString1",
       type: "string",
-      fieldType: "comment",
-      title: "Your Message",
+      fieldType: "text",
+      label: "Full Name",
     });
-    expect(mapping.satisfaction).toEqual({
+    expect(mapping.rating).toEqual({
       slot: "fieldNum0",
       type: "number",
       fieldType: "rating",
-      title: "Satisfaction",
+      label: "How would you rate us?",
     });
   });
 
   test("should preserve slot assignments when publishing new version", async () => {
-    const v1Fields = {
-      pages: [
-        {
-          elements: [
-            { type: "text", name: "email" },
-            { type: "text", name: "name" },
-          ],
-        },
-      ],
-    };
-
-    // Create and publish v1
+    // Create and publish v1 using validFormFields (has email)
     const createRequest = post(
       "/forms",
-      { name: "Form V1", fields: v1Fields },
+      { name: "Form V1", fields: validFormFields },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -455,23 +479,42 @@ describe("Field Mapping Integration - Publishing", () => {
     const v1Mapping = v1Form?.fieldMapping as Record<string, { slot: string }>;
 
     expect(v1Mapping.email.slot).toBe("fieldString0");
-    expect(v1Mapping.name.slot).toBe("fieldString1");
 
-    // Create v2 with additional field
+    // Create v2 with additional fields
     const v2Fields = {
+      ...validFormFields,
+      id: "test_form_v2",
       pages: [
         {
-          elements: [
-            { type: "text", name: "email" }, // Existing
-            { type: "text", name: "name" }, // Existing
-            { type: "text", name: "phone" }, // New
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                ...validFormFields.pages[0].sections[0].fields,
+                {
+                  id: "field_name",
+                  type: "text",
+                  name: "name",
+                  label: "Full Name",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+                {
+                  id: "field_phone",
+                  type: "phone",
+                  name: "phone",
+                  label: "Phone",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
           ],
         },
       ],
     };
 
-    // First update v1 to have v2 fields (simulating editing before creating version)
-    // Actually, we need to create a version
     const versionRequest = post(
       `/forms/${rootForm.id}/versions`,
       { fields: v2Fields },
@@ -494,9 +537,9 @@ describe("Field Mapping Integration - Publishing", () => {
 
     // Existing fields should keep their slots
     expect(v2Mapping.email.slot).toBe("fieldString0");
-    expect(v2Mapping.name.slot).toBe("fieldString1");
 
-    // New field should get next available slot
+    // New fields should get next available slots
+    expect(v2Mapping.name.slot).toBe("fieldString1");
     expect(v2Mapping.phone.slot).toBe("fieldString2");
 
     // Root form should also have updated mapping
@@ -509,12 +552,29 @@ describe("Field Mapping Integration - Publishing", () => {
   });
 
   test("should handle numeric fields correctly across versions", async () => {
+    // Create form with email and rating field
     const v1Fields = {
+      ...validFormFields,
+      id: "rating_form_v1",
       pages: [
         {
-          elements: [
-            { type: "text", name: "email" },
-            { type: "rating", name: "rating1" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                ...validFormFields.pages[0].sections[0].fields,
+                {
+                  id: "field_rating1",
+                  type: "rating",
+                  name: "rating1",
+                  label: "Rating 1",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
           ],
         },
       ],
@@ -544,12 +604,27 @@ describe("Field Mapping Integration - Publishing", () => {
 
     // Create v2 with another rating field
     const v2Fields = {
+      ...v1Fields,
+      id: "rating_form_v2",
       pages: [
         {
-          elements: [
-            { type: "text", name: "email" },
-            { type: "rating", name: "rating1" },
-            { type: "rating", name: "rating2" }, // New numeric field
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                ...v1Fields.pages[0].sections[0].fields,
+                {
+                  id: "field_rating2",
+                  type: "rating",
+                  name: "rating2",
+                  label: "Rating 2",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
           ],
         },
       ],
@@ -578,26 +653,56 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(v2Mapping.rating2.type).toBe("number");
   });
 
-  test("should handle complex nested panel structures", async () => {
+  test("should handle multiple sections correctly", async () => {
+    // Form with multiple sections
     const formFields = {
+      ...validFormFields,
+      id: "multi_section_form",
       pages: [
         {
-          elements: [
+          id: "page_1",
+          sections: [
             {
-              type: "panel",
-              name: "personalInfo",
-              elements: [
-                { type: "text", name: "firstName" },
-                { type: "text", name: "lastName" },
+              id: "section_personal",
+              fields: [
+                {
+                  id: "field_firstName",
+                  type: "text",
+                  name: "firstName",
+                  label: "First Name",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+                {
+                  id: "field_lastName",
+                  type: "text",
+                  name: "lastName",
+                  label: "Last Name",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
               ],
+              collapsible: false,
+              defaultCollapsed: false,
             },
             {
-              type: "panel",
-              name: "contactInfo",
-              elements: [
-                { type: "text", name: "email" },
-                { type: "text", name: "phone" },
+              id: "section_contact",
+              fields: [
+                {
+                  id: "field_email",
+                  type: "email",
+                  name: "email",
+                  label: "Email",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+                {
+                  id: "field_phone",
+                  type: "phone",
+                  name: "phone",
+                  label: "Phone",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
               ],
+              collapsible: false,
+              defaultCollapsed: false,
             },
           ],
         },
@@ -606,7 +711,7 @@ describe("Field Mapping Integration - Publishing", () => {
 
     const createRequest = post(
       "/forms",
-      { name: "Nested Form", fields: formFields },
+      { name: "Multi-Section Form", fields: formFields },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -620,62 +725,32 @@ describe("Field Mapping Integration - Publishing", () => {
     const publishedForm = await prisma.form.findUnique({ where: { id: form.id } });
     const mapping = publishedForm?.fieldMapping as Record<string, { slot: string }>;
 
-    // All nested fields should be extracted and mapped
+    // All fields from all sections should be extracted and mapped
     expect(mapping.firstName.slot).toBe("fieldString0");
     expect(mapping.lastName.slot).toBe("fieldString1");
     expect(mapping.email.slot).toBe("fieldString2");
     expect(mapping.phone.slot).toBe("fieldString3");
   });
 
-  test("should reject publishing form with no fields", async () => {
-    const formFields = {
-      pages: [
-        {
-          elements: [],
-        },
-      ],
-    };
-
+  test("should reject creating form with no fields", async () => {
+    // With strict schema validation, forms with empty fields array fail at creation time
     const createRequest = post(
       "/forms",
-      { name: "Empty Form", fields: formFields },
+      { name: "Empty Form", fields: emptyFormSchema },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
 
-    const publishResponse = await PUBLISH_FORM(
-      post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: form.id }) }
-    );
-
-    expect(publishResponse.status).toBe(400);
-
-    const error = await publishResponse.json();
-    expect(error.error.code).toBe("FORM_NO_FIELDS");
-    expect(error.error.message).toContain("at least one field");
-
-    // Verify form was not published
-    const unpublishedForm = await prisma.form.findUnique({ where: { id: form.id } });
-    expect(unpublishedForm?.status).toBe("DRAFT");
-    expect(unpublishedForm?.fieldMapping).toBeNull();
+    // Form creation should fail with validation error since sections require at least one field
+    expect(createResponse.status).toBe(422);
+    expect(form.error.code).toBe("VALIDATION_FAILED");
   });
 
   test("should reject publishing form without email field", async () => {
-    const formFields = {
-      pages: [
-        {
-          elements: [
-            { type: "text", name: "firstName", title: "First Name" },
-            { type: "text", name: "lastName", title: "Last Name" },
-          ],
-        },
-      ],
-    };
-
     const createRequest = post(
       "/forms",
-      { name: "No Email Form", fields: formFields },
+      { name: "No Email Form", fields: formWithoutEmailField },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -699,12 +774,35 @@ describe("Field Mapping Integration - Publishing", () => {
   });
 
   test("should reject publishing form with email field that has wrong name", async () => {
-    const formFields = {
+    // Create form with email-type field but wrong name
+    const wrongEmailNameSchema = {
+      ...validFormFields,
+      id: "wrong_email_name",
       pages: [
         {
-          elements: [
-            { type: "text", name: "userEmail", title: "Email Address" },
-            { type: "text", name: "name", title: "Name" },
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                {
+                  id: "field_userEmail",
+                  type: "email",
+                  name: "userEmail", // Wrong name, should be "email"
+                  label: "Email Address",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+                {
+                  id: "field_name",
+                  type: "text",
+                  name: "name",
+                  label: "Name",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
           ],
         },
       ],
@@ -712,7 +810,7 @@ describe("Field Mapping Integration - Publishing", () => {
 
     const createRequest = post(
       "/forms",
-      { name: "Wrong Email Name Form", fields: formFields },
+      { name: "Wrong Email Name Form", fields: wrongEmailNameSchema },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -734,20 +832,9 @@ describe("Field Mapping Integration - Publishing", () => {
   });
 
   test("should successfully publish form with email field named 'email'", async () => {
-    const formFields = {
-      pages: [
-        {
-          elements: [
-            { type: "text", name: "email", title: "Email Address" },
-            { type: "text", name: "name", title: "Name" },
-          ],
-        },
-      ],
-    };
-
     const createRequest = post(
       "/forms",
-      { name: "Valid Email Form", fields: formFields },
+      { name: "Valid Email Form", fields: validFormFields },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -766,28 +853,10 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(publishedForm?.fieldMapping).not.toBeNull();
   });
 
-  test("should handle various SurveyJS field types", async () => {
-    const formFields = {
-      pages: [
-        {
-          elements: [
-            { type: "text", name: "email" }, // Required email field
-            { type: "text", name: "textField" },
-            { type: "comment", name: "commentField" },
-            { type: "dropdown", name: "dropdownField" },
-            { type: "checkbox", name: "checkboxField" },
-            { type: "radiogroup", name: "radioField" },
-            { type: "rating", name: "ratingField" },
-            { type: "file", name: "fileField" },
-            { type: "boolean", name: "booleanField" },
-          ],
-        },
-      ],
-    };
-
+  test("should handle all supported field types", async () => {
     const createRequest = post(
       "/forms",
-      { name: "All Types Form", fields: formFields },
+      { name: "All Types Form", fields: allFieldTypesFormSchema },
       fullAccessApiKey.key
     );
     const createResponse = await CREATE_FORM(createRequest);
@@ -802,32 +871,54 @@ describe("Field Mapping Integration - Publishing", () => {
     const mapping = publishedForm?.fieldMapping as Record<string, { slot: string; type: string; fieldType: string }>;
 
     // String types
-    expect(mapping.textField.type).toBe("string");
-    expect(mapping.commentField.type).toBe("string");
-    expect(mapping.dropdownField.type).toBe("string");
-    expect(mapping.checkboxField.type).toBe("string");
-    expect(mapping.radioField.type).toBe("string");
-    expect(mapping.fileField.type).toBe("string");
-    expect(mapping.booleanField.type).toBe("string");
+    expect(mapping.text_field.type).toBe("string");
+    expect(mapping.phone_field.type).toBe("string");
+    expect(mapping.url_field.type).toBe("string");
+    expect(mapping.textarea_field.type).toBe("string");
+    expect(mapping.select_field.type).toBe("string");
+    expect(mapping.date_field.type).toBe("string");
+    expect(mapping.checkbox_field.type).toBe("string");
 
-    // Numeric type
-    expect(mapping.ratingField.type).toBe("number");
-    expect(mapping.ratingField.slot).toBe("fieldNum0");
+    // Numeric types
+    expect(mapping.number_field.type).toBe("number");
+    expect(mapping.rating_field.type).toBe("number");
+    expect(mapping.slider_field.type).toBe("number");
 
     // Verify fieldType is preserved
-    expect(mapping.textField.fieldType).toBe("text");
-    expect(mapping.ratingField.fieldType).toBe("rating");
+    expect(mapping.text_field.fieldType).toBe("text");
+    expect(mapping.rating_field.fieldType).toBe("rating");
+    expect(mapping.email.fieldType).toBe("email");
   });
 
   test("should maintain slot assignments after rollback and roll-forward", async () => {
+    // Create and publish v1
     const v1Fields = {
-      pages: [{ elements: [
-        { type: "text", name: "email" },
-        { type: "text", name: "field1" },
-      ] }],
+      ...validFormFields,
+      id: "rollback_test_v1",
+      pages: [
+        {
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                ...validFormFields.pages[0].sections[0].fields,
+                {
+                  id: "field_field1",
+                  type: "text",
+                  name: "field1",
+                  label: "Field 1",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
+          ],
+        },
+      ],
     };
 
-    // Create and publish v1
     const createRequest = post(
       "/forms",
       { name: "Rollback Test", fields: v1Fields },
@@ -843,11 +934,30 @@ describe("Field Mapping Integration - Publishing", () => {
 
     // Create and publish v2 with new field
     const v2Fields = {
-      pages: [{ elements: [
-        { type: "text", name: "email" },
-        { type: "text", name: "field1" },
-        { type: "text", name: "field2" },
-      ] }],
+      ...v1Fields,
+      id: "rollback_test_v2",
+      pages: [
+        {
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                ...v1Fields.pages[0].sections[0].fields,
+                {
+                  id: "field_field2",
+                  type: "text",
+                  name: "field2",
+                  label: "Field 2",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
+          ],
+        },
+      ],
     };
 
     const v2Request = post(
@@ -867,12 +977,30 @@ describe("Field Mapping Integration - Publishing", () => {
 
     // Create and publish v3 with another field
     const v3Fields = {
-      pages: [{ elements: [
-        { type: "text", name: "email" },
-        { type: "text", name: "field1" },
-        { type: "text", name: "field2" },
-        { type: "text", name: "field3" },
-      ] }],
+      ...v2Fields,
+      id: "rollback_test_v3",
+      pages: [
+        {
+          id: "page_1",
+          sections: [
+            {
+              id: "section_1",
+              fields: [
+                ...v2Fields.pages[0].sections[0].fields,
+                {
+                  id: "field_field3",
+                  type: "text",
+                  name: "field3",
+                  label: "Field 3",
+                  appearance: DEFAULT_FIELD_APPEARANCE,
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
+            },
+          ],
+        },
+      ],
     };
 
     const v3Request = post(

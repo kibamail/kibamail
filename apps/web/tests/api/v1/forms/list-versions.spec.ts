@@ -17,6 +17,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { validFormFields } from "@/tests/utils/form-fixtures";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 
@@ -29,25 +30,6 @@ let rootFormId: string;
 let version2Id: string;
 let version3Id: string;
 let anotherRootFormId: string;
-
-/**
- * Valid SurveyJS form configuration for testing
- */
-const validFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "email",
-          title: "Email",
-          inputType: "email",
-          isRequired: true,
-        },
-      ],
-    },
-  ],
-};
 
 /**
  * Setup: Create a test workspace, API keys, and test forms with versions

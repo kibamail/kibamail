@@ -1,3 +1,6 @@
+// Initialize OpenTelemetry instrumentation first (before any other imports)
+import { shutdownOtel } from "./instrumentation";
+
 import express from "express";
 import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
 
@@ -115,6 +118,7 @@ const shutdown = async (signal: string) => {
 
   metricsServer.close();
   await closeAll();
+  await shutdownOtel();
 
   logger.info("All workers stopped");
   process.exit(0);

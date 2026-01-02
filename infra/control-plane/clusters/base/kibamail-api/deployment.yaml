@@ -56,10 +56,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
+            - name: OTEL_SERVICE_NAME
+              value: "kibamail-api"
             - name: OTEL_RESOURCE_ATTRIBUTES
-              value: "k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-api"
+              value: "service.name=kibamail-api,deployment.environment=staging,host.name=$(NODE_NAME),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-api"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "https://ingest.monitor.kibamail.com"
+              value: "http://$(HOST_IP):4318"
+            - name: OTEL_EXPORTER_OTLP_INSECURE
+              value: "true"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -112,7 +120,7 @@ spec:
                   name: control-plane-logto
                   key: M2M_APP_SECRET
             - name: OUTPOST_API_URL
-              value: "http://outpost-api.outpost.svc.cluster.local:3333"
+              value: "http://outpost.outpost.svc.cluster.local:3333"
             - name: OUTPOST_API_KEY
               valueFrom:
                 secretKeyRef:

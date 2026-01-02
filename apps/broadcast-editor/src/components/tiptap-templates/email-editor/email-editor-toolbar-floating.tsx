@@ -49,17 +49,35 @@ import {
 // --- UI Utils ---
 import { FloatingElement } from "@/components/tiptap-ui-utils/floating-element";
 
+// --- Contexts ---
+import { useEditorConfig } from "@/contexts/editor-config-context";
+
 export function EmailToolbarFloating() {
   const { editor } = useTiptapEditor();
   const isMobile = useIsBreakpoint("max", 480);
   const { lockDragHandle, aiGenerationActive, commentInputVisible } =
     useUiEditorState(editor);
+  const { isEnabled } = useEditorConfig();
 
   const { shouldShow } = useFloatingToolbarVisibility({
     editor,
     isSelectionValid,
     extraHideWhen: Boolean(aiGenerationActive || commentInputVisible),
   });
+
+  // Feature flags
+  const showBold = isEnabled("textFormatting", "bold");
+  const showItalic = isEnabled("textFormatting", "italic");
+  const showUnderline = isEnabled("textFormatting", "underline");
+  const showStrikethrough = isEnabled("textFormatting", "strikethrough");
+  const showCode = isEnabled("textFormatting", "code");
+  const showLink = isEnabled("textFormatting", "link");
+  const showTextColor = isEnabled("textFormatting", "textColor");
+  const showImage = isEnabled("media", "image");
+  const showNodeStyleEditing = isEnabled("ui", "nodeStyleEditing");
+
+  // Check if any mark buttons should be shown
+  const hasAnyMarks = showBold || showItalic || showUnderline || showStrikethrough || showCode;
 
   if (lockDragHandle || isMobile) return null;
 
@@ -70,30 +88,40 @@ export function EmailToolbarFloating() {
           <TurnIntoDropdown hideWhenUnavailable={true} />
         </ToolbarGroup>
 
-        <ToolbarSeparator />
+        {hasAnyMarks && (
+          <>
+            <ToolbarSeparator />
+            <ToolbarGroup>
+              {showBold && <MarkButton type="bold" hideWhenUnavailable={true} />}
+              {showItalic && <MarkButton type="italic" hideWhenUnavailable={true} />}
+              {showUnderline && <MarkButton type="underline" hideWhenUnavailable={true} />}
+              {showStrikethrough && <MarkButton type="strike" hideWhenUnavailable={true} />}
+              {showCode && <MarkButton type="code" hideWhenUnavailable={true} />}
+            </ToolbarGroup>
+          </>
+        )}
 
-        <ToolbarGroup>
-          <MarkButton type="bold" hideWhenUnavailable={true} />
-          <MarkButton type="italic" hideWhenUnavailable={true} />
-          <MarkButton type="underline" hideWhenUnavailable={true} />
-          <MarkButton type="strike" hideWhenUnavailable={true} />
-          <MarkButton type="code" hideWhenUnavailable={true} />
-        </ToolbarGroup>
+        {showImage && (
+          <>
+            <ToolbarSeparator />
+            <ToolbarGroup>
+              <ImageNodeFloating />
+            </ToolbarGroup>
+          </>
+        )}
 
-        <ToolbarSeparator />
-
-        <ToolbarGroup>
-          <ImageNodeFloating />
-        </ToolbarGroup>
-
-        <ToolbarGroup>
-          <LinkPopover
-            autoOpenOnLinkActive={false}
-            hideWhenUnavailable={true}
-          />
-          <ColorTextPopover hideWhenUnavailable={true} />
-          <FloatingCustomNodeStyles hideWhenUnavailable={true} />
-        </ToolbarGroup>
+        {(showLink || showTextColor || showNodeStyleEditing) && (
+          <ToolbarGroup>
+            {showLink && (
+              <LinkPopover
+                autoOpenOnLinkActive={false}
+                hideWhenUnavailable={true}
+              />
+            )}
+            {showTextColor && <ColorTextPopover hideWhenUnavailable={true} />}
+            {showNodeStyleEditing && <FloatingCustomNodeStyles hideWhenUnavailable={true} />}
+          </ToolbarGroup>
+        )}
 
         <MoreOptions hideWhenUnavailable={true} />
       </Toolbar>

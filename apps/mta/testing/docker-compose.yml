@@ -1,0 +1,359 @@
+# =============================================================================
+# KumoMTA Integration Testing Environment
+# =============================================================================
+#
+# This Docker Compose setup provides the core infrastructure for testing:
+#
+# - KumoMTA with SMTP injection (port 587) and HTTP API (port 8000)
+# - KumoProxy SOCKS5 for routing outbound mail to mailpit
+# - Mailpit for catching all outbound email
+# - DNSmasq for custom DNS resolution
+# - NATS for message queue (exposed for test injection)
+# - Redis for caching
+# - MinIO for S3 storage
+#
+# The test runner and control plane mock run OUTSIDE Docker on the host.
+# This allows rapid test iteration without rebuilding images.
+#
+# Network Architecture:
+#   172.28.0.2  - dnsmasq (DNS server)
+#   172.28.0.3  - kumomta (MTA)
+#   172.28.0.4  - email-agent (Go service)
+#   172.28.0.5  - mailpit (catches all outbound email)
+#   172.28.0.6  - kumoproxy (SOCKS5 proxy)
+#   172.28.0.7  - redis
+#   172.28.0.8  - nats (exposed on host port 4222)
+#   172.28.0.9  - minio
+#
+# Host services (run separately):
+#   localhost:3333 - control-plane-mock (Go)
+#   localhost:*    - test runner (Go tests)
+#
+# Usage:
+#   docker compose up -d             # Start infrastructure
+#   go run ./mocks/controlplane      # Start mock (separate terminal)
+#   go test ./integration/...        # Run tests (separate terminal)
+#   docker compose down -v           # Tear down
+#
+# =============================================================================
+
+name: kbmta-integration-tests
+
+networks:
+  kbmta-test:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
+
+volumes:
+  redis-data:
+  nats-data:
+  minio-data:
+
+services:
+  # ===========================================================================
+  # DNS Server - Provides custom DNS resolution for all containers
+  # ===========================================================================
+  dnsmasq:
+    image: strm/dnsmasq:latest
+    container_name: kbmta-dns
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./dns/dnsmasq.conf:/etc/dnsmasq.conf:ro
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.2
+    healthcheck:
+      test: ["CMD", "sh", "-c", "true"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 3s
+
+  # ===========================================================================
+  # Test SMTP Server - Production-grade with STARTTLS support
+  # Simulates real mail provider: port 25, STARTTLS, catch-all
+  # ===========================================================================
+  smtp-server:
+    build:
+      context: ./smtp-server
+      dockerfile: Dockerfile
+    container_name: kbmta-smtp-server
+    environment:
+      SMTP_PORT: "25"
+      API_PORT: "8025"
+      HOSTNAME: "smtp.test.local"
+      TLS_KEY: "/certs/privkey.pem"
+      TLS_CERT: "/certs/fullchain.pem"
+    volumes:
+      - ./certs:/certs:ro
+    ports:
+      - "8025:8025"   # REST API (for tests)
+      - "1025:25"     # SMTP - internal port 25 (production), exposed as 1025
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.5
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8025/api/v1/info"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # KumoProxy - SOCKS5 proxy using KumoMTA's built-in proxy server
+  # Routes all outbound email through DNS which resolves to smtp-server
+  # ===========================================================================
+  kumoproxy:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-proxy
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:1080"]
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.6
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      smtp-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/1080' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # Redis - For caching and TSA
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: kbmta-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "16379:6379"   # Exposed for tests (offset to avoid conflicts)
+    volumes:
+      - redis-data:/data
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.7
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # NATS - Message queue for email agent
+  # Exposed on host for test injection
+  # ===========================================================================
+  nats:
+    image: nats:2.10-alpine
+    container_name: kbmta-nats
+    command:
+      - "-js"
+      - "-sd"
+      - "/data"
+      - "-m"
+      - "8222"
+    ports:
+      - "14222:4222"   # Client connections (offset to avoid conflicts)
+      - "18222:8222"   # HTTP monitoring
+    volumes:
+      - nats-data:/data
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.8
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nc -z localhost 4222"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  # ===========================================================================
+  # NATS Setup - Creates stream and consumer on startup
+  # ===========================================================================
+  nats-setup:
+    image: natsio/nats-box:latest
+    container_name: kbmta-nats-setup
+    depends_on:
+      nats:
+        condition: service_healthy
+    command:
+      - sh
+      - -c
+      - |
+        nats stream add EMAILS --subjects='kibamail.emails.>' --storage=file --retention=work --discard=old --max-age=24h --max-bytes=-1 --max-msgs=-1 --replicas=1 --dupe-window=2m --server=nats://nats:4222 --defaults || true
+        nats consumer add EMAILS email_agent_consumer --pull --ack=explicit --deliver=all --max-deliver=5 --replay=instant --server=nats://nats:4222 --defaults || true
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.18
+    dns: 172.28.0.2
+
+  # ===========================================================================
+  # MinIO - S3-compatible storage for email agent
+  # ===========================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: kbmta-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "19000:9000"   # S3 API (offset to avoid conflicts)
+      - "19001:9001"   # Console (for debugging)
+    volumes:
+      - minio-data:/data
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.9
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # MinIO Setup - Creates bucket on startup
+  # ===========================================================================
+  minio-setup:
+    image: minio/mc:latest
+    container_name: kbmta-minio-setup
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/kibamail --ignore-existing;
+      mc anonymous set download myminio/kibamail;
+      exit 0;
+      "
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.19
+    dns: 172.28.0.2
+
+  # ===========================================================================
+  # Email Agent - Go service that bridges KumoMTA and Control Plane
+  # Connects to control-plane-mock running on host
+  # ===========================================================================
+  email-agent:
+    build:
+      context: ../../email-agent
+      dockerfile: Dockerfile
+    container_name: kbmta-email-agent
+    command: ["-config", "/etc/email-agent/config.yaml"]
+    restart: always
+    volumes:
+      - ./config/email-agent.yaml:/etc/email-agent/config.yaml:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8080:8080"   # HTTP API (exposed for tests)
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.4
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nats:
+        condition: service_healthy
+      nats-setup:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  # ===========================================================================
+  # KumoMTA - The MTA under test (with TSA daemon)
+  # ===========================================================================
+  kumomta:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-mta
+    entrypoint: ["/opt/kumomta/scripts/start-kumomta.sh"]
+    environment:
+      # MTA configuration
+      EMAIL_AGENT_URL: "http://email-agent:8080"
+      WEBHOOK_URL: "http://email-agent:8080/webhooks"
+      MTA_HOSTNAME: "mail.kbmta.net"
+      # SOCKS5 proxy for all outbound connections
+      SOCKS5_PROXY: "172.28.0.6:1080"
+      # TSA daemon configuration
+      REDIS_URL: "redis://redis:6379/0"
+      TSA_LISTEN_PORT: "8008"
+    ports:
+      - "25:25"      # SMTP inbound (for bounces)
+      - "587:587"    # SMTP submission
+      - "8000:8000"  # HTTP API
+    volumes:
+      # Startup script (runs both TSA and MTA)
+      - ./scripts/start-kumomta.sh:/opt/kumomta/scripts/start-kumomta.sh:ro
+      # Production init.lua - testing the real policy
+      - ../kumomta/policy/init.lua:/opt/kumomta/etc/policy/init.lua:ro
+      # TSA daemon configuration
+      - ../kumomta/policy/tsa_init.lua:/opt/kumomta/etc/policy/tsa_init.lua:ro
+      # DKIM configuration
+      - ../kumomta/dkim/dkim_data.toml:/opt/kumomta/etc/policy/dkim_data.toml:ro
+      # Test environment sources.toml (with SOCKS5 proxy to smtp-server)
+      - ./config/sources.toml:/opt/kumomta/etc/policy/sources.toml:ro
+      # Shaping configuration (production defaults, no overrides)
+      - ./config/shaping.toml:/opt/kumomta/etc/policy/shaping.toml:ro
+      # TLS certificates
+      - ./certs:/opt/kumomta/etc/tls:ro
+      # Trust the test CA for TLS verification
+      - ./certs/ca.crt:/usr/local/share/ca-certificates/test-ca.crt:ro
+      # MTA DKIM keys (for 2-fold signing)
+      - ./certs/dkim:/opt/kumomta/etc/dkim:ro
+      # Spool and logs (using tmpfs to avoid inode issues)
+    tmpfs:
+      - /var/spool/kumomta
+      - /var/log/kumomta
+    networks:
+      kbmta-test:
+        ipv4_address: 172.28.0.3
+    dns: 172.28.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      email-agent:
+        condition: service_healthy
+      kumoproxy:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kumomta/sbin/kcli queue-summary >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

@@ -20,6 +20,18 @@ spec:
     size: 20Gi
     storageClass: kibamail-storage
 
+  # Monitoring configuration for Prometheus/SigNoz
+  monitoring:
+    # Don't use PodMonitor (requires Prometheus Operator)
+    # We use SigNoz k8s-infra Prometheus scraping instead
+    enablePodMonitor: false
+    # Keep default CNPG metrics
+    disableDefaultQueries: false
+    # Custom monitoring queries for extended metrics
+    customQueriesConfigMap:
+      - name: cnpg-custom-monitoring
+        key: custom-queries
+
   plugins:
     - name: barman-cloud.cloudnative-pg.io
       isWALArchiver: true

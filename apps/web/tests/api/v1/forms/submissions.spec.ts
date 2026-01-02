@@ -17,6 +17,7 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { signUpFormFields, surveyFormFields } from "@/tests/utils/form-fixtures";
 import { prisma } from "@/lib/db";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
@@ -27,63 +28,6 @@ let fullAccessApiKey: CreatedApiKey;
 let signUpFormId: string;
 let surveyFormId: string;
 let unpublishedFormId: string;
-
-/**
- * Valid SurveyJS form configuration with email field (required for sign-up forms)
- */
-const signUpFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "email",
-          title: "Email Address",
-          inputType: "email",
-          isRequired: true,
-        },
-        {
-          type: "text",
-          name: "firstName",
-          title: "First Name",
-        },
-        {
-          type: "text",
-          name: "lastName",
-          title: "Last Name",
-        },
-      ],
-    },
-  ],
-};
-
-/**
- * Survey form fields configuration
- */
-const surveyFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "email",
-          title: "Email",
-          inputType: "email",
-        },
-        {
-          type: "text",
-          name: "feedback",
-          title: "Your Feedback",
-        },
-        {
-          type: "rating",
-          name: "satisfaction",
-          title: "How satisfied are you?",
-        },
-      ],
-    },
-  ],
-};
 
 /**
  * Setup: Create test workspace, API keys, and test forms
@@ -104,9 +48,9 @@ beforeAll(async () => {
       fields: signUpFormFields as never,
       publishedAt: new Date(),
       fieldMapping: {
-        email: { slot: "fieldString0", type: "string", fieldType: "text" },
-        firstName: { slot: "fieldString1", type: "string", fieldType: "text" },
-        lastName: { slot: "fieldString2", type: "string", fieldType: "text" },
+        email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
+        firstName: { slot: "fieldString1", type: "string", fieldType: "text", contactPropertyId: "firstName", contactPropertyType: "standard" },
+        lastName: { slot: "fieldString2", type: "string", fieldType: "text", contactPropertyId: "lastName", contactPropertyType: "standard" },
       } as never,
     },
   });
@@ -129,8 +73,8 @@ beforeAll(async () => {
       fields: surveyFormFields as never,
       publishedAt: new Date(),
       fieldMapping: {
-        email: { slot: "fieldString0", type: "string", fieldType: "text" },
-        feedback: { slot: "fieldString1", type: "string", fieldType: "text" },
+        email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
+        feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
         satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
       } as never,
     },
@@ -595,14 +539,14 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
         version: 1,
         fields: surveyFormFields as never,
         fieldMapping: {
-          email: { slot: "fieldString0", type: "string", fieldType: "text" },
-          feedback: { slot: "fieldString1", type: "string", fieldType: "text" },
+          email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
+          feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
           satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
         } as never,
       },
     });
 
-    // Create version 2 with different field mapping
+    // Create version 2 with different field mapping (additional field)
     const version2 = await prisma.form.create({
       data: {
         workspaceId: testWorkspace.id,
@@ -614,20 +558,33 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
         version: 2,
         publishedAt: new Date(),
         fields: {
+          ...surveyFormFields,
+          id: "survey_form_v2",
           pages: [
             {
-              elements: [
-                { type: "text", name: "email", title: "Email" },
-                { type: "text", name: "feedback", title: "Feedback" },
-                { type: "text", name: "newField", title: "New Field" },
-                { type: "rating", name: "satisfaction", title: "Satisfaction" },
+              id: "page_1",
+              sections: [
+                {
+                  id: "section_1",
+                  fields: [
+                    ...surveyFormFields.pages[0].sections[0].fields,
+                    {
+                      id: "field_newField",
+                      type: "text",
+                      name: "newField",
+                      label: "New Field",
+                    },
+                  ],
+                  collapsible: false,
+                  defaultCollapsed: false,
+                },
               ],
             },
           ],
         } as never,
         fieldMapping: {
-          email: { slot: "fieldString0", type: "string", fieldType: "text" },
-          feedback: { slot: "fieldString1", type: "string", fieldType: "text" },
+          email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
+          feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
           newField: { slot: "fieldString2", type: "string", fieldType: "text" },
           satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
         } as never,

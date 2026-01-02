@@ -1,5 +1,15 @@
 import { createContext, useContext, useMemo, useState, useCallback, useEffect } from "react";
-import type { EditorConfig, EditorStylesConfig, HeadingLevel } from "@/types/editor-config";
+import type {
+  EditorConfig,
+  EditorStylesConfig,
+  HeadingLevel,
+  EditorFeatureConfig,
+} from "@/types/editor-config";
+import {
+  EMAIL_EDITOR_PRESET,
+  isFeatureEnabled,
+  getEnabledHeadingLevels,
+} from "@/types/editor-config";
 
 /**
  * Non-heading style keys (excludes 'heading' which has a nested structure)
@@ -14,6 +24,11 @@ export interface EditorConfigContextValue {
    * Global styles configuration
    */
   styles: EditorStylesConfig;
+
+  /**
+   * Feature configuration
+   */
+  features: EditorFeatureConfig;
 
   /**
    * Get styles for a specific element type (excludes heading, use getHeadingStyles for headings)
@@ -50,6 +65,19 @@ export interface EditorConfigContextValue {
     type: keyof EditorStylesConfig,
     property: string
   ) => void;
+
+  /**
+   * Check if a specific feature is enabled
+   */
+  isEnabled: (
+    category: keyof EditorFeatureConfig,
+    feature: string
+  ) => boolean;
+
+  /**
+   * Get enabled heading levels
+   */
+  enabledHeadingLevels: HeadingLevel[];
 }
 
 /**
@@ -64,11 +92,14 @@ const defaultConfig: EditorConfig = {
  */
 export const EditorConfigContext = createContext<EditorConfigContextValue>({
   styles: {},
+  features: EMAIL_EDITOR_PRESET,
   getStyles: () => undefined,
   getHeadingStyles: () => undefined,
   updateStyleProperty: () => {},
   updateHeadingStyleProperty: () => {},
   removeStyleProperty: () => {},
+  isEnabled: () => true,
+  enabledHeadingLevels: [1, 2, 3, 4],
 });
 
 /**
@@ -79,6 +110,11 @@ export interface EditorConfigProviderProps {
    * Editor configuration
    */
   config?: Partial<EditorConfig>;
+
+  /**
+   * Feature configuration (defaults to EMAIL_EDITOR_PRESET)
+   */
+  features?: EditorFeatureConfig;
 
   /**
    * Callback when styles change
@@ -96,13 +132,17 @@ export interface EditorConfigProviderProps {
  *
  * @example
  * ```tsx
- * <EditorConfigProvider config={{ styles: { body: { fontSize: '16px' } } }}>
+ * <EditorConfigProvider
+ *   config={{ styles: { body: { fontSize: '16px' } } }}
+ *   features={RICH_TEXT_PRESET}
+ * >
  *   <EmailEditor />
  * </EditorConfigProvider>
  * ```
  */
 export function EditorConfigProvider({
   config,
+  features = EMAIL_EDITOR_PRESET,
   onStylesChange,
   children,
 }: EditorConfigProviderProps) {
@@ -116,6 +156,19 @@ export function EditorConfigProvider({
   );
 
   const [styles, setStyles] = useState<EditorStylesConfig>(initialStyles);
+
+  // Feature helpers
+  const isEnabled = useCallback(
+    (category: keyof EditorFeatureConfig, feature: string): boolean => {
+      return isFeatureEnabled(features, category, feature);
+    },
+    [features]
+  );
+
+  const enabledHeadingLevels = useMemo(
+    () => getEnabledHeadingLevels(features),
+    [features]
+  );
 
   // Notify parent when styles change
   useEffect(() => {
@@ -181,13 +234,16 @@ export function EditorConfigProvider({
   const contextValue = useMemo<EditorConfigContextValue>(
     () => ({
       styles,
+      features,
       getStyles: (type: SimpleStyleKey) => styles[type],
       getHeadingStyles,
       updateStyleProperty,
       updateHeadingStyleProperty,
       removeStyleProperty,
+      isEnabled,
+      enabledHeadingLevels,
     }),
-    [styles, getHeadingStyles, updateStyleProperty, updateHeadingStyleProperty, removeStyleProperty]
+    [styles, features, getHeadingStyles, updateStyleProperty, updateHeadingStyleProperty, removeStyleProperty, isEnabled, enabledHeadingLevels]
   );
 
   return (

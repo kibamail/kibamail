@@ -1,36 +1,52 @@
 /**
  * Form Field Mapping Utilities
  *
- * Handles extraction of fields from SurveyJS schemas and generation of
+ * Handles extraction of fields from form builder schemas and generation of
  * slot mappings for form submissions.
  *
  * Key concepts:
- * - Fields are extracted from SurveyJS pages[].elements[] structure
- * - Panels can contain nested elements which are also extracted
+ * - Fields are extracted from pages[].sections[].fields[] structure
+ * - Presentation fields (like "content") are excluded from submission mapping
  * - Each field is assigned a slot (fieldString0-39 or fieldNum0-14)
  * - Slot assignments are permanent per root form for data integrity
  * - New versions inherit parent mappings and only assign new slots for new fields
  */
 
-// SurveyJS field types that should map to numeric slots
-const NUMERIC_FIELD_TYPES = new Set([
-  "rating",
-  "nouislider",
-  "slider",
-  "expression",
-]);
+import type {
+  FormBuilderSchema,
+  FormField,
+  FieldType,
+  ContactPropertyMapping,
+} from "@/lib/form-builder/schema";
+
+// Field types that should map to numeric slots
+const NUMERIC_FIELD_TYPES = new Set<FieldType>(["number", "rating", "slider"]);
+
+// Presentation field types that don't store submission data
+const PRESENTATION_FIELD_TYPES = new Set<FieldType>(["content"]);
+
+// Hidden fields are input fields but don't need contact property mapping from UI
+const HIDDEN_FIELD_TYPES = new Set<FieldType>(["hidden"]);
 
 // Maximum slots available
 const MAX_STRING_SLOTS = 40;
 const MAX_NUM_SLOTS = 15;
 
 /**
- * Represents a field extracted from a SurveyJS schema
+ * Represents a field extracted from a form schema
  */
 export interface ExtractedField {
   name: string;
-  type: string;
-  title?: string;
+  type: FieldType;
+  label?: string;
+  contactProperty?: ContactPropertyMapping;
+}
+
+/**
+ * Represents a field extracted with its contact property mapping
+ */
+export interface ExtractedFieldWithMapping extends ExtractedField {
+  contactProperty?: ContactPropertyMapping;
 }
 
 /**
@@ -40,7 +56,11 @@ export interface FieldSlotMapping {
   slot: string;
   type: "string" | "number";
   fieldType: string;
-  title?: string;
+  label?: string;
+  /** Contact property this field is mapped to (e.g., "email", "firstName") */
+  contactPropertyId?: string;
+  /** Whether this is a standard or custom contact property */
+  contactPropertyType?: "standard" | "custom";
 }
 
 /**
@@ -49,117 +69,141 @@ export interface FieldSlotMapping {
 export type FormFieldMapping = Record<string, FieldSlotMapping>;
 
 /**
- * SurveyJS element structure (simplified)
- */
-interface SurveyElement {
-  name?: string;
-  type?: string;
-  title?: string;
-  elements?: SurveyElement[];
-}
-
-/**
- * SurveyJS page structure
- */
-interface SurveyPage {
-  name?: string;
-  elements?: SurveyElement[];
-}
-
-/**
- * SurveyJS schema structure
- */
-interface SurveySchema {
-  pages?: SurveyPage[];
-  elements?: SurveyElement[];
-}
-
-/**
- * Recursively extracts all question fields from SurveyJS elements.
- * Handles nested elements within panels and other container types.
+ * Extracts all input fields from a form builder schema.
+ * Excludes presentation fields (like "content") that don't capture user input.
  *
- * @param elements - Array of SurveyJS elements
- * @returns Array of extracted fields with name and type
+ * @param schema - The form builder schema (can be null/undefined/empty)
+ * @returns Array of extracted fields with name, type, and optional label
  */
-function extractFieldsFromElements(elements: SurveyElement[]): ExtractedField[] {
-  const fields: ExtractedField[] = [];
-
-  for (const element of elements) {
-    // Skip elements without a name (they can't store data)
-    if (!element.name) {
-      // But still check for nested elements (e.g., unnamed panels)
-      if (element.elements && Array.isArray(element.elements)) {
-        fields.push(...extractFieldsFromElements(element.elements));
-      }
-      continue;
-    }
-
-    // Container types that have nested elements
-    const containerTypes = ["panel", "paneldynamic"];
-
-    if (containerTypes.includes(element.type || "")) {
-      // For panels, extract nested elements but also include the panel itself
-      // if it has a name (some implementations store panel-level data)
-      if (element.elements && Array.isArray(element.elements)) {
-        fields.push(...extractFieldsFromElements(element.elements));
-      }
-      // Note: We don't add the panel itself as a field since panels
-      // typically don't hold submission data directly
-    } else {
-      // Regular question element - add it as a field
-      fields.push({
-        name: element.name,
-        type: element.type || "text",
-        title: element.title,
-      });
-    }
-  }
-
-  return fields;
-}
-
-/**
- * Extracts all question fields from a SurveyJS schema.
- * Supports both flat (elements at root) and paged (pages[].elements[]) schemas.
- *
- * @param schema - The SurveyJS form schema (can be null/undefined/empty)
- * @returns Array of extracted fields with name, type, and optional title
- */
-export function extractFieldsFromSchema(
-  schema: unknown
-): ExtractedField[] {
+export function extractFieldsFromSchema(schema: unknown): ExtractedField[] {
   if (!schema || typeof schema !== "object") {
     return [];
   }
 
-  const surveySchema = schema as SurveySchema;
+  const formSchema = schema as FormBuilderSchema;
   const allFields: ExtractedField[] = [];
 
-  // Handle paged schema (pages[].elements[])
-  if (surveySchema.pages && Array.isArray(surveySchema.pages)) {
-    for (const page of surveySchema.pages) {
-      if (page.elements && Array.isArray(page.elements)) {
-        allFields.push(...extractFieldsFromElements(page.elements));
+  // Handle pages[].sections[].fields[] structure
+  if (formSchema.pages && Array.isArray(formSchema.pages)) {
+    for (const page of formSchema.pages) {
+      if (page.sections && Array.isArray(page.sections)) {
+        for (const section of page.sections) {
+          if (section.fields && Array.isArray(section.fields)) {
+            for (const field of section.fields) {
+              // Skip presentation fields that don't store data
+              if (PRESENTATION_FIELD_TYPES.has(field.type)) {
+                continue;
+              }
+
+              // Only include fields with a valid name
+              if (field.name) {
+                allFields.push({
+                  name: field.name,
+                  type: field.type,
+                  label: field.label,
+                  contactProperty: field.contactProperty,
+                });
+              }
+            }
+          }
+        }
       }
     }
-  }
-
-  // Handle flat schema (elements[] at root level)
-  if (surveySchema.elements && Array.isArray(surveySchema.elements)) {
-    allFields.push(...extractFieldsFromElements(surveySchema.elements));
   }
 
   return allFields;
 }
 
 /**
- * Determines the storage type for a SurveyJS field type.
- * Most fields store as strings, but some numeric types use number slots.
+ * Extracts all input fields from a form builder schema with their contact property mappings.
+ * Excludes presentation fields (like "content") that don't capture user input.
+ * Used for publish validation to check that all fields are mapped.
  *
- * @param fieldType - The SurveyJS field type
+ * @param schema - The form builder schema (can be null/undefined/empty)
+ * @returns Array of extracted fields with name, type, label, and contactProperty
+ */
+export function extractFieldsWithContactProperty(schema: unknown): ExtractedFieldWithMapping[] {
+  if (!schema || typeof schema !== "object") {
+    return [];
+  }
+
+  const formSchema = schema as FormBuilderSchema;
+  const allFields: ExtractedFieldWithMapping[] = [];
+
+  // Handle pages[].sections[].fields[] structure
+  if (formSchema.pages && Array.isArray(formSchema.pages)) {
+    for (const page of formSchema.pages) {
+      if (page.sections && Array.isArray(page.sections)) {
+        for (const section of page.sections) {
+          if (section.fields && Array.isArray(section.fields)) {
+            for (const field of section.fields) {
+              // Skip presentation fields that don't store data
+              if (PRESENTATION_FIELD_TYPES.has(field.type)) {
+                continue;
+              }
+
+              // Skip hidden fields - they don't require contact property mapping
+              if (HIDDEN_FIELD_TYPES.has(field.type)) {
+                continue;
+              }
+
+              // Only include fields with a valid name
+              if (field.name) {
+                allFields.push({
+                  name: field.name,
+                  type: field.type,
+                  label: field.label,
+                  contactProperty: field.contactProperty,
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return allFields;
+}
+
+/**
+ * Extracts all fields from a form schema including presentation fields.
+ * Used for rendering and validation purposes.
+ *
+ * @param schema - The form builder schema
+ * @returns Array of all form fields
+ */
+export function extractAllFieldsFromSchema(schema: unknown): FormField[] {
+  if (!schema || typeof schema !== "object") {
+    return [];
+  }
+
+  const formSchema = schema as FormBuilderSchema;
+  const allFields: FormField[] = [];
+
+  if (formSchema.pages && Array.isArray(formSchema.pages)) {
+    for (const page of formSchema.pages) {
+      if (page.sections && Array.isArray(page.sections)) {
+        for (const section of page.sections) {
+          if (section.fields && Array.isArray(section.fields)) {
+            allFields.push(...section.fields);
+          }
+        }
+      }
+    }
+  }
+
+  return allFields;
+}
+
+/**
+ * Determines the storage type for a field type.
+ * Most fields store as strings, but numeric types use number slots.
+ *
+ * @param fieldType - The field type
  * @returns "number" for numeric types, "string" for all others
  */
-export function getStorageType(fieldType: string): "string" | "number" {
+export function getStorageType(fieldType: FieldType): "string" | "number" {
   return NUMERIC_FIELD_TYPES.has(fieldType) ? "number" : "string";
 }
 
@@ -168,7 +212,7 @@ export function getStorageType(fieldType: string): "string" | "number" {
  * If an existing mapping is provided (from parent/previous version),
  * it preserves those slot assignments and only assigns new slots for new fields.
  *
- * @param schema - The SurveyJS form schema
+ * @param schema - The form builder schema
  * @param existingMapping - Optional existing mapping to preserve (from parent form)
  * @returns Complete field mapping with slot assignments
  * @throws Error if slot limits are exceeded
@@ -228,11 +272,11 @@ export function generateFieldMapping(
   for (const field of fields) {
     // Skip if field already has a mapping
     if (mapping[field.name]) {
-      // Update title if it changed
-      if (field.title && mapping[field.name].title !== field.title) {
+      // Update label if it changed
+      if (field.label && mapping[field.name].label !== field.label) {
         mapping[field.name] = {
           ...mapping[field.name],
-          title: field.title,
+          label: field.label,
         };
       }
       continue;
@@ -247,7 +291,9 @@ export function generateFieldMapping(
         slot: `fieldNum${slotIndex}`,
         type: "number",
         fieldType: field.type,
-        title: field.title,
+        label: field.label,
+        contactPropertyId: field.contactProperty?.id,
+        contactPropertyType: field.contactProperty?.type,
       };
     } else {
       const slotIndex = getNextStringSlot();
@@ -255,12 +301,39 @@ export function generateFieldMapping(
         slot: `fieldString${slotIndex}`,
         type: "string",
         fieldType: field.type,
-        title: field.title,
+        label: field.label,
+        contactPropertyId: field.contactProperty?.id,
+        contactPropertyType: field.contactProperty?.type,
       };
     }
   }
 
   return mapping;
+}
+
+/**
+ * Transforms submission data from field names to contact property IDs.
+ * Used for SIGN_UP forms where data needs to match the contact schema.
+ *
+ * @param data - Raw submission data keyed by field names
+ * @param fieldMapping - The field mapping containing contactPropertyId
+ * @returns Transformed data keyed by contact property IDs (e.g., "email", "firstName")
+ */
+export function transformToContactData(
+  data: Record<string, unknown>,
+  fieldMapping: FormFieldMapping
+): Record<string, unknown> {
+  const contactData: Record<string, unknown> = {};
+
+  for (const [fieldName, value] of Object.entries(data)) {
+    const mapping = fieldMapping[fieldName];
+    if (!mapping || !mapping.contactPropertyId) continue;
+
+    // Use the contact property ID as the key
+    contactData[mapping.contactPropertyId] = value;
+  }
+
+  return contactData;
 }
 
 /**

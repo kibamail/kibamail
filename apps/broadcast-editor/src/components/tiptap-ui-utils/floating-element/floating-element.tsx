@@ -149,6 +149,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
       reference,
       zIndex,
       {
+        strategy: "fixed",
         placement: "top",
         middleware: [shift(), flip(), offset(4)],
         onOpenChange: handleFloatingOpenChange,

@@ -200,10 +200,10 @@ The tenant DKIM keys are:
 - [ ] **Generate MTA DKIM Keys**
   ```bash
   # Using the provided script
-  sudo ./apps/mta/scripts/setup-mta-dkim.sh
+  sudo ./apps/mta/tools/scripts/setup-mta-dkim.sh
 
   # Or manually specify domain/selector
-  sudo ./apps/mta/scripts/generate-dkim.sh kbmta.net kbmta
+  sudo ./apps/mta/tools/scripts/generate-dkim.sh kbmta.net kbmta
   ```
 
   The script will:
@@ -228,10 +228,13 @@ The tenant DKIM keys are:
 
 - [ ] **Copy Policy Files**
   ```bash
-  sudo cp apps/mta/policy/init.lua /opt/kumomta/etc/policy/
-  sudo cp apps/mta/policy/tsa_init.lua /opt/kumomta/etc/policy/
-  sudo cp apps/mta/policy/shaping.toml /opt/kumomta/etc/policy/
-  sudo cp apps/mta/policy/sources.toml /opt/kumomta/etc/policy/
+  # Copy KumoMTA policy files
+  sudo cp apps/mta/kumomta/policy/init.lua /opt/kumomta/etc/policy/
+  sudo cp apps/mta/kumomta/policy/tsa_init.lua /opt/kumomta/etc/policy/
+  sudo cp apps/mta/kumomta/dkim/dkim_data.toml /opt/kumomta/etc/policy/
+
+  # Copy sources for your cluster (e.g., eu-west-1)
+  sudo cp apps/mta/clusters/eu-west-1/sources.toml /opt/kumomta/etc/policy/sources.toml
   ```
 
 - [ ] **Set File Permissions**
@@ -437,18 +440,51 @@ The tenant DKIM keys are:
 
 ```
 apps/mta/
-├── README.md                    # This file
-├── policy/
-│   ├── init.lua                 # Main KumoMTA policy
-│   ├── tsa_init.lua             # TSA daemon configuration
-│   ├── dkim_data.toml           # MTA DKIM signing configuration
-│   ├── shaping.toml             # Traffic shaping rules
-│   ├── sources.toml             # Egress IP pool configuration
-│   └── bounces.toml             # Custom bounce classification rules
-└── scripts/
-    ├── generate-dkim.sh         # Generate DKIM keys for any domain
-    └── setup-mta-dkim.sh        # Setup MTA signing domain DKIM
+├── README.md                         # This file
+│
+├── clusters/                         # Production cluster configurations
+│   └── eu-west-1/                    # EU Ireland cluster
+│       └── sources.toml              # Egress sources & pools config
+│
+├── kumomta/                          # Shared KumoMTA configuration
+│   ├── policy/                       # Lua policy files
+│   │   ├── init.lua                  # Main KumoMTA policy
+│   │   └── tsa_init.lua              # TSA daemon configuration
+│   └── dkim/
+│       └── dkim_data.toml            # MTA DKIM signing configuration
+│
+├── tools/
+│   └── scripts/
+│       ├── generate-dkim.sh          # Generate DKIM keys for any domain
+│       └── setup-mta-dkim.sh         # Setup MTA signing domain DKIM
+│
+└── testing/                          # Integration test suite
+    ├── run-tests.sh                  # Main test runner script
+    ├── docker-compose.yml            # Docker test infrastructure
+    ├── go.mod                        # Test module dependencies
+    ├── integration/                  # Go integration tests
+    │   ├── email_delivery_test.go
+    │   ├── bounce_reception_test.go
+    │   └── dmarc_reception_test.go
+    ├── mocks/                        # Mock services
+    │   └── controlplane/             # Control plane mock API
+    ├── certs/                        # Test certificates & DKIM keys
+    ├── config/                       # Test-specific configurations
+    │   ├── sources.toml              # Test egress sources
+    │   ├── shaping.toml              # Test traffic shaping
+    │   └── email-agent.yaml          # Email agent config
+    ├── dns/                          # DNSmasq configuration
+    ├── scripts/                      # Test helper scripts
+    └── smtp-server/                  # Node.js test SMTP server
 ```
+
+## Adding a New Production Cluster
+
+To add a new cluster (e.g., `us-east-1`):
+
+1. Create the directory: `mkdir clusters/us-east-1`
+2. Create `clusters/us-east-1/sources.toml` with your egress sources and pools
+3. Deploy to the cluster, copying files per section 7 above
 
 ## Email Agent API Endpoints Required
 

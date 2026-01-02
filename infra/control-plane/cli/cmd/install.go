@@ -14,15 +14,17 @@ import (
 )
 
 var (
-	skipCilium          bool
-	skipCertManager     bool
-	skipCloudNativePG   bool
-	skipBarmanCloud     bool
-	skipRabbitMQ        bool
-	skipValkey          bool
-	skipExternalSecrets bool
-	skipOtelCollector   bool
-	dryRun              bool
+	skipCilium            bool
+	skipCertManager       bool
+	skipCloudNativePG     bool
+	skipBarmanCloud       bool
+	skipRabbitMQ          bool
+	skipValkey            bool
+	skipExternalSecrets   bool
+	enableSignozK8sInfra  bool
+	signozClusterName     string
+	signozEnvironment     string
+	dryRun                bool
 )
 
 var installCmd = &cobra.Command{
@@ -38,7 +40,11 @@ Components installed:
   - RabbitMQ Cluster Operator for message queuing
   - Valkey Operator for in-memory data store
   - External Secrets Operator for secrets management
-  - OpenTelemetry Collector for observability (logs and metrics to HyperDX)
+
+Optional components (require explicit flag):
+  - SigNoz K8s-Infra for observability (--enable-signoz-k8s-infra)
+    Deploys OpenTelemetry collectors (DaemonSet + Deployment) for logs, metrics, and traces.
+    Requires: --cluster-name and --environment flags.
 
 All installations are idempotent - running install multiple times is safe.`,
 	RunE: runInstall,
@@ -54,7 +60,9 @@ func init() {
 	installCmd.Flags().BoolVar(&skipRabbitMQ, "skip-rabbitmq", false, "Skip RabbitMQ Operator installation")
 	installCmd.Flags().BoolVar(&skipValkey, "skip-valkey", false, "Skip Valkey Operator installation")
 	installCmd.Flags().BoolVar(&skipExternalSecrets, "skip-external-secrets", false, "Skip External Secrets Operator installation")
-	installCmd.Flags().BoolVar(&skipOtelCollector, "skip-otel-collector", false, "Skip OpenTelemetry Collector installation")
+	installCmd.Flags().BoolVar(&enableSignozK8sInfra, "enable-signoz-k8s-infra", false, "Enable SigNoz K8s-Infra installation (OpenTelemetry collectors)")
+	installCmd.Flags().StringVar(&signozClusterName, "cluster-name", "", "Cluster name for SigNoz K8s-Infra (e.g., kibamail-production)")
+	installCmd.Flags().StringVar(&signozEnvironment, "environment", "", "Environment for SigNoz K8s-Infra (e.g., production, staging)")
 	installCmd.Flags().BoolVar(&dryRun, "dry-run", false, "Print what would be installed without actually installing")
 }
 
@@ -74,6 +82,16 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	// Print banner
 	ui.Banner()
+
+	// Validate SigNoz K8s-Infra flags
+	if enableSignozK8sInfra {
+		if signozClusterName == "" {
+			return fmt.Errorf("--cluster-name is required when --enable-signoz-k8s-infra is set")
+		}
+		if signozEnvironment == "" {
+			return fmt.Errorf("--environment is required when --enable-signoz-k8s-infra is set")
+		}
+	}
 
 	// Verify kubeconfig exists
 	if _, err := os.Stat(kubeconfig); os.IsNotExist(err) {
@@ -114,7 +132,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		{skip: skipRabbitMQ, installer: installer.NewRabbitMQOperatorInstaller(kubeconfig)},
 		{skip: skipValkey, installer: installer.NewValkeyOperatorInstaller(kubeconfig)},
 		{skip: skipExternalSecrets, installer: installer.NewExternalSecretsInstaller(kubeconfig)},
-		{skip: skipOtelCollector, installer: installer.NewOtelCollectorInstaller(kubeconfig)},
+		{skip: !enableSignozK8sInfra, installer: installer.NewSignozK8sInfraInstaller(kubeconfig, signozClusterName, signozEnvironment)},
 	}
 
 	// Print installation plan

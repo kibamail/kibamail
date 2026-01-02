@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { Editor } from "@tiptap/react";
 
 // --- Icons ---
@@ -29,7 +29,7 @@ import {
   useEditorConfig,
   type SimpleStyleKey,
 } from "@/contexts/editor-config-context";
-import type { HeadingLevel } from "@/types/editor-config";
+import type { HeadingLevel, EditorFeatureConfig } from "@/types/editor-config";
 
 // --- Tiptap UI ---
 import type { SuggestionItem } from "@/components/tiptap-ui-utils/suggestion-menu";
@@ -453,22 +453,90 @@ function organizeItemsByGroups(
 }
 
 /**
+ * Map slash menu item types to feature config checks
+ */
+function getFeatureEnabledItems(
+  isEnabled: (category: keyof EditorFeatureConfig, feature: string) => boolean,
+  enabledHeadingLevels: HeadingLevel[]
+): SlashMenuItemType[] {
+  const items: SlashMenuItemType[] = [];
+
+  // Always include text (paragraph)
+  if (isEnabled("blocks", "paragraph")) {
+    items.push("text");
+  }
+
+  // Headings based on enabled levels
+  if (isEnabled("blocks", "heading")) {
+    if (enabledHeadingLevels.includes(1)) items.push("heading_1");
+    if (enabledHeadingLevels.includes(2)) items.push("heading_2");
+    if (enabledHeadingLevels.includes(3)) items.push("heading_3");
+  }
+
+  // Lists
+  if (isEnabled("blocks", "bulletList")) {
+    items.push("bullet_list");
+  }
+  if (isEnabled("blocks", "numberedList")) {
+    items.push("ordered_list");
+  }
+
+  // Blockquote and code block
+  if (isEnabled("blocks", "blockquote")) {
+    items.push("quote");
+  }
+  if (isEnabled("blocks", "codeBlock")) {
+    items.push("code_block");
+  }
+
+  // Media
+  if (isEnabled("media", "emoji")) {
+    items.push("emoji");
+  }
+  if (isEnabled("blocks", "horizontalRule")) {
+    items.push("divider");
+  }
+  if (isEnabled("media", "image")) {
+    items.push("image");
+  }
+  if (isEnabled("media", "button")) {
+    items.push("button");
+  }
+  if (isEnabled("media", "panel")) {
+    items.push("panel");
+  }
+
+  // Email-specific
+  if (isEnabled("email", "emailFooter")) {
+    items.push("footer");
+  }
+
+  return items;
+}
+
+/**
  * Custom hook for slash dropdown menu functionality
  */
 export function useSlashDropdownMenu(config?: SlashMenuConfig) {
-  const { getStyles, getHeadingStyles } = useEditorConfig();
+  const { getStyles, getHeadingStyles, isEnabled, enabledHeadingLevels } = useEditorConfig();
 
   const styleGetters: StyleGetters = {
     getStyles,
     getHeadingStyles,
   };
 
+  // Get enabled items based on feature config
+  const featureEnabledItems = useMemo(
+    () => getFeatureEnabledItems(isEnabled, enabledHeadingLevels),
+    [isEnabled, enabledHeadingLevels]
+  );
+
   const getSlashMenuItems = useCallback(
     (editor: Editor) => {
       const items: SuggestionItem[] = [];
 
-      const enabledItems =
-        config?.enabledItems || (Object.keys(texts) as SlashMenuItemType[]);
+      // Use config.enabledItems if provided, otherwise use feature-based filtering
+      const enabledItems = config?.enabledItems || featureEnabledItems;
       const showGroups = config?.showGroups !== false;
 
       const itemImplementations = getItemImplementations(styleGetters);
@@ -501,7 +569,7 @@ export function useSlashDropdownMenu(config?: SlashMenuConfig) {
       // Reorganize items by groups to ensure keyboard navigation works correctly
       return organizeItemsByGroups(items, showGroups);
     },
-    [config, styleGetters]
+    [config, styleGetters, featureEnabledItems]
   );
 
   return {

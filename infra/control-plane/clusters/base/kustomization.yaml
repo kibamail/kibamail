@@ -16,3 +16,4 @@ resources:
   - kibamail-api
   - kibamail-workers
   - deployment-rbac
+  - signoz-infra

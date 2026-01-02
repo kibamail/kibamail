@@ -1,0 +1,59 @@
+# Helsinki Cluster-wide Variables
+#
+# Production MTA cluster in Hetzner Helsinki
+#
+---
+# Cluster identification
+cluster_id: "helsinki-prod"
+cluster_region: "eu-north-1"
+
+# =============================================================================
+# Hetzner vSwitch Configuration
+# =============================================================================
+# VLAN ID from Hetzner Robot panel (must be 4000-4091)
+vswitch_vlan_id: 4000
+
+# MTU must be 1400 for Hetzner vSwitch (mandatory)
+vswitch_mtu: 1400
+
+# Private network for inter-server communication
+vswitch_private_subnet: "10.0.0.0/24"
+
+# Netplan configuration file path
+vswitch_netplan_file: "/etc/netplan/60-vswitch.yaml"
+
+# Network configuration
+# Egress IP range: 37.27.167.40/29 (37.27.167.40 - 37.27.167.47)
+cluster_network: "37.27.167.40/29"
+proxy_host: "135.181.114.227"
+proxy_socks5_port: 5000
+
+# Sending IP configuration
+sending_ip_subnet: "37.27.167.40/29"
+sending_ip_range_start: 40
+sending_ip_range_end: 47
+
+# Redis configuration (runs on first MTA node)
+redis_host: "135.181.114.227"
+redis_port: 6379
+
+# NATS configuration (runs on first MTA node)
+nats_host: "135.181.114.227"
+nats_port: 4222
+
+# geerlingguy.security role configuration
+security_ssh_port: 22
+security_ssh_password_authentication: "no"
+security_ssh_permit_root_login: "yes"
+security_autoupdate_enabled: false
+security_fail2ban_enabled: true
+
+# Common packages to install
+common_packages:
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - jq
+  - unzip

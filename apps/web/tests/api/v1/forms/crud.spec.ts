@@ -23,27 +23,12 @@ import {
   type TestWorkspace,
   type CreatedApiKey,
 } from "@/tests/utils";
+import { validFormFields } from "@/tests/utils/form-fixtures";
 import { prisma } from "@/lib/db";
 import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
-
-const validFormFields = {
-  pages: [
-    {
-      elements: [
-        {
-          type: "text",
-          name: "email",
-          title: "Email",
-          inputType: "email",
-          isRequired: true,
-        },
-      ],
-    },
-  ],
-};
 
 /**
  * Setup: Create a test workspace and API keys for authentication
@@ -296,20 +281,42 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const createResponse = await POST(createRequest);
     const createdForm = await createResponse.json();
 
+    // New fields with updated structure (must include email for sign-up forms)
     const newFields = {
+      ...validFormFields,
+      id: "updated_form",
       pages: [
         {
-          elements: [
+          id: "page_1",
+          sections: [
             {
-              type: "text",
-              name: "firstName",
-              title: "First Name",
-              isRequired: true,
-            },
-            {
-              type: "text",
-              name: "lastName",
-              title: "Last Name",
+              id: "section_1",
+              fields: [
+                {
+                  id: "field_email",
+                  type: "email",
+                  name: "email",
+                  label: "Email Address",
+                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                },
+                {
+                  id: "field_firstName",
+                  type: "text",
+                  name: "firstName",
+                  label: "First Name",
+                  validation: { required: true },
+                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                },
+                {
+                  id: "field_lastName",
+                  type: "text",
+                  name: "lastName",
+                  label: "Last Name",
+                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                },
+              ],
+              collapsible: false,
+              defaultCollapsed: false,
             },
           ],
         },
@@ -596,7 +603,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       },
     });
 
-    // Create version 2
+    // Create version 2 (DRAFT by default)
     const version2Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
@@ -608,33 +615,27 @@ describe("DELETE /api/v1/forms/[formId]", () => {
     });
     const version2 = await version2Response.json();
 
-    // Archive root and publish version 2
+    // Archive root (but keep version 2 as DRAFT so it can be deleted)
     await prisma.form.update({
       where: { id: rootForm.id },
       data: {
         status: "ARCHIVED",
-        publishedVersionId: version2.id, // Update to point to version 2
       },
     });
 
-    await prisma.form.update({
-      where: { id: version2.id },
-      data: { status: "PUBLISHED", publishedAt: new Date() },
+    // Create version 3 directly via prisma (as ARCHIVED to avoid DRAFT constraint)
+    const version3 = await prisma.form.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        parentId: rootForm.id,
+        name: "Root Form",
+        fields: validFormFields as never,
+        version: 3,
+        status: "ARCHIVED",
+      },
     });
 
-    // Create version 3
-    const version3Request = post(
-      `/forms/${rootForm.id}/versions`,
-      {},
-      fullAccessApiKey.key
-    );
-
-    const version3Response = await CREATE_VERSION(version3Request, {
-      params: Promise.resolve({ formId: rootForm.id }),
-    });
-    const version3 = await version3Response.json();
-
-    // Delete version 2
+    // Delete version 2 (which is in DRAFT status)
     const deleteRequest = del(`/forms/${version2.id}`, fullAccessApiKey.key);
 
     const response = await DELETE(deleteRequest, {
@@ -668,7 +669,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
   });
 
   test("should cascade delete all versions when deleting root form", async () => {
-    // Create a root form
+    // Create a root form (DRAFT by default - must stay DRAFT to be deletable)
     const createRequest = post(
       "/forms",
       {
@@ -681,55 +682,32 @@ describe("DELETE /api/v1/forms/[formId]", () => {
     const createResponse = await POST(createRequest);
     const rootForm = await createResponse.json();
 
-    // Publish root form (self-reference for first publish)
-    await prisma.form.update({
-      where: { id: rootForm.id },
+    // Create version 2 directly via prisma (to avoid the "only one DRAFT" constraint)
+    const version2 = await prisma.form.create({
       data: {
+        workspaceId: testWorkspace.id,
+        parentId: rootForm.id,
+        name: "Root Form",
+        fields: validFormFields as never,
+        version: 2,
         status: "PUBLISHED",
         publishedAt: new Date(),
-        publishedVersionId: rootForm.id, // Self-reference
       },
-    });
-
-    // Create version 2
-    const version2Request = post(
-      `/forms/${rootForm.id}/versions`,
-      {},
-      fullAccessApiKey.key
-    );
-
-    const version2Response = await CREATE_VERSION(version2Request, {
-      params: Promise.resolve({ formId: rootForm.id }),
-    });
-    const version2 = await version2Response.json();
-
-    // Archive root and publish version 2
-    await prisma.form.update({
-      where: { id: rootForm.id },
-      data: {
-        status: "ARCHIVED",
-        publishedVersionId: version2.id, // Update to point to version 2
-      },
-    });
-
-    await prisma.form.update({
-      where: { id: version2.id },
-      data: { status: "PUBLISHED", publishedAt: new Date() },
     });
 
     // Create version 3
-    const version3Request = post(
-      `/forms/${rootForm.id}/versions`,
-      {},
-      fullAccessApiKey.key
-    );
-
-    const version3Response = await CREATE_VERSION(version3Request, {
-      params: Promise.resolve({ formId: rootForm.id }),
+    const version3 = await prisma.form.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        parentId: rootForm.id,
+        name: "Root Form",
+        fields: validFormFields as never,
+        version: 3,
+        status: "ARCHIVED",
+      },
     });
-    const version3 = await version3Response.json();
 
-    // Delete root form
+    // Delete root form (which is in DRAFT status)
     const deleteRequest = del(`/forms/${rootForm.id}`, fullAccessApiKey.key);
 
     const response = await DELETE(deleteRequest, {
@@ -747,7 +725,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
     });
     expect(rootFormCheck).toBeNull();
 
-    // Verify all versions are cascade deleted
+    // Verify all versions are cascade deleted (regardless of their status)
     const version2Check = await prisma.form.findUnique({
       where: { id: version2.id },
     });
@@ -757,5 +735,77 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       where: { id: version3.id },
     });
     expect(version3Check).toBeNull();
+  });
+
+  test("should return 400 when trying to delete a published form", async () => {
+    // Create and publish a form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Published Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await POST(createRequest);
+    const form = await createResponse.json();
+
+    // Publish the form
+    await prisma.form.update({
+      where: { id: form.id },
+      data: {
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        publishedVersionId: form.id,
+      },
+    });
+
+    // Try to delete published form
+    const deleteRequest = del(`/forms/${form.id}`, fullAccessApiKey.key);
+
+    const response = await DELETE(deleteRequest, {
+      params: Promise.resolve({ formId: form.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.code).toBe("FORM_NOT_DELETABLE");
+    expect(responseData.error.message).toContain("DRAFT");
+  });
+
+  test("should return 400 when trying to delete an archived form", async () => {
+    // Create and archive a form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Archived Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key
+    );
+
+    const createResponse = await POST(createRequest);
+    const form = await createResponse.json();
+
+    // Archive the form
+    await prisma.form.update({
+      where: { id: form.id },
+      data: {
+        status: "ARCHIVED",
+      },
+    });
+
+    // Try to delete archived form
+    const deleteRequest = del(`/forms/${form.id}`, fullAccessApiKey.key);
+
+    const response = await DELETE(deleteRequest, {
+      params: Promise.resolve({ formId: form.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.code).toBe("FORM_NOT_DELETABLE");
+    expect(responseData.error.message).toContain("DRAFT");
   });
 });

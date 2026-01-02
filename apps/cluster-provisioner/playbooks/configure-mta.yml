@@ -1,0 +1,135 @@
+# Configure MTA Node
+#
+# This playbook configures KumoMTA on a provisioned MTA node:
+# - Copies policy files (init.lua, tsa_init.lua)
+# - Copies DKIM configuration (dkim_data.toml)
+# - Copies cluster-specific sources configuration (sources.toml)
+#
+# Prerequisites:
+# - MTA node must be provisioned with provision-mta.yml first
+# - KumoMTA must be installed
+#
+# Usage:
+#   ansible-playbook playbooks/configure-mta.yml -e mta_cluster=helsinki
+#
+# Variables:
+#   mta_cluster: The cluster name (e.g., helsinki) - REQUIRED
+#
+---
+- name: Configure MTA Node
+  hosts: mta
+  become: yes
+
+  vars:
+    # Path to MTA configuration files (relative to playbook)
+    mta_config_path: "{{ playbook_dir }}/../../mta"
+
+    # KumoMTA policy directory on target
+    kumomta_policy_dir: "/opt/kumomta/etc/policy"
+
+  pre_tasks:
+    - name: Validate mta_cluster is defined
+      ansible.builtin.fail:
+        msg: "mta_cluster variable is required. Use: -e mta_cluster=helsinki"
+      when: mta_cluster is not defined
+
+    - name: Verify cluster sources.toml exists
+      ansible.builtin.stat:
+        path: "{{ mta_config_path }}/clusters/{{ mta_cluster }}/sources.toml"
+      delegate_to: localhost
+      become: no
+      register: sources_file
+
+    - name: Fail if cluster sources.toml not found
+      ansible.builtin.fail:
+        msg: "Cluster config not found: {{ mta_config_path }}/clusters/{{ mta_cluster }}/sources.toml"
+      when: not sources_file.stat.exists
+
+    - name: Display configuration info
+      ansible.builtin.debug:
+        msg: |
+          Configuring MTA node: {{ inventory_hostname }}
+          - Host: {{ ansible_host }}
+          - Cluster: {{ mta_cluster }}
+          - Policy directory: {{ kumomta_policy_dir }}
+
+  tasks:
+    # Ensure policy directory exists
+    - name: Ensure KumoMTA policy directory exists
+      ansible.builtin.file:
+        path: "{{ kumomta_policy_dir }}"
+        state: directory
+        owner: kumod
+        group: kumod
+        mode: "0755"
+
+    # Copy policy files
+    - name: Copy init.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/init.lua"
+        dest: "{{ kumomta_policy_dir }}/init.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy tsa_init.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/tsa_init.lua"
+        dest: "{{ kumomta_policy_dir }}/tsa_init.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart tsa
+
+    # Copy DKIM configuration
+    - name: Copy DKIM configuration
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/dkim/dkim_data.toml"
+        dest: "{{ kumomta_policy_dir }}/dkim_data.toml"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    # Copy cluster-specific sources configuration
+    - name: Copy cluster sources configuration
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/clusters/{{ mta_cluster }}/sources.toml"
+        dest: "{{ kumomta_policy_dir }}/sources.toml"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+  handlers:
+    - name: restart kumomta
+      ansible.builtin.debug:
+        msg: "KumoMTA configuration changed - restart required (service not managed by this playbook)"
+
+    - name: restart tsa
+      ansible.builtin.debug:
+        msg: "TSA configuration changed - restart required (service not managed by this playbook)"
+
+  post_tasks:
+    - name: List installed policy files
+      ansible.builtin.find:
+        paths: "{{ kumomta_policy_dir }}"
+        patterns: "*.lua,*.toml"
+      register: policy_files
+
+    - name: Display configuration complete
+      ansible.builtin.debug:
+        msg: |
+          MTA configuration complete for cluster: {{ mta_cluster }}
+
+          Policy files installed:
+          {% for file in policy_files.files %}
+            - {{ file.path }}
+          {% endfor %}
+
+          Next steps:
+          - Generate DKIM keys (if not already done)
+          - Obtain TLS certificates
+          - Create systemd services for kumod and kumo-tsa-daemon
+          - Start services

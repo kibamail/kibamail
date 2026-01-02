@@ -1,49 +1,5 @@
 import * as z from "zod/v4";
-
-/**
- * Validate fields against SurveyJS schema
- *
- * Note: The SurveyJS schema uses non-standard JSON Schema types (e.g., "numeric" instead of "number")
- * which are not compatible with standard JSON Schema validators like Ajv.
- *
- * For now, we validate that fields is a valid object. The actual SurveyJS validation
- * happens on the frontend when rendering the form.
- *
- * Future improvement: Create a custom validator or pre-process the SurveyJS schema
- * to convert non-standard types to JSON Schema compliant types.
- */
-export function validateFields(fields: unknown): {
-  valid: boolean;
-  errors?: Array<{ field: string; message: string }>;
-} {
-  // Basic validation: fields must be an object
-  if (typeof fields !== "object" || fields === null || Array.isArray(fields)) {
-    return {
-      valid: false,
-      errors: [
-        {
-          field: "fields",
-          message: "Fields must be a valid object",
-        },
-      ],
-    };
-  }
-
-  const fieldsObj = fields as Record<string, unknown>;
-  if ("pages" in fieldsObj && !Array.isArray(fieldsObj.pages)) {
-    return {
-      valid: false,
-      errors: [
-        {
-          field: "fields.pages",
-          message: "Pages must be an array",
-        },
-      ],
-    };
-  }
-
-  return { valid: true };
-}
+import { formBuilderSchema } from "@/lib/form-builder/schema";
 
 /**
  * Form type enum values
@@ -72,8 +28,8 @@ export const createFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional().default("SIGN_UP"),
   display: formDisplayEnum.optional().default("INLINE_EMBED"),
-  // Fields will be validated separately against SurveyJS schema
-  fields: z.any(),
+  // Fields validated against our form builder schema
+  fields: formBuilderSchema.optional(),
 });
 
 /**
@@ -94,7 +50,8 @@ export const updateFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional(),
   display: formDisplayEnum.optional(),
-  fields: z.any().optional(),
+  // Fields validated against our form builder schema
+  fields: formBuilderSchema.optional(),
   settings: z.any().optional(),
 });
 

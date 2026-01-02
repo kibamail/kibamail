@@ -113,3 +113,18 @@ sudo ufw delete allow 'Nginx HTTP'
 9. Access monitor at https://monitor.kibamail.com
 
 The certificate will automatically renew before expiration. Certbot runs twice daily via systemd timer and renews certificates that are within 30 days of expiration.
+
+```bash
+🟢 Your installation is complete!
+
+🟢 SigNoz is running on http://localhost:8080
+
+ℹ️  By default, retention period is set to 15 days for logs and traces, and 30 days for metrics.
+To change this, navigate to the General tab on the Settings page of SigNoz UI. For more details, refer to https://signoz.io/docs/userguide/retention-period
+
+ℹ️  To bring down SigNoz and clean volumes:
+
+cd docker
+sudo docker compose down -v
+
+```

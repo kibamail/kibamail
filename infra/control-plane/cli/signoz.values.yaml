@@ -1,12 +1,202 @@
+# SigNoz K8s-Infra Helm Values (Self-Hosted)
+# This file provides example values for manual helm installations.
+# The CLI installer uses these values programmatically.
+#
+# Usage:
+#   helm install kibamail-k8s-infra signoz/k8s-infra \
+#     -n signoz-infra --create-namespace \
+#     -f signoz.values.yaml
+
+# Global configuration
 global:
-  deploymentEnvironment: "<staging|production>"
+  clusterName: "kibamail-production"  # Change to your cluster name
+  deploymentEnvironment: "production"  # staging, production, etc.
+  cloud: "other"
 
-clusterName: "<kibamail-local|kibamail-staging|kibamail-production>"
-otelCollectorEndpoint: "ingest.signoz.kibamail.com"
+# Cluster identification (also set via global)
+clusterName: "kibamail-production"
+
+# OTLP endpoint - self-hosted SigNoz backend
+# Use HTTPS port 443 with OTLP/HTTP protocol
+otelCollectorEndpoint: "https://ingest.monitor.kibamail.com:443"
 otelInsecure: false
+insecureSkipVerify: false
 
-signozApiKey: "<replace-me>"
-
+# Presets configuration
 presets:
+  # Disable gRPC exporter - we use HTTP instead
+  otlpExporter:
+    enabled: false
+
+  # Enable HTTP exporter to send data to backend
+  otlphttpExporter:
+    enabled: true
+
+  # Disable debug logging exporter
+  loggingExporter:
+    enabled: false
+
+  # Log collection from pods
+  logsCollection:
+    enabled: true
+    startAt: end
+    includeFilePath: true
+    blacklist:
+      enabled: true
+      signozLogs: true
+      namespaces:
+        - kube-system
+      pods: []
+      containers: []
+
+  # Host metrics (CPU, memory, disk, network)
+  hostMetrics:
+    enabled: true
+    collectionInterval: 30s
+
+  # Kubelet metrics (pod/container resource usage)
+  kubeletMetrics:
+    enabled: true
+    collectionInterval: 30s
+    authType: serviceAccount
+    insecureSkipVerify: true
+    metrics:
+      k8s.pod.cpu_limit_utilization:
+        enabled: true
+      k8s.pod.cpu_request_utilization:
+        enabled: true
+      k8s.pod.memory_limit_utilization:
+        enabled: true
+      k8s.pod.memory_request_utilization:
+        enabled: true
+      k8s.pod.uptime:
+        enabled: true
+      k8s.node.uptime:
+        enabled: true
+      container.uptime:
+        enabled: true
+
+  # Kubernetes attributes processor
+  kubernetesAttributes:
+    enabled: true
+    passthrough: false
+
+  # Cluster metrics (node conditions, allocatable resources)
+  clusterMetrics:
+    enabled: true
+    collectionInterval: 30s
+    nodeConditionsToReport:
+      - Ready
+      - MemoryPressure
+      - DiskPressure
+      - PIDPressure
+      - NetworkUnavailable
+    allocatableTypesToReport:
+      - cpu
+      - memory
+
+  # Kubernetes events collection
+  k8sEvents:
+    enabled: true
+    authType: serviceAccount
+    namespaces: []  # Empty = all namespaces
+
+  # Resource detection
+  resourceDetection:
+    enabled: true
+    timeout: 2s
+    override: false
+
+  # Prometheus scraping from pod annotations and custom scrape configs
   prometheus:
     enabled: true
+    annotationsPrefix: signoz.io
+    scrapeInterval: 30s
+    # Custom scrape configs for CloudNativePG monitoring
+    scrapeConfigs:
+      # Scrape CloudNativePG PostgreSQL instances (port 9187)
+      - job_name: cloudnativepg
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cnpg-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+            action: keep
+            regex: ".+"
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: "9187"
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_cluster]
+            target_label: cnpg_cluster
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_instanceRole]
+            target_label: role
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_instanceName]
+            target_label: instance_name
+      # Scrape CloudNativePG operator (port 8080)
+      - job_name: cloudnativepg-operator
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cnpg-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+            action: keep
+            regex: cloudnative-pg
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: "8080"
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+      # Scrape PgBouncer poolers (port 9127)
+      - job_name: cloudnativepg-pooler
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cnpg-system
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_poolerName]
+            action: keep
+            regex: ".+"
+          - source_labels: [__meta_kubernetes_pod_container_port_number]
+            action: keep
+            regex: "9127"
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_label_cnpg_io_poolerName]
+            target_label: pooler_name
+
+# OtelAgent (DaemonSet) - runs on every node
+otelAgent:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  tolerations:
+    - operator: Exists
+
+# OtelDeployment (Deployment) - cluster-wide collector
+otelDeployment:
+  enabled: true
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

@@ -41,6 +41,12 @@ export {
   type FieldSize,
   type FieldAppearance,
 
+  // Contact property mapping
+  STANDARD_CONTACT_PROPERTIES,
+  contactPropertyMappingSchema,
+  type StandardContactProperty,
+  type ContactPropertyMapping,
+
   // Form field
   formFieldSchema,
   type FormField,
@@ -66,6 +72,8 @@ export {
   formSuccessRedirectSchema,
   formSuccessActionSchema,
   type FormSuccessAction,
+  doubleOptInSchema,
+  type DoubleOptIn,
   formSettingsSchema,
   type FormSettings,
 
@@ -109,6 +117,7 @@ export {
   DEFAULT_FIELD_APPEARANCE,
   DEFAULT_SUBMIT_BUTTON,
   DEFAULT_SUCCESS_ACTION,
+  DEFAULT_DOUBLE_OPT_IN,
   DEFAULT_FORM_SETTINGS,
   DEFAULT_FORM_STYLING,
   DEFAULT_CONDITIONAL_LOGIC,
@@ -129,7 +138,7 @@ export interface FieldDefinition {
   label: string;
   icon: string;
   description: string;
-  category: "input" | "selection" | "advanced";
+  category: "input" | "selection" | "advanced" | "presentation";
 }
 
 export const FIELD_DEFINITIONS: FieldDefinition[] = [
@@ -271,10 +280,20 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
     description: "Hidden form field",
     category: "advanced",
   },
+
+  // Presentation fields (non-input)
+  {
+    type: "content",
+    label: "Content Block",
+    icon: "FileText",
+    description: "Rich text content with images",
+    category: "presentation",
+  },
 ];
 
 export const FIELD_CATEGORIES = {
   input: { label: "Input Fields", icon: "Type" },
   selection: { label: "Selection Fields", icon: "List" },
   advanced: { label: "Advanced Fields", icon: "Puzzle" },
+  presentation: { label: "Presentation", icon: "LayoutList" },
 } as const;

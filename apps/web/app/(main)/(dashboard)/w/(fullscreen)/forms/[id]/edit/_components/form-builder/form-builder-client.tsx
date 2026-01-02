@@ -57,7 +57,7 @@ function FormBuilderContent({ formId }: { formId: string }) {
     mutationFn: async () => {
       return internalApi.forms().update(formId, {
         name: formName,
-        fields: schema as unknown as Record<string, unknown>,
+        fields: schema,
       });
     },
     onSuccess: () => {
@@ -185,7 +185,7 @@ function FormBuilderContent({ formId }: { formId: string }) {
             activeTab === "preview" ? "visible" : "invisible pointer-events-none"
           }`}
         >
-          <FormLivePreview />
+          <FormLivePreview isActive={activeTab === "preview"} />
         </div>
 
         {/* Analytics tab */}

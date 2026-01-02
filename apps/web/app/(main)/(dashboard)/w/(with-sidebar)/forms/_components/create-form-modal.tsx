@@ -11,6 +11,7 @@ import { useToast } from "@kibamail/owly/toast";
 import { useMutation } from "@/hooks/use-mutation";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
+import { SelectTemplateModal } from "./select-template-modal";
 
 interface FormData {
   name: string;
@@ -19,6 +20,11 @@ interface FormData {
 
 interface CreateFormModalProps extends ToggleState {}
 
+interface CreatedForm {
+  id: string;
+  type: "SIGN_UP" | "SURVEY";
+}
+
 export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
   const router = useRouter();
   const { success: toast } = useToast();
@@ -26,6 +32,8 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
   const [selectedType, setSelectedType] = useState<"SIGN_UP" | "SURVEY">(
     "SIGN_UP"
   );
+  const [createdForm, setCreatedForm] = useState<CreatedForm | null>(null);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
 
   const {
     register,
@@ -43,6 +51,8 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
     if (open) {
       reset({ name: "", type: "SIGN_UP" });
       setSelectedType("SIGN_UP");
+      setCreatedForm(null);
+      setShowTemplateModal(false);
     }
   }, [open, reset]);
 
@@ -52,14 +62,13 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
         name: data.name,
         type: data.type,
         display: "INLINE_EMBED",
-        fields: { pages: [] },
       });
     },
     onSuccess(data) {
       toast("Form created successfully");
-      onClose();
-      router.push(`/w/forms/${data.id}/edit`);
-      router.refresh();
+      setCreatedForm({ id: data.id, type: selectedType });
+      onOpenChange?.(false);
+      setShowTemplateModal(true);
     },
   });
 
@@ -68,11 +77,21 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
     onOpenChange?.(false);
   }
 
+  function handleTemplateModalClose(open: boolean) {
+    setShowTemplateModal(open);
+    if (!open && createdForm) {
+      // If modal is closed without selecting, redirect to edit page
+      router.push(`/w/forms/${createdForm.id}/edit`);
+      router.refresh();
+    }
+  }
+
   function onSubmit(data: FormData) {
     mutation.mutate({ ...data, type: selectedType });
   }
 
   return (
+    <>
     <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -134,5 +153,15 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
         </form>
       </Dialog.Content>
     </Dialog.Root>
+
+    {createdForm && (
+      <SelectTemplateModal
+        open={showTemplateModal}
+        onOpenChange={handleTemplateModalClose}
+        formId={createdForm.id}
+        formType={createdForm.type}
+      />
+    )}
+    </>
   );
 }

@@ -7,7 +7,8 @@ resources:
   - postgres-secrets.yaml
   - backup-secrets.yaml
   - objectstore.yaml
+  - cnpg-custom-monitoring.yaml
   - cluster.yaml
   - pooler.yaml
-  # - podmonitor.yaml  # Requires Prometheus Operator
+  # - podmonitor.yaml  # Not needed - using SigNoz k8s-infra Prometheus scraping
   - scheduled-backup.yaml
