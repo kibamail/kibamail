@@ -1,4 +1,4 @@
-name: Marketing CI/CD
+name: marketing ci/cd
 
 on:
   push:
@@ -12,7 +12,7 @@ env:
 
 jobs:
   build:
-    name: Build Image
+    name: build image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -21,7 +21,7 @@ jobs:
       image-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
@@ -35,7 +35,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -44,7 +44,7 @@ jobs:
             type=sha,prefix=
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push
+      - name: build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -60,7 +60,7 @@ jobs:
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   deploy-staging:
-    name: Deploy to Staging
+    name: deploy to staging
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -72,7 +72,7 @@ jobs:
         with:
           version: "v1.31.0"
 
-      - name: Configure kubeconfig
+      - name: configure kubeconfig
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > ~/.kube/config
@@ -84,7 +84,7 @@ jobs:
             -n kibamail-marketing \
             marketing=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-tag }}
 
-      - name: Wait for rollout
+      - name: wait for rollout
         run: |
           kubectl rollout status deployment/kibamail-marketing \
             -n kibamail-marketing \

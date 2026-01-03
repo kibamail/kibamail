@@ -6,7 +6,7 @@ import {
   type UseMutationResult,
   useMutation as useReactQueryMutation,
 } from "@tanstack/react-query";
-import type { FieldValues, UseFormSetError } from "react-hook-form";
+import type { FieldValues, Path, UseFormSetError } from "react-hook-form";
 import { ZodError } from "zod";
 
 /**
@@ -85,7 +85,7 @@ export function useMutation<
     onError(error, ...rest) {
       if (error instanceof ZodError && formSetError) {
         error.issues.forEach((issue) => {
-          const path = issue.path.join(".");
+          const path = issue.path.join(".") as Path<TFieldValues>;
           formSetError(path, {
             type: "manual",
             message: issue.message,
