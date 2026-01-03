@@ -42,8 +42,7 @@ RUN cd apps/web && DATABASE_URL="postgresql://build:build@localhost:5432/build" 
 # Build tracking-utils
 RUN pnpm --filter @repo/tracking-utils build
 
-# Bundle event-ingestor with esbuild
-# Externalize prisma (native bindings), nats, and opentelemetry auto-instrumentations (dynamic requires)
+# Bundle event-ingestor with esbuild - only externalize prisma (native bindings) and nats
 RUN cd apps/web && ./node_modules/.bin/esbuild jobs/event-ingestor.ts \
     --bundle \
     --platform=node \
@@ -51,10 +50,7 @@ RUN cd apps/web && ./node_modules/.bin/esbuild jobs/event-ingestor.ts \
     --outfile=dist/event-ingestor.js \
     --external:@prisma/client \
     --external:prisma \
-    --external:nats \
-    --external:@opentelemetry/auto-instrumentations-node \
-    --external:@opentelemetry/instrumentation-* \
-    --external:@opentelemetry/sdk-node
+    --external:nats
 
 # Prepare prisma for runtime - copy actual files (not symlinks)
 RUN mkdir -p /app/runtime_modules/@prisma && \
@@ -74,23 +70,6 @@ RUN for dep in nkeys nuid; do \
             if [ -d "$depdir/node_modules/@nats-io/$dep" ]; then \
                 cp -rL "$depdir/node_modules/@nats-io/$dep" /app/runtime_modules/@nats-io/; \
             fi; \
-        fi; \
-    done
-
-# Prepare OpenTelemetry packages for runtime (from pnpm store)
-RUN mkdir -p /app/runtime_modules/@opentelemetry && \
-    for pkg in /app/node_modules/.pnpm/@opentelemetry+*/node_modules/@opentelemetry/*; do \
-        if [ -d "$pkg" ]; then \
-            pkgname=$(basename "$pkg"); \
-            cp -rL "$pkg" /app/runtime_modules/@opentelemetry/"$pkgname"; \
-        fi; \
-    done
-
-# Copy OpenTelemetry dependencies (shimmer, require-in-the-middle, import-in-the-middle)
-RUN for dep in shimmer require-in-the-middle import-in-the-middle; do \
-        depdir=$(find /app/node_modules/.pnpm -maxdepth 1 -type d -name "${dep}@*" | head -1); \
-        if [ -n "$depdir" ] && [ -d "$depdir/node_modules/$dep" ]; then \
-            cp -rL "$depdir/node_modules/$dep" /app/runtime_modules/; \
         fi; \
     done
 
