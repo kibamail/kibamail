@@ -18,31 +18,6 @@ jobs:
     name: Test
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:18-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 15432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7.4-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,14 +36,17 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Create test databases
-        env:
-          PGPASSWORD: postgres
+      - name: Generate NATS TLS certificates
+        working-directory: apps/web
         run: |
-          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE kibamail_test;"
-          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE logto;"
-          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE USER outpost WITH PASSWORD 'outpost';"
-          psql -h localhost -p 15432 -U postgres -d postgres -c "CREATE DATABASE outpost OWNER outpost;"
+          chmod +x docker/nats/generate-certs.sh
+          docker/nats/generate-certs.sh
+
+      - name: Start services with Docker Compose
+        working-directory: apps/web
+        run: |
+          docker compose -f docker-compose.ci.yml up --wait
+          docker wait ci-nats-init
 
       - name: Build shared packages
         run: |
@@ -88,45 +66,11 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
         run: pnpm exec prisma migrate deploy
 
-      - name: Generate NATS TLS certificates
+      - name: Prepare NATS TLS CA certificate
+        id: nats-ca
         working-directory: apps/web
         run: |
-          chmod +x docker/nats/generate-certs.sh
-          docker/nats/generate-certs.sh
-
-      - name: Start NATS server
-        working-directory: apps/web
-        run: |
-          docker run -d --name nats-test \
-            -p 4222:4222 \
-            -p 8222:8222 \
-            -v ${{ github.workspace }}/apps/web/docker/nats/nats-server.conf:/etc/nats/nats-server.conf:ro \
-            -v ${{ github.workspace }}/apps/web/docker/nats/certs:/etc/nats/certs:ro \
-            nats:2.10-alpine \
-            -c /etc/nats/nats-server.conf
-
-          # Wait for NATS to be healthy
-          for i in {1..30}; do
-            if curl -s http://localhost:8222/healthz > /dev/null 2>&1; then
-              echo "NATS is ready"
-              break
-            fi
-            echo "Waiting for NATS... ($i/30)"
-            sleep 1
-          done
-
-      - name: Initialize NATS JetStream streams
-        working-directory: apps/web
-        run: |
-          docker run --rm --network host \
-            -v ${{ github.workspace }}/apps/web/docker/nats/init-streams.sh:/init-streams.sh:ro \
-            -v ${{ github.workspace }}/apps/web/docker/nats/certs:/etc/nats/certs:ro \
-            -e NATS_URL="tls://localhost:4222" \
-            -e NATS_USER="admin" \
-            -e NATS_PASSWORD="admin_dev_password" \
-            -e NATS_CA="/etc/nats/certs/ca.pem" \
-            natsio/nats-box:0.14.3 \
-            /bin/sh /init-streams.sh
+          echo "NATS_TLS_CA=$(cat docker/nats/certs/ca.pem | base64 -w 0)" >> $GITHUB_OUTPUT
 
       - name: Run tests
         working-directory: apps/web
@@ -165,10 +109,8 @@ jobs:
           NATS_URL: tls://localhost:4222
           NATS_USER: control_plane
           NATS_PASSWORD: control_plane_dev_password
-        run: |
-          # Export the CA certificate as base64 for the tests
-          export NATS_TLS_CA=$(cat docker/nats/certs/ca.pem | base64 -w 0)
-          pnpm test
+          NATS_TLS_CA: ${{ steps.nats-ca.outputs.NATS_TLS_CA }}
+        run: pnpm test
 
   build-runner:
     name: Build Production Image
