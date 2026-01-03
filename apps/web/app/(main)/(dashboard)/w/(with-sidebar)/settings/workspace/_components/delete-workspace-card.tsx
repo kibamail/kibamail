@@ -10,10 +10,9 @@ interface DeleteWorkspaceCardProps {
 export function DeleteWorkspaceCard({
   workspaceName,
 }: DeleteWorkspaceCardProps) {
-  const onDeleteWorkspace = () => {
-    // TODO: Implement delete workspace functionality
+  function onDeleteWorkspace() {
     console.log("Delete workspace");
-  };
+  }
 
   return (
     <SettingsCard.Root>

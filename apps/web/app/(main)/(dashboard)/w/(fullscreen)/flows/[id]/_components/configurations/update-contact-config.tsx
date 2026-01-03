@@ -113,8 +113,8 @@ export function UpdateContactConfig() {
           <TextField.Root
             type="number"
             value={currentFieldValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onValueChange(e.target.value)
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              onValueChange(event.target.value)
             }
           >
             <TextField.Label>Value</TextField.Label>
@@ -126,8 +126,8 @@ export function UpdateContactConfig() {
           <TextField.Root
             type="text"
             value={currentFieldValue}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onValueChange(e.target.value)
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+              onValueChange(event.target.value)
             }
           >
             <TextField.Label>Value</TextField.Label>

@@ -30,6 +30,8 @@ type Config struct {
 	NKeyFile      string
 	TLSEnabled    bool
 	TLSCACert     string
+	TLSCert       string // Client certificate for mTLS
+	TLSKey        string // Client key for mTLS
 	MaxReconnects int
 	ReconnectWait time.Duration
 }
@@ -141,7 +143,7 @@ func (c *Client) Close() error {
 	return nil
 }
 
-// createTLSConfig creates TLS configuration for NATS
+// createTLSConfig creates TLS configuration for NATS with mTLS support
 func createTLSConfig(cfg Config) (*tls.Config, error) {
 	tlsConfig := &tls.Config{
 		MinVersion: tls.VersionTLS12,
@@ -160,6 +162,15 @@ func createTLSConfig(cfg Config) (*tls.Config, error) {
 		}
 
 		tlsConfig.RootCAs = caCertPool
+	}
+
+	// Load client certificate for mTLS
+	if cfg.TLSCert != "" && cfg.TLSKey != "" {
+		clientCert, err := tls.LoadX509KeyPair(cfg.TLSCert, cfg.TLSKey)
+		if err != nil {
+			return nil, kiberrors.Wrap(err, "failed to load client certificate")
+		}
+		tlsConfig.Certificates = []tls.Certificate{clientCert}
 	}
 
 	return tlsConfig, nil

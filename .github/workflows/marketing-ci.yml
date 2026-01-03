@@ -4,18 +4,8 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "apps/marketing/**"
-      - "packages/owly/**"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/marketing-ci.yml"
   pull_request:
-    paths:
-      - "apps/marketing/**"
-      - "packages/owly/**"
-      - "pnpm-lock.yaml"
-      - ".github/workflows/marketing-ci.yml"
-
+    branches: [main]
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/kibamail-marketing

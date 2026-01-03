@@ -1,4 +1,4 @@
-import { EmptyPage } from "../../_components/empty-page";
+import { EmptyPage } from "@/app/(docs)/docs/_components/empty-page";
 
 export default function PaginationPage() {
   return (

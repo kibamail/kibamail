@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { useMutation } from "@/hooks/use-mutation";
 import { internalApi } from "@/lib/api/client";
-import { Image } from "@/lib/components/image";
 import { useOrganization } from "@/lib/contexts/user-context";
 
 export function WorkspaceProfileCard() {
@@ -40,11 +39,7 @@ export function WorkspaceProfileCard() {
     },
     onSuccess() {
       toast.success("Workspace updated successfully.");
-
-      // Clear pending changes
       setPendingLogoUrl(null);
-
-      // Refresh to update session
       router.refresh();
     },
   });
@@ -59,9 +54,7 @@ export function WorkspaceProfileCard() {
   const hasChanges =
     pendingLogoUrl !== null || workspaceName !== organization.name;
 
-  const handleFileChange = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  async function onFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -89,12 +82,10 @@ export function WorkspaceProfileCard() {
     setIsUploading(true);
 
     try {
-      // Upload to S3 only, don't update Logto yet
       const result = await internalApi
         .workspaces()
         .updateLogo(workspaceId, file);
 
-      // Store the pending logo URL
       setPendingLogoUrl(result.logoUrl);
     } catch (error) {
       console.error("Failed to upload logo:", error);
@@ -105,12 +96,11 @@ export function WorkspaceProfileCard() {
       );
     } finally {
       setIsUploading(false);
-      // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     }
-  };
+  }
 
   return (
     <SettingsCard.Root>
@@ -127,7 +117,6 @@ export function WorkspaceProfileCard() {
 
       <SettingsCard.Content>
         <div className="space-y-6">
-          {/* Workspace Avatar */}
           <div className="space-y-2">
             <label
               htmlFor="workspace-avatar"
@@ -151,7 +140,7 @@ export function WorkspaceProfileCard() {
                 ref={fileInputRef}
                 type="file"
                 accept="image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml"
-                onChange={handleFileChange}
+                onChange={onFileChange}
                 className="hidden"
               />
               <Button
@@ -166,14 +155,13 @@ export function WorkspaceProfileCard() {
             </div>
           </div>
 
-          {/* Workspace Name */}
           <div className="max-w-md">
             <TextField.Root
               id="workspace-name"
               name="workspace-name"
               type="text"
               value={workspaceName}
-              onChange={(e) => setWorkspaceName(e.target.value)}
+              onChange={(event) => setWorkspaceName(event.target.value)}
               placeholder="Enter workspace name"
             >
               <TextField.Label>Workspace name</TextField.Label>

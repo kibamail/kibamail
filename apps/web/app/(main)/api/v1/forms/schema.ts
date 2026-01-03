@@ -28,13 +28,9 @@ export const createFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional().default("SIGN_UP"),
   display: formDisplayEnum.optional().default("INLINE_EMBED"),
-  // Fields validated against our form builder schema
   fields: formBuilderSchema.optional(),
 });
 
-/**
- * Update Form Request Schema
- */
 export const updateFormSchema = z.object({
   name: z
     .string()
@@ -50,9 +46,9 @@ export const updateFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional(),
   display: formDisplayEnum.optional(),
-  // Fields validated against our form builder schema
   fields: formBuilderSchema.optional(),
   settings: z.any().optional(),
+  doubleOptInEmailId: z.string().optional().nullable(),
 });
 
 /**

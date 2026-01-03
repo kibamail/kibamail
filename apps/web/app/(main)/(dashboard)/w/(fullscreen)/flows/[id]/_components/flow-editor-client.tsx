@@ -5,13 +5,13 @@ import type { Edge, Node } from "@xyflow/react";
 import { Badge, Button, Heading } from "@kibamail/owly";
 import * as SelectField from "@kibamail/owly/select-field";
 import { Check, EditPencil, Xmark, SendDiagonal, Undo } from "iconoir-react";
-import { FlowCanvas } from "./canvas/flow";
-import { FlowComposerSidebar } from "./flow-composer-sidebar";
-import { FlowEditorProvider, useFlowEditor } from "./flow-editor-context";
-import { useFlowStore } from "../state/flow-store";
-import { useFlowAutoSave } from "../_hooks/use-flow-auto-save";
-import { PublishAutomationModal } from "./publish-automation-modal";
-import { RenameAutomationModal } from "./rename-automation-modal";
+import { FlowCanvas } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/canvas/flow";
+import { FlowComposerSidebar } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-composer-sidebar";
+import { FlowEditorProvider, useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import { useFlowAutoSave } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_hooks/use-flow-auto-save";
+import { PublishAutomationModal } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/publish-automation-modal";
+import { RenameAutomationModal } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/rename-automation-modal";
 import type { AutomationResponse } from "@/app/(main)/api/v1/automations/schema";
 import { internalApi } from "@/lib/api/client";
 import { useRouter } from "next/navigation";
@@ -54,20 +54,19 @@ function FlowEditorContent({
 
   useFlowAutoSave();
 
-  const handleVersionChange = (versionNumber: string) => {
+  function onVersionChange(versionNumber: string) {
     const version = parseInt(versionNumber, 10);
     const selectedVersion = allVersions.find((v) => v.version === version);
 
     if (!selectedVersion) return;
 
-    // If selecting the draft (no version param needed) or another version
     const isDraft = selectedVersion.status === "DRAFT";
     const url = isDraft
       ? `/w/flows/${rootId}`
       : `/w/flows/${rootId}?version=${version}`;
 
     router.push(url);
-  };
+  }
 
   const getStatusBadge = () => {
     if (saveStatus === "saving") {
@@ -148,7 +147,7 @@ function FlowEditorContent({
           {allVersions.length > 1 && (
             <SelectField.Root
               value={automation.version.toString()}
-              onValueChange={handleVersionChange}
+              onValueChange={onVersionChange}
               size="sm"
             >
               <SelectField.Trigger

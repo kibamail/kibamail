@@ -1,6 +1,6 @@
 # Remove AI code slop
 
-Check the changed uncommitted files in this repository, and all the files in the last 5 commits and remove all AI generated slop introduced in this branch.
+Make a detailed list of all files in the repository, and check them one after the other, and remove all AI generated slop introduced in this repository. Start with the most recently changed files and work downwards from there.
 
 This includes:
 

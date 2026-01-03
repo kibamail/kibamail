@@ -12,7 +12,6 @@ import { useToast } from "@kibamail/owly/toast";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@/hooks/use-mutation";
 import { internalApi } from "@/lib/api/client";
-import { formatDistanceToNow } from "date-fns";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import type { Topic } from "@prisma/client";
 import { CreateTopicModal } from "./create-topic-modal";
@@ -46,14 +45,14 @@ function DefaultOptInSwitch({
     },
   });
 
-  function handleChange(checked: boolean) {
+  function onChange(checked: boolean) {
     updateMutation.mutate(checked);
   }
 
   return (
     <Switch.Root
       checked={topic.defaultOptIn}
-      onCheckedChange={handleChange}
+      onCheckedChange={onChange}
       disabled={updateMutation.isPending}
       size="sm"
     />

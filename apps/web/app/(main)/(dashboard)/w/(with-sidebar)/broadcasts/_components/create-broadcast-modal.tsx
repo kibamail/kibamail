@@ -48,10 +48,10 @@ export function CreateBroadcastModal({
   const hasSenderIdentities = senderIdentities.length > 0;
   const hasDomains = allDomains.length > 0;
 
-  const onDomainCreated = (domain: CreatedDomain) => {
+  function onDomainCreated(domain: CreatedDomain) {
     setAddedDomains((prev) => [...prev, domain]);
     setDomainId(domain.id);
-  };
+  }
 
   const {
     register,

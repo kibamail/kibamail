@@ -24,7 +24,7 @@ export function ContactStatusFilter() {
   const currentStatus =
     (searchParams.get("status") as StatusFilterValue) || "all";
 
-  function handleStatusChange(status: StatusFilterValue) {
+  function onStatusChange(status: StatusFilterValue) {
     const params = new URLSearchParams(searchParams.toString());
 
     if (status === "all") {
@@ -33,7 +33,6 @@ export function ContactStatusFilter() {
       params.set("status", status);
     }
 
-    // Reset pagination when filtering
     params.delete("after");
     params.delete("before");
 
@@ -50,23 +49,23 @@ export function ContactStatusFilter() {
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="start" className="w-48">
-        <DropdownMenu.Item onClick={() => handleStatusChange("all")}>
+        <DropdownMenu.Item onClick={() => onStatusChange("all")}>
           {statusLabels.all}
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
-        <DropdownMenu.Item onClick={() => handleStatusChange("SUBSCRIBED")}>
+        <DropdownMenu.Item onClick={() => onStatusChange("SUBSCRIBED")}>
           {statusLabels.SUBSCRIBED}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={() => handleStatusChange("UNSUBSCRIBED")}>
+        <DropdownMenu.Item onClick={() => onStatusChange("UNSUBSCRIBED")}>
           {statusLabels.UNSUBSCRIBED}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={() => handleStatusChange("BOUNCED")}>
+        <DropdownMenu.Item onClick={() => onStatusChange("BOUNCED")}>
           {statusLabels.BOUNCED}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={() => handleStatusChange("COMPLAINED")}>
+        <DropdownMenu.Item onClick={() => onStatusChange("COMPLAINED")}>
           {statusLabels.COMPLAINED}
         </DropdownMenu.Item>
-        <DropdownMenu.Item onClick={() => handleStatusChange("ARCHIVED")}>
+        <DropdownMenu.Item onClick={() => onStatusChange("ARCHIVED")}>
           {statusLabels.ARCHIVED}
         </DropdownMenu.Item>
       </DropdownMenu.Content>

@@ -1,0 +1,126 @@
+# ============================================
+# Event Ingestor Dockerfile - Production Build
+# Bundles event-ingestor.ts with esbuild and runs with node
+# ============================================
+FROM node:22-alpine AS base
+
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# ============================================
+# Install dependencies
+# ============================================
+FROM base AS deps
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/broadcast-editor/package.json ./apps/broadcast-editor/
+COPY packages/owly/package.json ./packages/owly/
+COPY packages/tracking-utils/package.json ./packages/tracking-utils/
+
+RUN pnpm install --frozen-lockfile
+
+# ============================================
+# Build event-ingestor bundle
+# ============================================
+FROM base AS builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/tracking-utils/node_modules ./packages/tracking-utils/node_modules
+
+COPY apps/web ./apps/web
+COPY packages/tracking-utils ./packages/tracking-utils
+
+# Generate Prisma client
+RUN cd apps/web && DATABASE_URL="postgresql://build:build@localhost:5432/build" pnpm exec prisma generate
+
+# Build tracking-utils
+RUN pnpm --filter @repo/tracking-utils build
+
+# Bundle event-ingestor with esbuild
+# Externalize prisma (native bindings), nats, and opentelemetry auto-instrumentations (dynamic requires)
+RUN cd apps/web && ./node_modules/.bin/esbuild jobs/event-ingestor.ts \
+    --bundle \
+    --platform=node \
+    --target=node22 \
+    --outfile=dist/event-ingestor.js \
+    --external:@prisma/client \
+    --external:prisma \
+    --external:nats \
+    --external:@opentelemetry/auto-instrumentations-node \
+    --external:@opentelemetry/instrumentation-* \
+    --external:@opentelemetry/sdk-node
+
+# Prepare prisma for runtime - copy actual files (not symlinks)
+RUN mkdir -p /app/runtime_modules/@prisma && \
+    mkdir -p /app/runtime_modules/.prisma && \
+    cp -rL /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client /app/runtime_modules/@prisma/ && \
+    cp -rL /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client /app/runtime_modules/.prisma/
+
+# Prepare NATS package for runtime
+RUN mkdir -p /app/runtime_modules && \
+    cp -rL /app/node_modules/.pnpm/nats@*/node_modules/nats /app/runtime_modules/
+
+# Copy NATS dependencies (nkeys, nuid)
+RUN for dep in nkeys nuid; do \
+        depdir=$(find /app/node_modules/.pnpm -maxdepth 1 -type d -name "nats-io+${dep}@*" -o -name "@nats-io+${dep}@*" | head -1); \
+        if [ -n "$depdir" ]; then \
+            mkdir -p /app/runtime_modules/@nats-io; \
+            if [ -d "$depdir/node_modules/@nats-io/$dep" ]; then \
+                cp -rL "$depdir/node_modules/@nats-io/$dep" /app/runtime_modules/@nats-io/; \
+            fi; \
+        fi; \
+    done
+
+# Prepare OpenTelemetry packages for runtime (from pnpm store)
+RUN mkdir -p /app/runtime_modules/@opentelemetry && \
+    for pkg in /app/node_modules/.pnpm/@opentelemetry+*/node_modules/@opentelemetry/*; do \
+        if [ -d "$pkg" ]; then \
+            pkgname=$(basename "$pkg"); \
+            cp -rL "$pkg" /app/runtime_modules/@opentelemetry/"$pkgname"; \
+        fi; \
+    done
+
+# Copy OpenTelemetry dependencies (shimmer, require-in-the-middle, import-in-the-middle)
+RUN for dep in shimmer require-in-the-middle import-in-the-middle; do \
+        depdir=$(find /app/node_modules/.pnpm -maxdepth 1 -type d -name "${dep}@*" | head -1); \
+        if [ -n "$depdir" ] && [ -d "$depdir/node_modules/$dep" ]; then \
+            cp -rL "$depdir/node_modules/$dep" /app/runtime_modules/; \
+        fi; \
+    done
+
+# ============================================
+# Production runner
+# ============================================
+FROM node:22-alpine AS runner
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 ingestor
+
+# Copy bundled event-ingestor
+COPY --from=builder --chown=ingestor:nodejs /app/apps/web/dist/event-ingestor.js ./event-ingestor.js
+
+# Copy runtime modules (actual files, not symlinks)
+COPY --from=builder --chown=ingestor:nodejs /app/runtime_modules ./node_modules
+
+# Copy Prisma schema
+COPY --from=builder --chown=ingestor:nodejs /app/apps/web/prisma ./prisma
+
+ENV NODE_ENV=production
+ENV METRICS_PORT=9091
+
+# Expose metrics port
+EXPOSE 9091
+
+USER ingestor
+
+CMD ["node", "event-ingestor.js"]

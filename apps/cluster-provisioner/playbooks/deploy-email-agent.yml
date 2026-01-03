@@ -1,0 +1,176 @@
+# Deploy Email Agent
+#
+# This playbook deploys the email-agent to MTA nodes:
+# - Copies the locally built binary
+# - Configures the agent with NATS credentials
+# - Starts the systemd service
+#
+# Prerequisites:
+# - MTA node must be provisioned with provision-mta.yml first
+# - NATS must be running (credentials in inventory/*/credentials/nats/)
+# - Email agent must be built: cd apps/email-agent && make build-linux
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-email-agent.yml -i inventory/helsinki/hosts.yml
+#
+# Required Variables:
+#   Secrets can be provided via:
+#   1. Environment variables (recommended for reruns):
+#      export EMAIL_AGENT_S3_ACCESS_KEY_ID=xxx
+#      export EMAIL_AGENT_S3_SECRET_ACCESS_KEY=xxx
+#      export EMAIL_AGENT_CONTROL_API_KEY=xxx
+#
+#   2. Command line:
+#      ansible-playbook playbooks/deploy-email-agent.yml -i inventory/helsinki/hosts.yml \
+#        -e "email_agent_s3_access_key_id=xxx" \
+#        -e "email_agent_s3_secret_access_key=xxx" \
+#        -e "email_agent_control_api_key=xxx"
+#
+#   3. Interactive prompts (if not set via env or -e)
+#
+#   Non-secrets (set in inventory group_vars/mta.yml):
+#   - email_agent_s3_endpoint: S3 endpoint URL
+#   - email_agent_s3_region: S3 region
+#   - email_agent_s3_bucket: S3 bucket name
+#   - email_agent_control_api_base_url: Control plane API URL
+#
+---
+- name: Deploy Email Agent
+  hosts: mta
+  become: yes
+
+  vars:
+    # Load secrets from environment variables if available
+    email_agent_s3_access_key_id: "{{ lookup('env', 'EMAIL_AGENT_S3_ACCESS_KEY_ID') | default(omit) }}"
+    email_agent_s3_secret_access_key: "{{ lookup('env', 'EMAIL_AGENT_S3_SECRET_ACCESS_KEY') | default(omit) }}"
+    email_agent_control_api_key: "{{ lookup('env', 'EMAIL_AGENT_CONTROL_API_KEY') | default(omit) }}"
+
+  pre_tasks:
+    - name: Prompt for S3 Access Key ID (if not in env)
+      ansible.builtin.pause:
+        prompt: "S3 Access Key ID"
+        echo: no
+      register: s3_access_key_prompt
+      when: email_agent_s3_access_key_id is not defined or email_agent_s3_access_key_id | length == 0
+      run_once: true
+      delegate_to: localhost
+
+    - name: Set S3 Access Key ID from prompt
+      ansible.builtin.set_fact:
+        email_agent_s3_access_key_id: "{{ s3_access_key_prompt.user_input }}"
+      when: s3_access_key_prompt.user_input is defined
+
+    - name: Prompt for S3 Secret Access Key (if not in env)
+      ansible.builtin.pause:
+        prompt: "S3 Secret Access Key"
+        echo: no
+      register: s3_secret_key_prompt
+      when: email_agent_s3_secret_access_key is not defined or email_agent_s3_secret_access_key | length == 0
+      run_once: true
+      delegate_to: localhost
+
+    - name: Set S3 Secret Access Key from prompt
+      ansible.builtin.set_fact:
+        email_agent_s3_secret_access_key: "{{ s3_secret_key_prompt.user_input }}"
+      when: s3_secret_key_prompt.user_input is defined
+
+    - name: Prompt for Control API Key (if not in env)
+      ansible.builtin.pause:
+        prompt: "Control API Key (must match control plane INTERNAL_SERVICE_KEY)"
+        echo: no
+      register: control_api_key_prompt
+      when: email_agent_control_api_key is not defined or email_agent_control_api_key | length == 0
+      run_once: true
+      delegate_to: localhost
+
+    - name: Set Control API Key from prompt
+      ansible.builtin.set_fact:
+        email_agent_control_api_key: "{{ control_api_key_prompt.user_input }}"
+      when: control_api_key_prompt.user_input is defined
+
+    - name: Validate secret variables
+      ansible.builtin.assert:
+        that:
+          - email_agent_s3_access_key_id is defined and email_agent_s3_access_key_id | length > 0
+          - email_agent_s3_secret_access_key is defined and email_agent_s3_secret_access_key | length > 0
+          - email_agent_control_api_key is defined and email_agent_control_api_key | length > 0
+        fail_msg: "All secret variables are required. Set via env vars or provide when prompted."
+        success_msg: "Secret variables provided"
+
+    - name: Validate non-secret variables (from inventory)
+      ansible.builtin.assert:
+        that:
+          - email_agent_s3_endpoint is defined and email_agent_s3_endpoint | length > 0
+          - email_agent_s3_region is defined and email_agent_s3_region | length > 0
+          - email_agent_s3_bucket is defined and email_agent_s3_bucket | length > 0
+          - email_agent_control_api_base_url is defined and email_agent_control_api_base_url | length > 0
+        fail_msg: |
+          Non-secret variables missing. Add to inventory group_vars/mta.yml:
+            email_agent_s3_endpoint: "https://..."
+            email_agent_s3_region: "eu-central-1"
+            email_agent_s3_bucket: "bucket-name"
+            email_agent_control_api_base_url: "https://api.kibamail.com"
+        success_msg: "Non-secret variables configured"
+
+    - name: Check NATS credentials exist
+      ansible.builtin.stat:
+        path: "{{ inventory_dir }}/credentials/nats/kibamail-agent.nkeys"
+      delegate_to: localhost
+      become: no
+      register: nats_creds
+
+    - name: Fail if NATS credentials missing
+      ansible.builtin.fail:
+        msg: |
+          NATS credentials not found at: {{ inventory_dir }}/credentials/nats/
+
+          Run provision-mta.yml first to generate NATS credentials:
+            ansible-playbook playbooks/provision-mta.yml -i inventory/helsinki/hosts.yml
+      when: not nats_creds.stat.exists
+
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg: |
+          Deploying email-agent to: {{ inventory_hostname }}
+          - NATS host: {{ nats_host }}:{{ nats_port }}
+          - Redis host: {{ redis_host }}:{{ redis_port }}
+          - Control API: {{ email_agent_control_api_base_url | default('NOT SET') }}
+
+  roles:
+    - role: email-agent
+      tags: [email-agent]
+
+  post_tasks:
+    - name: Wait for email-agent to start
+      ansible.builtin.wait_for:
+        port: "{{ email_agent_health_port }}"
+        host: "127.0.0.1"
+        delay: 2
+        timeout: 30
+      when: email_agent_start_service | default(true)
+
+    - name: Check email-agent health
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:{{ email_agent_health_port }}/live"
+        method: GET
+        status_code: 200
+      register: health_check
+      when: email_agent_start_service | default(true)
+      failed_when: false
+
+    - name: Display deployment status
+      ansible.builtin.debug:
+        msg: |
+          Email agent deployment complete!
+
+          Service status: {{ 'HEALTHY' if health_check.status | default(0) == 200 else 'CHECK MANUALLY' }}
+
+          Commands:
+            - Status: systemctl status email-agent
+            - Logs: journalctl -u email-agent -f
+            - Health: curl http://127.0.0.1:{{ email_agent_health_port }}/live
+
+          Endpoints:
+            - HTTP: http://127.0.0.1:{{ email_agent_http_port }}
+            - Health: http://127.0.0.1:{{ email_agent_health_port }}
+            - Metrics: http://127.0.0.1:{{ email_agent_metrics_port }}/metrics

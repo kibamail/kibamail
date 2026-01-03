@@ -31,10 +31,6 @@ import type { FormField as FormFieldType } from "./types";
 import { ContentFieldEditor } from "./content-field-editor";
 import { ContentBlockRenderer } from "@/lib/form-builder/components/content-block-renderer";
 
-// =============================================================================
-// FIELD DECORATOR - Wraps fields with drag/delete/copy actions
-// =============================================================================
-
 interface FieldDecoratorProps {
   field: FormFieldType;
   isSelected: boolean;
@@ -44,6 +40,7 @@ interface FieldDecoratorProps {
   dragHandleProps?: Record<string, unknown>;
   isOverlay?: boolean;
   allowInteraction?: boolean;
+  readOnly?: boolean;
   children: React.ReactNode;
 }
 
@@ -56,58 +53,64 @@ export function FieldDecorator({
   dragHandleProps,
   isOverlay,
   allowInteraction,
+  readOnly,
   children,
 }: FieldDecoratorProps) {
   return (
     <div
-      onClick={onClick}
+      onClick={readOnly ? undefined : onClick}
       className={cn(
-        "group relative cursor-pointer transition-all",
+        "group relative transition-all",
+        !readOnly && "cursor-pointer",
         isOverlay && "shadow-lg bg-white"
       )}
     >
       {/* Selection indicator - left bar */}
-      <div
-        className={cn(
-          "absolute -left-3 top-0 bottom-0 w-0.5 rounded-full transition-colors",
-          isSelected
-            ? "bg-kb-border-info"
-            : "bg-transparent group-hover:bg-kb-border-info"
-        )}
-      />
+      {!readOnly && (
+        <div
+          className={cn(
+            "absolute -left-3 top-0 bottom-0 w-0.5 rounded-full transition-colors",
+            isSelected
+              ? "bg-kb-border-info"
+              : "bg-transparent group-hover:bg-kb-border-info"
+          )}
+        />
+      )}
 
       {/* Action buttons - top right */}
-      <div className="absolute -top-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-kb-bg-primary">
-        <div className="flex items-center gap-0.5 bg-kb-surface-primary border border-kb-border-secondary rounded-md shadow-sm p-0.5">
-          {/* Drag handle */}
-          <div
-            {...dragHandleProps}
-            className="p-1 rounded hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors cursor-grab active:cursor-grabbing"
-          >
-            <Menu className="w-3.5 h-3.5" />
+      {!readOnly && (
+        <div className="absolute -top-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-kb-bg-primary">
+          <div className="flex items-center gap-0.5 bg-kb-surface-primary border border-kb-border-secondary rounded-md shadow-sm p-0.5">
+            {/* Drag handle */}
+            <div
+              {...dragHandleProps}
+              className="p-1 rounded hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors cursor-grab active:cursor-grabbing"
+            >
+              <Menu className="w-3.5 h-3.5" />
+            </div>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onDuplicate();
+              }}
+              className="p-1 rounded hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.stopPropagation();
+                onRemove();
+              }}
+              className="p-1 rounded hover:bg-red-50 text-kb-content-tertiary hover:text-red-500 transition-colors"
+            >
+              <Trash className="w-3.5 h-3.5" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onDuplicate();
-            }}
-            className="p-1 rounded hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors"
-          >
-            <Copy className="w-3.5 h-3.5" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onRemove();
-            }}
-            className="p-1 rounded hover:bg-red-50 text-kb-content-tertiary hover:text-red-500 transition-colors"
-          >
-            <Trash className="w-3.5 h-3.5" />
-          </button>
         </div>
-      </div>
+      )}
 
       {/* Field content - pointer-events-none prevents interaction with inputs */}
       <div className={allowInteraction ? undefined : "pointer-events-none"}>
@@ -116,10 +119,6 @@ export function FieldDecorator({
     </div>
   );
 }
-
-// =============================================================================
-// CANVAS FIELD RENDERER
-// =============================================================================
 
 interface CanvasFieldRendererProps {
   field: FormFieldType;
@@ -130,6 +129,7 @@ interface CanvasFieldRendererProps {
   onContentChange?: (content: JSONContent) => void;
   dragHandleProps?: Record<string, unknown>;
   isOverlay?: boolean;
+  readOnly?: boolean;
 }
 
 export function CanvasFieldRenderer({
@@ -141,10 +141,10 @@ export function CanvasFieldRenderer({
   onContentChange,
   dragHandleProps,
   isOverlay,
+  readOnly,
 }: CanvasFieldRendererProps) {
   const isRequired = field.validation?.required;
 
-  // Content field has special handling with inline editor
   if (field.type === "content") {
     return (
       <FieldDecorator
@@ -155,9 +155,10 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
-        allowInteraction
+        allowInteraction={!readOnly}
+        readOnly={readOnly}
       >
-        <div onClick={(e) => e.stopPropagation()}>
+        <div onClick={(event) => event.stopPropagation()}>
           {!isOverlay && onContentChange ? (
             <ContentFieldEditor
               content={field.richContent}
@@ -172,7 +173,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Hidden field
   if (field.type === "hidden") {
     return (
       <FieldDecorator
@@ -183,6 +183,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <div className="px-3 py-2 rounded-md border border-dashed border-muted-foreground/50 bg-muted/50 text-muted-foreground text-sm">
           Hidden field: {field.name}
@@ -191,7 +192,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Checkbox field (horizontal layout)
   if (field.type === "checkbox") {
     return (
       <FieldDecorator
@@ -202,6 +202,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <Field orientation="horizontal">
           <Checkbox id={field.id} />
@@ -216,7 +217,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Checkbox group
   if (field.type === "checkbox_group") {
     return (
       <FieldDecorator
@@ -227,6 +227,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <Field>
           <FieldLabel>
@@ -251,7 +252,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Radio field
   if (field.type === "radio") {
     return (
       <FieldDecorator
@@ -262,6 +262,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <Field>
           <FieldLabel>
@@ -289,7 +290,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Choice card field
   if (field.type === "choice_card") {
     return (
       <FieldDecorator
@@ -300,6 +300,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <Field>
           <FieldLabel>
@@ -332,7 +333,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Rating field
   if (field.type === "rating") {
     const maxRating = field.validation?.rating?.maxRating ?? 5;
     return (
@@ -344,6 +344,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <Field>
           <FieldLabel>
@@ -363,7 +364,6 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Slider field
   if (field.type === "slider") {
     const min = field.validation?.slider?.min ?? 0;
     const max = field.validation?.slider?.max ?? 100;
@@ -376,6 +376,7 @@ export function CanvasFieldRenderer({
         onDuplicate={onDuplicate}
         dragHandleProps={dragHandleProps}
         isOverlay={isOverlay}
+        readOnly={readOnly}
       >
         <Field>
           <FieldLabel>
@@ -397,8 +398,7 @@ export function CanvasFieldRenderer({
     );
   }
 
-  // Default input types (text, email, number, phone, url, textarea, select, date, time, datetime, file)
-  const renderInput = () => {
+  function renderInput() {
     switch (field.type) {
       case "text":
       case "email":
@@ -473,7 +473,7 @@ export function CanvasFieldRenderer({
       default:
         return null;
     }
-  };
+  }
 
   return (
     <FieldDecorator
@@ -484,6 +484,7 @@ export function CanvasFieldRenderer({
       onDuplicate={onDuplicate}
       dragHandleProps={dragHandleProps}
       isOverlay={isOverlay}
+      readOnly={readOnly}
     >
       <Field>
         <FieldLabel htmlFor={field.id}>

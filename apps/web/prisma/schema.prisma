@@ -100,11 +100,13 @@ model Contact {
   /// When the contact was subscribed
   subscribedAt     DateTime?
   /// When the contact was unsubscribed
-  unsubscribedAt   DateTime?
+  unsubscribedAt    DateTime?
+  /// Token for confirming email subscription (double opt-in)
+  confirmationToken String?
   /// When the contact was created
-  createdAt        DateTime          @default(now())
+  createdAt         DateTime          @default(now())
   /// When the contact was last updated
-  updatedAt        DateTime          @updatedAt
+  updatedAt                 DateTime          @updatedAt
   /// Custom property slots - Float (30 slots for dates and numbers)
   propertyFloat0   Float?
   propertyFloat1   Float?
@@ -226,6 +228,7 @@ model Contact {
   @@index([workspaceId, propertyString9])
   @@index([sourceType])
   @@index([sourceId])
+  @@index([confirmationToken])
   @@map("contacts")
 }
 
@@ -769,6 +772,8 @@ model Form {
   /// Populated at publish time. Slot assignments are permanent per root form for data integrity.
   /// @example {"email": {"slot": "fieldString0", "type": "string"}, "age": {"slot": "fieldNum0", "type": "number"}}
   fieldMapping       Json?
+  /// Double opt-in confirmation email ID
+  doubleOptInEmailId String?
 
   /// When this version was published (NULL if never published)
   publishedAt             DateTime?
@@ -786,6 +791,8 @@ model Form {
   publishedVersion        Form?            @relation("PublishedVersion", fields: [publishedVersionId], references: [id], onDelete: SetNull)
   /// Forms that reference this as published version
   referencedByAsPublished Form[]           @relation("PublishedVersion")
+  /// Double opt-in confirmation email
+  doubleOptInEmail        Email?           @relation("FormDoubleOptInEmail", fields: [doubleOptInEmailId], references: [id], onDelete: SetNull)
   /// Form submissions
   submissions             FormSubmission[]
   /// Page views for this form
@@ -1361,4 +1368,55 @@ enum EventType {
   Any // Any/unknown event
   Click // Link clicked
   Open // Email opened
+}
+
+/// *
+///  * Email Schema
+///  *
+///  * Reusable email templates for transactional and automated emails.
+///  * Used for: double opt-in confirmations, automation emails, notifications.
+///  * Decoupled from broadcasts to allow reuse across different contexts.
+model Email {
+  /// Unique identifier for the email
+  id                String    @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId       String
+  /// Internal name for identification
+  name              String
+  /// Email subject line
+  subject           String?
+  /// Preview text (shown in inbox preview)
+  previewText       String?
+  /// JSON content (TipTap editor state)
+  content           Json?
+  /// Editor styles configuration
+  styles            Json?
+  /// Sender identity ID
+  senderIdentityId  String?
+  /// Reply-to identity ID
+  replyToIdentityId String?
+  /// Whether to track clicks
+  trackClicks       Boolean   @default(true)
+  /// Whether to track opens
+  trackOpens        Boolean   @default(true)
+  /// Email type for categorization
+  type              EmailType @default(TRANSACTIONAL)
+  /// When the email was created
+  createdAt         DateTime  @default(now())
+  /// When the email was last updated
+  updatedAt         DateTime  @updatedAt
+
+  /// Forms using this as double opt-in email
+  formsAsDoubleOptIn Form[] @relation("FormDoubleOptInEmail")
+
+  @@index([workspaceId])
+  @@index([workspaceId, type])
+  @@map("emails")
+}
+
+/// Email type for categorization
+enum EmailType {
+  TRANSACTIONAL // Double opt-in, password reset, etc.
+  AUTOMATION // Emails in automation flows
+  NOTIFICATION // System notifications
 }

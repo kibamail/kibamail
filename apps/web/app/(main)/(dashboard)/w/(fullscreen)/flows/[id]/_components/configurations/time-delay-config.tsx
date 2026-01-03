@@ -25,11 +25,11 @@ export function TimeDelayConfig() {
   const currentDelayValue = nodeData?.delayValue ?? 1;
   const currentDelayUnit = nodeData?.delayUnit ?? "days";
 
-  const handleValueChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onValueChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!selectedNodeId) return;
 
-      const value = Math.max(1, parseInt(e.target.value, 10) || 1);
+      const value = Math.max(1, parseInt(event.target.value, 10) || 1);
 
       const updatedNodes = nodes.map((node) =>
         node.id === selectedNodeId
@@ -45,7 +45,7 @@ export function TimeDelayConfig() {
     [selectedNodeId, nodes, setNodes]
   );
 
-  const handleUnitChange = useCallback(
+  const onUnitChange = useCallback(
     (unit: string) => {
       if (!selectedNodeId) return;
 
@@ -79,14 +79,14 @@ export function TimeDelayConfig() {
               type="number"
               min="1"
               value={currentDelayValue.toString()}
-              onChange={handleValueChange}
+              onChange={onValueChange}
             ></TextField.Root>
           </div>
 
           <div className="flex-1">
             <Select.Root
               value={currentDelayUnit}
-              onValueChange={handleUnitChange}
+              onValueChange={onUnitChange}
             >
               <Select.Trigger placeholder="Select unit" />
               <Select.Content>

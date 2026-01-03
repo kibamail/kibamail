@@ -11,7 +11,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getForm, updateForm, deleteForm } from "../handler";
+import { getForm, updateForm, deleteForm } from "@/app/(main)/api/v1/forms/handler";
 
 /**
  * GET /api/v1/forms/[formId]

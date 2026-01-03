@@ -1,0 +1,36 @@
+# OpenTelemetry Collector Role Defaults
+---
+# Version and download
+otel_collector_version: "0.96.0"
+otel_collector_arch: "linux_amd64"
+otel_collector_download_url: "https://github.com/open-telemetry/opentelemetry-collector-releases/releases/download/v{{ otel_collector_version }}/otelcol-contrib_{{ otel_collector_version }}_{{ otel_collector_arch }}.tar.gz"
+
+# Installation paths
+otel_collector_bin_path: "/usr/local/bin/otelcol-contrib"
+otel_collector_config_dir: "/etc/otel-collector"
+otel_collector_config_path: "{{ otel_collector_config_dir }}/config.yaml"
+
+# Service user
+otel_collector_user: "otel"
+otel_collector_group: "otel"
+
+# OTLP receiver (receives from local apps like email-agent)
+otel_collector_otlp_grpc_port: 4317
+otel_collector_otlp_http_port: 4318
+
+# SigNoz endpoint (where to export telemetry)
+# For otlphttp exporter, use full URL with https:// scheme
+otel_signoz_endpoint: "https://ingest.monitor.kibamail.com"
+otel_signoz_insecure: false
+
+# Log collection via journald (systemd units to collect logs from)
+otel_collector_journald_units:
+  - "email-agent"
+
+# Service settings
+otel_collector_start_service: true
+otel_collector_enable_service: true
+
+# Resource attributes
+otel_service_name: "email-agent"
+otel_environment: "production"

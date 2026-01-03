@@ -11,6 +11,10 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/sony/gobreaker"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	kiberrors "github.com/kibamail/email-agent/internal/errors"
 	"github.com/kibamail/email-agent/internal/observability"
@@ -35,6 +39,7 @@ type Client struct {
 	breaker    *gobreaker.CircuitBreaker
 	logger     zerolog.Logger
 	metrics    *observability.Metrics
+	tracer     trace.Tracer
 	config     Config
 }
 
@@ -101,6 +106,7 @@ func NewClient(cfg Config, logger zerolog.Logger, metrics *observability.Metrics
 		breaker:    breaker,
 		logger:     kumoLogger,
 		metrics:    metrics,
+		tracer:     otel.Tracer("email-agent/kumomta"),
 		config:     cfg,
 	}
 }
@@ -169,8 +175,20 @@ type InjectError struct {
 	Message string `json:"message"`
 }
 
-// Inject sends an email through KumoMTA
+// Inject sends an email through KumoMTA with distributed tracing
 func (c *Client) Inject(ctx context.Context, req *InjectRequest) (*InjectResponse, error) {
+	// Start a span for the injection operation
+	ctx, span := c.tracer.Start(ctx, "kumomta.inject",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("http.method", "POST"),
+			attribute.String("http.url", c.endpoint+"/api/inject/v1"),
+			attribute.String("email.sender", req.EnvelopeSender),
+			attribute.Int("email.recipient_count", len(req.Recipients)),
+		),
+	)
+	defer span.End()
+
 	start := time.Now()
 
 	// Apply default settings
@@ -181,12 +199,18 @@ func (c *Client) Inject(ctx context.Context, req *InjectRequest) (*InjectRespons
 	})
 
 	duration := time.Since(start)
+	span.SetAttributes(attribute.Float64("http.duration_ms", float64(duration.Milliseconds())))
+
 	if c.metrics != nil {
 		c.metrics.KumoMTALatency.Observe(duration.Seconds())
 	}
 
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
 		if err == gobreaker.ErrOpenState || err == gobreaker.ErrTooManyRequests {
+			span.SetAttributes(attribute.String("error.type", "circuit_breaker"))
 			return nil, kiberrors.Mark(kiberrors.ErrKumoMTAUnavailable, kiberrors.ErrTransient)
 		}
 		return nil, err
@@ -194,12 +218,24 @@ func (c *Client) Inject(ctx context.Context, req *InjectRequest) (*InjectRespons
 
 	resp := result.(*InjectResponse)
 
+	// Add response attributes to span
+	span.SetAttributes(
+		attribute.Int("email.success_count", resp.SuccessCount),
+		attribute.Int("email.fail_count", resp.FailCount),
+	)
+
 	// Update metrics
 	if c.metrics != nil {
 		c.metrics.KumoMTAInjections.Inc()
 		if resp.FailCount > 0 {
 			c.metrics.KumoMTAInjectionErrors.Add(float64(resp.FailCount))
 		}
+	}
+
+	if resp.FailCount > 0 {
+		span.SetStatus(codes.Error, "partial injection failure")
+	} else {
+		span.SetStatus(codes.Ok, "injection successful")
 	}
 
 	return resp, nil

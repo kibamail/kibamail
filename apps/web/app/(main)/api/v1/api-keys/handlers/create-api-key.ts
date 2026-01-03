@@ -8,7 +8,7 @@ import type { NextRequest } from "next/server";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import { responseCreated } from "@/lib/api/responses";
-import { createApiKeySchema } from "../schema";
+import { createApiKeySchema } from "@/app/(main)/api/v1/api-keys/schema";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
 
 /**

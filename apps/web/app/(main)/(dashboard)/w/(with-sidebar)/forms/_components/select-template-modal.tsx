@@ -105,7 +105,7 @@ export function SelectTemplateModal({
     },
   });
 
-  function handleContinue() {
+  function onContinue() {
     if (selectedTemplateId === "scratch") {
       onOpenChange(false);
       router.push(`/w/forms/${formId}/edit`);
@@ -234,7 +234,7 @@ export function SelectTemplateModal({
           </Button>
           <Button
             type="button"
-            onClick={handleContinue}
+            onClick={onContinue}
             disabled={mutation.isPending || !selectedTemplateId}
             loading={mutation.isPending}
           >

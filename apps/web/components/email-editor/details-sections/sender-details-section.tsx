@@ -3,14 +3,14 @@
 import { useCallback, useMemo } from "react";
 import { SenderSelect } from "@/components/sender-select";
 import { ReplyToSelect } from "@/components/reply-to-select";
-import { SectionHeader } from "./shared";
+import { SectionHeader } from "@/components/email-editor/details-sections/shared";
 import type {
   EmailDetails,
   Domain,
   TransformedSenderIdentity,
   SenderSelectState,
   SenderSelectActions,
-} from "../types";
+} from "@/components/email-editor/types";
 
 interface SenderDetailsSectionProps {
   senderIdentityId?: string;

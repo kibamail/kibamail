@@ -77,10 +77,9 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
     onOpenChange?.(false);
   }
 
-  function handleTemplateModalClose(open: boolean) {
+  function onTemplateModalClose(open: boolean) {
     setShowTemplateModal(open);
     if (!open && createdForm) {
-      // If modal is closed without selecting, redirect to edit page
       router.push(`/w/forms/${createdForm.id}/edit`);
       router.refresh();
     }
@@ -157,7 +156,7 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
     {createdForm && (
       <SelectTemplateModal
         open={showTemplateModal}
-        onOpenChange={handleTemplateModalClose}
+        onOpenChange={onTemplateModalClose}
         formId={createdForm.id}
         formType={createdForm.type}
       />

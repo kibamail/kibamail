@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/kibamail/email-agent/internal/http/handlers"
 	"github.com/kibamail/email-agent/internal/observability"
@@ -67,6 +68,7 @@ func NewServer(
 	// Middleware
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
+	router.Use(otelMiddleware()) // OpenTelemetry tracing
 	router.Use(requestLogger(httpLogger))
 	router.Use(metricsMiddleware(metrics))
 	router.Use(middleware.Recoverer)
@@ -171,7 +173,24 @@ func (s *Server) Router() *chi.Mux {
 	return s.router
 }
 
-// requestLogger returns a middleware that logs HTTP requests
+// otelMiddleware returns a middleware that adds OpenTelemetry tracing to requests
+func otelMiddleware() func(next http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return otelhttp.NewHandler(next, "email-agent",
+			otelhttp.WithSpanNameFormatter(func(operation string, r *http.Request) string {
+				// Use route pattern if available, otherwise method + path
+				if rctx := chi.RouteContext(r.Context()); rctx != nil {
+					if pattern := rctx.RoutePattern(); pattern != "" {
+						return r.Method + " " + pattern
+					}
+				}
+				return r.Method + " " + r.URL.Path
+			}),
+		)
+	}
+}
+
+// requestLogger returns a middleware that logs HTTP requests with trace correlation
 func requestLogger(logger zerolog.Logger) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -184,7 +203,10 @@ func requestLogger(logger zerolog.Logger) func(next http.Handler) http.Handler {
 
 			duration := time.Since(start)
 
-			logger.Debug().
+			// Get logger with trace correlation
+			loggerWithTrace := observability.LoggerWithTrace(r.Context(), logger)
+
+			loggerWithTrace.Debug().
 				Str("method", r.Method).
 				Str("path", r.URL.Path).
 				Int("status", ww.Status()).

@@ -9,25 +9,25 @@ import {
   Timer,
   ShareAndroid,
 } from "iconoir-react";
-import { HeroFeatures } from "../../../_components/sections/heroes/hero-features";
-import { PageSection } from "../../../_components/layout/page-section";
-import { SectionCard } from "../../../_components/layout/section-card";
+import { HeroFeatures } from "@/app/(marketing)/_components/sections/heroes/hero-features";
+import { PageSection } from "@/app/(marketing)/_components/layout/page-section";
+import { SectionCard } from "@/app/(marketing)/_components/layout/section-card";
 import {
   BentoGrid,
   type BentoFeature,
-} from "../../../_components/sections/bento-grid";
+} from "@/app/(marketing)/_components/sections/bento-grid";
 import {
   StickyFeatures,
   type StickyFeature,
-} from "../../../_components/sections/sticky-features";
+} from "@/app/(marketing)/_components/sections/sticky-features";
 import {
   FeaturesWithCTA,
   type Feature,
-} from "../../../_components/sections/features-with-cta";
-import { CodeShowcase } from "../../../_components/sections/code-showcase";
-import { Sandbox } from "../../../_components/sections/sandbox";
-import { EmailEvents } from "../../../_components/sections/email-events";
-import { generateCodeSamples } from "../../../_lib/code-samples";
+} from "@/app/(marketing)/_components/sections/features-with-cta";
+import { CodeShowcase } from "@/app/(marketing)/_components/sections/code-showcase";
+import { Sandbox } from "@/app/(marketing)/_components/sections/sandbox";
+import { EmailEvents } from "@/app/(marketing)/_components/sections/email-events";
+import { generateCodeSamples } from "@/app/(marketing)/_lib/code-samples";
 
 const transactionalFeatures: BentoFeature[] = [
   {

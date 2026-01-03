@@ -1,0 +1,57 @@
+{
+  "_comment": "Message expired from queue after exceeding max retry time (typically 72 hours). Should be treated as a soft bounce that eventually failed.",
+  "type": "Expiration",
+  "id": "j2k7e6f5-8i9g-0h2j-3e4f-5g6h7i8j9k0l",
+  "sender": "bounces+msg-mno345@bounce.newsletter.acme.com",
+  "recipient": "unreachable.server@flaky-domain.com",
+  "queue": "flaky-domain.com",
+  "site": "mx.flaky-domain.com",
+  "size": 39875,
+  "response": {
+    "code": 451,
+    "enhanced_code": {
+      "class": 4,
+      "subject": 4,
+      "detail": 7
+    },
+    "content": "451 4.4.7 Message expired after 72 hours of delivery attempts.",
+    "command": null
+  },
+  "peer_address": {
+    "name": "mx.flaky-domain.com",
+    "addr": "203.0.113.50:25"
+  },
+  "timestamp": 1704326400,
+  "event_time": "2024-01-04T00:00:00Z",
+  "created": 1704067200,
+  "created_time": "2024-01-01T00:00:00Z",
+  "num_attempts": 47,
+  "bounce_classification": "MessageExpired",
+  "egress_pool": "default",
+  "egress_source": "10.0.2.103",
+  "source_address": {
+    "address": "10.0.2.103:45681",
+    "server": null,
+    "protocol": null
+  },
+  "feedback_report": null,
+  "meta": {
+    "tenant_id": "ws_acme_corp_2024",
+    "broadcast_id": "bc_weekly_newsletter_jan01",
+    "contact_id": "ct_unreachable_flakydomain_mno345",
+    "campaign": "weekly-newsletter",
+    "list_id": "subscribers-main"
+  },
+  "headers": {
+    "Subject": "Your Weekly Update from ACME",
+    "Message-ID": "<msg-mno345@newsletter.acme.com>"
+  },
+  "delivery_protocol": "ESMTP",
+  "reception_protocol": "ESMTP",
+  "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tls_cipher": null,
+  "tls_protocol_version": null,
+  "tls_peer_subject_name": null,
+  "provider_name": null,
+  "session_id": "sess-delivery-047"
+}

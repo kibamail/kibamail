@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import type { JSONContent } from "@tiptap/react";
 import {
   EmailEditor,
@@ -15,7 +15,6 @@ interface ContentFieldEditorProps {
   placeholder?: string;
 }
 
-// Placeholder upload function that returns a sample Unsplash image
 async function placeholderUpload(): Promise<string> {
   return `https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop`;
 }
@@ -27,13 +26,6 @@ export function ContentFieldEditor({
 }: ContentFieldEditorProps) {
   const editorRef = useRef<EmailEditorRef>(null);
 
-  const handleChange = useCallback(
-    (newContent: JSONContent) => {
-      onChange(newContent);
-    },
-    [onChange]
-  );
-
   return (
     <div className="content-field-editor">
       <EmailEditor
@@ -41,7 +33,7 @@ export function ContentFieldEditor({
         features={FORM_BUILDER_PRESET}
         placeholder={placeholder}
         initialContent={content as JSONContent | undefined}
-        onChange={handleChange}
+        onChange={onChange}
         onUpload={placeholderUpload}
       />
     </div>

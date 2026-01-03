@@ -16,11 +16,11 @@ import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import { useMutation } from "@/hooks/use-mutation";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
-import { useSegmentFieldDefinitions } from "../_hooks/use-segment-field-definitions";
+import { useSegmentFieldDefinitions } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/segments/_hooks/use-segment-field-definitions";
 import {
   convertConditionsToFilters,
   convertFiltersToConditions,
-} from "../_utils/filter-to-condition-converter";
+} from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/segments/_utils/filter-to-condition-converter";
 
 interface CreateSegmentFormData {
   name: string;
@@ -62,7 +62,6 @@ export function CreateSegmentModal({
     },
   });
 
-  // Populate form with segment data when in edit mode
   useEffect(() => {
     if (isEditMode && segment) {
       setValue("name", segment.name);
@@ -72,7 +71,6 @@ export function CreateSegmentModal({
       );
       setValue("filters", filters);
     } else if (!isEditMode) {
-      // Reset to default values when switching to create mode
       reset({
         name: "",
         description: "",
@@ -105,12 +103,12 @@ export function CreateSegmentModal({
           ? "Segment updated successfully."
           : "Segment created successfully.",
       );
-      handleClose();
+      onClose();
       router.refresh();
     },
   });
 
-  function handleClose() {
+  function onClose() {
     reset();
     onOpenChange?.(false);
   }
@@ -120,7 +118,7 @@ export function CreateSegmentModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleClose}>
+    <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content className="max-w-4xl">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
@@ -208,7 +206,7 @@ export function CreateSegmentModal({
             <Button
               type="button"
               variant="secondary"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={mutation.isPending}
             >
               Cancel

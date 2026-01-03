@@ -129,19 +129,19 @@ export function PublishAutomationModal({
     },
   });
 
-  const handlePublish = () => {
+  function onPublish() {
     clearNodeErrors();
     publishAutomation();
-  };
+  }
 
-  const handleClose = () => {
+  function onClose() {
     onOpenChange(false);
-  };
+  }
 
   const hasValidationErrors = validationErrors.length > 0;
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleClose}>
+    <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content className="max-w-lg">
         <Dialog.Header>
           <Dialog.Title>
@@ -200,11 +200,11 @@ export function PublishAutomationModal({
 
         <Dialog.Footer>
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={handleClose}>
+            <Button variant="secondary" onClick={onClose}>
               {hasValidationErrors ? "Close" : "Cancel"}
             </Button>
             {!hasValidationErrors && (
-              <Button onClick={handlePublish} disabled={isPending}>
+              <Button onClick={onPublish} disabled={isPending}>
                 {isPending ? (
                   <>
                     <Spinner className="w-4 h-4 mr-2" />

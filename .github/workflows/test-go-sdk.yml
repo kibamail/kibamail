@@ -3,18 +3,8 @@ name: test go sdk
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "sdks/go/**"
-      - "test-sdk-infra/**"
-      - "apps/web/public/openapi.v1.json"
-      - ".github/workflows/test-go-sdk.yml"
   pull_request:
-    paths:
-      - "sdks/go/**"
-      - "test-sdk-infra/**"
-      - "apps/web/public/openapi.v1.json"
-      - ".github/workflows/test-go-sdk.yml"
-
+    branches: [main]
 jobs:
   test:
     name: test on go ${{ matrix.go-version }}

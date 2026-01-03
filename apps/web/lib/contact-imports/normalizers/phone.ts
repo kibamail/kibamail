@@ -3,7 +3,7 @@ import {
   ParseError,
   type CountryCode,
 } from "libphonenumber-js";
-import type { NormalizationResult } from "../types";
+import type { NormalizationResult } from "@/lib/contact-imports/types";
 
 export function normalizePhone(
   value: string,

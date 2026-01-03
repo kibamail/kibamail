@@ -7,7 +7,7 @@ import { CloudUpload } from "iconoir-react";
 import {
   useFileUpload,
   type UseFileUploadProps,
-} from "../hooks/use-file-upload";
+} from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/hooks/use-file-upload";
 
 interface FileUploadDropboxProps extends UseFileUploadProps {
   isFileUploadingToServer?: boolean;

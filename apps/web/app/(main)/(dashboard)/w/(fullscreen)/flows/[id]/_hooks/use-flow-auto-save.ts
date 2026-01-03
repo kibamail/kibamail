@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useFlowStore } from "../state/flow-store";
-import { useFlowEditor } from "../_components/flow-editor-context";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
 
 export function useFlowAutoSave() {
   const { updateAutomation, automation } = useFlowEditor();
@@ -14,11 +14,9 @@ export function useFlowAutoSave() {
   const prevEdgesRef = useRef(edges);
   const prevAutomationIdRef = useRef(automation?.id);
 
-  // Only auto-save for draft automations
   const canAutoSave = automation?.status === "DRAFT";
 
   useEffect(() => {
-    // Reset refs when automation changes (version switch)
     if (automation?.id !== prevAutomationIdRef.current) {
       isInitialMount.current = true;
       prevAutomationIdRef.current = automation?.id;
@@ -34,7 +32,6 @@ export function useFlowAutoSave() {
       return;
     }
 
-    // Skip auto-save if automation is not in draft status
     if (!canAutoSave) {
       return;
     }

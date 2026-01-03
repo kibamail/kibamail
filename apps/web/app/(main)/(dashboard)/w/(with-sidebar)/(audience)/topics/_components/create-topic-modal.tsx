@@ -54,7 +54,6 @@ export function CreateTopicModal({
     },
   });
 
-  // Populate form with topic data when in edit mode
   useEffect(() => {
     if (isEditMode && topic) {
       setValue("name", topic.name);
@@ -62,7 +61,6 @@ export function CreateTopicModal({
       setValue("visibility", topic.visibility);
       setValue("defaultOptIn", topic.defaultOptIn);
     } else if (!isEditMode) {
-      // Reset to default values when switching to create mode
       reset({
         name: "",
         description: "",
@@ -82,12 +80,12 @@ export function CreateTopicModal({
     },
     onSuccess() {
       toast(isEditMode ? "Topic updated successfully." : "Topic created successfully.");
-      handleClose();
+      onClose();
       router.refresh();
     },
   });
 
-  function handleClose() {
+  function onClose() {
     reset();
     onOpenChange?.(false);
   }
@@ -97,7 +95,7 @@ export function CreateTopicModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleClose}>
+    <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
@@ -195,7 +193,7 @@ export function CreateTopicModal({
             <Button
               type="button"
               variant="secondary"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={mutation.isPending}
             >
               Cancel

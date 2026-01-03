@@ -15,7 +15,7 @@ import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 
-import type { DomainListItem } from "../page";
+import type { DomainListItem } from "@/app/(main)/(dashboard)/w/(with-sidebar)/domains/page";
 
 function VerificationBadge({ verified }: { verified: boolean }) {
   return (

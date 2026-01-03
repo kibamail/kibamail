@@ -52,10 +52,8 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
   // Type assertion for broadcast-specific details
   const broadcastDetails = details as BroadcastDetails;
 
-  // Cast onChange to accept the base EmailDetails type for common sections
-  // This is safe because EmailDetails is the base type for all detail types
-  const handleChange = onChange as (updates: Partial<EmailDetails>) => void;
-  const handleBroadcastChange = onChange as (updates: Partial<BroadcastDetails>) => void;
+  const onBaseChange = onChange as (updates: Partial<EmailDetails>) => void;
+  const onBroadcastChange = onChange as (updates: Partial<BroadcastDetails>) => void;
 
   return (
     <div className="h-full overflow-auto bg-kb-surface-primary">
@@ -64,7 +62,7 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
         <EmailSubjectSection
           subject={details.subject}
           previewText={details.previewText}
-          onChange={handleChange}
+          onChange={onBaseChange}
           readonly={readonly}
         />
 
@@ -76,7 +74,7 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
           replyToIdentityId={details.replyToIdentityId}
           senderIdentities={senderIdentities}
           domains={domains}
-          onChange={handleChange}
+          onChange={onBaseChange}
           senderState={senderState}
           senderActions={senderActions}
           readonly={readonly}
@@ -89,7 +87,7 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
             <RecipientsSection
               topicId={broadcastDetails.topicId}
               segmentId={broadcastDetails.segmentId}
-              onChange={handleBroadcastChange}
+              onChange={onBroadcastChange}
               readonly={readonly}
             />
           </>
@@ -101,7 +99,7 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
         <TrackingSection
           trackClicks={details.trackClicks}
           trackOpens={details.trackOpens}
-          onChange={handleChange}
+          onChange={onBaseChange}
           readonly={readonly}
         />
 
@@ -111,7 +109,7 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
             <SectionDivider />
             <SendTimeSection
               sendAt={broadcastDetails.sendAt}
-              onChange={handleBroadcastChange}
+              onChange={onBroadcastChange}
               onSave={onSave}
               isSaving={isSaving}
               readonly={readonly}

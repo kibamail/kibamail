@@ -48,20 +48,17 @@ export function EditFormButton({
     },
   });
 
-  function handleEdit() {
-    // If form is DRAFT, navigate directly to edit page
+  function onEdit() {
     if (formStatus === "DRAFT") {
       router.push(`/w/forms/${formId}/edit`);
       return;
     }
 
-    // If there's already a draft version, navigate to it
     if (draftVersionId) {
       router.push(`/w/forms/${draftVersionId}/edit`);
       return;
     }
 
-    // If form is PUBLISHED or ARCHIVED with no draft, show dialog to create new draft
     createDraftDialogState.onOpenChange?.(true);
   }
 
@@ -71,7 +68,7 @@ export function EditFormButton({
 
   return (
     <>
-      <Button variant={variant} size={size} onClick={handleEdit}>
+      <Button variant={variant} size={size} onClick={onEdit}>
         <EditPencil className="w-4 h-4" />
         {showLabel && "Edit"}
       </Button>

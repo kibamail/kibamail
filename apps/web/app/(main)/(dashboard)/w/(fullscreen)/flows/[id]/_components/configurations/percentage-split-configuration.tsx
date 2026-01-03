@@ -4,30 +4,37 @@ import * as TextField from "@kibamail/owly/text-field";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 import { useCallback } from "react";
 
+interface Split {
+  id: string;
+  name: string;
+  percentage: number;
+}
+
+interface NodeData {
+  splits?: Split[];
+}
+
 export function PercentageSplitConfiguration() {
   const { nodes, setNodes, edges, setEdges, selectedNodeId } = useFlowStore();
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
-  const splits = (selectedNode?.data as any)?.splits || [
+  const nodeData = selectedNode?.data as NodeData;
+  const splits: Split[] = nodeData?.splits || [
     { id: "branch-a", name: "A", percentage: 50 },
     { id: "branch-b", name: "B", percentage: 50 },
   ];
 
-  const handlePercentageChange = useCallback(
+  const onPercentageChange = useCallback(
     (branchId: string, newPercentage: number) => {
-      // Ensure percentage is between 0 and 100
       const clampedPercentage = Math.max(0, Math.min(100, newPercentage));
-
-      // Calculate the other branch's percentage to balance to 100%
       const otherBranchId = branchId === "branch-a" ? "branch-b" : "branch-a";
       const otherPercentage = 100 - clampedPercentage;
 
-      // Get existing split names
       const branchName =
-        splits.find((s: any) => s.id === branchId)?.name ||
+        splits.find((s) => s.id === branchId)?.name ||
         (branchId === "branch-a" ? "A" : "B");
       const otherBranchName =
-        splits.find((s: any) => s.id === otherBranchId)?.name ||
+        splits.find((s) => s.id === otherBranchId)?.name ||
         (otherBranchId === "branch-a" ? "A" : "B");
 
       const updatedSplits = [
@@ -39,7 +46,6 @@ export function PercentageSplitConfiguration() {
         },
       ];
 
-      // Update the node data
       const updatedNodes = nodes.map((node) => {
         if (node.id === selectedNodeId) {
           return {
@@ -53,7 +59,6 @@ export function PercentageSplitConfiguration() {
         return node;
       });
 
-      // Update edges connected to this node to reflect new percentages
       const updatedEdges = edges.map((edge) => {
         if (edge.source === selectedNodeId) {
           const split = updatedSplits.find((s) => s.id === edge.sourceHandle);
@@ -78,9 +83,9 @@ export function PercentageSplitConfiguration() {
   );
 
   const branchAPercentage =
-    splits.find((s: any) => s.id === "branch-a")?.percentage ?? 50;
+    splits.find((s) => s.id === "branch-a")?.percentage ?? 50;
   const branchBPercentage =
-    splits.find((s: any) => s.id === "branch-b")?.percentage ?? 50;
+    splits.find((s) => s.id === "branch-b")?.percentage ?? 50;
 
   return (
     <div className="flex flex-col gap-4">
@@ -97,8 +102,8 @@ export function PercentageSplitConfiguration() {
         <TextField.Root
           type="number"
           value={branchAPercentage.toString()}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handlePercentageChange("branch-a", Number(e.target.value))
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onPercentageChange("branch-a", Number(event.target.value))
           }
           min="0"
           max="100"
@@ -109,8 +114,8 @@ export function PercentageSplitConfiguration() {
         <TextField.Root
           type="number"
           value={branchBPercentage.toString()}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handlePercentageChange("branch-b", Number(e.target.value))
+          onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onPercentageChange("branch-b", Number(event.target.value))
           }
           min="0"
           max="100"

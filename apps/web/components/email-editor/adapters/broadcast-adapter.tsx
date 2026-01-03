@@ -4,14 +4,14 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import type { SendingDomain, BroadcastStatus } from "@prisma/client";
 
-import { EmailEditorClient } from "../email-editor-client";
+import { EmailEditorClient } from "@/components/email-editor/email-editor-client";
 import { internalApi } from "@/lib/api/client";
 import type {
   BroadcastDetails,
   EmailEditorMutations,
   SaveDraftPayload,
   TransformedSenderIdentity,
-} from "../types";
+} from "@/components/email-editor/types";
 
 dayjs.extend(utc);
 
@@ -54,7 +54,6 @@ export function BroadcastEditorAdapter({
 }: BroadcastEditorAdapterProps) {
   const isReadonly = status !== "DRAFT";
 
-  // Convert initial sendAt from UTC to local time
   const initialSendAtLocal = initialSendAt
     ? dayjs.utc(initialSendAt).local().toDate()
     : undefined;
@@ -76,7 +75,6 @@ export function BroadcastEditorAdapter({
       const { emailContent, details, senderEmail } = payload;
       const broadcastDetails = details as BroadcastDetails;
 
-      // Convert sendAt to UTC before saving
       const sendAtUtc = broadcastDetails.sendAt
         ? dayjs(broadcastDetails.sendAt).utc().toDate()
         : null;

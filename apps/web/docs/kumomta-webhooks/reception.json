@@ -1,0 +1,53 @@
+{
+  "type": "Reception",
+  "id": "d7f3a2b1-4e5c-6d8f-9a0b-1c2d3e4f5a6b",
+  "sender": "bounces+msg-abc123@bounce.newsletter.acme.com",
+  "recipient": "john.doe@gmail.com",
+  "queue": "gmail.com",
+  "site": "",
+  "size": 45230,
+  "response": {
+    "code": 250,
+    "enhanced_code": {
+      "class": 2,
+      "subject": 0,
+      "detail": 0
+    },
+    "content": "OK",
+    "command": null
+  },
+  "peer_address": {
+    "name": "inject.newsletter.acme.com",
+    "addr": "10.0.1.50:54321"
+  },
+  "timestamp": 1704067200,
+  "event_time": "2024-01-01T00:00:00Z",
+  "created": 1704067200,
+  "created_time": "2024-01-01T00:00:00Z",
+  "num_attempts": 0,
+  "bounce_classification": "Uncategorized",
+  "egress_pool": null,
+  "egress_source": null,
+  "source_address": null,
+  "feedback_report": null,
+  "meta": {
+    "tenant_id": "ws_acme_corp_2024",
+    "broadcast_id": "bc_weekly_newsletter_jan01",
+    "contact_id": "ct_johndoe_gmail_abc123",
+    "campaign": "weekly-newsletter",
+    "list_id": "subscribers-main"
+  },
+  "headers": {
+    "Subject": "Your Weekly Update from ACME",
+    "Message-ID": "<msg-abc123@newsletter.acme.com>",
+    "List-Unsubscribe": "<https://newsletter.acme.com/unsubscribe/ct_johndoe_gmail_abc123>"
+  },
+  "delivery_protocol": null,
+  "reception_protocol": "ESMTP",
+  "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tls_cipher": "TLS_AES_256_GCM_SHA384",
+  "tls_protocol_version": "TLSv1.3",
+  "tls_peer_subject_name": null,
+  "provider_name": null,
+  "session_id": "sess-inject-001"
+}

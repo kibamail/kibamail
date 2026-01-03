@@ -3,17 +3,8 @@ name: test php sdk
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "sdks/php/**"
-      - "test-sdk-infra/**"
-      - "apps/web/public/openapi.v1.json"
-      - ".github/workflows/test-php-sdk.yml"
   pull_request:
-    paths:
-      - "sdks/php/**"
-      - "test-sdk-infra/**"
-      - "apps/web/public/openapi.v1.json"
-      - ".github/workflows/test-php-sdk.yml"
+    branches: [main]
 
 jobs:
   test:

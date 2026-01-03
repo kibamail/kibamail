@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { deleteApiKey } from "../handler";
+import { deleteApiKey } from "@/app/(main)/api/internal/v1/api-keys/handler";
 
 /**
  * DELETE /api/internal/v1/api-keys/[id]

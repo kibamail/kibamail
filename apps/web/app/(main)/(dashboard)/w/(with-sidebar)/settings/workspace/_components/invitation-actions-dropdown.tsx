@@ -35,9 +35,9 @@ export function InvitationActionsDropdown({
     },
   });
 
-  const handleCancelClick = () => {
+  function onCancelClick() {
     cancelMutation.mutate(invitation.id);
-  };
+  }
 
   return (
     <DropdownMenu.Root>
@@ -49,7 +49,7 @@ export function InvitationActionsDropdown({
       <DropdownMenu.Content align="end" className="w-48">
         <DropdownMenu.Item
           className="text-kb-content-negative"
-          onClick={handleCancelClick}
+          onClick={onCancelClick}
           disabled={cancelMutation.isPending}
         >
           <Xmark className="w-4 h-4" />

@@ -152,13 +152,13 @@ export function FieldsSidebar() {
     }));
   }
 
-  function handleAddField(fieldType: FieldType) {
+  function onAddField(fieldType: FieldType) {
     if (firstSection) {
       addField(selectedPageIndex, firstSection.id, fieldType);
     }
   }
 
-  function handleFontChange(fontName: string) {
+  function onFontChange(fontName: string) {
     const font = POPULAR_FONTS.find((f) => f.name === fontName);
     if (font) {
       updateTheme({
@@ -167,7 +167,7 @@ export function FieldsSidebar() {
     }
   }
 
-  function handleBodyBackgroundChange(color: string) {
+  function onBodyBackgroundChange(color: string) {
     updateTheme({
       body: {
         ...schema.settings.theme.body,
@@ -176,7 +176,7 @@ export function FieldsSidebar() {
     });
   }
 
-  function handleContainerBackgroundChange(color: string) {
+  function onContainerBackgroundChange(color: string) {
     updateTheme({
       container: {
         ...schema.settings.theme.container,
@@ -185,7 +185,7 @@ export function FieldsSidebar() {
     });
   }
 
-  function handleContainerBorderRadiusChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function onContainerBorderRadiusChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value.replace(/[^0-9]/g, "");
     updateTheme({
       container: {
@@ -195,7 +195,7 @@ export function FieldsSidebar() {
     });
   }
 
-  function handleContainerWidthChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function onContainerWidthChange(event: React.ChangeEvent<HTMLInputElement>) {
     const value = event.target.value.replace(/[^0-9]/g, "");
     updateTheme({
       container: {
@@ -206,7 +206,7 @@ export function FieldsSidebar() {
     });
   }
 
-  function handleBodyPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
+  function onBodyPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
     const paddingKey = `padding${side.charAt(0).toUpperCase()}${side.slice(1)}`;
     updateTheme({
       body: {
@@ -216,7 +216,7 @@ export function FieldsSidebar() {
     });
   }
 
-  function handleContainerPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
+  function onContainerPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
     const paddingKey = `padding${side.charAt(0).toUpperCase()}${side.slice(1)}`;
     updateTheme({
       container: {
@@ -226,7 +226,7 @@ export function FieldsSidebar() {
     });
   }
 
-  function handleThemeColorChange(colorKey: keyof typeof schema.settings.theme.colors, value: string) {
+  function onThemeColorChange(colorKey: keyof typeof schema.settings.theme.colors, value: string) {
     updateTheme({
       colors: {
         ...schema.settings.theme.colors,
@@ -235,13 +235,11 @@ export function FieldsSidebar() {
     });
   }
 
-  // Extract current background colors (handle gradients by showing placeholder)
   const bodyBackground = schema.settings.theme.body?.background as string ?? "#f5f7fa";
   const containerBackground = schema.settings.theme.container?.backgroundColor as string ?? "#ffffff";
   const containerBorderRadius = schema.settings.theme.container?.borderRadius as string ?? "12px";
   const containerMaxWidth = schema.settings.theme.container?.maxWidth as string ?? "672px";
 
-  // Helper to parse shorthand padding (e.g., "1rem" or "16px") into individual values
   function parsePadding(
     obj: Record<string, unknown> | undefined,
     defaultValue: string
@@ -270,11 +268,9 @@ export function FieldsSidebar() {
     return { top: defaultValue, right: defaultValue, bottom: defaultValue, left: defaultValue };
   }
 
-  // Extract padding values
   const bodyPadding = parsePadding(schema.settings.theme.body, "16px");
   const containerPadding = parsePadding(schema.settings.theme.container, "32px");
 
-  // Simple color extraction for gradients (take first color or use fallback)
   function extractColor(value: string): string {
     if (value.startsWith("#")) return value;
     if (value.startsWith("linear-gradient") || value.startsWith("radial-gradient")) {
@@ -342,7 +338,7 @@ export function FieldsSidebar() {
                         <button
                           key={field.type}
                           type="button"
-                          onClick={() => handleAddField(field.type)}
+                          onClick={() => onAddField(field.type)}
                           className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-left hover:bg-kb-surface-tertiary transition-colors group"
                         >
                           <div className="w-7 h-7 rounded-md bg-kb-surface-primary border border-kb-border-tertiary flex items-center justify-center group-hover:border-kb-border-primary transition-colors shrink-0">
@@ -372,7 +368,7 @@ export function FieldsSidebar() {
             <div className="px-4 py-3">
               <Select.Root
                 value={schema.settings.theme.font.family}
-                onValueChange={handleFontChange}
+                onValueChange={onFontChange}
               >
                 <Select.Label>Font Family</Select.Label>
                 <Select.Trigger placeholder="Select font" />
@@ -409,14 +405,14 @@ export function FieldsSidebar() {
                   <ColorField.Root
                     label="Background"
                     value={extractColor(bodyBackground)}
-                    onColorChange={handleBodyBackgroundChange}
+                    onColorChange={onBodyBackgroundChange}
                   />
                 </div>
                 <div className="px-4">
                   <SpacingInput
                     label="Padding"
                     values={bodyPadding}
-                    onChange={handleBodyPaddingChange}
+                    onChange={onBodyPaddingChange}
                   />
                 </div>
               </div>
@@ -445,13 +441,13 @@ export function FieldsSidebar() {
                   <ColorField.Root
                     label="Background"
                     value={extractColor(containerBackground)}
-                    onColorChange={handleContainerBackgroundChange}
+                    onColorChange={onContainerBackgroundChange}
                   />
                 </div>
                 <div className="px-4">
                   <TextField.Root
                     value={containerMaxWidth.replace(/[^0-9]/g, "")}
-                    onChange={handleContainerWidthChange}
+                    onChange={onContainerWidthChange}
                     placeholder="672"
                   >
                     <TextField.Label>Width</TextField.Label>
@@ -461,7 +457,7 @@ export function FieldsSidebar() {
                 <div className="px-4">
                   <TextField.Root
                     value={containerBorderRadius.replace(/[^0-9]/g, "")}
-                    onChange={handleContainerBorderRadiusChange}
+                    onChange={onContainerBorderRadiusChange}
                     placeholder="12"
                   >
                     <TextField.Label>Border Radius</TextField.Label>
@@ -472,7 +468,7 @@ export function FieldsSidebar() {
                   <SpacingInput
                     label="Padding"
                     values={containerPadding}
-                    onChange={handleContainerPaddingChange}
+                    onChange={onContainerPaddingChange}
                   />
                 </div>
               </div>
@@ -501,42 +497,42 @@ export function FieldsSidebar() {
                   <ColorField.Root
                     label="Primary"
                     value={schema.settings.theme.colors?.primary ?? "#18181b"}
-                    onColorChange={(color) => handleThemeColorChange("primary", color)}
+                    onColorChange={(color) => onThemeColorChange("primary", color)}
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Primary Text"
                     value={schema.settings.theme.colors?.primaryForeground ?? "#fafafa"}
-                    onColorChange={(color) => handleThemeColorChange("primaryForeground", color)}
+                    onColorChange={(color) => onThemeColorChange("primaryForeground", color)}
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Text"
                     value={schema.settings.theme.colors?.foreground ?? "#09090b"}
-                    onColorChange={(color) => handleThemeColorChange("foreground", color)}
+                    onColorChange={(color) => onThemeColorChange("foreground", color)}
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Muted Text"
                     value={schema.settings.theme.colors?.mutedForeground ?? "#71717a"}
-                    onColorChange={(color) => handleThemeColorChange("mutedForeground", color)}
+                    onColorChange={(color) => onThemeColorChange("mutedForeground", color)}
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Border"
                     value={schema.settings.theme.colors?.border ?? "#e4e4e7"}
-                    onColorChange={(color) => handleThemeColorChange("border", color)}
+                    onColorChange={(color) => onThemeColorChange("border", color)}
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Input Border"
                     value={schema.settings.theme.colors?.input ?? "#e4e4e7"}
-                    onColorChange={(color) => handleThemeColorChange("input", color)}
+                    onColorChange={(color) => onThemeColorChange("input", color)}
                   />
                 </div>
               </div>

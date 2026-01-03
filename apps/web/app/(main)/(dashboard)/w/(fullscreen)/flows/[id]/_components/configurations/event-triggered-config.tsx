@@ -11,15 +11,15 @@ export function EventTriggeredConfig() {
   const currentEventName =
     (selectedNode?.data as { eventName?: string })?.eventName ?? "";
 
-  const handleEventNameChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onEventNameChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!selectedNodeId) return;
 
       const updatedNodes = nodes.map((node) =>
         node.id === selectedNodeId
           ? {
               ...node,
-              data: { ...node.data, eventName: e.target.value },
+              data: { ...node.data, eventName: event.target.value },
             }
           : node
       );
@@ -31,7 +31,7 @@ export function EventTriggeredConfig() {
 
   return (
     <div className="flex flex-col gap-4">
-      <TextField.Root value={currentEventName} onChange={handleEventNameChange}>
+      <TextField.Root value={currentEventName} onChange={onEventNameChange}>
         <TextField.Label>Event name</TextField.Label>
         <TextField.Hint>
           Enter the name of the event that will trigger this flow (e.g.,

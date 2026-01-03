@@ -142,6 +142,35 @@ import {
   formResponseSchema,
   formSubmissionResponseSchema,
 } from "@/app/(main)/api/v1/forms/schema";
+
+/**
+ * Form update input type for the API client
+ * Extends CreateFormRequest with additional update-only fields
+ */
+export interface UpdateFormClientInput extends Partial<CreateFormRequest> {
+  doubleOptInEmailId?: string | null;
+}
+import {
+  type UpdateEmailInput,
+  updateEmailSchema,
+} from "@/app/(main)/api/internal/v1/emails/schema";
+
+/**
+ * Create email input type for the API client
+ * Simplified version that lets the server apply defaults
+ */
+export interface CreateEmailClientInput {
+  name: string;
+  subject?: string;
+  previewText?: string;
+  content?: unknown;
+  styles?: unknown;
+  senderIdentityId?: string;
+  replyToIdentityId?: string;
+  trackClicks?: boolean;
+  trackOpens?: boolean;
+  type?: "TRANSACTIONAL" | "AUTOMATION" | "NOTIFICATION";
+}
 import {
   type CreateSegmentRequest,
   createSegmentSchema,
@@ -1452,7 +1481,7 @@ class FormsApi extends HttpClient {
    */
   async update(
     formId: string,
-    data: Partial<CreateFormRequest>,
+    data: UpdateFormClientInput,
   ): Promise<FormResponse> {
     return this.request(
       "PUT",
@@ -2117,6 +2146,183 @@ class BroadcastsApi extends HttpClient {
 }
 
 /**
+ * Email response type for API
+ */
+export interface EmailResponse {
+  object: "email";
+  id: string;
+  name: string;
+  subject?: string | null;
+  previewText?: string | null;
+  content?: unknown;
+  styles?: unknown;
+  senderIdentityId?: string | null;
+  replyToIdentityId?: string | null;
+  trackClicks: boolean;
+  trackOpens: boolean;
+  type: "TRANSACTIONAL" | "AUTOMATION" | "NOTIFICATION";
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Email list response type for API
+ */
+export interface EmailListResponse {
+  object: "email_list";
+  data: EmailResponse[];
+  hasMore: boolean;
+  startCursor?: string | null;
+  endCursor?: string | null;
+}
+
+/**
+ * Emails API namespace
+ */
+class EmailsApi extends HttpClient {
+  /**
+   * Create a new email
+   *
+   * @param data - Email creation data
+   * @returns Created email
+   *
+   * @example
+   * ```ts
+   * const email = await internalApi.emails().create({
+   *   name: 'Double Opt-In Email',
+   *   subject: 'Please confirm your subscription',
+   *   type: 'TRANSACTIONAL'
+   * })
+   * ```
+   */
+  async create(data: CreateEmailClientInput): Promise<EmailResponse> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/emails",
+      null,
+      z.any(),
+      data,
+    );
+  }
+
+  /**
+   * List all emails for the workspace
+   *
+   * @param params - Query parameters (type, limit, after, before)
+   * @returns List of emails with pagination info
+   *
+   * @example
+   * ```ts
+   * const { data: emails, hasMore } = await internalApi.emails().list({ type: 'TRANSACTIONAL' })
+   * ```
+   */
+  async list(params?: {
+    type?: "TRANSACTIONAL" | "AUTOMATION" | "NOTIFICATION";
+    limit?: number;
+    after?: string;
+    before?: string;
+  }): Promise<EmailListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.type) queryParams.set("type", params.type);
+    if (params?.limit) queryParams.set("limit", params.limit.toString());
+    if (params?.after) queryParams.set("after", params.after);
+    if (params?.before) queryParams.set("before", params.before);
+
+    const queryString = queryParams.toString();
+    const url = `/api/internal/v1/emails${queryString ? `?${queryString}` : ""}`;
+
+    return this.request("GET", url, null, z.any());
+  }
+
+  /**
+   * Get a specific email by ID
+   *
+   * @param emailId - ID of the email to retrieve
+   * @returns Email data
+   *
+   * @example
+   * ```ts
+   * const email = await internalApi.emails().get('email_123')
+   * ```
+   */
+  async get(emailId: string): Promise<EmailResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/emails/${emailId}`,
+      null,
+      z.any(),
+    );
+  }
+
+  /**
+   * Update an existing email
+   *
+   * @param emailId - ID of the email to update
+   * @param data - Email update data
+   * @returns Updated email
+   *
+   * @example
+   * ```ts
+   * const email = await internalApi.emails().update('email_123', {
+   *   subject: 'Updated subject'
+   * })
+   * ```
+   */
+  async update(
+    emailId: string,
+    data: UpdateEmailInput,
+  ): Promise<EmailResponse> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/emails/${emailId}`,
+      updateEmailSchema,
+      z.any(),
+      data,
+    );
+  }
+
+  /**
+   * Delete an email
+   *
+   * @param emailId - ID of the email to delete
+   * @returns Deleted email info
+   *
+   * @example
+   * ```ts
+   * await internalApi.emails().delete('email_123')
+   * ```
+   */
+  async delete(emailId: string): Promise<EmailResponse> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/emails/${emailId}`,
+      null,
+      z.any(),
+    );
+  }
+
+  /**
+   * Get the HTML preview of an email
+   *
+   * @param emailId - ID of the email to preview
+   * @returns Preview HTML and content status
+   *
+   * @example
+   * ```ts
+   * const { html, hasContent } = await internalApi.emails().preview('email_123')
+   * ```
+   */
+  async preview(emailId: string): Promise<{ html: string; hasContent: boolean }> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/emails/${emailId}/preview`,
+      null,
+      z.any(),
+    );
+  }
+}
+
+/**
  * Sending Domains API namespace
  */
 class DomainsApi extends HttpClient {
@@ -2275,6 +2481,7 @@ export class InternalApi {
   private _domains: DomainsApi;
   private _broadcasts: BroadcastsApi;
   private _senderIdentities: SenderIdentitiesApi;
+  private _emails: EmailsApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
@@ -2291,6 +2498,7 @@ export class InternalApi {
     this._domains = new DomainsApi();
     this._broadcasts = new BroadcastsApi();
     this._senderIdentities = new SenderIdentitiesApi();
+    this._emails = new EmailsApi();
   }
 
   /**
@@ -2523,6 +2731,23 @@ export class InternalApi {
    */
   senderIdentities() {
     return this._senderIdentities;
+  }
+
+  /**
+   * Access emails API
+   *
+   * @returns EmailsApi instance
+   *
+   * @example
+   * ```ts
+   * const email = await internalApi.emails().create({
+   *   name: 'Double Opt-In Email',
+   *   type: 'TRANSACTIONAL'
+   * })
+   * ```
+   */
+  emails() {
+    return this._emails;
   }
 }
 

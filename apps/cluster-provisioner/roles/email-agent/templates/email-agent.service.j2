@@ -3,7 +3,7 @@
 
 [Unit]
 Description=Kibamail Email Agent
-Documentation=https://github.com/kibamail/email-agent
+Documentation=https://github.com/kibamail/kibamail
 After=network-online.target nats.service redis.service
 Wants=network-online.target
 Requires=nats.service
@@ -19,6 +19,7 @@ TimeoutStopSec=30
 
 # Environment
 Environment="GOMAXPROCS={{ ansible_processor_vcpus | default(4) }}"
+EnvironmentFile={{ email_agent_config_dir }}/email-agent.env
 
 # Security hardening
 NoNewPrivileges=true

@@ -6,8 +6,8 @@ import { Text } from "@kibamail/owly/text";
 import { useMutation } from "@tanstack/react-query";
 import { useState, useRef, type FormEvent } from "react";
 import { internalApi } from "@/lib/api/client";
-import { FileUploadDropbox } from "../components/file-upload-dropbox";
-import { useImportContactsStore } from "../store/import-contacts-store";
+import { FileUploadDropbox } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/components/file-upload-dropbox";
+import { useImportContactsStore } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/store/import-contacts-store";
 
 interface StepOneUploadCsvProps {
   onClose: () => void;
@@ -325,7 +325,7 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
         imported contacts.
       </Text>
 
-      <form ref={formRef} onSubmit={(e: FormEvent) => e.preventDefault()}>
+      <form ref={formRef} onSubmit={(event: FormEvent) => event.preventDefault()}>
         <div className="mt-6">
           <FileUploadDropbox
             isFileUploadingToServer={createImportMutation.isPending}

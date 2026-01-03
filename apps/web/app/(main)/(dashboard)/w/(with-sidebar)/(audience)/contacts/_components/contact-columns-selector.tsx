@@ -31,7 +31,7 @@ export function ContactColumnsSelector({
   const router = useRouter();
   const [pendingColumns, setPendingColumns] = useState(selectedColumns);
 
-  function handleToggleColumn(columnId: string) {
+  function onToggleColumn(columnId: string) {
     const newColumns = pendingColumns.includes(columnId)
       ? pendingColumns.filter((id) => id !== columnId)
       : [...pendingColumns, columnId];
@@ -60,7 +60,7 @@ export function ContactColumnsSelector({
           <button
             key={column.id}
             type="button"
-            onClick={() => handleToggleColumn(column.id)}
+            onClick={() => onToggleColumn(column.id)}
             className="flex items-center gap-2 w-full px-2 py-1.5 text-sm text-kb-content-primary hover:bg-kb-surface-secondary rounded cursor-pointer"
           >
             <Checkbox checked={pendingColumns.includes(column.id)} />
@@ -78,7 +78,7 @@ export function ContactColumnsSelector({
               <button
                 key={property.name}
                 type="button"
-                onClick={() => handleToggleColumn(property.name)}
+                onClick={() => onToggleColumn(property.name)}
                 className="flex items-center gap-2 w-full px-2 py-1.5 text-sm text-kb-content-primary hover:bg-kb-surface-secondary rounded cursor-pointer"
               >
                 <Checkbox checked={pendingColumns.includes(property.name)} />

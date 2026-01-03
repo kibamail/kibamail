@@ -7,12 +7,12 @@ import { Text } from "@kibamail/owly";
 import { Filter } from "iconoir-react";
 import { useCallback, useMemo } from "react";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { useIfElseFieldDefinitions } from "../../_hooks/use-if-else-field-definitions";
+import { useIfElseFieldDefinitions } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_hooks/use-if-else-field-definitions";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import {
   transformFiltersToConditions,
   transformConditionsToFilters,
-} from "../../_utils/conditions-transformer";
+} from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_utils/conditions-transformer";
 
 export function IfElseConfig() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();

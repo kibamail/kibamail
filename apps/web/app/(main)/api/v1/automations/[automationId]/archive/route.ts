@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { archiveAutomation } from "../../handler";
+import { archiveAutomation } from "@/app/(main)/api/v1/automations/handler";
 
 /**
  * POST /api/v1/automations/[automationId]/archive

@@ -21,14 +21,12 @@ export function MemberActionsDropdown({
   onChangeRole,
   isCurrentUser,
 }: MemberActionsDropdownProps) {
-  const handleChangeRole = () => {
+  function onChangeRoleClick() {
     onChangeRole(member);
-  };
+  }
 
-  const handleRemoveMember = () => {
-    // TODO: Implement remove member functionality
-    console.log("Remove member", member.email);
-  };
+  function onRemoveMember() {
+  }
 
   return (
     <DropdownMenu.Root>
@@ -38,14 +36,14 @@ export function MemberActionsDropdown({
         </Button>
       </DropdownMenu.Trigger>
       <DropdownMenu.Content align="end" className="w-48">
-        <DropdownMenu.Item onClick={handleChangeRole} disabled={isCurrentUser}>
+        <DropdownMenu.Item onClick={onChangeRoleClick} disabled={isCurrentUser}>
           <User className="w-4 h-4" />
           Change role
         </DropdownMenu.Item>
         <DropdownMenu.Separator />
         <DropdownMenu.Item
           className="text-kb-content-negative"
-          onClick={handleRemoveMember}
+          onClick={onRemoveMember}
           disabled={isCurrentUser}
         >
           <Trash className="w-4 h-4" />

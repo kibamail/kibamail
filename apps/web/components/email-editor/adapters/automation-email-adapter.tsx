@@ -2,13 +2,13 @@
 
 import type { SendingDomain } from "@prisma/client";
 
-import { EmailEditorClient } from "../email-editor-client";
+import { EmailEditorClient } from "@/components/email-editor/email-editor-client";
 import type {
   AutomationEmailDetails,
   EmailEditorMutations,
   SaveDraftPayload,
   TransformedSenderIdentity,
-} from "../types";
+} from "@/components/email-editor/types";
 
 /**
  * Example adapter for automation emails (single emails within an automation workflow).
@@ -77,7 +77,6 @@ export function AutomationEmailEditorAdapter({
     onPublish: onActivate,
     onUploadFile,
     onGetPreview,
-    // Automation emails don't need readiness checks
   };
 
   return (

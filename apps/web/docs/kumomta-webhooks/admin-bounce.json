@@ -1,0 +1,52 @@
+{
+  "_comment": "Administrative bounce - message was bounced by admin action or policy. Could be from suppression list match, or manual admin intervention.",
+  "type": "AdminBounce",
+  "id": "k3l8f7g6-9j0h-1i3k-4f5g-6h7i8j9k0l1m",
+  "sender": "bounces+msg-pqr678@bounce.newsletter.acme.com",
+  "recipient": "suppressed.user@example.com",
+  "queue": "example.com",
+  "site": "",
+  "size": 41250,
+  "response": {
+    "code": 550,
+    "enhanced_code": {
+      "class": 5,
+      "subject": 1,
+      "detail": 1
+    },
+    "content": "550 5.1.1 Recipient is on suppression list - previous hard bounce",
+    "command": null
+  },
+  "peer_address": null,
+  "timestamp": 1704067201,
+  "event_time": "2024-01-01T00:00:01Z",
+  "created": 1704067200,
+  "created_time": "2024-01-01T00:00:00Z",
+  "num_attempts": 0,
+  "bounce_classification": "InvalidRecipient",
+  "egress_pool": null,
+  "egress_source": null,
+  "source_address": null,
+  "feedback_report": null,
+  "meta": {
+    "tenant_id": "ws_acme_corp_2024",
+    "broadcast_id": "bc_weekly_newsletter_jan01",
+    "contact_id": "ct_suppresseduser_example_pqr678",
+    "campaign": "weekly-newsletter",
+    "list_id": "subscribers-main",
+    "suppression_reason": "hard_bounce",
+    "suppression_date": "2023-12-15T10:30:00Z"
+  },
+  "headers": {
+    "Subject": "Your Weekly Update from ACME",
+    "Message-ID": "<msg-pqr678@newsletter.acme.com>"
+  },
+  "delivery_protocol": null,
+  "reception_protocol": "ESMTP",
+  "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tls_cipher": null,
+  "tls_protocol_version": null,
+  "tls_peer_subject_name": null,
+  "provider_name": null,
+  "session_id": null
+}

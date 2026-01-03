@@ -26,7 +26,7 @@ export function TopicConfig({ mode }: TopicConfigProps) {
 
   const topics = topicsResponse?.data ?? [];
 
-  const handleTopicsChange = useCallback(
+  const onTopicsChange = useCallback(
     (topicIds: string[]) => {
       if (!selectedNodeId) return;
 
@@ -54,7 +54,7 @@ export function TopicConfig({ mode }: TopicConfigProps) {
     <div className="flex flex-col gap-4">
       <MultiSelect.Root
         value={currentTopicIds}
-        onValueChange={handleTopicsChange}
+        onValueChange={onTopicsChange}
       >
         <MultiSelect.Label>{label}</MultiSelect.Label>
         <MultiSelect.Trigger

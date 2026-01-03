@@ -45,9 +45,9 @@ export function FormHeader({ form }: { form: Form }) {
     },
   });
 
-  const onSubmit = (data: FormEditData) => {
+  function onSubmit(data: FormEditData) {
     updateForm(data);
-  };
+  }
 
   return (
     <>

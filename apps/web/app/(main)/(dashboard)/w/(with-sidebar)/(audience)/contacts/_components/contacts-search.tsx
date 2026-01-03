@@ -22,7 +22,6 @@ export function ContactsSearch() {
       params.delete("search");
     }
 
-    // Reset pagination when searching
     params.delete("after");
     params.delete("before");
 
@@ -31,7 +30,7 @@ export function ContactsSearch() {
   },
   500);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const newValue = event.target.value;
     setValue(newValue);
     debouncedSearch(newValue);
@@ -43,7 +42,7 @@ export function ContactsSearch() {
         placeholder="Search contacts by email or name..."
         name="search"
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
       >
         <TextField.Slot side="left">
           <Search />

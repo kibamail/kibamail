@@ -4,6 +4,7 @@
 #
 ---
 # Cluster identification
+cluster_name: "helsinki"
 cluster_id: "helsinki-prod"
 cluster_region: "eu-north-1"
 
@@ -34,11 +35,13 @@ sending_ip_range_start: 40
 sending_ip_range_end: 47
 
 # Redis configuration (runs on first MTA node)
-redis_host: "135.181.114.227"
+# Use private vSwitch IP for inter-node communication
+redis_host: "10.0.0.1"
 redis_port: 6379
 
 # NATS configuration (runs on first MTA node)
-nats_host: "135.181.114.227"
+# Use private vSwitch IP for inter-node communication
+nats_host: "10.0.0.1"
 nats_port: 4222
 
 # geerlingguy.security role configuration

@@ -11,7 +11,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getSegment, updateSegment, deleteSegment } from "../handler";
+import { getSegment, updateSegment, deleteSegment } from "@/app/(main)/api/v1/segments/handler";
 
 /**
  * GET /api/v1/segments/[segmentId]

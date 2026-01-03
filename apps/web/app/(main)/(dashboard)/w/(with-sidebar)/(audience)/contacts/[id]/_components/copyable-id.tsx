@@ -9,7 +9,7 @@ interface CopyableIdProps {
 export function CopyableId({ id }: CopyableIdProps) {
   const { success: toast } = useToast();
 
-  async function handleCopy() {
+  async function onCopy() {
     try {
       await navigator.clipboard.writeText(id);
       toast("ID copied to clipboard");
@@ -20,7 +20,7 @@ export function CopyableId({ id }: CopyableIdProps) {
 
   return (
     <button
-      onClick={handleCopy}
+      onClick={onCopy}
       className="text-sm text-kb-content-primary font-mono hover:text-kb-content-secondary transition-colors cursor-pointer text-left"
       title="Click to copy"
       type="button"

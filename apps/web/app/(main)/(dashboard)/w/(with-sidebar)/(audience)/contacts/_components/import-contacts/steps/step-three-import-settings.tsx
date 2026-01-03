@@ -10,8 +10,8 @@ import { useRef, useState, type FormEvent } from "react";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 import type { UpdateContactImportRequest } from "@/app/(main)/api/internal/v1/contact-imports/schema";
-import * as CheckboxField from "../components/checkbox-field";
-import { useImportContactsStore } from "../store/import-contacts-store";
+import * as CheckboxField from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/components/checkbox-field";
+import { useImportContactsStore } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/store/import-contacts-store";
 import { CreateTopicModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/topics/_components/create-topic-modal";
 
 export function StepThreeImportSettings() {
@@ -124,9 +124,9 @@ export function StepThreeImportSettings() {
                 <button
                   type="button"
                   className="flex items-center gap-2 w-full px-2 py-1.5 text-sm text-kb-content-secondary hover:bg-kb-bg-secondary rounded-md transition-colors"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
                     createTopicModal.onOpenChange?.(true);
                   }}
                 >

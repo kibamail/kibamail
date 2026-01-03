@@ -11,7 +11,7 @@
 - name: Verify Redis is running after role execution
   ansible.builtin.wait_for:
     port: "{{ redis_port }}"
-    host: "{{ redis_bind_interface }}"
+    host: "127.0.0.1"
     delay: 2
     timeout: 30
 

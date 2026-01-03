@@ -1,8 +1,11 @@
 "use client";
 
-import { useCallback } from "react";
+import { useState } from "react";
 import type { JSONContent } from "@tiptap/react";
-import { WarningTriangle } from "iconoir-react";
+import { WarningTriangle, EditPencil } from "iconoir-react";
+import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { useToast } from "@kibamail/owly/toast";
 import { useFormBuilder } from "./form-builder-context";
 import type { FormSuccessAction } from "./types";
 import { ContentFieldEditor } from "./content-field-editor";
@@ -13,6 +16,8 @@ import {
   Alert,
   TextField,
 } from "@kibamail/owly";
+import { Button } from "@kibamail/owly/button";
+import { internalApi } from "@/lib/api/client";
 
 function SettingsSection({
   title,
@@ -104,69 +109,56 @@ function SuccessActionSettings() {
   const { schema, updateSettings } = useFormBuilder();
   const successAction = schema.settings.successAction ?? { type: "message", richContent: DEFAULT_RICH_CONTENT };
 
-  const handleTypeChange = useCallback(
-    (type: "message" | "redirect") => {
-      if (type === "message") {
-        // Preserve existing rich content, or use default
-        const existingRichContent = successAction.type === "message" ? successAction.richContent : undefined;
-        updateSettings({
-          successAction: {
-            type: "message",
-            richContent: existingRichContent ?? DEFAULT_RICH_CONTENT,
-          },
-        });
-      } else {
-        updateSettings({
-          successAction: {
-            type: "redirect",
-            url: successAction.type === "redirect" ? successAction.url : "https://",
-            openInNewTab: successAction.type === "redirect" ? successAction.openInNewTab : false,
-          },
-        });
-      }
-    },
-    [successAction, updateSettings]
-  );
-
-  const handleMessageChange = useCallback(
-    (richContent: JSONContent) => {
+  function onTypeChange(type: "message" | "redirect") {
+    if (type === "message") {
+      const existingRichContent = successAction.type === "message" ? successAction.richContent : undefined;
       updateSettings({
         successAction: {
           type: "message",
-          richContent: richContent as Record<string, unknown>,
+          richContent: existingRichContent ?? DEFAULT_RICH_CONTENT,
         },
       });
-    },
-    [updateSettings]
-  );
+    } else {
+      updateSettings({
+        successAction: {
+          type: "redirect",
+          url: successAction.type === "redirect" ? successAction.url : "https://",
+          openInNewTab: successAction.type === "redirect" ? successAction.openInNewTab : false,
+        },
+      });
+    }
+  }
 
-  const handleRedirectUrlChange = useCallback(
-    (url: string) => {
-      if (successAction.type === "redirect") {
-        updateSettings({
-          successAction: {
-            ...successAction,
-            url,
-          },
-        });
-      }
-    },
-    [successAction, updateSettings]
-  );
+  function onMessageChange(richContent: JSONContent) {
+    updateSettings({
+      successAction: {
+        type: "message",
+        richContent: richContent as Record<string, unknown>,
+      },
+    });
+  }
 
-  const handleOpenInNewTabChange = useCallback(
-    (checked: boolean) => {
-      if (successAction.type === "redirect") {
-        updateSettings({
-          successAction: {
-            ...successAction,
-            openInNewTab: checked,
-          },
-        });
-      }
-    },
-    [successAction, updateSettings]
-  );
+  function onRedirectUrlChange(url: string) {
+    if (successAction.type === "redirect") {
+      updateSettings({
+        successAction: {
+          ...successAction,
+          url,
+        },
+      });
+    }
+  }
+
+  function onOpenInNewTabChange(checked: boolean) {
+    if (successAction.type === "redirect") {
+      updateSettings({
+        successAction: {
+          ...successAction,
+          openInNewTab: checked,
+        },
+      });
+    }
+  }
 
   return (
     <SettingsSection
@@ -176,7 +168,7 @@ function SuccessActionSettings() {
       <div className="space-y-2">
         <SelectField.Root
           value={successAction.type}
-          onValueChange={(value) => handleTypeChange(value as "message" | "redirect")}
+          onValueChange={(value) => onTypeChange(value as "message" | "redirect")}
         >
           <SelectField.Label>Success Action</SelectField.Label>
           <SelectField.Trigger placeholder="Select action" />
@@ -195,7 +187,7 @@ function SuccessActionSettings() {
         >
           <SuccessMessageEditor
             content={successAction.richContent ?? DEFAULT_RICH_CONTENT}
-            onChange={handleMessageChange}
+            onChange={onMessageChange}
           />
         </SettingsField>
       )}
@@ -206,7 +198,7 @@ function SuccessActionSettings() {
             <TextField.Root
               type="url"
               value={successAction.url}
-              onChange={(e) => handleRedirectUrlChange(e.target.value)}
+              onChange={(event) => onRedirectUrlChange(event.target.value)}
               placeholder="https://example.com/thank-you"
             >
               <TextField.Label>Redirect URL</TextField.Label>
@@ -217,7 +209,7 @@ function SuccessActionSettings() {
           <div className="flex items-center gap-3">
             <Checkbox
               checked={successAction.openInNewTab}
-              onCheckedChange={(checked) => handleOpenInNewTabChange(checked === true)}
+              onCheckedChange={(checked) => onOpenInNewTabChange(checked === true)}
             />
             <span className="text-sm text-kb-content-secondary cursor-pointer">
               Open in new tab
@@ -230,17 +222,46 @@ function SuccessActionSettings() {
 }
 
 function DoubleOptInSettings() {
-  const { schema, updateSettings } = useFormBuilder();
+  const { schema, updateSettings, formId, formName, doubleOptInEmailId, setDoubleOptInEmailId } = useFormBuilder();
+  const router = useRouter();
+  const { success: toast, error: toastError } = useToast();
   const doubleOptIn = schema.settings.doubleOptIn ?? { enabled: true };
+  const [isCreatingEmail, setIsCreatingEmail] = useState(false);
 
-  const handleToggle = useCallback(
-    (enabled: boolean) => {
-      updateSettings({
-        doubleOptIn: { enabled },
+  function onToggle(enabled: boolean) {
+    updateSettings({
+      doubleOptIn: { enabled },
+    });
+  }
+
+  async function onEditEmail() {
+    if (doubleOptInEmailId) {
+      router.push(`/w/forms/${formId}/email/${doubleOptInEmailId}`);
+      return;
+    }
+
+    setIsCreatingEmail(true);
+    try {
+      const email = await internalApi.emails().create({
+        name: `Double Opt-In Email for ${formName}`,
+        subject: "Please confirm your subscription",
+        type: "TRANSACTIONAL",
       });
-    },
-    [updateSettings]
-  );
+
+      await internalApi.forms().update(formId, {
+        doubleOptInEmailId: email.id,
+      });
+
+      setDoubleOptInEmailId(email.id);
+      toast("Confirmation email created");
+
+      router.push(`/w/forms/${formId}/email/${email.id}`);
+    } catch {
+      toastError("Failed to create confirmation email");
+    } finally {
+      setIsCreatingEmail(false);
+    }
+  }
 
   return (
     <SettingsSection
@@ -250,7 +271,7 @@ function DoubleOptInSettings() {
       <div className="space-y-4">
         <Switch.Root
           checked={doubleOptIn.enabled}
-          onCheckedChange={handleToggle}
+          onCheckedChange={onToggle}
         >
           <Switch.Label>Double Opt-in</Switch.Label>
           <Switch.Hint>Require subscribers to confirm their email before being added</Switch.Hint>
@@ -282,11 +303,26 @@ function DoubleOptInSettings() {
         )}
 
         {doubleOptIn.enabled && (
-          <div className="rounded-lg border border-kb-border-primary bg-kb-bg-secondary p-4">
-            <p className="text-sm text-kb-content-secondary">
-              When someone submits this form, they will receive a confirmation email.
-              They must click the confirmation link to be added to your list.
-            </p>
+          <div className="space-y-4">
+            <div className="rounded-lg border border-kb-border-primary bg-kb-bg-secondary p-4">
+              <p className="text-sm text-kb-content-secondary">
+                When someone submits this form, they will receive a confirmation email.
+                They must click the confirmation link to be added to your list.
+              </p>
+            </div>
+
+            <Button
+              variant="secondary"
+              onClick={onEditEmail}
+              disabled={isCreatingEmail}
+            >
+              <EditPencil className="w-4 h-4" />
+              {isCreatingEmail
+                ? "Creating..."
+                : doubleOptInEmailId
+                  ? "Edit Confirmation Email"
+                  : "Create Confirmation Email"}
+            </Button>
           </div>
         )}
       </div>

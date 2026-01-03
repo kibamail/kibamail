@@ -1,15 +1,8 @@
-/**
- * Update Organization Logo - Handler
- *
- * Business logic for /api/internal/v1/workspaces/:id/logo endpoint
- */
-
 import { BadRequestError } from "@/lib/api/errors";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
 import { uploadPublicFile } from "@/lib/storage";
 
-// Supported image MIME types
 const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/jpg",
@@ -21,11 +14,6 @@ const ALLOWED_IMAGE_TYPES = [
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-/**
- * PATCH /api/internal/v1/workspaces/:id/logo
- *
- * Upload and update organization logo
- */
 export async function updateOrganizationLogo(
   _session: UserSession,
   workspaceId: string,
@@ -38,7 +26,7 @@ export async function updateOrganizationLogo(
     throw new BadRequestError("No logo file provided");
   }
 
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type as any)) {
+  if (!ALLOWED_IMAGE_TYPES.some((type) => type === file.type)) {
     throw new BadRequestError(
       `Invalid file type. Allowed types: ${ALLOWED_IMAGE_TYPES.join(", ")}`,
     );

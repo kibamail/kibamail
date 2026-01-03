@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Plus } from "iconoir-react";
 import type { JSONContent } from "@tiptap/react";
 import {
@@ -26,10 +26,6 @@ import { type FormField, DEFAULT_LIGHT_THEME } from "./types";
 import { CanvasFieldRenderer } from "./canvas-field-renderer";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-// =============================================================================
-// SORTABLE FIELD
-// =============================================================================
 
 function SortableField({
   field,
@@ -76,11 +72,11 @@ function SortableField({
   );
 }
 
-// =============================================================================
-// FORM CANVAS
-// =============================================================================
+interface FormCanvasProps {
+  readOnly?: boolean;
+}
 
-export function FormCanvas() {
+export function FormCanvas({ readOnly = false }: FormCanvasProps) {
   const {
     schema,
     selectedPageIndex,
@@ -107,12 +103,10 @@ export function FormCanvas() {
     })
   );
 
-  // Get the first section (we're using a single section for signup forms)
   const section = currentPage?.sections[0];
   const fields = section?.fields || [];
   const fieldIds = fields.map((f) => f.id);
 
-  // Get theme styles
   const theme = schema.settings.theme;
   const bodyBackground = (theme.body?.background as string) ?? "#f5f7fa";
   const containerBackground =
@@ -124,7 +118,6 @@ export function FormCanvas() {
   const fontFamily = theme.font?.family ?? "Inter";
   const fontUrl = theme.font?.url;
 
-  // Convert theme colors to CSS variables (with light theme defaults)
   const colors = theme.colors ?? DEFAULT_LIGHT_THEME.colors;
   const themeStyleVars = {
     "--radius": theme.radius ?? DEFAULT_LIGHT_THEME.radius,
@@ -149,7 +142,6 @@ export function FormCanvas() {
     "--ring": colors.ring,
   } as React.CSSProperties;
 
-  // Helper to parse shorthand padding into individual values
   function parsePadding(
     obj: Record<string, unknown> | undefined,
     defaultValue: string
@@ -163,7 +155,6 @@ export function FormCanvas() {
       };
     }
 
-    // Check for individual padding properties first
     const hasIndividual =
       obj.paddingTop ||
       obj.paddingRight ||
@@ -178,7 +169,6 @@ export function FormCanvas() {
       };
     }
 
-    // Fall back to shorthand padding
     const shorthand = obj.padding as string;
     if (shorthand) {
       return {
@@ -197,18 +187,17 @@ export function FormCanvas() {
     };
   }
 
-  // Get padding values
   const bodyPadding = parsePadding(theme.body, "16px");
   const containerPadding = parsePadding(theme.container, "32px");
 
   const activeField = activeId ? fields.find((f) => f.id === activeId) : null;
 
-  function handleDragStart(event: DragStartEvent) {
-    setActiveId(event.active.id as string);
+  function onDragStart(dragEvent: DragStartEvent) {
+    setActiveId(dragEvent.active.id as string);
   }
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+  function onDragEnd(dragEvent: DragEndEvent) {
+    const { active, over } = dragEvent;
 
     setActiveId(null);
 
@@ -229,16 +218,12 @@ export function FormCanvas() {
     }
   }
 
-  // Handler for content field rich text changes
-  const handleContentChange = useCallback(
-    (fieldId: string, content: JSONContent) => {
-      if (!section) return;
-      updateField(selectedPageIndex, section.id, fieldId, {
-        richContent: content as Record<string, unknown>,
-      });
-    },
-    [selectedPageIndex, section, updateField]
-  );
+  function onContentChange(fieldId: string, content: JSONContent) {
+    if (!section) return;
+    updateField(selectedPageIndex, section.id, fieldId, {
+      richContent: content as Record<string, unknown>,
+    });
+  }
 
   return (
     <>
@@ -286,30 +271,32 @@ export function FormCanvas() {
               <input
                 type="text"
                 value={schema.title}
-                onChange={(e) => updateFormMeta({ title: e.target.value })}
+                onChange={(event) => updateFormMeta({ title: event.target.value })}
                 placeholder="Form Title"
                 className="w-full text-2xl font-bold bg-transparent border-none focus:outline-none focus:ring-0"
                 style={{ color: "inherit" }}
+                readOnly={readOnly}
               />
               <input
                 type="text"
                 value={schema.description ?? ""}
-                onChange={(e) =>
-                  updateFormMeta({ description: e.target.value || undefined })
+                onChange={(event) =>
+                  updateFormMeta({ description: event.target.value || undefined })
                 }
                 placeholder="Add a description..."
                 className="w-full text-sm bg-transparent border-none focus:outline-none focus:ring-0 opacity-70 mt-1"
                 style={{ color: "inherit" }}
+                readOnly={readOnly}
               />
             </div>
 
             {/* Fields with DnD */}
-            {section && (
+            {section && !readOnly && (
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
+                onDragStart={onDragStart}
+                onDragEnd={onDragEnd}
               >
                 <SortableContext
                   items={fieldIds}
@@ -345,7 +332,7 @@ export function FormCanvas() {
                           onContentChange={
                             field.type === "content"
                               ? (content) =>
-                                  handleContentChange(field.id, content)
+                                  onContentChange(field.id, content)
                               : undefined
                           }
                         />
@@ -370,6 +357,23 @@ export function FormCanvas() {
               </DndContext>
             )}
 
+            {/* Read-only fields view (no DnD, no interactions) */}
+            {section && readOnly && fields.length > 0 && (
+              <div className="space-y-3">
+                {fields.map((field) => (
+                  <CanvasFieldRenderer
+                    key={field.id}
+                    field={field}
+                    isSelected={false}
+                    onClick={() => {}}
+                    onRemove={() => {}}
+                    onDuplicate={() => {}}
+                    readOnly
+                  />
+                ))}
+              </div>
+            )}
+
             {/* Submit Button */}
             <div
               className={cn(
@@ -384,21 +388,24 @@ export function FormCanvas() {
               )}
             >
               <div
-                onClick={() => selectField(SUBMIT_BUTTON_ID)}
+                onClick={readOnly ? undefined : () => selectField(SUBMIT_BUTTON_ID)}
                 className={cn(
-                  "group relative cursor-pointer transition-all",
+                  "group relative transition-all",
+                  !readOnly && "cursor-pointer",
                   schema.settings.submitButton.fullWidth && "w-full"
                 )}
               >
                 {/* Selection indicator - left bar */}
-                <div
-                  className={cn(
-                    "absolute -left-3 top-0 bottom-0 w-0.5 rounded-full transition-colors",
-                    selectedFieldId === SUBMIT_BUTTON_ID
-                      ? "bg-kb-border-info"
-                      : "bg-transparent group-hover:bg-kb-border-info"
-                  )}
-                />
+                {!readOnly && (
+                  <div
+                    className={cn(
+                      "absolute -left-3 top-0 bottom-0 w-0.5 rounded-full transition-colors",
+                      selectedFieldId === SUBMIT_BUTTON_ID
+                        ? "bg-kb-border-info"
+                        : "bg-transparent group-hover:bg-kb-border-info"
+                    )}
+                  />
+                )}
                 <Button
                   type="button"
                   variant={schema.settings.submitButton.variant}

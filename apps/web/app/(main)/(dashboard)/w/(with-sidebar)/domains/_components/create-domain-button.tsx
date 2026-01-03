@@ -10,9 +10,9 @@ export function CreateDomainButton() {
   const router = useRouter();
   const toggleState = useToggleState();
 
-  const onSuccess = (domain: CreatedDomain) => {
+  function onSuccess(domain: CreatedDomain) {
     router.push(`/w/domains/${domain.id}`);
-  };
+  }
 
   return (
     <>

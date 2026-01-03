@@ -14,40 +14,44 @@ import { decrypt } from "@/lib/sending-domains/dkim";
 
 /**
  * Response type for sending domain data
+ * Uses snake_case to match email-agent Go struct expectations
  */
 interface SendingDomainResponse {
   id: string;
   name: string;
-  dkimSubDomain: string;
-  dkimPublicKey: string;
-  dkimPrivateKey: string; // Decrypted
-  dkimVerifiedAt: string | null;
-  returnPathSubDomain: string;
-  returnPathDomainVerifiedAt: string | null;
-  trackingSubDomain: string;
-  trackingDomainVerifiedAt: string | null;
-  dmarcReportingCode: string;
-  dmarcVerifiedAt: string | null;
-  openTrackingEnabled: boolean;
-  clickTrackingEnabled: boolean;
+  dkim_sub_domain: string;
+  dkim_public_key: string;
+  dkim_private_key: string; // Decrypted
+  dkim_verified_at: string | null;
+  return_path_sub_domain: string;
+  return_path_domain: string; // Full return path domain (e.g., "kb.example.com")
+  return_path_domain_verified_at: string | null;
+  tracking_sub_domain: string;
+  tracking_domain_verified_at: string | null;
+  dmarc_reporting_code: string;
+  dmarc_verified_at: string | null;
+  open_tracking_enabled: boolean;
+  click_tracking_enabled: boolean;
 }
 
 /**
  * Response type for API key data
+ * Uses snake_case to match email-agent Go struct expectations
  */
 interface ApiKeyResponse {
   id: string;
-  keyHash: string;
+  key_hash: string;
   scopes: string[];
 }
 
 /**
  * Response type for the tenant endpoint
+ * Uses snake_case to match email-agent Go struct expectations
  */
 interface TenantResponse {
   id: string;
-  sendingDomains: SendingDomainResponse[];
-  apiKeys: ApiKeyResponse[];
+  sending_domains: SendingDomainResponse[];
+  api_keys: ApiKeyResponse[];
 }
 
 /**
@@ -63,7 +67,6 @@ interface TenantResponse {
  * - Validate listener domains for bounces
  */
 export async function getTenant(tenantId: string) {
-  // Fetch tenant's sending domains
   const sendingDomains = await prisma.sendingDomain.findMany({
     where: { workspaceId: tenantId },
     select: {
@@ -84,7 +87,6 @@ export async function getTenant(tenantId: string) {
     },
   });
 
-  // Fetch tenant's API keys
   const apiKeys = await prisma.apiKey.findMany({
     where: { workspaceId: tenantId },
     select: {
@@ -94,67 +96,56 @@ export async function getTenant(tenantId: string) {
     },
   });
 
-  // If no domains and no API keys, tenant doesn't exist or has no data
-  if (sendingDomains.length === 0 && apiKeys.length === 0) {
-    // Check if workspace exists by looking for any data
-    const hasAnyData = await prisma.sendingDomain.findFirst({
-      where: { workspaceId: tenantId },
-      select: { id: true },
-    });
-
-    // We'll return empty arrays if tenant has no data yet
-    // This is valid - tenant might be newly created
-  }
-
-  // Decrypt DKIM private keys and format response
   const formattedDomains: SendingDomainResponse[] = sendingDomains.map(
     (domain) => {
       let decryptedPrivateKey = "";
 
-      // Only decrypt if we have an encrypted key
       if (domain.dkimPrivateKey) {
         try {
           decryptedPrivateKey = decrypt(domain.dkimPrivateKey, env.APP_KEY);
         } catch {
-          // Log error but don't fail - domain might have invalid key
           console.error(
             `Failed to decrypt DKIM key for domain ${domain.name}`,
           );
         }
       }
 
+      const returnPathDomain = domain.returnPathSubDomain
+        ? `${domain.returnPathSubDomain}.${domain.name}`
+        : "";
+
       return {
         id: domain.id,
         name: domain.name,
-        dkimSubDomain: domain.dkimSubDomain,
-        dkimPublicKey: domain.dkimPublicKey,
-        dkimPrivateKey: decryptedPrivateKey,
-        dkimVerifiedAt: domain.dkimVerifiedAt?.toISOString() ?? null,
-        returnPathSubDomain: domain.returnPathSubDomain,
-        returnPathDomainVerifiedAt:
+        dkim_sub_domain: domain.dkimSubDomain,
+        dkim_public_key: domain.dkimPublicKey,
+        dkim_private_key: decryptedPrivateKey,
+        dkim_verified_at: domain.dkimVerifiedAt?.toISOString() ?? null,
+        return_path_sub_domain: domain.returnPathSubDomain,
+        return_path_domain: returnPathDomain,
+        return_path_domain_verified_at:
           domain.returnPathDomainVerifiedAt?.toISOString() ?? null,
-        trackingSubDomain: domain.trackingSubDomain,
-        trackingDomainVerifiedAt:
+        tracking_sub_domain: domain.trackingSubDomain,
+        tracking_domain_verified_at:
           domain.trackingDomainVerifiedAt?.toISOString() ?? null,
-        dmarcReportingCode: domain.dmarcReportingCode,
-        dmarcVerifiedAt: domain.dmarcVerifiedAt?.toISOString() ?? null,
-        openTrackingEnabled: domain.openTrackingEnabled,
-        clickTrackingEnabled: domain.clickTrackingEnabled,
+        dmarc_reporting_code: domain.dmarcReportingCode,
+        dmarc_verified_at: domain.dmarcVerifiedAt?.toISOString() ?? null,
+        open_tracking_enabled: domain.openTrackingEnabled,
+        click_tracking_enabled: domain.clickTrackingEnabled,
       };
     },
   );
 
-  // Format API keys response
   const formattedApiKeys: ApiKeyResponse[] = apiKeys.map((key) => ({
     id: key.id,
-    keyHash: key.keyHash,
+    key_hash: key.keyHash,
     scopes: Array.isArray(key.scopes) ? (key.scopes as string[]) : [],
   }));
 
   const response: TenantResponse = {
     id: tenantId,
-    sendingDomains: formattedDomains,
-    apiKeys: formattedApiKeys,
+    sending_domains: formattedDomains,
+    api_keys: formattedApiKeys,
   };
 
   return responseOk(response, "tenant");
@@ -165,6 +156,9 @@ export async function getTenant(tenantId: string) {
  *
  * Find tenant by sending domain name.
  * Used by email-agent to look up DKIM keys by domain.
+ *
+ * Returns same structure as getTenant() for compatibility with email-agent's
+ * ControlPlaneTenant Go struct.
  */
 export async function getTenantByDomain(domainName: string) {
   const sendingDomain = await prisma.sendingDomain.findFirst({
@@ -195,7 +189,6 @@ export async function getTenantByDomain(domainName: string) {
     );
   }
 
-  // Decrypt DKIM private key
   let decryptedPrivateKey = "";
   if (sendingDomain.dkimPrivateKey) {
     try {
@@ -207,29 +200,37 @@ export async function getTenantByDomain(domainName: string) {
     }
   }
 
-  const response = {
-    workspaceId: sendingDomain.workspaceId,
-    domain: {
-      id: sendingDomain.id,
-      name: sendingDomain.name,
-      dkimSubDomain: sendingDomain.dkimSubDomain,
-      dkimPublicKey: sendingDomain.dkimPublicKey,
-      dkimPrivateKey: decryptedPrivateKey,
-      dkimVerifiedAt: sendingDomain.dkimVerifiedAt?.toISOString() ?? null,
-      returnPathSubDomain: sendingDomain.returnPathSubDomain,
-      returnPathDomainVerifiedAt:
-        sendingDomain.returnPathDomainVerifiedAt?.toISOString() ?? null,
-      trackingSubDomain: sendingDomain.trackingSubDomain,
-      trackingDomainVerifiedAt:
-        sendingDomain.trackingDomainVerifiedAt?.toISOString() ?? null,
-      dmarcReportingCode: sendingDomain.dmarcReportingCode,
-      dmarcVerifiedAt: sendingDomain.dmarcVerifiedAt?.toISOString() ?? null,
-      openTrackingEnabled: sendingDomain.openTrackingEnabled,
-      clickTrackingEnabled: sendingDomain.clickTrackingEnabled,
-    },
+  const returnPathDomain = sendingDomain.returnPathSubDomain
+    ? `${sendingDomain.returnPathSubDomain}.${sendingDomain.name}`
+    : "";
+
+  const formattedDomain: SendingDomainResponse = {
+    id: sendingDomain.id,
+    name: sendingDomain.name,
+    dkim_sub_domain: sendingDomain.dkimSubDomain,
+    dkim_public_key: sendingDomain.dkimPublicKey,
+    dkim_private_key: decryptedPrivateKey,
+    dkim_verified_at: sendingDomain.dkimVerifiedAt?.toISOString() ?? null,
+    return_path_sub_domain: sendingDomain.returnPathSubDomain,
+    return_path_domain: returnPathDomain,
+    return_path_domain_verified_at:
+      sendingDomain.returnPathDomainVerifiedAt?.toISOString() ?? null,
+    tracking_sub_domain: sendingDomain.trackingSubDomain,
+    tracking_domain_verified_at:
+      sendingDomain.trackingDomainVerifiedAt?.toISOString() ?? null,
+    dmarc_reporting_code: sendingDomain.dmarcReportingCode,
+    dmarc_verified_at: sendingDomain.dmarcVerifiedAt?.toISOString() ?? null,
+    open_tracking_enabled: sendingDomain.openTrackingEnabled,
+    click_tracking_enabled: sendingDomain.clickTrackingEnabled,
   };
 
-  return responseOk(response, "tenant_domain");
+  const response: TenantResponse = {
+    id: sendingDomain.workspaceId,
+    sending_domains: [formattedDomain],
+    api_keys: [],
+  };
+
+  return responseOk(response, "tenant");
 }
 
 /**
@@ -240,12 +241,6 @@ export async function getTenantByDomain(domainName: string) {
  * Example: kb.hq.kibamail.xyz -> validates tenant owns hq.kibamail.xyz
  */
 export async function validateBounceDomain(bounceDomain: string) {
-  // Extract tenant domain from bounce domain
-  // Format: kb.<tenant-domain> or <subdomain>.<tenant-domain>
-  // We need to find which sending domain this bounce domain belongs to
-
-  // Try to find a sending domain where the bounce domain matches the pattern
-  // kb.<domain-name> where domain-name is the sending domain
   const sendingDomains = await prisma.sendingDomain.findMany({
     select: {
       workspaceId: true,
@@ -261,8 +256,8 @@ export async function validateBounceDomain(bounceDomain: string) {
       return responseOk(
         {
           valid: true,
-          workspaceId: domain.workspaceId,
-          sendingDomain: domain.name,
+          workspace_id: domain.workspaceId,
+          sending_domain: domain.name,
         },
         "bounce_domain_validation",
       );
@@ -300,9 +295,9 @@ export async function getTenantByDmarcCode(dmarcCode: string) {
 
   return responseOk(
     {
-      workspaceId: sendingDomain.workspaceId,
-      domainId: sendingDomain.id,
-      domainName: sendingDomain.name,
+      workspace_id: sendingDomain.workspaceId,
+      domain_id: sendingDomain.id,
+      domain: sendingDomain.name,
     },
     "dmarc_code_lookup",
   );
@@ -333,7 +328,6 @@ export async function validateApiKey(keyHash: string, requiredScopes?: string[])
 
   const scopes = Array.isArray(apiKey.scopes) ? (apiKey.scopes as string[]) : [];
 
-  // Check required scopes if specified
   if (requiredScopes && requiredScopes.length > 0) {
     const hasAllScopes = requiredScopes.every((scope) => scopes.includes(scope));
     if (!hasAllScopes) {
@@ -341,27 +335,24 @@ export async function validateApiKey(keyHash: string, requiredScopes?: string[])
         {
           valid: false,
           reason: "insufficient_scopes",
-          workspaceId: apiKey.workspaceId,
+          workspace_id: apiKey.workspaceId,
         },
         "api_key_validation",
       );
     }
   }
 
-  // Update lastUsedAt (fire and forget)
   prisma.apiKey
     .update({
       where: { id: apiKey.id },
       data: { lastUsedAt: new Date() },
     })
-    .catch(() => {
-      // Ignore errors - this is non-critical
-    });
+    .catch(() => {});
 
   return responseOk(
     {
       valid: true,
-      workspaceId: apiKey.workspaceId,
+      workspace_id: apiKey.workspaceId,
       scopes,
     },
     "api_key_validation",

@@ -25,12 +25,12 @@ import {
 import { useRef, useState } from "react";
 import { internalApi } from "@/lib/api/client";
 import { useToggleState } from "@/hooks/utils/useToggleState";
-import { CreateContactPropertyModal } from "../../create-contact-property-modal";
+import { CreateContactPropertyModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/create-contact-property-modal";
 import {
   useImportContactsStore,
   type ContactProperties,
   type PropertyType,
-} from "../store/import-contacts-store";
+} from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/store/import-contacts-store";
 
 type SelectFieldPropertyState = Record<
   string,

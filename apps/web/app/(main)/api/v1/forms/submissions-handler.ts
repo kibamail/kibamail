@@ -15,7 +15,9 @@ import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import {
   handleSignUpSubmission,
   handleSurveySubmission,
+  type DoubleOptInConfig,
 } from "@/lib/forms/submission-handlers";
+import type { FormSettings } from "@/lib/form-builder/schema";
 
 /**
  * POST /api/v1/forms/[formId]/submissions
@@ -33,12 +35,11 @@ export async function createFormSubmission(
   formId: string,
   request: NextRequest
 ) {
-  // Fetch the form with its published version (filtered by workspace for external API)
   const form = await prisma.form.findFirst({
     where: {
       id: formId,
       workspaceId,
-      parentId: null, // Must be a root form
+      parentId: null,
     },
     include: {
       publishedVersion: true,
@@ -77,11 +78,24 @@ export async function createFormSubmission(
   const referrerUrl = request.headers.get("referer") || null;
 
   if (publishedForm.type === "SIGN_UP") {
-    return handleSignUpSubmission(workspaceId, form.id, rawData, fieldMapping, {
-      ipAddress,
-      userAgent,
-      referrerUrl,
-    });
+    const formSettings = publishedForm.settings as FormSettings | null;
+    const doubleOptIn: DoubleOptInConfig = {
+      enabled: formSettings?.doubleOptIn?.enabled ?? false,
+      emailId: form.doubleOptInEmailId,
+    };
+
+    return handleSignUpSubmission(
+      workspaceId,
+      form.id,
+      rawData,
+      fieldMapping,
+      {
+        ipAddress,
+        userAgent,
+        referrerUrl,
+      },
+      doubleOptIn
+    );
   }
 
   return handleSurveySubmission(workspaceId, form.id, rawData, fieldMapping, {

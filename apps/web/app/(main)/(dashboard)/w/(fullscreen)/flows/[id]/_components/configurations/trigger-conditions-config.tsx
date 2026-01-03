@@ -7,12 +7,12 @@ import { Text } from "@kibamail/owly";
 import { Filter } from "iconoir-react";
 import { useCallback, useMemo } from "react";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { useIfElseFieldDefinitions } from "../../_hooks/use-if-else-field-definitions";
+import { useIfElseFieldDefinitions } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_hooks/use-if-else-field-definitions";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import {
   transformFiltersToConditions,
   transformConditionsToFilters,
-} from "../../_utils/conditions-transformer";
+} from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_utils/conditions-transformer";
 
 export function TriggerConditionsConfig() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
@@ -23,16 +23,14 @@ export function TriggerConditionsConfig() {
     conditions?: ConditionInput;
   };
 
-  // Transform backend conditions to FilterBuilder format for display
   const currentFilters = useMemo(() => {
     return transformConditionsToFilters(nodeData?.conditions ?? null);
   }, [nodeData?.conditions]);
 
-  const handleConditionsChange = useCallback(
+  const onConditionsChange = useCallback(
     (filters: FilterBuilderFilter[]) => {
       if (!selectedNodeId) return;
 
-      // Transform FilterBuilder format to backend conditions format
       const conditions = transformFiltersToConditions(filters);
 
       const updatedNodes = nodes.map((node) =>
@@ -65,7 +63,7 @@ export function TriggerConditionsConfig() {
         <FilterBuilder.Root
           fields={fieldDefinitions}
           filters={currentFilters}
-          onChange={handleConditionsChange}
+          onChange={onConditionsChange}
           maxFilters={10}
         >
           <FilterBuilder.Trigger asChild>

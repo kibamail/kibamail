@@ -15,7 +15,7 @@ import {
   getAutomation,
   updateAutomation,
   deleteAutomation,
-} from "../handler";
+} from "@/app/(main)/api/v1/automations/handler";
 
 /**
  * GET /api/v1/automations/[automationId]

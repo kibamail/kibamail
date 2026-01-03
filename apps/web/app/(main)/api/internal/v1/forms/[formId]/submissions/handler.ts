@@ -1,15 +1,3 @@
-/**
- * Public Form Submissions Handler (Internal API)
- *
- * Business logic for public form submission operations.
- * Similar to the external API but designed for public form pages.
- *
- * Key differences from external API:
- * - No authentication required
- * - WorkspaceId is derived from the form record
- * - Form lookup doesn't filter by workspace
- */
-
 import type { NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { NotFoundError, BadRequestError } from "@/lib/api/errors";
@@ -18,27 +6,18 @@ import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import {
   handleSignUpSubmission,
   handleSurveySubmission,
+  type DoubleOptInConfig,
 } from "@/lib/forms/submission-handlers";
+import type { FormSettings } from "@/lib/form-builder/schema";
 
-/**
- * POST /api/internal/v1/forms/[formId]/submissions
- *
- * Submit data to a public form.
- * - For SIGN_UP forms: Creates or updates a contact (requires email field)
- * - For SURVEY forms: Creates a FormSubmission record
- *
- * @param formId - Form ID from URL parameter
- * @param request - Next.js request object
- */
 export async function createPublicFormSubmission(
   formId: string,
   request: NextRequest
 ) {
-  // Fetch the form without workspace filtering (public access)
   const form = await prisma.form.findFirst({
     where: {
       id: formId,
-      parentId: null, // Must be a root form
+      parentId: null,
       deletedAt: null,
     },
     include: {
@@ -68,7 +47,6 @@ export async function createPublicFormSubmission(
     );
   }
 
-  // Get workspaceId from the form (since this is a public endpoint)
   const workspaceId = form.workspaceId;
 
   const rawData = await request.json();
@@ -81,11 +59,24 @@ export async function createPublicFormSubmission(
   const referrerUrl = request.headers.get("referer") || null;
 
   if (publishedForm.type === "SIGN_UP") {
-    return handleSignUpSubmission(workspaceId, form.id, rawData, fieldMapping, {
-      ipAddress,
-      userAgent,
-      referrerUrl,
-    });
+    const formSettings = publishedForm.settings as FormSettings | null;
+    const doubleOptIn: DoubleOptInConfig = {
+      enabled: formSettings?.doubleOptIn?.enabled ?? false,
+      emailId: form.doubleOptInEmailId,
+    };
+
+    return handleSignUpSubmission(
+      workspaceId,
+      form.id,
+      rawData,
+      fieldMapping,
+      {
+        ipAddress,
+        userAgent,
+        referrerUrl,
+      },
+      doubleOptIn
+    );
   }
 
   return handleSurveySubmission(workspaceId, form.id, rawData, fieldMapping, {

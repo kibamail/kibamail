@@ -1,13 +1,3 @@
-/**
- * Integration tests for Form Field Mapping
- *
- * Tests the field mapping generation during form publishing:
- * - Field extraction from form builder schemas
- * - Slot assignment (string vs numeric)
- * - Slot preservation across versions
- * - Mapping inheritance from parent forms
- */
-
 import { POST as PUBLISH_FORM } from "@/app/(main)/api/v1/forms/[formId]/publish/route";
 import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { POST as CREATE_FORM } from "@/app/(main)/api/v1/forms/route";
@@ -444,18 +434,24 @@ describe("Field Mapping Integration - Publishing", () => {
       type: "string",
       fieldType: "email",
       label: "Email Address",
+      contactPropertyId: "email",
+      contactPropertyType: "standard",
     });
     expect(mapping.name).toEqual({
       slot: "fieldString1",
       type: "string",
       fieldType: "text",
       label: "Full Name",
+      contactPropertyId: "firstName",
+      contactPropertyType: "standard",
     });
     expect(mapping.rating).toEqual({
       slot: "fieldNum0",
       type: "number",
       fieldType: "rating",
       label: "How would you rate us?",
+      contactPropertyId: "rating",
+      contactPropertyType: "custom",
     });
   });
 
@@ -498,6 +494,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "name",
                   label: "Full Name",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "firstName",
+                    name: "First name",
+                  },
                 },
                 {
                   id: "field_phone",
@@ -505,6 +506,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "phone",
                   label: "Phone",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "phone",
+                    name: "Phone",
+                  },
                 },
               ],
               collapsible: false,
@@ -570,6 +576,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "rating1",
                   label: "Rating 1",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "custom",
+                    id: "rating1",
+                    name: "Rating 1",
+                  },
                 },
               ],
               collapsible: false,
@@ -620,6 +631,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "rating2",
                   label: "Rating 2",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "custom",
+                    id: "rating2",
+                    name: "Rating 2",
+                  },
                 },
               ],
               collapsible: false,
@@ -671,6 +687,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "firstName",
                   label: "First Name",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "firstName",
+                    name: "First name",
+                  },
                 },
                 {
                   id: "field_lastName",
@@ -678,6 +699,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "lastName",
                   label: "Last Name",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "lastName",
+                    name: "Last name",
+                  },
                 },
               ],
               collapsible: false,
@@ -692,6 +718,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "email",
                   label: "Email",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "email",
+                    name: "Email address",
+                  },
                 },
                 {
                   id: "field_phone",
@@ -699,6 +730,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "phone",
                   label: "Phone",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "phone",
+                    name: "Phone",
+                  },
                 },
               ],
               collapsible: false,
@@ -765,7 +801,7 @@ describe("Field Mapping Integration - Publishing", () => {
 
     const error = await publishResponse.json();
     expect(error.error.code).toBe("FORM_MISSING_EMAIL_FIELD");
-    expect(error.error.message).toContain("email");
+    expect(error.error.message).toContain("Email address");
 
     // Verify form was not published
     const unpublishedForm = await prisma.form.findUnique({ where: { id: form.id } });
@@ -791,6 +827,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "userEmail", // Wrong name, should be "email"
                   label: "Email Address",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "custom",
+                    id: "userEmail", // Not mapped to standard "email" property
+                    name: "User Email",
+                  },
                 },
                 {
                   id: "field_name",
@@ -798,6 +839,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "name",
                   label: "Name",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "standard",
+                    id: "firstName",
+                    name: "First name",
+                  },
                 },
               ],
               collapsible: false,
@@ -909,6 +955,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "field1",
                   label: "Field 1",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "custom",
+                    id: "field1",
+                    name: "Field 1",
+                  },
                 },
               ],
               collapsible: false,
@@ -950,6 +1001,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "field2",
                   label: "Field 2",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "custom",
+                    id: "field2",
+                    name: "Field 2",
+                  },
                 },
               ],
               collapsible: false,
@@ -993,6 +1049,11 @@ describe("Field Mapping Integration - Publishing", () => {
                   name: "field3",
                   label: "Field 3",
                   appearance: DEFAULT_FIELD_APPEARANCE,
+                  contactProperty: {
+                    type: "custom",
+                    id: "field3",
+                    name: "Field 3",
+                  },
                 },
               ],
               collapsible: false,

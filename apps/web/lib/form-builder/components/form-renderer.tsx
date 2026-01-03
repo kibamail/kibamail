@@ -40,12 +40,8 @@ import type {
   FormSection,
   FormSubmissionData,
   FormTheme,
-} from "../schema";
-import { ContentBlockRenderer } from "./content-block-renderer";
-
-// =============================================================================
-// THEME UTILITIES
-// =============================================================================
+} from "@/lib/form-builder/schema";
+import { ContentBlockRenderer } from "@/lib/form-builder/components/content-block-renderer";
 
 function themeToStyleVars(theme: FormTheme): React.CSSProperties {
   const { colors, radius, font } = theme;
@@ -73,19 +69,12 @@ function themeToStyleVars(theme: FormTheme): React.CSSProperties {
   } as React.CSSProperties;
 }
 
-// =============================================================================
-// FORM RENDERER PROPS
-// =============================================================================
-
 interface FormRendererProps {
   schema: FormBuilderSchema;
-  onSubmit?: (data: FormSubmissionData) => void;
+  /** Called when the form is submitted. Return true for success, false for failure. */
+  onSubmit?: (data: FormSubmissionData) => Promise<boolean> | boolean | void;
   className?: string;
 }
-
-// =============================================================================
-// FIELD WIDTH CLASSES
-// =============================================================================
 
 const fieldWidthClasses = {
   full: "w-full",
@@ -94,7 +83,6 @@ const fieldWidthClasses = {
   quarter: "w-full sm:w-[calc(25%-0.75rem)]",
 };
 
-// Field types that auto-advance when page has only one question
 const AUTO_ADVANCE_FIELD_TYPES = [
   "radio",
   "select",
@@ -103,12 +91,10 @@ const AUTO_ADVANCE_FIELD_TYPES = [
   "checkbox",
 ] as const;
 
-// Helper to get all fields from a page (across all sections)
 function getPageFields(page: FormPage): FormFieldType[] {
   return page.sections.flatMap((section) => section.fields);
 }
 
-// Helper to check if a page should auto-advance on field change
 function shouldAutoAdvance(page: FormPage): boolean {
   const fields = getPageFields(page);
   if (fields.length !== 1) return false;
@@ -118,10 +104,6 @@ function shouldAutoAdvance(page: FormPage): boolean {
     field.type as (typeof AUTO_ADVANCE_FIELD_TYPES)[number]
   );
 }
-
-// =============================================================================
-// FIELD RENDERER
-// =============================================================================
 
 interface FieldRendererProps {
   field: FormFieldType;
@@ -135,7 +117,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
   const isRequired = field.validation?.required;
   const isInvalid = !!error;
 
-  // For content type - presentational only, no form input
   if (field.type === "content") {
     return (
       <div className={cn(widthClass)}>
@@ -144,7 +125,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For checkbox type, we use horizontal orientation with label after
   if (field.type === "checkbox") {
     return (
       <div className={cn(widthClass)}>
@@ -167,7 +147,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For checkbox_group type
   if (field.type === "checkbox_group") {
     const checkedValues = (value as string[]) ?? [];
     return (
@@ -206,7 +185,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For radio type
   if (field.type === "radio") {
     return (
       <div className={cn(widthClass)}>
@@ -239,7 +217,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For choice_card type - card-style radio options with title and description
   if (field.type === "choice_card") {
     return (
       <div className={cn(widthClass)}>
@@ -281,7 +258,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For hidden type - no Field wrapper needed
   if (field.type === "hidden") {
     return (
       <input
@@ -293,7 +269,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For rating type - custom rendering
   if (field.type === "rating") {
     const maxRating = field.validation?.rating?.maxRating ?? 5;
     const currentRating = (value as number) ?? 0;
@@ -332,7 +307,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // For slider type
   if (field.type === "slider") {
     const sliderValue = (value as number) ?? field.validation?.slider?.min ?? 0;
     const min = field.validation?.slider?.min ?? 0;
@@ -369,8 +343,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     );
   }
 
-  // Default Field wrapper for all other input types
-  const renderInput = () => {
+  function renderInput() {
     switch (field.type) {
       case "text":
       case "email":
@@ -382,7 +355,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             type={field.type === "phone" ? "tel" : field.type}
             placeholder={field.placeholder}
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             aria-invalid={isInvalid}
           />
         );
@@ -394,7 +367,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             type="number"
             placeholder={field.placeholder}
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             min={field.validation?.number?.min}
             max={field.validation?.number?.max}
             step={field.validation?.number?.step}
@@ -408,7 +381,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             id={field.id}
             placeholder={field.placeholder}
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             aria-invalid={isInvalid}
           />
         );
@@ -468,7 +441,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             id={field.id}
             type="date"
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             aria-invalid={isInvalid}
           />
         );
@@ -479,7 +452,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             id={field.id}
             type="time"
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             aria-invalid={isInvalid}
           />
         );
@@ -490,7 +463,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             id={field.id}
             type="datetime-local"
             value={(value as string) ?? ""}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(event) => onChange(event.target.value)}
             aria-invalid={isInvalid}
           />
         );
@@ -500,10 +473,10 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
           <Input
             id={field.id}
             type="file"
-            onChange={(e) => {
-              const files = e.target.files;
+            onChange={(event) => {
+              const files = event.target.files;
               if (files) {
-                onChange(Array.from(files).map((f) => f.name));
+                onChange(Array.from(files).map((file) => file.name));
               }
             }}
             aria-invalid={isInvalid}
@@ -533,10 +506,6 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
     </div>
   );
 }
-
-// =============================================================================
-// SECTION RENDERER
-// =============================================================================
 
 interface SectionRendererProps {
   section: FormSection;
@@ -613,10 +582,6 @@ function SectionRenderer({
   );
 }
 
-// =============================================================================
-// PAGE RENDERER
-// =============================================================================
-
 interface PageRendererProps {
   page: FormPage;
   formData: FormSubmissionData;
@@ -644,10 +609,6 @@ function PageRenderer({ page, formData, onChange, errors }: PageRendererProps) {
   );
 }
 
-// =============================================================================
-// MAIN FORM RENDERER
-// =============================================================================
-
 export function FormRenderer({
   schema,
   onSubmit,
@@ -655,7 +616,6 @@ export function FormRenderer({
 }: FormRendererProps) {
   const [currentPageIndex, setCurrentPageIndex] = React.useState(0);
   const [formData, setFormData] = React.useState<FormSubmissionData>(() => {
-    // Initialize with default values
     const initialData: FormSubmissionData = {};
     schema.pages.forEach((page) => {
       page.sections.forEach((section) => {
@@ -674,6 +634,7 @@ export function FormRenderer({
   });
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
 
   const totalPages = schema.pages.length;
   const isMultiPage = totalPages > 1;
@@ -682,12 +643,11 @@ export function FormRenderer({
   const isLastPage = currentPageIndex === totalPages - 1;
   const progress = ((currentPageIndex + 1) / totalPages) * 100;
 
-  const handleFieldChange = (fieldName: string, value: unknown) => {
+  function onFieldChange(fieldName: string, value: unknown) {
     setFormData((prev) => ({
       ...prev,
       [fieldName]: value as string | number | boolean | string[] | null,
     }));
-    // Clear error when field changes
     if (errors[fieldName]) {
       setErrors((prev) => {
         const next = { ...prev };
@@ -696,19 +656,14 @@ export function FormRenderer({
       });
     }
 
-    // Auto-advance to next page if:
-    // 1. Current page has only one field
-    // 2. That field is an auto-advance type (radio, select, choice_card, rating, checkbox)
-    // 3. Not on the last page
     if (!isLastPage && shouldAutoAdvance(currentPage)) {
-      // Use setTimeout to allow the UI to update before advancing
       setTimeout(() => {
         setCurrentPageIndex((prev) => prev + 1);
       }, 300);
     }
-  };
+  }
 
-  const validatePage = (page: FormPage): boolean => {
+  function validatePage(page: FormPage): boolean {
     const newErrors: Record<string, string> = {};
 
     page.sections.forEach((section) => {
@@ -733,37 +688,42 @@ export function FormRenderer({
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }
 
-  const handlePrevious = () => {
+  function onPrevious() {
     if (!isFirstPage) {
       setCurrentPageIndex((prev) => prev - 1);
     }
-  };
+  }
 
-  const handleNext = () => {
+  function onNext() {
     if (validatePage(currentPage)) {
       if (!isLastPage) {
         setCurrentPageIndex((prev) => prev + 1);
       }
     }
-  };
+  }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  async function onFormSubmit(event: React.FormEvent) {
+    event.preventDefault();
 
     if (!validatePage(currentPage)) {
       return;
     }
 
     setIsSubmitting(true);
-    onSubmit?.(formData);
-    // Note: In a real implementation, we'd handle the async response
-    // For now, just reset after a delay
-    setTimeout(() => {
+
+    try {
+      const result = await onSubmit?.(formData);
+      if (result !== false) {
+        setIsSubmitted(true);
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
-  };
+    }
+  }
 
   const submitButtonPosition = {
     left: "justify-start",
@@ -776,7 +736,6 @@ export function FormRenderer({
 
   return (
     <>
-      {/* Google Font - React hoists this to <head> */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link
         rel="preconnect"
@@ -785,30 +744,46 @@ export function FormRenderer({
       />
       <link rel="stylesheet" href={theme.font.url} />
 
-      {/* Body - full page wrapper */}
       <div
         style={{
           ...(theme.body as React.CSSProperties),
           fontFamily: `"${theme.font.family}", ui-sans-serif, system-ui, sans-serif`,
         }}
       >
-        {/* Container - card-like wrapper */}
         <div
           style={{
             ...(theme.container as React.CSSProperties),
             margin: "0 auto",
           }}
         >
-          {/* Theme variables wrapper */}
           <div
             className={cn(theme.mode === "dark" && "dark")}
             style={themeStyles}
           >
+            {isSubmitted && schema.settings.successAction.type === "message" ? (
+              <div className={cn("space-y-4", className)}>
+                {schema.settings.successAction.richContent ? (
+                  <ContentBlockRenderer
+                    content={schema.settings.successAction.richContent}
+                  />
+                ) : schema.settings.successAction.message ? (
+                  <p className="text-foreground">
+                    {schema.settings.successAction.message}
+                  </p>
+                ) : (
+                  <div>
+                    <h2 className="text-2xl font-bold mb-2">Thank you!</h2>
+                    <p className="text-muted-foreground">
+                      Your submission has been received.
+                    </p>
+                  </div>
+                )}
+              </div>
+            ) : (
             <form
-              onSubmit={handleSubmit}
+              onSubmit={onFormSubmit}
               className={cn("space-y-6", className)}
             >
-              {/* Form Title */}
               {schema.title && (
                 <div className="mb-6">
                   <h1 className="text-2xl font-bold">{schema.title}</h1>
@@ -820,7 +795,6 @@ export function FormRenderer({
                 </div>
               )}
 
-              {/* Progress Bar */}
               {isMultiPage && schema.settings.showProgressBar && (
                 <div className="mb-6">
                   <div className="flex justify-between text-sm text-muted-foreground mb-2">
@@ -833,15 +807,13 @@ export function FormRenderer({
                 </div>
               )}
 
-              {/* Current Page */}
               <PageRenderer
                 page={currentPage}
                 formData={formData}
-                onChange={handleFieldChange}
+                onChange={onFieldChange}
                 errors={errors}
               />
 
-              {/* Navigation / Submit */}
               {(() => {
                 const showSubmitButton = !isMultiPage || isLastPage;
                 const isFullWidth =
@@ -851,7 +823,7 @@ export function FormRenderer({
                   <Button
                     type="button"
                     variant="link"
-                    onClick={handlePrevious}
+                    onClick={onPrevious}
                     disabled={isFirstPage}
                   >
                     <ChevronLeft className="size-4 mr-1" />
@@ -877,7 +849,7 @@ export function FormRenderer({
                     {!isFullWidth && previousButton}
 
                     {isMultiPage && !isLastPage ? (
-                      <Button type="button" onClick={handleNext}>
+                      <Button type="button" onClick={onNext}>
                         Next
                         <ChevronRight className="size-4 ml-1" />
                       </Button>
@@ -900,6 +872,7 @@ export function FormRenderer({
                 );
               })()}
             </form>
+            )}
           </div>
         </div>
       </div>

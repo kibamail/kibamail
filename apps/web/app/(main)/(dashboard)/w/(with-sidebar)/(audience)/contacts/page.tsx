@@ -13,7 +13,6 @@ import { ContactsTable } from "./_components/contacts-table";
 
 const PAGE_SIZE = 50;
 
-// Default columns to show if no preferences are saved
 const DEFAULT_COLUMNS = [
   "email",
   "firstName",
@@ -44,7 +43,6 @@ async function getContacts(
 ) {
   const where: Prisma.ContactWhereInput = { workspaceId };
 
-  // Add search filter if search query is provided
   if (search) {
     where.OR = [
       { email: { contains: search } },
@@ -53,12 +51,10 @@ async function getContacts(
     ];
   }
 
-  // Add status filter if provided
   if (status) {
     where.status = status;
   }
 
-  // Fetch contact properties for this workspace
   const contactProperties = await prisma.contactProperty.findMany({
     where: { workspaceId },
     select: { name: true, slot: true, type: true },
@@ -91,7 +87,6 @@ async function getContacts(
     items.reverse();
   }
 
-  // Build contact properties for each contact
   const formattedContacts = items.map((contact) => {
     const properties: Record<string, unknown> = {};
     for (const property of contactProperties) {
@@ -100,8 +95,6 @@ async function getContacts(
         properties[property.name] = value;
       }
     }
-
-    console.log(`Contact ${contact.email} properties:`, properties);
 
     return {
       id: contact.id,

@@ -28,31 +28,55 @@ export interface EmailContact {
  */
 export interface EmailBroadcast {
   id: string;
+  workspaceId: string;
   emailContent: {
     subject: string;
+    previewText?: string | null;
     contentJson?: unknown;
     contentHtml?: string | null;
+    contentText?: string | null;
   };
   senderIdentity: SenderIdentity & {
     sendingDomain: SendingDomain;
   };
   sendingDomain: SendingDomain;
+  trackOpens?: boolean | null;
+  trackClicks?: boolean | null;
+  replyToEmail: string;
 }
 
 /**
  * Result of preparing an email for a single recipient
  */
 export interface PreparedEmail {
+  // Identifiers
   emailSendId: string;
   messageId: string;
-  recipientEmail: string;
+  workspaceId: string;
+  broadcastId: string;
   contactId: string;
+
+  // Recipient
+  recipientEmail: string;
+  recipientFirstName: string;
+  recipientLastName: string;
+
+  // Sender
+  senderEmail: string;
+  senderName: string;
+  senderDomain: string;
+  envelopeSender: string;
+  replyTo: string;
+
+  // Content
   subject: string;
+  previewText: string;
   htmlBody: string;
   textBody?: string;
-  from: string;
-  replyTo?: string;
-  envelopeSender: string;
+
+  // Tracking
+  trackOpens: boolean;
+  trackClicks: boolean;
   links: Array<{ original: string; tracking: string }>;
 }
 
@@ -129,10 +153,6 @@ function substituteVariables(
 export async function prepareEmail(
   contact: EmailContact,
   broadcast: EmailBroadcast,
-  options: {
-    clickTracking?: boolean;
-    openTracking?: boolean;
-  } = {}
 ): Promise<PreparedEmail> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
@@ -140,8 +160,12 @@ export async function prepareEmail(
   const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);
   const variables = buildVariables(contact, broadcast);
 
-  let htmlBody: string;
+  // Tracking settings
+  const trackOpens = broadcast.trackOpens ?? true;
+  const trackClicks = broadcast.trackClicks ?? true;
 
+  // Render HTML content
+  let htmlBody: string;
   if (broadcast.emailContent.contentJson) {
     htmlBody = await renderBroadcastToHtml(
       broadcast.emailContent.contentJson as BroadcastDocument,
@@ -153,32 +177,56 @@ export async function prepareEmail(
     throw new Error(`Broadcast ${broadcast.id} has no content`);
   }
 
+  // Apply tracking (link rewriting, open pixel)
   const trackingResult = applyTracking(htmlBody, trackingDomain, emailSendId, {
-    clickTracking: options.clickTracking,
-    openTracking: options.openTracking,
+    clickTracking: trackClicks,
+    openTracking: trackOpens,
   });
 
-  const from = buildFromAddress(
-    broadcast.senderIdentity,
-    broadcast.sendingDomain.name
-  );
+  // Prepare plain text version
+  let textBody: string | undefined;
+  if (broadcast.emailContent.contentText) {
+    textBody = substituteVariables(broadcast.emailContent.contentText, variables);
+  }
 
+  // Build envelope sender for bounce handling
   const envelopeSender = `bounces+${emailSendId}@${broadcast.sendingDomain.returnPathSubDomain}.${domain}`;
 
-  const subject = substituteVariables(
-    broadcast.emailContent.subject,
-    variables
-  );
+  // Substitute variables in subject and preview text
+  const subject = substituteVariables(broadcast.emailContent.subject, variables);
+  const previewText = broadcast.emailContent.previewText
+    ? substituteVariables(broadcast.emailContent.previewText, variables)
+    : "";
 
   return {
+    // Identifiers
     emailSendId,
     messageId,
-    recipientEmail: contact.email,
+    workspaceId: broadcast.workspaceId,
+    broadcastId: broadcast.id,
     contactId: contact.id,
-    subject,
-    htmlBody: trackingResult.html,
-    from,
+
+    // Recipient
+    recipientEmail: contact.email,
+    recipientFirstName: contact.firstName ?? "",
+    recipientLastName: contact.lastName ?? "",
+
+    // Sender
+    senderEmail: broadcast.senderIdentity.email,
+    senderName: broadcast.senderIdentity.name ?? "",
+    senderDomain: domain,
     envelopeSender,
+    replyTo: broadcast.replyToEmail,
+
+    // Content
+    subject,
+    previewText,
+    htmlBody: trackingResult.html,
+    textBody,
+
+    // Tracking
+    trackOpens,
+    trackClicks,
     links: trackingResult.links,
   };
 }
@@ -188,21 +236,16 @@ export async function prepareEmail(
  *
  * @param contacts - Array of recipient contacts
  * @param broadcast - The broadcast data
- * @param options - Tracking options
  * @returns Array of prepared emails
  */
 export async function prepareEmailBatch(
   contacts: EmailContact[],
   broadcast: EmailBroadcast,
-  options: {
-    clickTracking?: boolean;
-    openTracking?: boolean;
-  } = {}
 ): Promise<PreparedEmail[]> {
   const preparedEmails: PreparedEmail[] = [];
 
   for (const contact of contacts) {
-    const prepared = await prepareEmail(contact, broadcast, options);
+    const prepared = await prepareEmail(contact, broadcast);
     preparedEmails.push(prepared);
   }
 

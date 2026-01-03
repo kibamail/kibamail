@@ -13,10 +13,10 @@ import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
 import { RuleNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { useFlowEditor } from "../flow-editor-context";
-import { edgeTypes } from "../edges";
-import { nodeTypes } from "../nodes";
-import { FlowToolbar } from "./flow-toolbar";
+import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { edgeTypes } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/edges";
+import { nodeTypes } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes";
+import { FlowToolbar } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/canvas/flow-toolbar";
 import "./flow.css";
 
 export function FlowCanvas() {
@@ -28,7 +28,6 @@ export function FlowCanvas() {
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => {
-      // In read-only mode, only allow selection changes
       const filteredChanges = isReadOnly
         ? changes.filter((change) => change.type === "select")
         : changes;
@@ -46,10 +45,8 @@ export function FlowCanvas() {
 
   const onConnect: OnConnect = useCallback(
     (connection) => {
-      // Find the source node to determine edge type
       const sourceNode = nodes.find((node) => node.id === connection.source);
 
-      // Determine edge type based on source node and handle
       let edgeType = "custom-edge";
       let edgeData = {};
 
@@ -64,18 +61,14 @@ export function FlowCanvas() {
             ? "percentage-split-a-edge"
             : "percentage-split-b-edge";
 
-        // Add percentage data to edge
-        const splits = (sourceNode.data as any)?.splits || [];
-        const split = splits.find(
-          (s: { id: string; name: string; percentage: number }) =>
-            s.id === connection.sourceHandle
-        );
+        const nodeData = sourceNode.data as { splits?: { id: string; name: string; percentage: number }[] };
+        const splits = nodeData?.splits || [];
+        const split = splits.find((s) => s.id === connection.sourceHandle);
         if (split) {
           edgeData = { percentage: split.percentage, name: split.name };
         }
       }
 
-      // Create the new edge with the determined type
       const newEdge = {
         ...connection,
         type: edgeType,

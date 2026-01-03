@@ -11,15 +11,15 @@ export function WebhookConfig() {
   const currentUrl =
     (selectedNode?.data as { url?: string })?.url ?? "";
 
-  const handleUrlChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onUrlChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
       if (!selectedNodeId) return;
 
       const updatedNodes = nodes.map((node) =>
         node.id === selectedNodeId
           ? {
               ...node,
-              data: { ...node.data, url: e.target.value },
+              data: { ...node.data, url: event.target.value },
             }
           : node
       );
@@ -31,7 +31,7 @@ export function WebhookConfig() {
 
   return (
     <div className="flex flex-col gap-4">
-      <TextField.Root value={currentUrl} onChange={handleUrlChange}>
+      <TextField.Root value={currentUrl} onChange={onUrlChange}>
         <TextField.Label>Webhook URL</TextField.Label>
         <TextField.Hint>
           Enter the URL that will receive a POST request when this action is

@@ -5,8 +5,8 @@ import { LetterAvatar } from "@kibamail/owly/letter-avatar";
 import { Image } from "@/lib/components/image";
 
 import type { UserSession } from "@/lib/auth/get-session";
-import { CreateWorkspace } from "../workspaces/create-workspace";
-import { InviteMembers } from "../workspaces/invite-members";
+import { CreateWorkspace } from "@/app/(main)/(dashboard)/w/(with-sidebar)/_components/workspaces/create-workspace";
+import { InviteMembers } from "@/app/(main)/(dashboard)/w/(with-sidebar)/_components/workspaces/invite-members";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { Plus, Mail, LogOut } from "iconoir-react";
 import { useMutation } from "@tanstack/react-query";

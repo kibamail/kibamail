@@ -10,7 +10,7 @@ interface CopyableTextProps {
 export function CopyableText({ text, className }: CopyableTextProps) {
   const { success: toast } = useToast();
 
-  async function handleCopy() {
+  async function onCopy() {
     try {
       await navigator.clipboard.writeText(text);
       toast("Copied to clipboard");
@@ -21,7 +21,7 @@ export function CopyableText({ text, className }: CopyableTextProps) {
 
   return (
     <button
-      onClick={handleCopy}
+      onClick={onCopy}
       className={`text-sm text-kb-content-primary font-mono hover:text-kb-content-secondary transition-colors cursor-pointer text-left ${className || ""}`}
       title="Click to copy"
       type="button"

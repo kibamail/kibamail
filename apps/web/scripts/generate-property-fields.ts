@@ -1,22 +1,7 @@
-/**
- * Development Helper: Generate Property Field Definitions
- *
- * This script generates the property field definitions and indexes
- * for the Contact model in schema.prisma. It's useful when you need
- * to add/remove property slots or regenerate the field definitions.
- *
- * Usage: bun run scripts/generate-property-fields.ts
- *
- * Configuration is sourced from @/lib/contact-properties/config
- * to ensure consistency across the codebase.
- *
- * Output is printed to console for copy-pasting into schema.prisma
- */
-
 import {
   PROPERTY_SLOT_LIMITS,
   INDEXED_PROPERTY_SLOTS,
-} from "../lib/contact-properties/config";
+} from "@/lib/contact-properties/config";
 
 // Generate string fields
 const stringFields = [];

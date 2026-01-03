@@ -3,8 +3,8 @@
 import { Clock, NetworkReverse, Percentage } from "iconoir-react";
 import type { NodeProps } from "@xyflow/react";
 import { Badge } from "@kibamail/owly/badge";
-import { BaseFlowNode } from "./base-flow-node";
-import { useFlowEditor } from "../flow-editor-context";
+import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
+import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
 function countConditions(

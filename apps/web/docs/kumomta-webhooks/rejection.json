@@ -1,0 +1,47 @@
+{
+  "_comment": "Rejection - KumoMTA's SMTP listener rejected an incoming message with 4xx or 5xx. This is for inbound mail rejection, not outbound delivery failure.",
+  "type": "Rejection",
+  "id": "m5n0h9i8-1l2j-3k5m-6h7i-8j9k0l1m2n3o",
+  "sender": "spammer@spam-domain.com",
+  "recipient": "protected.inbox@newsletter.acme.com",
+  "queue": "",
+  "site": "",
+  "size": 125000,
+  "response": {
+    "code": 550,
+    "enhanced_code": {
+      "class": 5,
+      "subject": 7,
+      "detail": 1
+    },
+    "content": "550 5.7.1 Message rejected: sender domain spam-domain.com is blacklisted.",
+    "command": "DATA"
+  },
+  "peer_address": {
+    "name": "mail.spam-domain.com",
+    "addr": "192.0.2.100:54321"
+  },
+  "timestamp": 1704067250,
+  "event_time": "2024-01-01T00:00:50Z",
+  "created": 1704067250,
+  "created_time": "2024-01-01T00:00:50Z",
+  "num_attempts": 0,
+  "bounce_classification": "SpamBlock",
+  "egress_pool": null,
+  "egress_source": null,
+  "source_address": null,
+  "feedback_report": null,
+  "meta": {},
+  "headers": {
+    "Subject": "You have won $1,000,000!!!",
+    "From": "Nigerian Prince <prince@spam-domain.com>"
+  },
+  "delivery_protocol": null,
+  "reception_protocol": "ESMTP",
+  "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tls_cipher": null,
+  "tls_protocol_version": null,
+  "tls_peer_subject_name": null,
+  "provider_name": null,
+  "session_id": "sess-inbound-001"
+}

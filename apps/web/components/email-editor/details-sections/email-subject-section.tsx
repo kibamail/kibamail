@@ -2,8 +2,8 @@
 
 import { useId } from "react";
 import * as TextField from "@kibamail/owly/text-field";
-import { SectionHeader } from "./shared";
-import type { EmailDetails } from "../types";
+import { SectionHeader } from "@/components/email-editor/details-sections/shared";
+import type { EmailDetails } from "@/components/email-editor/types";
 
 interface EmailSubjectSectionProps {
   subject: string;

@@ -1,0 +1,167 @@
+{
+  "_description": "Collection of various bounce scenarios with different classifications",
+  "examples": [
+    {
+      "_scenario": "Invalid recipient - user does not exist",
+      "type": "Bounce",
+      "id": "bounce-001",
+      "sender": "bounces+msg-001@bounce.acme.com",
+      "recipient": "nobody@example.com",
+      "queue": "example.com",
+      "site": "mail.example.com",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 1, "detail": 1 },
+        "content": "550 5.1.1 The email account that you tried to reach does not exist.",
+        "command": "RCPT TO"
+      },
+      "bounce_classification": "InvalidRecipient",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_001" }
+    },
+    {
+      "_scenario": "Mailbox full - quota exceeded",
+      "type": "Bounce",
+      "id": "bounce-002",
+      "sender": "bounces+msg-002@bounce.acme.com",
+      "recipient": "fullbox@example.com",
+      "queue": "example.com",
+      "site": "mail.example.com",
+      "size": 35000,
+      "response": {
+        "code": 552,
+        "enhanced_code": { "class": 5, "subject": 2, "detail": 2 },
+        "content": "552 5.2.2 The recipient's mailbox is full and cannot receive messages.",
+        "command": "DATA"
+      },
+      "bounce_classification": "QuotaIssues",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_002" }
+    },
+    {
+      "_scenario": "Inactive mailbox - account disabled",
+      "type": "Bounce",
+      "id": "bounce-003",
+      "sender": "bounces+msg-003@bounce.acme.com",
+      "recipient": "disabled@example.com",
+      "queue": "example.com",
+      "site": "mail.example.com",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 2, "detail": 1 },
+        "content": "550 5.2.1 The email account has been disabled.",
+        "command": "RCPT TO"
+      },
+      "bounce_classification": "InactiveMailbox",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_003" }
+    },
+    {
+      "_scenario": "Bad domain - domain does not exist",
+      "type": "Bounce",
+      "id": "bounce-004",
+      "sender": "bounces+msg-004@bounce.acme.com",
+      "recipient": "user@nonexistent-domain-xyz.com",
+      "queue": "nonexistent-domain-xyz.com",
+      "site": "",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 1, "detail": 10 },
+        "content": "550 5.1.10 RESOLVER.ADR.RecipNotFound; Recipient not found by SMTP address lookup",
+        "command": "RCPT TO"
+      },
+      "bounce_classification": "BadDomain",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_004" }
+    },
+    {
+      "_scenario": "Spam blocked - IP reputation",
+      "type": "Bounce",
+      "id": "bounce-005",
+      "sender": "bounces+msg-005@bounce.acme.com",
+      "recipient": "user@strict-provider.com",
+      "queue": "strict-provider.com",
+      "site": "mx.strict-provider.com",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 7, "detail": 1 },
+        "content": "550 5.7.1 Service unavailable; client [10.0.2.100] blocked using Spamhaus. To request removal see https://www.spamhaus.org/lookup",
+        "command": "RCPT TO"
+      },
+      "bounce_classification": "SpamBlock",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_005" }
+    },
+    {
+      "_scenario": "Authentication failed - DMARC reject",
+      "type": "Bounce",
+      "id": "bounce-006",
+      "sender": "bounces+msg-006@bounce.acme.com",
+      "recipient": "user@dmarc-strict.com",
+      "queue": "dmarc-strict.com",
+      "site": "mx.dmarc-strict.com",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 7, "detail": 1 },
+        "content": "550 5.7.1 Unauthenticated email from acme.com is not accepted due to domain's DMARC policy.",
+        "command": "DATA"
+      },
+      "bounce_classification": "AuthenticationFailed",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_006" }
+    },
+    {
+      "_scenario": "Relay denied",
+      "type": "Bounce",
+      "id": "bounce-007",
+      "sender": "bounces+msg-007@bounce.acme.com",
+      "recipient": "user@relay-denied.com",
+      "queue": "relay-denied.com",
+      "site": "mx.relay-denied.com",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 7, "detail": 1 },
+        "content": "550 5.7.1 Relaying denied. Proper authentication required.",
+        "command": "RCPT TO"
+      },
+      "bounce_classification": "RelayDenied",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_007" }
+    },
+    {
+      "_scenario": "Content rejected - attachment blocked",
+      "type": "Bounce",
+      "id": "bounce-008",
+      "sender": "bounces+msg-008@bounce.acme.com",
+      "recipient": "user@attachment-filter.com",
+      "queue": "attachment-filter.com",
+      "site": "mx.attachment-filter.com",
+      "size": 2500000,
+      "response": {
+        "code": 552,
+        "enhanced_code": { "class": 5, "subject": 3, "detail": 4 },
+        "content": "552 5.3.4 Message size exceeds fixed maximum message size.",
+        "command": "DATA"
+      },
+      "bounce_classification": "ContentRelated",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_008" }
+    },
+    {
+      "_scenario": "Policy rejection - domain blacklisted",
+      "type": "Bounce",
+      "id": "bounce-009",
+      "sender": "bounces+msg-009@bounce.acme.com",
+      "recipient": "user@policy-strict.com",
+      "queue": "policy-strict.com",
+      "site": "mx.policy-strict.com",
+      "size": 35000,
+      "response": {
+        "code": 550,
+        "enhanced_code": { "class": 5, "subject": 7, "detail": 0 },
+        "content": "550 5.7.0 Message rejected per organizational policy.",
+        "command": "DATA"
+      },
+      "bounce_classification": "PolicyRelated",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_009" }
+    }
+  ]
+}

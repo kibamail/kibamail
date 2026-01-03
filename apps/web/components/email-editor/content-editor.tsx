@@ -113,10 +113,8 @@ function getVariablesForMode(mode: EmailEditorMode): string[] {
         "view_in_browser_url",
       ];
     case "template":
-      // Templates might have custom variables
       return [...baseVariables, "unsubscribe_url"];
     case "email":
-      // Automation emails
       return [
         ...baseVariables,
         "unsubscribe_url",
@@ -160,11 +158,9 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
       []
     );
 
-    function onChange(_content: JSONContent) {
-      // Could be used for auto-save in the future
-    }
+    function onChange(_content: JSONContent) {}
 
-    async function handleUpload(
+    async function upload(
       file: File,
       onProgress?: (event: { progress: number }) => void,
       _abortSignal?: AbortSignal
@@ -193,7 +189,7 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
           onChange={onChange}
           onStylesChange={onStylesChange}
           variables={getVariablesForMode(mode)}
-          onUpload={onUpload ? handleUpload : undefined}
+          onUpload={onUpload ? upload : undefined}
           initialContent={initialContent}
           editable={!readonly}
         />

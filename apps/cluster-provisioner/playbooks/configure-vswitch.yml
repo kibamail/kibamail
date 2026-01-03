@@ -94,14 +94,14 @@
         - name: Validate private IP is a valid IPv4 address
           ansible.builtin.assert:
             that:
-              - vswitch_private_ip | ansible.utils.ipaddr('address')
+              - (vswitch_private_ip | ansible.utils.ipaddr('address')) != false
             fail_msg: "vswitch_private_ip must be a valid IPv4 address without CIDR. Got: {{ vswitch_private_ip }}"
             success_msg: "Private IP {{ vswitch_private_ip }} is valid"
 
         - name: Validate private subnet is valid CIDR notation
           ansible.builtin.assert:
             that:
-              - vswitch_private_subnet | ansible.utils.ipaddr('network/prefix')
+              - (vswitch_private_subnet | ansible.utils.ipaddr('network/prefix')) != false
             fail_msg: "vswitch_private_subnet must be valid CIDR notation. Got: {{ vswitch_private_subnet }}"
             success_msg: "Private subnet {{ vswitch_private_subnet }} is valid"
 
@@ -130,11 +130,14 @@
           changed_when: false
           failed_when: interface_check.rc != 0
 
-        - name: Verify physical interface is UP
+        - name: Verify physical interface is usable
           ansible.builtin.assert:
             that:
-              - "'state UP' in interface_check.stdout or 'state UNKNOWN' in interface_check.stdout"
-            fail_msg: "Physical interface {{ vswitch_physical_interface }} is not UP"
+              - "'state UP' in interface_check.stdout or 'state UNKNOWN' in interface_check.stdout or 'LOWER_UP' in interface_check.stdout or 'NO-CARRIER' not in interface_check.stdout"
+            fail_msg: |
+              Physical interface {{ vswitch_physical_interface }} is not usable.
+              Output: {{ interface_check.stdout }}
+              Ensure the interface has a network cable connected.
             success_msg: "Physical interface {{ vswitch_physical_interface }} is available"
 
         - name: Check systemd-networkd is available
@@ -196,6 +199,7 @@
             mode: '0700'
             owner: root
             group: root
+          check_mode: no  # Always create directory, even in check mode
 
         - name: Generate backup timestamp
           ansible.builtin.set_fact:
@@ -374,7 +378,7 @@
             comment: "Allow vSwitch private network"
           when:
             - ufw_status.rc == 0
-            - "'Status: active' in ufw_status.stdout"
+            - "ufw_status.stdout is search('Status: active')"
 
         - name: Allow traffic on VLAN interface (ufw)
           community.general.ufw:
@@ -383,7 +387,7 @@
             comment: "Allow all traffic on vSwitch interface"
           when:
             - ufw_status.rc == 0
-            - "'Status: active' in ufw_status.stdout"
+            - "ufw_status.stdout is search('Status: active')"
 
         - name: Check if iptables has custom rules (non-ufw)
           ansible.builtin.shell:
@@ -391,7 +395,7 @@
           register: iptables_rules
           changed_when: false
           failed_when: false
-          when: ufw_status.rc != 0 or "'Status: inactive' in ufw_status.stdout"
+          when: "ufw_status.rc != 0 or ufw_status.stdout is search('Status: inactive')"
 
         - name: Add iptables rule for private subnet (if not using ufw)
           ansible.builtin.iptables:
@@ -400,7 +404,7 @@
             jump: ACCEPT
             comment: "Allow vSwitch private network"
           when:
-            - ufw_status.rc != 0 or "'Status: inactive' in ufw_status.stdout"
+            - "ufw_status.rc != 0 or ufw_status.stdout is search('Status: inactive')"
             - iptables_rules.stdout | int > 0
 
         - name: Check if iptables-persistent is installed
@@ -413,7 +417,7 @@
             cmd: iptables-save > /etc/iptables/rules.v4
           when:
             - iptables_persistent.stat.exists
-            - ufw_status.rc != 0 or "'Status: inactive' in ufw_status.stdout"
+            - "ufw_status.rc != 0 or ufw_status.stdout is search('Status: inactive')"
           changed_when: true
 
     # ==========================================================================

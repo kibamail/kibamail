@@ -97,12 +97,12 @@ export function CreateContactPropertyModal({
           ? "Contact property updated successfully."
           : "Contact property created successfully."
       );
-      handleClose();
+      onClose();
       router.refresh();
     },
   });
 
-  function handleClose() {
+  function onClose() {
     reset();
     onOpenChange?.(false);
   }
@@ -124,7 +124,7 @@ export function CreateContactPropertyModal({
   }
 
   return (
-    <Dialog.Root open={open} onOpenChange={handleClose}>
+    <Dialog.Root open={open} onOpenChange={onClose}>
       <Dialog.Content className="max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
@@ -271,7 +271,7 @@ export function CreateContactPropertyModal({
             <Button
               type="button"
               variant="secondary"
-              onClick={handleClose}
+              onClick={onClose}
               disabled={mutation.isPending}
             >
               Cancel

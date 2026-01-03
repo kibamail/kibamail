@@ -4,7 +4,8 @@
 #
 ---
 # geerlingguy.redis configuration
-redis_bind_interface: "0.0.0.0"
+# Bind to private vSwitch IP + localhost only (NOT public)
+redis_bind_interface: "10.0.0.1 127.0.0.1"
 redis_port: 6379
 redis_databases: 16
 redis_maxmemory: "512mb"
@@ -12,7 +13,8 @@ redis_maxmemory_policy: "allkeys-lru"
 
 # NATS configuration
 nats_version: "2.10.24"
-nats_listen_ip: "0.0.0.0"
+# Bind to private vSwitch IP (nginx handles public exposure)
+nats_listen_address: "10.0.0.1"
 nats_client_port: 4222
 nats_cluster_port: 6222
 nats_monitor_port: 8222
@@ -28,6 +30,40 @@ nats_tls_cert_dir: "/etc/nats/tls"
 # KumoMTA configuration
 kumomta_start_services: false
 kumomta_enable_services: false
+mta_hostname: "mail.kbmta.net"
 
 # TSA configuration
 tsa_redis_url: "redis://{{ redis_host }}:{{ redis_port }}"
+
+# =============================================================================
+# Email Agent Configuration
+# =============================================================================
+# Non-secret configuration (secrets are prompted during playbook run)
+#
+# S3 configuration for email logs
+email_agent_s3_endpoint: "https://fsn1.your-objectstorage.com"  # TODO: Set S3 endpoint
+email_agent_s3_region: "fsn1"                                   # TODO: Set S3 region
+email_agent_s3_bucket: "kibamail-email-logs"                    # TODO: Set bucket name
+
+# Control plane API
+email_agent_control_api_base_url: "https://api.kibamail.com"    # TODO: Set control plane URL
+#
+# Secret variables (prompted interactively when running deploy-email-agent.yml):
+# - email_agent_s3_access_key_id: S3 access key
+# - email_agent_s3_secret_access_key: S3 secret key
+# - email_agent_control_api_key: Must match control plane INTERNAL_SERVICE_KEY
+
+# =============================================================================
+# OpenTelemetry Collector Configuration
+# =============================================================================
+# SigNoz endpoint for telemetry export (HTTPS with full URL for otlphttp exporter)
+otel_signoz_endpoint: "https://ingest.monitor.kibamail.com"
+otel_signoz_insecure: false
+
+# Service identification
+otel_service_name: "email-agent"
+otel_environment: "production"
+
+# Systemd units to collect logs from via journald
+otel_collector_journald_units:
+  - "email-agent"

@@ -50,6 +50,7 @@ func main() {
 		fx.Provide(
 			loadConfig,
 			newLogger,
+			newOTelProvider,
 			newRegistry,
 			newMetrics,
 			newHealthChecker,
@@ -81,6 +82,7 @@ func main() {
 		),
 
 		// Start components
+		fx.Invoke(startOTel),
 		fx.Invoke(startMetricsServer),
 		fx.Invoke(startHealthServer),
 		fx.Invoke(startHTTPServer),
@@ -104,6 +106,35 @@ func newLogger(cfg *config.Config) zerolog.Logger {
 		Service:    "email-agent",
 		Version:    version,
 		TimeFormat: time.RFC3339,
+	})
+}
+
+// newOTelProvider creates the OpenTelemetry provider
+func newOTelProvider(cfg *config.Config, logger zerolog.Logger) (*observability.OTelProvider, error) {
+	return observability.InitOTel(context.Background(), observability.OTelConfig{
+		Enabled:     cfg.OTel.Enabled,
+		Endpoint:    cfg.OTel.Endpoint,
+		Insecure:    cfg.OTel.Insecure,
+		ServiceName: cfg.OTel.ServiceName,
+		Version:     version,
+		Environment: cfg.OTel.Environment,
+		Hostname:    cfg.Agent.Hostname,
+	}, logger)
+}
+
+// startOTel registers the OTel shutdown hook
+func startOTel(
+	lc fx.Lifecycle,
+	otelProvider *observability.OTelProvider,
+	logger zerolog.Logger,
+) {
+	otelLogger := logger.With().Str("component", "otel").Logger()
+
+	lc.Append(fx.Hook{
+		OnStop: func(ctx context.Context) error {
+			otelLogger.Info().Msg("shutting down OpenTelemetry")
+			return otelProvider.Shutdown(ctx)
+		},
 	})
 }
 
@@ -133,6 +164,8 @@ func newNATSClient(cfg *config.Config, logger zerolog.Logger, metrics *observabi
 		NKeyFile:      cfg.NATS.NKeyFile,
 		TLSEnabled:    cfg.NATS.TLSEnabled,
 		TLSCACert:     cfg.NATS.TLSCACert,
+		TLSCert:       cfg.NATS.TLSCert,
+		TLSKey:        cfg.NATS.TLSKey,
 		MaxReconnects: cfg.NATS.MaxReconnects,
 		ReconnectWait: cfg.NATS.ReconnectWait,
 	}, logger, metrics)
@@ -148,10 +181,11 @@ func newNATSConsumer(
 	return agentnats.NewConsumer(
 		client.JetStream(),
 		agentnats.ConsumerConfig{
-			StreamName:   cfg.Worker.StreamName,
-			ConsumerName: cfg.Worker.ConsumerName,
-			FetchBatch:   cfg.Worker.FetchBatch,
-			FetchWorkers: cfg.Worker.FetchWorkers,
+			StreamName:    cfg.Worker.StreamName,
+			ConsumerName:  cfg.Worker.ConsumerName,
+			FilterSubject: cfg.Worker.FilterSubject,
+			FetchBatch:    cfg.Worker.FetchBatch,
+			FetchWorkers:  cfg.Worker.FetchWorkers,
 		},
 		logger,
 		metrics,

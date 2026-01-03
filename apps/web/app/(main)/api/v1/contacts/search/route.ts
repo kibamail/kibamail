@@ -8,7 +8,7 @@
  */
 
 import type { NextRequest } from "next/server";
-import { searchContacts } from "../handler";
+import { searchContacts } from "@/app/(main)/api/v1/contacts/handler";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 
 /**

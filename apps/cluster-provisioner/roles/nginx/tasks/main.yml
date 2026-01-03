@@ -1,0 +1,70 @@
+# Nginx Role Tasks
+---
+- name: Display nginx setup info
+  ansible.builtin.debug:
+    msg: |
+      Setting up Nginx on {{ inventory_hostname }}
+      - NATS proxy: {{ nginx_nats_hostname }}:{{ nginx_nats_listen_port }}
+      - Upstream: {{ nginx_nats_upstream_host }}:{{ nginx_nats_upstream_port }}
+
+- name: Install nginx with stream module
+  ansible.builtin.apt:
+    name:
+      - nginx
+      - libnginx-mod-stream
+    state: present
+    update_cache: yes
+
+- name: Ensure nginx is enabled
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: yes
+
+- name: Create stream.d directory for stream configs
+  ansible.builtin.file:
+    path: /etc/nginx/stream.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy NATS stream proxy configuration
+  ansible.builtin.template:
+    src: nats-stream.conf.j2
+    dest: /etc/nginx/stream.d/nats.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+  when: nginx_nats_proxy_enabled
+
+- name: Ensure stream block is in nginx.conf
+  ansible.builtin.blockinfile:
+    path: /etc/nginx/nginx.conf
+    block: |
+      stream {
+          include /etc/nginx/stream.d/*.conf;
+      }
+    marker: "# {mark} ANSIBLE MANAGED STREAM BLOCK"
+    insertafter: EOF
+  notify: Reload nginx
+
+- name: Start nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+
+- name: Verify nginx is running
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Display nginx setup complete
+  ansible.builtin.debug:
+    msg: |
+      Nginx configured successfully.
+
+      NATS stream proxy:
+      - External: {{ nginx_nats_hostname }}:{{ nginx_nats_listen_port }}
+      - Upstream: {{ nginx_nats_upstream_host }}:{{ nginx_nats_upstream_port }}
+
+      DNS required: {{ nginx_nats_hostname }} -> {{ ansible_host }}

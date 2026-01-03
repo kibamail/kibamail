@@ -44,12 +44,12 @@ export function RenameAutomationModal({
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
     if (name.trim()) {
       updateName();
     }
-  };
+  }
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -58,11 +58,11 @@ export function RenameAutomationModal({
           <Dialog.Title>Rename Automation</Dialog.Title>
         </Dialog.Header>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onSubmit}>
           <div className="px-5 py-4">
             <TextField.Root
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(event) => setName(event.target.value)}
               autoFocus
             >
               <TextField.Label>Name</TextField.Label>

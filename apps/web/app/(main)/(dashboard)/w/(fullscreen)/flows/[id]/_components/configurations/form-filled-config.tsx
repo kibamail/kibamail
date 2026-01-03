@@ -17,7 +17,7 @@ export function FormFilledConfig() {
     queryFn: () => internalApi.forms().list(),
   });
 
-  const handleFormChange = useCallback(
+  const onFormChange = useCallback(
     (formId: string) => {
       if (!selectedNodeId) return;
 
@@ -38,7 +38,7 @@ export function FormFilledConfig() {
   const forms = formsResponse?.data ?? [];
 
   return (
-    <Select.Root value={currentFormId ?? ""} onValueChange={handleFormChange}>
+    <Select.Root value={currentFormId ?? ""} onValueChange={onFormChange}>
       <Select.Label>Select form</Select.Label>
       <Select.Trigger
         placeholder={isLoading ? "Loading forms..." : "Select a form"}

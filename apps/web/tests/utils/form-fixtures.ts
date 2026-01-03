@@ -54,6 +54,7 @@ export const validFormFields: FormBuilderSchema = {
 
 /**
  * Form schema with multiple fields for comprehensive testing.
+ * All fields have contactProperty mappings for publish validation.
  */
 export const multiFieldFormSchema: FormBuilderSchema = {
   id: "multi_field_form",
@@ -77,6 +78,11 @@ export const multiFieldFormSchema: FormBuilderSchema = {
                 requiredMessage: "Email is required",
               },
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "standard",
+                id: "email",
+                name: "Email address",
+              },
             },
             {
               id: "field_name",
@@ -85,6 +91,11 @@ export const multiFieldFormSchema: FormBuilderSchema = {
               label: "Full Name",
               placeholder: "John Doe",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "standard",
+                id: "firstName",
+                name: "First name",
+              },
             },
             {
               id: "field_phone",
@@ -93,6 +104,11 @@ export const multiFieldFormSchema: FormBuilderSchema = {
               label: "Phone Number",
               placeholder: "+1 (555) 000-0000",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "standard",
+                id: "phone",
+                name: "Phone",
+              },
             },
             {
               id: "field_rating",
@@ -105,6 +121,11 @@ export const multiFieldFormSchema: FormBuilderSchema = {
                 },
               },
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "rating",
+                name: "Rating",
+              },
             },
             {
               id: "field_message",
@@ -118,6 +139,11 @@ export const multiFieldFormSchema: FormBuilderSchema = {
                 },
               },
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "message",
+                name: "Message",
+              },
             },
           ],
           collapsible: false,
@@ -132,6 +158,7 @@ export const multiFieldFormSchema: FormBuilderSchema = {
 
 /**
  * Form schema with all supported field types for comprehensive testing.
+ * All fields have contactProperty mappings for publish validation.
  */
 export const allFieldTypesFormSchema: FormBuilderSchema = {
   id: "all_types_form",
@@ -150,6 +177,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "email",
               label: "Email",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "standard",
+                id: "email",
+                name: "Email address",
+              },
             },
             {
               id: "field_text",
@@ -157,6 +189,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "text_field",
               label: "Text Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "text_field",
+                name: "Text Field",
+              },
             },
             {
               id: "field_number",
@@ -164,6 +201,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "number_field",
               label: "Number Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "number_field",
+                name: "Number Field",
+              },
             },
             {
               id: "field_phone",
@@ -171,6 +213,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "phone_field",
               label: "Phone Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "standard",
+                id: "phone",
+                name: "Phone",
+              },
             },
             {
               id: "field_url",
@@ -178,6 +225,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "url_field",
               label: "URL Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "url_field",
+                name: "URL Field",
+              },
             },
             {
               id: "field_textarea",
@@ -185,6 +237,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "textarea_field",
               label: "Textarea Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "textarea_field",
+                name: "Textarea Field",
+              },
             },
             {
               id: "field_select",
@@ -196,6 +253,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
                 { id: "opt2", label: "Option 2", value: "option2" },
               ],
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "select_field",
+                name: "Select Field",
+              },
             },
             {
               id: "field_rating",
@@ -203,6 +265,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "rating_field",
               label: "Rating Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "rating_field",
+                name: "Rating Field",
+              },
             },
             {
               id: "field_slider",
@@ -210,6 +277,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "slider_field",
               label: "Slider Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "slider_field",
+                name: "Slider Field",
+              },
             },
             {
               id: "field_date",
@@ -217,6 +289,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "date_field",
               label: "Date Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "date_field",
+                name: "Date Field",
+              },
             },
             {
               id: "field_checkbox",
@@ -224,6 +301,11 @@ export const allFieldTypesFormSchema: FormBuilderSchema = {
               name: "checkbox_field",
               label: "Checkbox Field",
               appearance: DEFAULT_FIELD_APPEARANCE,
+              contactProperty: {
+                type: "custom",
+                id: "checkbox_field",
+                name: "Checkbox Field",
+              },
             },
           ],
           collapsible: false,

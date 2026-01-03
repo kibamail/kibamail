@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 // LoggerConfig contains configuration for the logger
@@ -119,4 +120,25 @@ func LogOperation(logger zerolog.Logger, operation string, fn func() error) erro
 	}
 
 	return err
+}
+
+// LoggerWithTrace returns a logger with trace_id and span_id from the context
+// This enables log correlation with distributed traces in SigNoz
+func LoggerWithTrace(ctx context.Context, logger zerolog.Logger) zerolog.Logger {
+	span := trace.SpanFromContext(ctx)
+	if !span.SpanContext().IsValid() {
+		return logger
+	}
+
+	return logger.With().
+		Str("trace_id", span.SpanContext().TraceID().String()).
+		Str("span_id", span.SpanContext().SpanID().String()).
+		Logger()
+}
+
+// LoggerFromContextWithTrace retrieves the logger from context and adds trace correlation
+func LoggerFromContextWithTrace(ctx context.Context) *zerolog.Logger {
+	logger := LoggerFromContext(ctx)
+	loggerWithTrace := LoggerWithTrace(ctx, *logger)
+	return &loggerWithTrace
 }

@@ -173,3 +173,17 @@ spec:
               value: "http://$(HOST_IP):4318"
             - name: OTEL_EXPORTER_OTLP_INSECURE
               value: "true"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-event-ingestor
+  namespace: kibamail-event-ingestor
+spec:
+  template:
+    spec:
+      containers:
+        - name: event-ingestor
+          env:
+            - name: OTEL_RESOURCE_ATTRIBUTES
+              value: "service.name=kibamail-event-ingestor,deployment.environment=production,host.name=$(NODE_NAME),k8s.pod.name=$(POD_NAME),k8s.pod.uid=$(POD_UID),k8s.namespace.name=$(POD_NAMESPACE),k8s.node.name=$(NODE_NAME),k8s.deployment.name=kibamail-event-ingestor"

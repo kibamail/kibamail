@@ -3,7 +3,7 @@ import { MethodBadge } from "./method-badge";
 import { FieldList, ParameterField } from "./field-list";
 import { Markdown } from "./markdown";
 import { CodePanel } from "./code-panel";
-import { DocsPagination } from "../../_components/pagination";
+import { DocsPagination } from "@/app/(docs)/docs/_components/pagination";
 
 interface EndpointPageProps {
   operation: OpenAPIOperation;

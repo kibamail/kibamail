@@ -1,0 +1,152 @@
+# OpenTelemetry Collector Role Tasks
+---
+- name: Display otel-collector setup info
+  ansible.builtin.debug:
+    msg: |
+      Installing OpenTelemetry Collector on {{ inventory_hostname }}
+      - Version: {{ otel_collector_version }}
+      - OTLP gRPC port: {{ otel_collector_otlp_grpc_port }}
+      - OTLP HTTP port: {{ otel_collector_otlp_http_port }}
+      - SigNoz endpoint: {{ otel_signoz_endpoint }}
+
+- name: Create otel-collector group
+  ansible.builtin.group:
+    name: "{{ otel_collector_group }}"
+    system: yes
+    state: present
+
+- name: Create otel-collector user
+  ansible.builtin.user:
+    name: "{{ otel_collector_user }}"
+    group: "{{ otel_collector_group }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    create_home: no
+    state: present
+
+- name: Add otel user to systemd-journal group for journald access
+  ansible.builtin.user:
+    name: "{{ otel_collector_user }}"
+    groups: systemd-journal
+    append: yes
+  notify: Restart otel-collector
+
+- name: Create configuration directory
+  ansible.builtin.file:
+    path: "{{ otel_collector_config_dir }}"
+    state: directory
+    owner: "{{ otel_collector_user }}"
+    group: "{{ otel_collector_group }}"
+    mode: "0750"
+
+- name: Check if otel-collector is already installed
+  ansible.builtin.stat:
+    path: "{{ otel_collector_bin_path }}"
+  register: otel_binary
+
+- name: Get installed version
+  ansible.builtin.command: "{{ otel_collector_bin_path }} --version"
+  register: installed_version
+  changed_when: false
+  failed_when: false
+  when: otel_binary.stat.exists
+
+- name: Download otel-collector
+  ansible.builtin.get_url:
+    url: "{{ otel_collector_download_url }}"
+    dest: "/tmp/otelcol-contrib.tar.gz"
+    mode: "0644"
+  when: not otel_binary.stat.exists or (installed_version.stdout is defined and otel_collector_version not in installed_version.stdout)
+
+- name: Create temp extraction directory
+  ansible.builtin.file:
+    path: "/tmp/otelcol-contrib"
+    state: directory
+    mode: "0755"
+  when: not otel_binary.stat.exists or (installed_version.stdout is defined and otel_collector_version not in installed_version.stdout)
+
+- name: Extract otel-collector
+  ansible.builtin.unarchive:
+    src: "/tmp/otelcol-contrib.tar.gz"
+    dest: "/tmp/otelcol-contrib"
+    remote_src: yes
+  when: not otel_binary.stat.exists or (installed_version.stdout is defined and otel_collector_version not in installed_version.stdout)
+
+- name: Install otel-collector binary
+  ansible.builtin.copy:
+    src: "/tmp/otelcol-contrib/otelcol-contrib"
+    dest: "{{ otel_collector_bin_path }}"
+    remote_src: yes
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart otel-collector
+  when: not otel_binary.stat.exists or (installed_version.stdout is defined and otel_collector_version not in installed_version.stdout)
+
+- name: Clean up temp files
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "/tmp/otelcol-contrib.tar.gz"
+    - "/tmp/otelcol-contrib"
+
+- name: Template configuration file
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: "{{ otel_collector_config_path }}"
+    owner: "{{ otel_collector_user }}"
+    group: "{{ otel_collector_group }}"
+    mode: "0640"
+  notify: Restart otel-collector
+
+- name: Template systemd service
+  ansible.builtin.template:
+    src: otel-collector.service.j2
+    dest: /etc/systemd/system/otel-collector.service
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart otel-collector
+
+- name: Ensure log directory exists for email-agent
+  ansible.builtin.file:
+    path: "/var/log/email-agent"
+    state: directory
+    owner: "{{ email_agent_user | default('email-agent') }}"
+    group: "{{ otel_collector_group }}"
+    mode: "0750"
+
+- name: Add otel user to email-agent group for log access
+  ansible.builtin.user:
+    name: "{{ otel_collector_user }}"
+    groups: "{{ email_agent_group | default('email-agent') }}"
+    append: yes
+  failed_when: false
+
+- name: Enable otel-collector service
+  ansible.builtin.systemd:
+    name: otel-collector
+    enabled: "{{ otel_collector_enable_service }}"
+    daemon_reload: yes
+
+- name: Start otel-collector service
+  ansible.builtin.systemd:
+    name: otel-collector
+    state: started
+  when: otel_collector_start_service
+
+- name: Display otel-collector setup complete
+  ansible.builtin.debug:
+    msg: |
+      OpenTelemetry Collector installed successfully.
+
+      Configuration: {{ otel_collector_config_path }}
+      Service: systemctl status otel-collector
+      Logs: journalctl -u otel-collector -f
+
+      Receiving telemetry on:
+      - OTLP gRPC: localhost:{{ otel_collector_otlp_grpc_port }}
+      - OTLP HTTP: localhost:{{ otel_collector_otlp_http_port }}
+
+      Exporting to: {{ otel_signoz_endpoint }}

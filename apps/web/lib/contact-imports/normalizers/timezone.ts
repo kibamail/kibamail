@@ -1,4 +1,4 @@
-import type { NormalizationResult } from "../types";
+import type { NormalizationResult } from "@/lib/contact-imports/types";
 
 const TIMEZONE_ABBREVIATIONS: Record<string, string> = {
   EST: "America/New_York",

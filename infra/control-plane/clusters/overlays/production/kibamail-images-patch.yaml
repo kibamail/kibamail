@@ -48,3 +48,15 @@ spec:
       containers:
         - name: worker
           image: ghcr.io/kibamail/kibamail-worker:prod
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-event-ingestor
+  namespace: kibamail-event-ingestor
+spec:
+  template:
+    spec:
+      containers:
+        - name: event-ingestor
+          image: ghcr.io/kibamail/kibamail-event-ingestor:prod

@@ -3,17 +3,8 @@ name: test node.js sdk
 on:
   push:
     branches: [main, develop]
-    paths:
-      - "sdks/nodejs/**"
-      - "test-sdk-infra/**"
-      - "apps/web/public/openapi.v1.json"
-      - ".github/workflows/test-nodejs-sdk.yml"
   pull_request:
-    paths:
-      - "sdks/nodejs/**"
-      - "test-sdk-infra/**"
-      - "apps/web/public/openapi.v1.json"
-      - ".github/workflows/test-nodejs-sdk.yml"
+    branches: [main]
 
 jobs:
   test:

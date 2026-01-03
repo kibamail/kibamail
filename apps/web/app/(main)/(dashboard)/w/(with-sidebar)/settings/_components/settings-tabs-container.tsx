@@ -8,16 +8,10 @@ import {
 import * as Tabs from "@kibamail/owly/tabs";
 import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
-import { CreateApiKeyButton } from "../api-keys/_components/create-api-key-button";
-import { CreateWebhookButtonWrapper } from "../webhooks/_components/create-webhook-button-wrapper";
-import { SettingsTabs } from "./settings-tabs";
+import { CreateApiKeyButton } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/api-keys/_components/create-api-key-button";
+import { CreateWebhookButtonWrapper } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/webhooks/_components/create-webhook-button-wrapper";
+import { SettingsTabs } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/_components/settings-tabs";
 
-/**
- * Settings Tabs Container
- *
- * Client component that wraps the settings layout with tabs functionality.
- * Detects the active tab from the current pathname.
- */
 export function SettingsTabsContainer({ children }: PropsWithChildren) {
   const pathname = usePathname();
 

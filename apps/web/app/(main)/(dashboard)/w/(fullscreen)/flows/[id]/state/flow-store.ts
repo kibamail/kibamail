@@ -1,10 +1,10 @@
 import type { Edge, Node } from "@xyflow/react";
 import { create } from "zustand";
-import { SpecialNodeType, TriggerNodeType } from "../types/node-types";
+import { SpecialNodeType, TriggerNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 import {
   getLayoutedElements,
   type LayoutDirection,
-} from "../_utils/dagre-layout";
+} from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_utils/dagre-layout";
 
 export type SidebarScreen = "node-selector" | "node-configuration";
 

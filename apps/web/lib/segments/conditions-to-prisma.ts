@@ -1,25 +1,12 @@
-/**
- * Conditions to Prisma Query Converter
- *
- * Converts segment conditions (MongoDB-style) to Prisma where clauses
- * for querying contacts based on segment criteria.
- */
-
 import type { Prisma } from "@prisma/client";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
-/**
- * Contact property definition for field mapping
- */
 interface ContactPropertyDefinition {
   name: string;
   slot: string;
   type: string;
 }
 
-/**
- * List of built-in contact fields that can be queried
- */
 export const BUILT_IN_CONTACT_FIELDS = [
   "email",
   "firstName",
@@ -49,7 +36,7 @@ export function validateConditionFields(
   const builtInFields = new Set(BUILT_IN_CONTACT_FIELDS);
 
   function checkFieldValidity(field: string): void {
-    if (!builtInFields.has(field as any) && !propertyNames.has(field)) {
+    if (!builtInFields.has(field) && !propertyNames.has(field)) {
       invalidFields.push(field);
     }
   }

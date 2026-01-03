@@ -1,9 +1,9 @@
 import { Code, GitFork, Book, GraduationCap, X } from "iconoir-react";
-import { EngageIcon } from "../../_icons/engage.svg";
-import { GithubIcon } from "../../_icons/github.svg";
-import { InboundIcon } from "../../_icons/inbound.svg";
-import { SendIcon } from "../../_icons/send.svg";
-import { ValidateIcon } from "../../_icons/validate.svg";
+import { EngageIcon } from "@/app/_components/_icons/engage.svg";
+import { GithubIcon } from "@/app/_components/_icons/github.svg";
+import { InboundIcon } from "@/app/_components/_icons/inbound.svg";
+import { SendIcon } from "@/app/_components/_icons/send.svg";
+import { ValidateIcon } from "@/app/_components/_icons/validate.svg";
 import { NavIconWrapper } from "./nav-icon-wrapper";
 
 export const productLinks = [

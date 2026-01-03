@@ -3,12 +3,51 @@ import { prisma } from "@/lib/db";
 import { notFound } from "next/navigation";
 import { FormBuilderClient } from "./_components/form-builder";
 import type { FormBuilderSchema } from "./_components/form-builder/types";
+import type { FormStatus } from "@prisma/client";
 
-async function getForm(workspaceId: string, formId: string) {
+export interface FormVersion {
+  id: string;
+  version: number;
+  status: FormStatus;
+  publishedAt: Date | null;
+  createdAt: Date;
+}
+
+interface FormWithVersions {
+  id: string;
+  name: string;
+  fields: unknown;
+  status: FormStatus;
+  version: number;
+  parentId: string | null;
+  publishedVersionId: string | null;
+  doubleOptInEmailId: string | null;
+  rootFormId: string;
+  versions: FormVersion[];
+  isLiveVersion: boolean;
+}
+
+async function getFormWithVersions(
+  workspaceId: string,
+  formId: string
+): Promise<FormWithVersions | null> {
+  // First, get the requested form
   const form = await prisma.form.findFirst({
     where: {
       id: formId,
       workspaceId,
+    },
+    select: {
+      id: true,
+      name: true,
+      fields: true,
+      status: true,
+      version: true,
+      parentId: true,
+      publishedVersionId: true,
+      doubleOptInEmailId: true,
+      publishedAt: true,
+      createdAt: true,
     },
   });
 
@@ -16,7 +55,49 @@ async function getForm(workspaceId: string, formId: string) {
     return null;
   }
 
-  return form;
+  // Determine the root form ID (either this form or its parent)
+  const rootFormId = form.parentId ?? form.id;
+
+  // Get root form to check publishedVersionId
+  const rootForm = form.parentId
+    ? await prisma.form.findFirst({
+        where: { id: form.parentId, workspaceId },
+        select: { publishedVersionId: true },
+      })
+    : form;
+
+  // Fetch all versions (root form + all children)
+  const allVersions = await prisma.form.findMany({
+    where: {
+      workspaceId,
+      OR: [{ id: rootFormId }, { parentId: rootFormId }],
+    },
+    select: {
+      id: true,
+      version: true,
+      status: true,
+      publishedAt: true,
+      createdAt: true,
+    },
+    orderBy: { version: "desc" },
+  });
+
+  // Determine if current form is the live version
+  const isLiveVersion = rootForm?.publishedVersionId === form.id;
+
+  return {
+    id: form.id,
+    name: form.name,
+    fields: form.fields,
+    status: form.status,
+    version: form.version,
+    parentId: form.parentId,
+    publishedVersionId: form.publishedVersionId,
+    doubleOptInEmailId: form.doubleOptInEmailId,
+    rootFormId,
+    versions: allVersions,
+    isLiveVersion,
+  };
 }
 
 export default async function FormPage({
@@ -31,7 +112,7 @@ export default async function FormPage({
     throw new Error("No active workspace found");
   }
 
-  const form = await getForm(session.currentOrganization.id, id);
+  const form = await getFormWithVersions(session.currentOrganization.id, id);
 
   if (!form) {
     notFound();
@@ -43,7 +124,13 @@ export default async function FormPage({
     <FormBuilderClient
       formId={form.id}
       formName={form.name}
+      formStatus={form.status}
+      formVersion={form.version}
+      rootFormId={form.rootFormId}
+      versions={form.versions}
+      isLiveVersion={form.isLiveVersion}
       initialSchema={initialSchema}
+      doubleOptInEmailId={form.doubleOptInEmailId}
     />
   );
 }

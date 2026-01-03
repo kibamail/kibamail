@@ -3,9 +3,9 @@
 import * as Select from "@kibamail/owly/select-field";
 import * as DateField from "@kibamail/owly/date-field";
 import { Text } from "@kibamail/owly/text";
-import { SectionHeader, SectionSaveButton } from "./shared";
-import { useSendTime } from "./use-send-time";
-import type { BroadcastDetails } from "../types";
+import { SectionHeader, SectionSaveButton } from "@/components/email-editor/details-sections/shared";
+import { useSendTime } from "@/components/email-editor/details-sections/use-send-time";
+import type { BroadcastDetails } from "@/components/email-editor/types";
 
 interface SendTimeSectionProps {
   sendAt?: Date;

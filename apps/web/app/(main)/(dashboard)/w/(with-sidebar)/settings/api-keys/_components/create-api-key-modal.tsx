@@ -86,7 +86,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
     }
   }
 
-  function handleClose() {
+  function onClose() {
     reset();
     setSelectedPreset("none");
     onOpenChange?.(false);
@@ -107,7 +107,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
 
   return (
     <>
-      <Dialog.Root open={open} onOpenChange={handleClose}>
+      <Dialog.Root open={open} onOpenChange={onClose}>
         <Dialog.Content className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <form onSubmit={handleSubmit(onSubmit)}>
             <Dialog.Header>
@@ -207,7 +207,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
               <Button
                 type="button"
                 variant="secondary"
-                onClick={handleClose}
+                onClick={onClose}
                 disabled={createMutation.isPending}
               >
                 Cancel

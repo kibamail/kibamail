@@ -1,12 +1,6 @@
-/**
- * Shared Form Submission Handlers
- *
- * Common business logic for processing form submissions.
- * Used by both external API and internal API endpoints.
- */
-
 import { z } from "zod";
-import { ContactSourceType } from "@prisma/client";
+import crypto from "crypto";
+import { ContactSourceType, ContactStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { responseCreated } from "@/lib/api/responses";
 import { ValidationError, type ValidationErrorDetail } from "@/lib/api/errors";
@@ -14,20 +8,24 @@ import { ErrorCode } from "@/lib/api/error-codes";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import { transformToContactData } from "@/lib/forms/field-mapping";
 import { createContactSchema } from "@/app/(main)/api/v1/contacts/schema";
+import { queue } from "@/lib/queue";
+import type { FormSettings } from "@/lib/form-builder/schema";
 
-/**
- * Submission metadata from request headers
- */
 export interface SubmissionMetadata {
   ipAddress: string | null;
   userAgent: string | null;
   referrerUrl: string | null;
 }
 
-/**
- * Generates a dynamic Zod schema based on form fields for SURVEY forms.
- * All fields are treated as optional strings or numbers.
- */
+export interface DoubleOptInConfig {
+  enabled: boolean;
+  emailId: string | null;
+}
+
+export function generateConfirmationToken(): string {
+  return crypto.randomBytes(32).toString("hex");
+}
+
 export function generateSurveyValidationSchema(
   fieldMapping: FormFieldMapping
 ): z.ZodObject<Record<string, z.ZodTypeAny>> {
@@ -44,9 +42,6 @@ export function generateSurveyValidationSchema(
   return z.object(shape).passthrough();
 }
 
-/**
- * Maps submission data to slot columns using field mapping
- */
 export function mapSubmissionToSlots(
   data: Record<string, unknown>,
   fieldMapping: FormFieldMapping
@@ -73,19 +68,14 @@ export function mapSubmissionToSlots(
   return slotData;
 }
 
-/**
- * Handles SIGN_UP form submissions
- * Creates or updates a contact and creates a form submission record
- */
 export async function handleSignUpSubmission(
   workspaceId: string,
   formId: string,
   rawData: Record<string, unknown>,
   fieldMapping: FormFieldMapping,
-  metadata: SubmissionMetadata
+  metadata: SubmissionMetadata,
+  doubleOptIn?: DoubleOptInConfig
 ) {
-  // Transform field names to contact property IDs
-  // e.g., { field_abc123: "test@example.com" } -> { email: "test@example.com" }
   const contactData = transformToContactData(rawData, fieldMapping);
 
   const validationResult = createContactSchema.safeParse(contactData);
@@ -109,10 +99,54 @@ export async function handleSignUpSubmission(
   const {
     properties: _,
     topics: __,
+    status: ___,
     ...coreContactData
   } = validationResult.data;
 
-  // Upsert contact using email + workspaceId as unique key
+  const isDoubleOptInEnabled =
+    doubleOptIn?.enabled === true && doubleOptIn.emailId !== null;
+
+  const contactCreateData: Record<string, unknown> = {
+    workspaceId,
+    ...coreContactData,
+    sourceType: ContactSourceType.FORM,
+    sourceId: formId,
+  };
+
+  const contactUpdateData: Record<string, unknown> = { ...coreContactData };
+
+  if (isDoubleOptInEnabled) {
+    const confirmationToken = generateConfirmationToken();
+
+    contactCreateData.status = ContactStatus.UNCONFIRMED;
+    contactCreateData.confirmationToken = confirmationToken;
+  }
+
+  const existingContact = await prisma.contact.findUnique({
+    where: {
+      workspaceId_email: {
+        workspaceId,
+        email: coreContactData.email,
+      },
+    },
+    select: {
+      id: true,
+      status: true,
+    },
+  });
+
+  const shouldSendConfirmation =
+    isDoubleOptInEnabled &&
+    (!existingContact || existingContact.status === ContactStatus.UNCONFIRMED);
+
+  if (
+    isDoubleOptInEnabled &&
+    existingContact?.status === ContactStatus.UNCONFIRMED
+  ) {
+    const confirmationToken = generateConfirmationToken();
+    contactUpdateData.confirmationToken = confirmationToken;
+  }
+
   const contact = await prisma.contact.upsert({
     where: {
       workspaceId_email: {
@@ -120,13 +154,8 @@ export async function handleSignUpSubmission(
         email: coreContactData.email,
       },
     },
-    update: coreContactData,
-    create: {
-      workspaceId,
-      ...coreContactData,
-      sourceType: ContactSourceType.FORM,
-      sourceId: formId,
-    },
+    update: contactUpdateData,
+    create: contactCreateData as Parameters<typeof prisma.contact.create>[0]["data"],
   });
 
   const slotData = mapSubmissionToSlots(rawData, fieldMapping);
@@ -144,13 +173,18 @@ export async function handleSignUpSubmission(
     },
   });
 
+  if (shouldSendConfirmation && doubleOptIn?.emailId) {
+    await queue("forms").push("send-double-opt-in", {
+      contactId: contact.id,
+      formId,
+      emailId: doubleOptIn.emailId,
+      workspaceId,
+    });
+  }
+
   return responseCreated({ id: submission.id }, "form_submission");
 }
 
-/**
- * Handles SURVEY form submissions
- * Creates a form submission record and optionally links to existing contact by email
- */
 export async function handleSurveySubmission(
   workspaceId: string,
   formId: string,
@@ -178,10 +212,8 @@ export async function handleSurveySubmission(
     );
   }
 
-  // Try to find existing contact if form has a field mapped to the "email" contact property
   let contactId: string | null = null;
 
-  // Find the field that is mapped to the email contact property
   const emailFieldName = Object.entries(fieldMapping).find(
     ([, mapping]) => mapping.contactPropertyId === "email"
   )?.[0];

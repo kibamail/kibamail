@@ -1,0 +1,138 @@
+{
+  "_description": "Collection of various soft bounce scenarios that will be retried",
+  "examples": [
+    {
+      "_scenario": "Server temporarily unavailable - rate limiting",
+      "type": "TransientFailure",
+      "id": "transient-001",
+      "sender": "bounces+msg-001@bounce.acme.com",
+      "recipient": "user@ratelimited.com",
+      "queue": "ratelimited.com",
+      "site": "mx.ratelimited.com",
+      "size": 35000,
+      "response": {
+        "code": 421,
+        "enhanced_code": { "class": 4, "subject": 7, "detail": 0 },
+        "content": "421 4.7.0 Try again later, too many connections from your IP.",
+        "command": "CONNECT"
+      },
+      "num_attempts": 2,
+      "bounce_classification": "TransientFailure",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_001" }
+    },
+    {
+      "_scenario": "Mailbox temporarily unavailable",
+      "type": "TransientFailure",
+      "id": "transient-002",
+      "sender": "bounces+msg-002@bounce.acme.com",
+      "recipient": "user@tempunavail.com",
+      "queue": "tempunavail.com",
+      "site": "mx.tempunavail.com",
+      "size": 35000,
+      "response": {
+        "code": 450,
+        "enhanced_code": { "class": 4, "subject": 2, "detail": 1 },
+        "content": "450 4.2.1 Mailbox temporarily disabled, please try again later.",
+        "command": "RCPT TO"
+      },
+      "num_attempts": 1,
+      "bounce_classification": "TransientFailure",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_002" }
+    },
+    {
+      "_scenario": "Temporary quota exceeded",
+      "type": "TransientFailure",
+      "id": "transient-003",
+      "sender": "bounces+msg-003@bounce.acme.com",
+      "recipient": "user@quotatemp.com",
+      "queue": "quotatemp.com",
+      "site": "mx.quotatemp.com",
+      "size": 35000,
+      "response": {
+        "code": 452,
+        "enhanced_code": { "class": 4, "subject": 2, "detail": 2 },
+        "content": "452 4.2.2 Mailbox is full. Try again later when user has freed up space.",
+        "command": "DATA"
+      },
+      "num_attempts": 4,
+      "bounce_classification": "QuotaIssues",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_003" }
+    },
+    {
+      "_scenario": "Greylisting - first attempt rejected",
+      "type": "TransientFailure",
+      "id": "transient-004",
+      "sender": "bounces+msg-004@bounce.acme.com",
+      "recipient": "user@greylist.com",
+      "queue": "greylist.com",
+      "site": "mx.greylist.com",
+      "size": 35000,
+      "response": {
+        "code": 450,
+        "enhanced_code": { "class": 4, "subject": 7, "detail": 1 },
+        "content": "450 4.7.1 Greylisted, please retry in 5 minutes.",
+        "command": "RCPT TO"
+      },
+      "num_attempts": 1,
+      "bounce_classification": "TransientFailure",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_004" }
+    },
+    {
+      "_scenario": "DNS temporary failure",
+      "type": "TransientFailure",
+      "id": "transient-005",
+      "sender": "bounces+msg-005@bounce.acme.com",
+      "recipient": "user@dnstimeout.com",
+      "queue": "dnstimeout.com",
+      "site": "",
+      "size": 35000,
+      "response": {
+        "code": 451,
+        "enhanced_code": { "class": 4, "subject": 4, "detail": 3 },
+        "content": "451 4.4.3 Temporary DNS failure, will retry.",
+        "command": null
+      },
+      "num_attempts": 2,
+      "bounce_classification": "DNSFailure",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_005" }
+    },
+    {
+      "_scenario": "Connection timeout",
+      "type": "TransientFailure",
+      "id": "transient-006",
+      "sender": "bounces+msg-006@bounce.acme.com",
+      "recipient": "user@slowserver.com",
+      "queue": "slowserver.com",
+      "site": "mx.slowserver.com",
+      "size": 35000,
+      "response": {
+        "code": 421,
+        "enhanced_code": { "class": 4, "subject": 4, "detail": 2 },
+        "content": "421 4.4.2 Connection timed out while waiting for response.",
+        "command": "DATA"
+      },
+      "num_attempts": 3,
+      "bounce_classification": "BadConnection",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_006" }
+    },
+    {
+      "_scenario": "System congestion",
+      "type": "TransientFailure",
+      "id": "transient-007",
+      "sender": "bounces+msg-007@bounce.acme.com",
+      "recipient": "user@busyserver.com",
+      "queue": "busyserver.com",
+      "site": "mx.busyserver.com",
+      "size": 35000,
+      "response": {
+        "code": 451,
+        "enhanced_code": { "class": 4, "subject": 4, "detail": 5 },
+        "content": "451 4.4.5 System congestion, try again later.",
+        "command": "DATA"
+      },
+      "num_attempts": 5,
+      "bounce_classification": "TransientFailure",
+      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_007" }
+    }
+  ]
+}

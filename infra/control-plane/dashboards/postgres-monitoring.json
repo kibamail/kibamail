@@ -1,0 +1,1026 @@
+{
+  "description": "Comprehensive PostgreSQL monitoring dashboard for CloudNativePG clusters",
+  "tags": ["postgresql", "database", "cloudnativepg"],
+  "name": "PostgreSQL Monitoring",
+  "layout": [
+    {
+      "h": 2,
+      "i": "header-overview",
+      "w": 12,
+      "x": 0,
+      "y": 0
+    },
+    {
+      "h": 6,
+      "i": "total-connections",
+      "w": 3,
+      "x": 0,
+      "y": 2
+    },
+    {
+      "h": 6,
+      "i": "active-connections",
+      "w": 3,
+      "x": 3,
+      "y": 2
+    },
+    {
+      "h": 6,
+      "i": "cache-hit-ratio",
+      "w": 3,
+      "x": 6,
+      "y": 2
+    },
+    {
+      "h": 6,
+      "i": "database-size",
+      "w": 3,
+      "x": 9,
+      "y": 2
+    },
+    {
+      "h": 8,
+      "i": "connections-by-state",
+      "w": 6,
+      "x": 0,
+      "y": 8
+    },
+    {
+      "h": 8,
+      "i": "connections-waiting",
+      "w": 6,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "h": 2,
+      "i": "header-transactions",
+      "w": 12,
+      "x": 0,
+      "y": 16
+    },
+    {
+      "h": 8,
+      "i": "transactions-rate",
+      "w": 6,
+      "x": 0,
+      "y": 18
+    },
+    {
+      "h": 8,
+      "i": "rollbacks-deadlocks",
+      "w": 6,
+      "x": 6,
+      "y": 18
+    },
+    {
+      "h": 2,
+      "i": "header-queries",
+      "w": 12,
+      "x": 0,
+      "y": 26
+    },
+    {
+      "h": 8,
+      "i": "longest-queries",
+      "w": 12,
+      "x": 0,
+      "y": 28
+    },
+    {
+      "h": 8,
+      "i": "locks-by-mode",
+      "w": 6,
+      "x": 0,
+      "y": 36
+    },
+    {
+      "h": 8,
+      "i": "temp-files",
+      "w": 6,
+      "x": 6,
+      "y": 36
+    },
+    {
+      "h": 2,
+      "i": "header-replication",
+      "w": 12,
+      "x": 0,
+      "y": 44
+    },
+    {
+      "h": 6,
+      "i": "replication-lag-seconds",
+      "w": 6,
+      "x": 0,
+      "y": 46
+    },
+    {
+      "h": 6,
+      "i": "replication-lag-bytes",
+      "w": 6,
+      "x": 6,
+      "y": 46
+    },
+    {
+      "h": 2,
+      "i": "header-tables",
+      "w": 12,
+      "x": 0,
+      "y": 52
+    },
+    {
+      "h": 8,
+      "i": "table-scans",
+      "w": 6,
+      "x": 0,
+      "y": 54
+    },
+    {
+      "h": 8,
+      "i": "table-modifications",
+      "w": 6,
+      "x": 6,
+      "y": 54
+    },
+    {
+      "h": 8,
+      "i": "dead-tuples",
+      "w": 6,
+      "x": 0,
+      "y": 62
+    },
+    {
+      "h": 8,
+      "i": "index-usage",
+      "w": 6,
+      "x": 6,
+      "y": 62
+    },
+    {
+      "h": 2,
+      "i": "header-wal",
+      "w": 12,
+      "x": 0,
+      "y": 70
+    },
+    {
+      "h": 8,
+      "i": "wal-bytes",
+      "w": 6,
+      "x": 0,
+      "y": 72
+    },
+    {
+      "h": 8,
+      "i": "checkpoints",
+      "w": 6,
+      "x": 6,
+      "y": 72
+    },
+    {
+      "h": 8,
+      "i": "buffers-written",
+      "w": 12,
+      "x": 0,
+      "y": 80
+    }
+  ],
+  "widgets": [
+    {
+      "id": "header-overview",
+      "title": "Overview",
+      "panelTypes": "text",
+      "query": {
+        "builder": {
+          "queryData": []
+        }
+      },
+      "description": "Connection and cache metrics"
+    },
+    {
+      "id": "total-connections",
+      "title": "Total Connections",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_connections_total",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "thresholds": [
+        {"color": "#22c55e", "value": 0},
+        {"color": "#eab308", "value": 80},
+        {"color": "#ef4444", "value": 100}
+      ]
+    },
+    {
+      "id": "active-connections",
+      "title": "Active Connections",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_connections_active",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "thresholds": [
+        {"color": "#22c55e", "value": 0},
+        {"color": "#eab308", "value": 50},
+        {"color": "#ef4444", "value": 80}
+      ]
+    },
+    {
+      "id": "cache-hit-ratio",
+      "title": "Cache Hit Ratio (%)",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "avg",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_cache_hit_ratio_cache_hit_ratio",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "thresholds": [
+        {"color": "#ef4444", "value": 0},
+        {"color": "#eab308", "value": 90},
+        {"color": "#22c55e", "value": 99}
+      ],
+      "unit": "percent"
+    },
+    {
+      "id": "database-size",
+      "title": "Database Size",
+      "panelTypes": "value",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_database_size_size_bytes",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "unit": "bytes"
+    },
+    {
+      "id": "connections-by-state",
+      "title": "Connections by State",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_activity_state_connections",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "state", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "fillSpans": true,
+      "stackedBarChart": true
+    },
+    {
+      "id": "connections-waiting",
+      "title": "Connections Waiting on Locks",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_connections_waiting",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "datname", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "header-transactions",
+      "title": "Transactions",
+      "panelTypes": "text",
+      "query": {
+        "builder": {
+          "queryData": []
+        }
+      },
+      "description": "Transaction commit/rollback rates"
+    },
+    {
+      "id": "transactions-rate",
+      "title": "Transaction Rate (commits/sec)",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_database_xact_xact_commit",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "datname", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "rollbacks-deadlocks",
+      "title": "Rollbacks & Deadlocks",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "legendFormat": "Rollbacks - {{datname}}",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_database_xact_xact_rollback",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "datname", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "B",
+              "legendFormat": "Deadlocks - {{datname}}",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_database_xact_deadlocks",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "datname", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "header-queries",
+      "title": "Queries & Locks",
+      "panelTypes": "text",
+      "query": {
+        "builder": {
+          "queryData": []
+        }
+      },
+      "description": "Query duration and lock statistics"
+    },
+    {
+      "id": "longest-queries",
+      "title": "Longest Running Queries (seconds)",
+      "panelTypes": "table",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "max",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_activity_longest_duration_seconds",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "datname", "type": "tag"},
+                {"key": "usename", "type": "tag"},
+                {"key": "state", "type": "tag"},
+                {"key": "wait_event_type", "type": "tag"}
+              ],
+              "reduceTo": "last",
+              "orderBy": [
+                {"columnName": "value", "order": "desc"}
+              ],
+              "limit": 10
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "locks-by-mode",
+      "title": "Locks by Mode",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_locks_count_count",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "mode", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "stackedBarChart": true
+    },
+    {
+      "id": "temp-files",
+      "title": "Temporary Files Created",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_database_xact_temp_files",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "datname", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "header-replication",
+      "title": "Replication",
+      "panelTypes": "text",
+      "query": {
+        "builder": {
+          "queryData": []
+        }
+      },
+      "description": "Replication lag metrics"
+    },
+    {
+      "id": "replication-lag-seconds",
+      "title": "Replication Lag (seconds)",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "max",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_replication_lag_seconds",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "pod", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "thresholds": [
+        {"color": "#22c55e", "value": 0},
+        {"color": "#eab308", "value": 10},
+        {"color": "#ef4444", "value": 60}
+      ]
+    },
+    {
+      "id": "replication-lag-bytes",
+      "title": "Replication Lag (bytes)",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "max",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_replication_lag_bytes",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "pod", "type": "tag"}
+              ],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "unit": "bytes"
+    },
+    {
+      "id": "header-tables",
+      "title": "Tables & Indexes",
+      "panelTypes": "text",
+      "query": {
+        "builder": {
+          "queryData": []
+        }
+      },
+      "description": "Table and index I/O statistics"
+    },
+    {
+      "id": "table-scans",
+      "title": "Table Scans (seq vs index)",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "legendFormat": "Sequential Scans",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_tables_seq_scan",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "B",
+              "legendFormat": "Index Scans",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_tables_idx_scan",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "table-modifications",
+      "title": "Row Modifications Rate",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "legendFormat": "Inserts",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_tables_n_tup_ins",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "B",
+              "legendFormat": "Updates",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_tables_n_tup_upd",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "C",
+              "legendFormat": "Deletes",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_tables_n_tup_del",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "dead-tuples",
+      "title": "Dead Tuples (needs vacuum)",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "sum",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_tables_n_dead_tup",
+                "type": "Gauge"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "relname", "type": "tag"}
+              ],
+              "reduceTo": "last",
+              "orderBy": [
+                {"columnName": "value", "order": "desc"}
+              ],
+              "limit": 10
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "index-usage",
+      "title": "Top Index Scans by Table",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_user_indexes_idx_scan",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [
+                {"key": "table_name", "type": "tag"},
+                {"key": "index_name", "type": "tag"}
+              ],
+              "reduceTo": "last",
+              "orderBy": [
+                {"columnName": "value", "order": "desc"}
+              ],
+              "limit": 10
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "header-wal",
+      "title": "WAL & Checkpoints",
+      "panelTypes": "text",
+      "query": {
+        "builder": {
+          "queryData": []
+        }
+      },
+      "description": "Write-ahead log and checkpoint statistics"
+    },
+    {
+      "id": "wal-bytes",
+      "title": "WAL Bytes Written",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_wal_wal_bytes",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      },
+      "unit": "bytes/sec"
+    },
+    {
+      "id": "checkpoints",
+      "title": "Checkpoints (timed vs requested)",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "legendFormat": "Timed Checkpoints",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_bgwriter_checkpoints_timed",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "B",
+              "legendFormat": "Requested Checkpoints",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_bgwriter_checkpoints_req",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    },
+    {
+      "id": "buffers-written",
+      "title": "Buffers Written By",
+      "panelTypes": "graph",
+      "query": {
+        "builder": {
+          "queryData": [
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "A",
+              "legendFormat": "Checkpoints",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_bgwriter_buffers_checkpoint",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "B",
+              "legendFormat": "Background Writer",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_bgwriter_buffers_clean",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            },
+            {
+              "aggregateOperator": "rate",
+              "dataSource": "metrics",
+              "queryName": "C",
+              "legendFormat": "Backends",
+              "aggregateAttribute": {
+                "key": "cnpg_pg_stat_bgwriter_buffers_backend",
+                "type": "Sum"
+              },
+              "filters": {
+                "items": [],
+                "op": "AND"
+              },
+              "groupBy": [],
+              "reduceTo": "last"
+            }
+          ]
+        },
+        "promql": [],
+        "clickhouse_sql": []
+      }
+    }
+  ],
+  "variables": {
+    "datname": {
+      "type": "query",
+      "name": "datname",
+      "description": "Database name filter",
+      "queryValue": "SELECT DISTINCT datname FROM signoz_metrics.samples WHERE metric_name = 'cnpg_pg_connections_total'",
+      "customValue": "",
+      "multiSelect": true,
+      "showALLOption": true,
+      "sort": "ASC",
+      "selectedValue": "$__all"
+    },
+    "cluster": {
+      "type": "query",
+      "name": "cluster",
+      "description": "CNPG cluster filter",
+      "queryValue": "SELECT DISTINCT cnpg_cluster FROM signoz_metrics.samples WHERE metric_name = 'cnpg_pg_connections_total'",
+      "customValue": "",
+      "multiSelect": false,
+      "showALLOption": true,
+      "sort": "ASC",
+      "selectedValue": "$__all"
+    }
+  },
+  "version": "v4"
+}

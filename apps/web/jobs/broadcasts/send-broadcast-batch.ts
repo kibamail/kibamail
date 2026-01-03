@@ -7,13 +7,16 @@
  * For each contact:
  * 1. Renders the email template with personalization
  * 2. Applies tracking (link rewriting, open pixel)
- * 3. Injects the email into the MTA
+ * 3. Uploads content to S3
+ * 4. Publishes email message to NATS for MTA injection
  */
 
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
-import { prepareEmailBatch, type EmailBroadcast } from "@/lib/email";
+import { prepareEmailBatch, type EmailBroadcast, type PreparedEmail } from "@/lib/email";
+import { uploadPrivateFile } from "@/lib/storage/private-storage";
+import { publishEmailBatch, getNatsOptions, type EmailMessage } from "@/lib/nats";
 
 const logger = queueLogger.child({ job: "send-broadcast-batch" });
 
@@ -34,6 +37,11 @@ export const sendBroadcastBatch: JobProcessor<
     include: {
       emailContent: true,
       senderIdentity: {
+        include: {
+          sendingDomain: true,
+        },
+      },
+      replyToIdentity: {
         include: {
           sendingDomain: true,
         },
@@ -100,26 +108,33 @@ export const sendBroadcastBatch: JobProcessor<
     return;
   }
 
+  // Build reply-to email: use replyToIdentity if set, otherwise default to senderIdentity (from email)
+  const replyToIdentity = broadcast.replyToIdentity ?? broadcast.senderIdentity;
+  const replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain!.name}`;
+
   // Prepare the broadcast data for email preparation
   const emailBroadcast: EmailBroadcast = {
     id: broadcast.id,
+    workspaceId: broadcast.workspaceId,
     emailContent: {
       subject: broadcast.emailContent.subject,
+      previewText: broadcast.emailContent.previewText,
       contentJson: broadcast.emailContent.contentJson,
-      contentHtml: broadcast.emailContent.contentHtml ?? undefined,
+      contentHtml: broadcast.emailContent.contentHtml,
+      contentText: broadcast.emailContent.contentText,
     },
     senderIdentity: {
       ...broadcast.senderIdentity,
       sendingDomain: broadcast.senderIdentity.sendingDomain!,
     },
     sendingDomain: broadcast.sendingDomain,
+    trackOpens: broadcast.trackOpens,
+    trackClicks: broadcast.trackClicks,
+    replyToEmail,
   };
 
   // Prepare all emails for the batch
-  const preparedEmails = await prepareEmailBatch(contacts, emailBroadcast, {
-    clickTracking: true,
-    openTracking: true,
-  });
+  const preparedEmails = await prepareEmailBatch(contacts, emailBroadcast);
 
   logger.debug(
     {
@@ -131,20 +146,14 @@ export const sendBroadcastBatch: JobProcessor<
     "Prepared emails for batch"
   );
 
-  // TODO: Inject emails into MTA
-  // For now, log the prepared emails (actual MTA injection to be implemented)
-  // Each prepared email contains:
-  // - emailSendId: unique ID for tracking
-  // - messageId: RFC 5322 Message-ID header
-  // - recipientEmail: where to send
-  // - htmlBody: rendered HTML with tracking
-  // - from: sender address
-  // - envelopeSender: for bounce handling
+  // Upload email content to S3 and convert to NATS message format
+  const natsMessages = await convertToNatsMessages(preparedEmails);
 
-  // In production, this would:
-  // 1. Call the MTA injector HTTP API for each email
-  // 2. Store EmailSend records in the database
-  // 3. Handle retries for failed injections
+  // Publish to NATS for MTA injection
+  const natsOptions = getNatsOptions();
+  const acks = await publishEmailBatch(natsOptions, natsMessages);
+
+  const duplicates = acks.filter((a) => a.duplicate).length;
 
   logger.info(
     {
@@ -153,13 +162,73 @@ export const sendBroadcastBatch: JobProcessor<
       batchId,
       processedCount: contacts.length,
       preparedCount: preparedEmails.length,
+      publishedCount: acks.length,
+      duplicates,
       skippedCount,
     },
-    "Batch processing complete"
+    "Batch processing complete - emails published to NATS"
   );
-
-  // TODO: Update broadcast progress
-  // - Increment sent count
-  // - Check if all batches are complete
-  // - Update status to SENT when done
 };
+
+/**
+ * Convert prepared emails to NATS message format
+ *
+ * Uploads email content to S3 and creates the message payload
+ * expected by the email-agent.
+ */
+async function convertToNatsMessages(
+  preparedEmails: PreparedEmail[]
+): Promise<EmailMessage[]> {
+  const messages: EmailMessage[] = [];
+
+  for (const prepared of preparedEmails) {
+    // Upload HTML content to S3
+    const contentKey = `emails/${prepared.workspaceId}/${prepared.broadcastId}/${prepared.emailSendId}`;
+    const htmlKey = `${contentKey}/content.html`;
+
+    await uploadPrivateFile(htmlKey, prepared.htmlBody, "text/html");
+
+    // Upload plain text if available
+    if (prepared.textBody) {
+      const textKey = `${contentKey}/content.txt`;
+      await uploadPrivateFile(textKey, prepared.textBody, "text/plain");
+    }
+
+    // Build recipient name from first and last name
+    const recipientName = [prepared.recipientFirstName, prepared.recipientLastName]
+      .filter(Boolean)
+      .join(" ");
+
+    messages.push({
+      id: prepared.emailSendId,
+      tenant_id: prepared.workspaceId,
+      broadcast_id: prepared.broadcastId,
+      contact_id: prepared.contactId,
+      recipient: {
+        email: prepared.recipientEmail,
+        name: recipientName,
+      },
+      sender: {
+        email: prepared.senderEmail,
+        name: prepared.senderName,
+        domain: prepared.senderDomain,
+      },
+      reply_to: {
+        email: prepared.replyTo,
+        name: "",
+      },
+      subject: prepared.subject,
+      preview_text: prepared.previewText,
+      content_key: contentKey,
+      attachments: [],
+      metadata: {
+        message_id: prepared.messageId,
+        envelope_sender: prepared.envelopeSender,
+      },
+      track_opens: prepared.trackOpens,
+      track_clicks: prepared.trackClicks,
+    });
+  }
+
+  return messages;
+}

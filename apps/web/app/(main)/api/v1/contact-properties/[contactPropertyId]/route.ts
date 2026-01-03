@@ -14,7 +14,7 @@ import {
   deleteContactProperty,
   getContactProperty,
   updateContactProperty,
-} from "../handler";
+} from "@/app/(main)/api/v1/contact-properties/handler";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 type RouteContext = {

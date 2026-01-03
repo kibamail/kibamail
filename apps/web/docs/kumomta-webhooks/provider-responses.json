@@ -1,0 +1,192 @@
+{
+  "_description": "Real-world SMTP responses from major email providers. These show actual response messages you'll encounter.",
+  "providers": {
+    "gmail": {
+      "provider_name": "gmail",
+      "mx_hosts": ["gmail-smtp-in.l.google.com", "alt1.gmail-smtp-in.l.google.com"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 OK 1704067200 a1b2c3d4e5f6.123 - gsmtp"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550-5.1.1 The email account that you tried to reach does not exist. Please try\n550-5.1.1 double-checking the recipient's email address for typos or\n550-5.1.1 unnecessary spaces. Learn more at\n550 5.1.1 https://support.google.com/mail/?p=NoSuchUser a1b2c3d4e5f6.123 - gsmtp",
+          "bounce_classification": "InvalidRecipient"
+        },
+        "rate_limited": {
+          "code": 421,
+          "content": "421-4.7.0 Our system has detected an unusual rate of unsolicited mail originating\n421-4.7.0 from your IP address. To protect our users from spam, mail sent from\n421 4.7.0 your IP address has been temporarily rate limited.",
+          "bounce_classification": "TransientFailure"
+        },
+        "spam_blocked": {
+          "code": 550,
+          "content": "550-5.7.1 Our system has detected that this message is likely unsolicited mail.\n550-5.7.1 To reduce the amount of spam sent to Gmail, this message has been\n550 5.7.1 blocked. For more information, go to https://support.google.com/mail/?p=UnsolicitedMessageError",
+          "bounce_classification": "SpamBlock"
+        },
+        "dmarc_reject": {
+          "code": 550,
+          "content": "550-5.7.26 Unauthenticated email from example.com is not accepted due to\n550-5.7.26 domain's DMARC policy. Please contact the administrator of\n550 5.7.26 example.com domain if this was a legitimate mail.",
+          "bounce_classification": "AuthenticationFailed"
+        }
+      }
+    },
+    "yahoo": {
+      "provider_name": "yahoo",
+      "mx_hosts": ["mta5.am0.yahoodns.net", "mta6.am0.yahoodns.net"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 Ok dkim=pass"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550 5.1.1 User unknown",
+          "bounce_classification": "InvalidRecipient"
+        },
+        "mailbox_full": {
+          "code": 552,
+          "content": "552 5.2.2 Over quota",
+          "bounce_classification": "QuotaIssues"
+        },
+        "temporarily_deferred": {
+          "code": 421,
+          "content": "421 4.7.0 [TSS04] Messages from x.x.x.x temporarily deferred due to user complaints - https://help.yahoo.com/kb/postmaster",
+          "bounce_classification": "TransientFailure"
+        },
+        "permanently_blocked": {
+          "code": 553,
+          "content": "553 5.7.1 [BL21] Connections will not be accepted from x.x.x.x, because the ip is in Spamhaus's list",
+          "bounce_classification": "SpamBlock"
+        }
+      }
+    },
+    "microsoft": {
+      "provider_name": "microsoft",
+      "mx_hosts": ["outlook-com.olc.protection.outlook.com"],
+      "domains": ["outlook.com", "hotmail.com", "live.com", "msn.com"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 OK <message-id> [Hostname=xxx]"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550 5.1.1 User unknown",
+          "bounce_classification": "InvalidRecipient"
+        },
+        "mailbox_unavailable": {
+          "code": 550,
+          "content": "550 5.2.1 Mailbox cannot be accessed",
+          "bounce_classification": "InactiveMailbox"
+        },
+        "rate_limited": {
+          "code": 451,
+          "content": "451 4.7.500 Server busy. Please try again later. [Hostname=xxx]",
+          "bounce_classification": "TransientFailure"
+        },
+        "blocked_spam": {
+          "code": 550,
+          "content": "550 5.7.1 Service unavailable, Client host [x.x.x.x] blocked using Spamhaus.",
+          "bounce_classification": "SpamBlock"
+        },
+        "connection_refused": {
+          "code": 550,
+          "content": "550 5.7.606 Access denied, banned sending IP [x.x.x.x]. To request removal from this list please visit https://sender.office.com/",
+          "bounce_classification": "SpamBlock"
+        }
+      }
+    },
+    "apple": {
+      "provider_name": "apple",
+      "mx_hosts": ["mx1.mail.icloud.com", "mx2.mail.icloud.com"],
+      "domains": ["icloud.com", "me.com", "mac.com"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 OK"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550 5.1.1 unknown or illegal alias: user@icloud.com",
+          "bounce_classification": "InvalidRecipient"
+        },
+        "rate_limited": {
+          "code": 450,
+          "content": "450 4.7.1 Too many connections from your IP. Try again later.",
+          "bounce_classification": "TransientFailure"
+        }
+      }
+    },
+    "protonmail": {
+      "provider_name": "protonmail",
+      "mx_hosts": ["mail.protonmail.ch", "mailsec.protonmail.ch"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 OK"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550 5.1.1 The email account that you tried to reach does not exist",
+          "bounce_classification": "InvalidRecipient"
+        }
+      }
+    },
+    "zoho": {
+      "provider_name": "zoho",
+      "mx_hosts": ["mx.zoho.com", "mx2.zoho.com"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 Message received"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550 5.1.1 The email account that you tried to reach does not exist.",
+          "bounce_classification": "InvalidRecipient"
+        }
+      }
+    },
+    "comcast": {
+      "provider_name": "comcast",
+      "mx_hosts": ["mx1.comcast.net", "mx2.comcast.net"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 OK"
+        },
+        "blocked": {
+          "code": 550,
+          "content": "550 5.7.0 Your IP has been blocked due to spam complaints. Contact postmaster@comcast.net",
+          "bounce_classification": "SpamBlock"
+        },
+        "rate_limited": {
+          "code": 452,
+          "content": "452 4.2.1 Mailbox temporarily disabled, try again later",
+          "bounce_classification": "TransientFailure"
+        }
+      }
+    },
+    "aol": {
+      "provider_name": "aol",
+      "mx_hosts": ["mailin-01.mx.aol.com", "mailin-02.mx.aol.com"],
+      "responses": {
+        "success": {
+          "code": 250,
+          "content": "250 2.0.0 OK"
+        },
+        "user_unknown": {
+          "code": 550,
+          "content": "550 5.1.1 <user@aol.com>... User unknown",
+          "bounce_classification": "InvalidRecipient"
+        },
+        "blocked": {
+          "code": 554,
+          "content": "554 5.7.1 Mail from IP banned. Contact postmaster@aol.com",
+          "bounce_classification": "SpamBlock"
+        }
+      }
+    }
+  }
+}

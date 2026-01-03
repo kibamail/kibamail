@@ -10,7 +10,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { listAutomationVersions, createAutomationVersion } from "../../handler";
+import { listAutomationVersions, createAutomationVersion } from "@/app/(main)/api/v1/automations/handler";
 
 /**
  * GET /api/v1/automations/[automationId]/versions

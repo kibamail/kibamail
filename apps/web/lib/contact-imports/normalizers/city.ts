@@ -1,4 +1,4 @@
-import type { NormalizationResult } from "../types";
+import type { NormalizationResult } from "@/lib/contact-imports/types";
 
 const MAX_CITY_LENGTH = 100;
 

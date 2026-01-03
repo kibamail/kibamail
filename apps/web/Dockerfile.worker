@@ -70,6 +70,14 @@ RUN mkdir -p /app/runtime_modules/@opentelemetry && \
         fi; \
     done
 
+# Copy OpenTelemetry dependencies (shimmer, require-in-the-middle, import-in-the-middle)
+RUN for dep in shimmer require-in-the-middle import-in-the-middle; do \
+        depdir=$(find /app/node_modules/.pnpm -maxdepth 1 -type d -name "${dep}@*" | head -1); \
+        if [ -n "$depdir" ] && [ -d "$depdir/node_modules/$dep" ]; then \
+            cp -rL "$depdir/node_modules/$dep" /app/runtime_modules/; \
+        fi; \
+    done
+
 # ============================================
 # Production runner
 # ============================================

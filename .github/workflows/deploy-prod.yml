@@ -9,6 +9,7 @@ env:
   WEB_IMAGE: ${{ github.repository_owner }}/kibamail
   MARKETING_IMAGE: ${{ github.repository_owner }}/kibamail-marketing
   WORKER_IMAGE: ${{ github.repository_owner }}/kibamail-worker
+  EVENT_INGESTOR_IMAGE: ${{ github.repository_owner }}/kibamail-event-ingestor
 
 jobs:
   build-web:
@@ -201,9 +202,56 @@ jobs:
         id: get-tag
         run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
+  build-event-ingestor:
+    name: Build Event Ingestor Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.get-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.EVENT_INGESTOR_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=prod
+
+      - name: Build and push (event-ingestor)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile.event-ingestor
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Get image tag
+        id: get-tag
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
   deploy:
     name: Deploy to Production
-    needs: [build-web, build-cli, build-marketing, build-worker]
+    needs: [build-web, build-cli, build-marketing, build-worker, build-event-ingestor]
     runs-on: ubuntu-latest
     environment: production
 
@@ -256,6 +304,12 @@ jobs:
             -n kibamail-workers \
             worker=${{ env.REGISTRY }}/${{ env.WORKER_IMAGE }}:${{ needs.build-worker.outputs.image-tag }}
 
+      - name: Deploy Event Ingestor to Kubernetes
+        run: |
+          kubectl set image deployment/kibamail-event-ingestor \
+            -n kibamail-event-ingestor \
+            event-ingestor=${{ env.REGISTRY }}/${{ env.EVENT_INGESTOR_IMAGE }}:${{ needs.build-event-ingestor.outputs.image-tag }}
+
       - name: Wait for Web rollout
         run: |
           kubectl rollout status deployment/kibamail-control-plane \
@@ -278,4 +332,10 @@ jobs:
         run: |
           kubectl rollout status deployment/kibamail-workers \
             -n kibamail-workers \
+            --timeout=300s
+
+      - name: Wait for Event Ingestor rollout
+        run: |
+          kubectl rollout status deployment/kibamail-event-ingestor \
+            -n kibamail-event-ingestor \
             --timeout=300s

@@ -14,7 +14,7 @@ import {
   updateContactImportSchema,
   type UpdateContactImportResponse,
   type ContactImportResponse,
-} from "../schema";
+} from "@/app/(main)/api/internal/v1/contact-imports/schema";
 
 /**
  * GET /api/internal/v1/contact-imports/:id

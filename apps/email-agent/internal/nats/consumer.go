@@ -9,6 +9,10 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/kibamail/email-agent/internal/observability"
 )
@@ -24,6 +28,7 @@ type Consumer struct {
 	fetchWorkers int
 	logger       zerolog.Logger
 	metrics      *observability.Metrics
+	tracer       trace.Tracer
 
 	wg      sync.WaitGroup
 	stopCh  chan struct{}
@@ -33,10 +38,11 @@ type Consumer struct {
 
 // ConsumerConfig contains consumer configuration
 type ConsumerConfig struct {
-	StreamName   string
-	ConsumerName string
-	FetchBatch   int // Number of messages to fetch per batch
-	FetchWorkers int // Number of concurrent fetcher goroutines
+	StreamName    string
+	ConsumerName  string
+	FilterSubject string // Filter subject for the consumer (must match server-side consumer config)
+	FetchBatch    int    // Number of messages to fetch per batch
+	FetchWorkers  int    // Number of concurrent fetcher goroutines
 }
 
 // Message interface for message operations
@@ -73,14 +79,16 @@ func NewConsumer(
 	consumerLogger.Info().
 		Str("stream", cfg.StreamName).
 		Str("consumer", cfg.ConsumerName).
+		Str("filter_subject", cfg.FilterSubject).
 		Int("fetch_batch", cfg.FetchBatch).
 		Int("fetch_workers", cfg.FetchWorkers).
 		Msg("binding to JetStream consumer")
 
 	// Bind to PRE-EXISTING consumer (created by Ansible)
 	// Do NOT create a new consumer - this will fail if the consumer doesn't exist
+	// The filter subject MUST match the consumer's filter configuration on the server
 	sub, err := js.PullSubscribe(
-		"",              // Empty subject - consumer already knows which stream/subjects
+		cfg.FilterSubject, // Must match the consumer's filter subject
 		cfg.ConsumerName,
 		nats.Bind(cfg.StreamName, cfg.ConsumerName), // Bind to existing consumer
 	)
@@ -102,6 +110,7 @@ func NewConsumer(
 		fetchWorkers: cfg.FetchWorkers,
 		logger:       consumerLogger,
 		metrics:      metrics,
+		tracer:       otel.Tracer("email-agent/nats"),
 		stopCh:       make(chan struct{}),
 	}, nil
 }
@@ -242,13 +251,44 @@ func (c *Consumer) fetchLoop(ctx context.Context, workerID int, handler MessageH
 	}
 }
 
-// processMessage processes a single message
+// processMessage processes a single message with tracing
 func (c *Consumer) processMessage(
 	ctx context.Context,
 	msg *nats.Msg,
 	handler MessageHandler,
 	logger zerolog.Logger,
 ) {
+	// Get message metadata first for span attributes
+	meta, err := msg.Metadata()
+	if err != nil {
+		logger.Warn().
+			Err(err).
+			Msg("failed to get message metadata")
+	}
+
+	// Start a span for message processing
+	spanOpts := []trace.SpanStartOption{
+		trace.WithSpanKind(trace.SpanKindConsumer),
+		trace.WithAttributes(
+			attribute.String("messaging.system", "nats"),
+			attribute.String("messaging.destination.name", msg.Subject),
+			attribute.String("messaging.operation", "process"),
+		),
+	}
+
+	if meta != nil {
+		spanOpts = append(spanOpts,
+			trace.WithAttributes(
+				attribute.Int64("messaging.nats.stream_seq", int64(meta.Sequence.Stream)),
+				attribute.Int64("messaging.nats.consumer_seq", int64(meta.Sequence.Consumer)),
+				attribute.Int64("messaging.nats.num_delivered", int64(meta.NumDelivered)),
+			),
+		)
+	}
+
+	ctx, span := c.tracer.Start(ctx, "nats.process_message", spanOpts...)
+	defer span.End()
+
 	start := time.Now()
 
 	// Update metrics
@@ -258,17 +298,10 @@ func (c *Consumer) processMessage(
 		defer c.metrics.EmailsInFlight.Dec()
 	}
 
-	// Get message metadata
-	meta, err := msg.Metadata()
-	if err != nil {
-		logger.Warn().
-			Err(err).
-			Msg("failed to get message metadata")
-	}
-
-	msgLogger := logger
+	// Build logger with trace correlation and metadata
+	msgLogger := observability.LoggerWithTrace(ctx, logger)
 	if meta != nil {
-		msgLogger = logger.With().
+		msgLogger = msgLogger.With().
 			Str("subject", msg.Subject).
 			Uint64("stream_seq", meta.Sequence.Stream).
 			Uint64("consumer_seq", meta.Sequence.Consumer).
@@ -288,6 +321,9 @@ func (c *Consumer) processMessage(
 	duration := time.Since(start)
 
 	if err != nil {
+		span.RecordError(err)
+		span.SetStatus(codes.Error, err.Error())
+
 		msgLogger.Error().
 			Err(err).
 			Dur("duration_ms", duration).
@@ -297,6 +333,8 @@ func (c *Consumer) processMessage(
 		// We don't do it here to give handler full control
 		return
 	}
+
+	span.SetStatus(codes.Ok, "message processed")
 
 	msgLogger.Debug().
 		Dur("duration_ms", duration).

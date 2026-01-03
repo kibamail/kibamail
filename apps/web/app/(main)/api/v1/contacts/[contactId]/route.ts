@@ -11,7 +11,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getContact, updateContact, deleteContact } from "../handler";
+import { getContact, updateContact, deleteContact } from "@/app/(main)/api/v1/contacts/handler";
 
 /**
  * GET /api/v1/contacts/[contactId]

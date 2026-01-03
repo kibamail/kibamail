@@ -46,7 +46,6 @@ function createNewField(type: FieldType): FormField {
     appearance: { ...DEFAULT_FIELD_APPEARANCE },
   };
 
-  // Add options for fields that support them
   if (config.supportsOptions) {
     baseField.options = [
       { id: generateId(), label: "Option 1", value: "option_1" },
@@ -77,6 +76,8 @@ interface FormBuilderContextValue {
   formId: string;
   formName: string;
   schema: FormBuilderSchema;
+  doubleOptInEmailId: string | null;
+  setDoubleOptInEmailId: (id: string | null) => void;
 
   // Selection state
   selectedPageIndex: number;
@@ -174,6 +175,7 @@ interface FormBuilderProviderProps {
   formId: string;
   formName: string;
   initialSchema: FormBuilderSchema | null;
+  initialDoubleOptInEmailId: string | null;
   children: ReactNode;
 }
 
@@ -181,8 +183,12 @@ export function FormBuilderProvider({
   formId,
   formName: initialFormName,
   initialSchema,
+  initialDoubleOptInEmailId,
   children,
 }: FormBuilderProviderProps) {
+  const [doubleOptInEmailId, setDoubleOptInEmailId] = useState<string | null>(
+    initialDoubleOptInEmailId
+  );
   const [schema, setSchema] = useState<FormBuilderSchema>(() => {
     if (initialSchema && initialSchema.pages?.length > 0) {
       // Ensure settings and styling exist
@@ -758,6 +764,8 @@ export function FormBuilderProvider({
         formId,
         formName: schema.title,
         schema,
+        doubleOptInEmailId,
+        setDoubleOptInEmailId,
         selectedPageIndex,
         selectedSectionId,
         selectedFieldId,

@@ -113,7 +113,7 @@ export function FieldPropertiesPanel() {
               <input
                 type="text"
                 value={submitButton.text}
-                onChange={(e) => updateSubmitButton({ text: e.target.value })}
+                onChange={(event) => updateSubmitButton({ text: event.target.value })}
                 className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
               />
             </div>
@@ -126,7 +126,7 @@ export function FieldPropertiesPanel() {
               <input
                 type="text"
                 value={submitButton.loadingText}
-                onChange={(e) => updateSubmitButton({ loadingText: e.target.value })}
+                onChange={(event) => updateSubmitButton({ loadingText: event.target.value })}
                 placeholder="Submitting..."
                 className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
               />
@@ -144,7 +144,7 @@ export function FieldPropertiesPanel() {
               <input
                 type="checkbox"
                 checked={submitButton.fullWidth}
-                onChange={(e) => updateSubmitButton({ fullWidth: e.target.checked })}
+                onChange={(event) => updateSubmitButton({ fullWidth: event.target.checked })}
                 className="w-4 h-4 rounded border-kb-border-secondary text-kb-primary focus:ring-kb-primary/20"
               />
               <span className="text-sm text-kb-content-primary">Full width</span>
@@ -236,9 +236,9 @@ export function FieldPropertiesPanel() {
   const field = selectedField!;
   const fieldConfig = FIELD_TYPE_CONFIGS[field.type];
 
-  const handleUpdate = (updates: Parameters<typeof updateField>[3]) => {
+  function onUpdate(updates: Parameters<typeof updateField>[3]) {
     updateField(pageIndex, sectionId, selectedFieldId!, updates);
-  };
+  }
 
   return (
     <div className="w-[320px] h-full bg-kb-surface-secondary border-l border-kb-border-tertiary flex flex-col shrink-0">
@@ -277,7 +277,7 @@ export function FieldPropertiesPanel() {
             <input
               type="text"
               value={field.label}
-              onChange={(e) => handleUpdate({ label: e.target.value })}
+              onChange={(event) => onUpdate({ label: event.target.value })}
               className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
             />
           </div>
@@ -290,7 +290,7 @@ export function FieldPropertiesPanel() {
             <input
               type="text"
               value={field.name}
-              onChange={(e) => handleUpdate({ name: e.target.value })}
+              onChange={(event) => onUpdate({ name: event.target.value })}
               className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm font-mono focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
             />
             <p className="text-xs text-kb-content-tertiary">
@@ -307,7 +307,7 @@ export function FieldPropertiesPanel() {
               <input
                 type="text"
                 value={field.placeholder ?? ""}
-                onChange={(e) => handleUpdate({ placeholder: e.target.value })}
+                onChange={(event) => onUpdate({ placeholder: event.target.value })}
                 placeholder="Enter placeholder text..."
                 className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
               />
@@ -321,7 +321,7 @@ export function FieldPropertiesPanel() {
             </label>
             <textarea
               value={field.description ?? ""}
-              onChange={(e) => handleUpdate({ description: e.target.value })}
+              onChange={(event) => onUpdate({ description: event.target.value })}
               placeholder="Help text for users..."
               rows={2}
               className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm resize-none focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
@@ -358,13 +358,13 @@ export function FieldPropertiesPanel() {
                     <input
                       type="text"
                       value={option.label}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         updateFieldOption(
                           pageIndex,
                           sectionId,
                           selectedFieldId,
                           option.id,
-                          { label: e.target.value }
+                          { label: event.target.value }
                         )
                       }
                       placeholder="Label"
@@ -373,13 +373,13 @@ export function FieldPropertiesPanel() {
                     <input
                       type="text"
                       value={option.value}
-                      onChange={(e) =>
+                      onChange={(event) =>
                         updateFieldOption(
                           pageIndex,
                           sectionId,
                           selectedFieldId,
                           option.id,
-                          { value: e.target.value }
+                          { value: event.target.value }
                         )
                       }
                       placeholder="Value"
@@ -389,13 +389,13 @@ export function FieldPropertiesPanel() {
                       <input
                         type="text"
                         value={option.description ?? ""}
-                        onChange={(e) =>
+                        onChange={(event) =>
                           updateFieldOption(
                             pageIndex,
                             sectionId,
                             selectedFieldId,
                             option.id,
-                            { description: e.target.value }
+                            { description: event.target.value }
                           )
                         }
                         placeholder="Description (optional)"
@@ -435,11 +435,11 @@ export function FieldPropertiesPanel() {
             <input
               type="checkbox"
               checked={field.validation?.required ?? false}
-              onChange={(e) =>
-                handleUpdate({
+              onChange={(event) =>
+                onUpdate({
                   validation: {
                     ...field.validation,
-                    required: e.target.checked,
+                    required: event.target.checked,
                   },
                 })
               }
@@ -457,11 +457,11 @@ export function FieldPropertiesPanel() {
               <input
                 type="text"
                 value={field.validation?.requiredMessage ?? ""}
-                onChange={(e) =>
-                  handleUpdate({
+                onChange={(event) =>
+                  onUpdate({
                     validation: {
                       ...field.validation,
-                      requiredMessage: e.target.value,
+                      requiredMessage: event.target.value,
                     },
                   })
                 }
@@ -490,7 +490,7 @@ export function FieldPropertiesPanel() {
                     key={width}
                     type="button"
                     onClick={() =>
-                      handleUpdate({
+                      onUpdate({
                         appearance: { ...field.appearance, width },
                       })
                     }
@@ -525,7 +525,7 @@ export function FieldPropertiesPanel() {
                   key={position}
                   type="button"
                   onClick={() =>
-                    handleUpdate({
+                    onUpdate({
                       appearance: {
                         ...field.appearance,
                         labelPosition: position,
@@ -560,7 +560,7 @@ export function FieldPropertiesPanel() {
               value={field.contactProperty?.id ?? "__none__"}
               onValueChange={(value) => {
                 if (value === "__none__") {
-                  handleUpdate({ contactProperty: undefined });
+                  onUpdate({ contactProperty: undefined });
                   return;
                 }
 
@@ -569,7 +569,7 @@ export function FieldPropertiesPanel() {
 
                 if (isStandard) {
                   const propInfo = STANDARD_PROPERTY_INFO[value];
-                  handleUpdate({
+                  onUpdate({
                     contactProperty: {
                       type: "standard",
                       id: value,
@@ -580,7 +580,7 @@ export function FieldPropertiesPanel() {
                   // It's a custom property
                   const customProp = customProperties?.find((p) => p.id === value);
                   if (customProp) {
-                    handleUpdate({
+                    onUpdate({
                       contactProperty: {
                         type: "custom",
                         id: customProp.id,

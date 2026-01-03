@@ -11,7 +11,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getTopic, updateTopic, deleteTopic } from "../handler";
+import { getTopic, updateTopic, deleteTopic } from "@/app/(main)/api/v1/topics/handler";
 
 /**
  * GET /api/v1/topics/[topicId]

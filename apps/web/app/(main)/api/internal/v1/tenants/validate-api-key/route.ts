@@ -14,7 +14,7 @@ import { z } from "zod";
 import { withErrorHandling } from "@/lib/api/requests";
 import { withServiceAuth } from "@/lib/api/service-auth";
 import { validateRequestBody } from "@/lib/api/validation";
-import { validateApiKey } from "../[tenantId]/handler";
+import { validateApiKey } from "@/app/(main)/api/internal/v1/tenants/[tenantId]/handler";
 
 /**
  * Request body schema for API key validation

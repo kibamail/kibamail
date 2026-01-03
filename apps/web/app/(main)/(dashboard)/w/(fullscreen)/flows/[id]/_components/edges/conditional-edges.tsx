@@ -3,6 +3,11 @@
 import { Badge } from "@kibamail/owly/badge";
 import { BaseEdge, type EdgeProps, getSmoothStepPath } from "@xyflow/react";
 
+interface PercentageSplitEdgeData {
+  percentage?: number;
+  name?: string;
+}
+
 export function IfElseTrueEdge({
   id,
   sourceX,
@@ -100,8 +105,9 @@ export function PercentageSplitAEdge({
     targetPosition,
   });
 
-  const percentage = (data as any)?.percentage ?? 50;
-  const name = (data as any)?.name ?? "A";
+  const edgeData = data as PercentageSplitEdgeData;
+  const percentage = edgeData?.percentage ?? 50;
+  const name = edgeData?.name ?? "A";
 
   return (
     <>
@@ -145,8 +151,9 @@ export function PercentageSplitBEdge({
     targetPosition,
   });
 
-  const percentage = (data as any)?.percentage ?? 50;
-  const name = (data as any)?.name ?? "B";
+  const edgeData = data as PercentageSplitEdgeData;
+  const percentage = edgeData?.percentage ?? 50;
+  const name = edgeData?.name ?? "B";
 
   return (
     <>

@@ -78,7 +78,7 @@ export function InviteMembers({
   const { mutate, isPending } =
     mode === "invite" ? inviteMutation : changeRoleMutation;
 
-  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -109,7 +109,7 @@ export function InviteMembers({
           </Dialog.Description>
         </Dialog.Header>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={onSubmit}>
           <div className="p-5 space-y-4">
             <div className="space-y-2">
               <label

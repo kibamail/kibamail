@@ -545,15 +545,10 @@ end)
 
 -- Log all events to webhook
 kumo.on('log_record', function(record)
-  -- Add custom fields to log records
   local meta = record:get_meta()
 
   -- Ensure workspace tracking
   if meta.workspace_id then
     record:set_meta('workspace_id', meta.workspace_id)
   end
-
-  -- Add MTA identifier
-  record:set_meta('mta_hostname', MTA_HOSTNAME)
-  record:set_meta('mta_timestamp', os.time())
 end)

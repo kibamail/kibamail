@@ -4,7 +4,7 @@ import deLocale from "i18n-iso-countries/langs/de.json";
 import frLocale from "i18n-iso-countries/langs/fr.json";
 import esLocale from "i18n-iso-countries/langs/es.json";
 import ptLocale from "i18n-iso-countries/langs/pt.json";
-import type { NormalizationResult } from "../types";
+import type { NormalizationResult } from "@/lib/contact-imports/types";
 
 countries.registerLocale(enLocale);
 countries.registerLocale(deLocale);

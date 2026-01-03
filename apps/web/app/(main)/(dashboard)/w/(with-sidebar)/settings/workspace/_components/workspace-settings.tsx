@@ -38,36 +38,28 @@ export function WorkspaceSettings({
     role: string;
   } | null>(null);
 
-  const onInviteOpenChange = (
-    value: boolean | ((prev: boolean) => boolean)
-  ) => {
+  function onInviteOpenChange(value: boolean | ((prev: boolean) => boolean)) {
     const open =
       typeof value === "function" ? value(inviteMembersState.open) : value;
     if (!open && inviteMembersState.open) {
       router.refresh();
     }
     inviteMembersState.onOpenChange?.(value);
-  };
+  }
 
-  const handleChangeRoleOpenChange = (
-    value: boolean | ((prev: boolean) => boolean)
-  ) => {
+  function onChangeRoleOpenChange(value: boolean | ((prev: boolean) => boolean)) {
     const open =
       typeof value === "function" ? value(changeRoleState.open) : value;
     if (!open && changeRoleState.open) {
       router.refresh();
     }
     changeRoleState.onOpenChange?.(value);
-  };
+  }
 
-  const handleChangeRole = (member: {
-    id: string;
-    email: string;
-    role: string;
-  }) => {
+  function onChangeRole(member: { id: string; email: string; role: string }) {
     setSelectedMember(member);
     changeRoleState.onOpenChange?.(true);
-  };
+  }
 
   if (!canManageMembers) {
     return (
@@ -109,7 +101,7 @@ export function WorkspaceSettings({
           ...inviteMembersState,
           onOpenChange: onInviteOpenChange,
         }}
-        onChangeRole={handleChangeRole}
+        onChangeRole={onChangeRole}
         currentUserId={currentUserId}
       />
 
@@ -121,7 +113,7 @@ export function WorkspaceSettings({
       />
       <InviteMembers
         {...changeRoleState}
-        onOpenChange={handleChangeRoleOpenChange}
+        onOpenChange={onChangeRoleOpenChange}
         mode="change-role"
         member={selectedMember ?? undefined}
       />

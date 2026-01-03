@@ -54,6 +54,15 @@ export type QueueJobs = {
   "sending-domains": {
     "check-verification": { domainId: string; attempt: number };
   };
+  // Forms queue for form-related background jobs
+  forms: {
+    "send-double-opt-in": {
+      contactId: string;
+      formId: string;
+      emailId: string;
+      workspaceId: string;
+    };
+  };
 };
 
 /**

@@ -14,8 +14,13 @@ import { FormCanvas } from "./form-canvas";
 import { FieldPropertiesPanel } from "./field-properties-panel";
 import { FormLivePreview } from "./form-live-preview";
 import { FormSettingsTab } from "./form-settings-tab";
+import {
+  FormVersionDropdown,
+  type FormVersionItem,
+} from "./form-version-dropdown";
 import type { FormBuilderSchema } from "./types";
 import { internalApi } from "@/lib/api/client";
+import type { FormStatus } from "@prisma/client";
 
 type EditorTab = "create" | "settings" | "preview" | "analytics";
 
@@ -24,12 +29,35 @@ const VALID_TABS: EditorTab[] = ["create", "settings", "preview", "analytics"];
 interface FormBuilderClientProps {
   formId: string;
   formName: string;
+  formStatus: FormStatus;
+  formVersion: number;
+  rootFormId: string;
+  versions: FormVersionItem[];
+  isLiveVersion: boolean;
   initialSchema: FormBuilderSchema | null;
+  doubleOptInEmailId?: string | null;
 }
 
-function FormBuilderContent({ formId }: { formId: string }) {
+interface FormBuilderContentProps {
+  formId: string;
+  formStatus: FormStatus;
+  formVersion: number;
+  rootFormId: string;
+  versions: FormVersionItem[];
+  isLiveVersion: boolean;
+}
+
+function FormBuilderContent({
+  formId,
+  formStatus,
+  formVersion,
+  rootFormId,
+  versions,
+  isLiveVersion,
+}: FormBuilderContentProps) {
   const { schema, selectedFieldId, formName } = useFormBuilder();
   const queryClient = useQueryClient();
+  const isDraft = formStatus === "DRAFT";
   const { success: toast, error: toastError } = useToast();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -87,7 +115,7 @@ function FormBuilderContent({ formId }: { formId: string }) {
     <div className="w-full h-screen flex box-border flex-col px-2 pb-2 bg-kb-bg-layout">
       {/* Header */}
       <div className="h-[60px] relative w-full flex items-center justify-between px-3 shrink-0">
-        {/* Left: close button and name */}
+        {/* Left: close button, name, and version dropdown */}
         <div className="flex items-center gap-4">
           <Button variant="tertiary" asChild>
             <Link href="/w/forms">
@@ -98,6 +126,15 @@ function FormBuilderContent({ formId }: { formId: string }) {
           <h1 className="text-lg font-semibold text-kb-content-primary">
             {formName}
           </h1>
+
+          <FormVersionDropdown
+            currentFormId={formId}
+            currentVersion={formVersion}
+            currentStatus={formStatus}
+            rootFormId={rootFormId}
+            versions={versions}
+            isLiveVersion={isLiveVersion}
+          />
         </div>
 
         {/* Center: tabs */}
@@ -141,19 +178,23 @@ function FormBuilderContent({ formId }: { formId: string }) {
 
         {/* Right: action buttons */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="secondary"
-            onClick={() => saveMutation.mutate()}
-            disabled={saveMutation.isPending}
-          >
-            {saveMutation.isPending ? "Saving..." : "Save Draft"}
-          </Button>
-          <Button
-            onClick={() => publishMutation.mutate()}
-            disabled={publishMutation.isPending}
-          >
-            {publishMutation.isPending ? "Publishing..." : "Publish"}
-          </Button>
+          {isDraft && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => saveMutation.mutate()}
+                disabled={saveMutation.isPending}
+              >
+                {saveMutation.isPending ? "Saving..." : "Save Draft"}
+              </Button>
+              <Button
+                onClick={() => publishMutation.mutate()}
+                disabled={publishMutation.isPending}
+              >
+                {publishMutation.isPending ? "Publishing..." : "Publish"}
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
@@ -165,9 +206,9 @@ function FormBuilderContent({ formId }: { formId: string }) {
             activeTab === "create" ? "visible" : "invisible pointer-events-none"
           }`}
         >
-          <FieldsSidebar />
-          <FormCanvas />
-          {selectedFieldId && <FieldPropertiesPanel />}
+          {isDraft && <FieldsSidebar />}
+          <FormCanvas readOnly={!isDraft} />
+          {isDraft && selectedFieldId && <FieldPropertiesPanel />}
         </div>
 
         {/* Settings tab */}
@@ -204,15 +245,29 @@ function FormBuilderContent({ formId }: { formId: string }) {
 export function FormBuilderClient({
   formId,
   formName,
+  formStatus,
+  formVersion,
+  rootFormId,
+  versions,
+  isLiveVersion,
   initialSchema,
+  doubleOptInEmailId,
 }: FormBuilderClientProps) {
   return (
     <FormBuilderProvider
       formId={formId}
       formName={formName}
       initialSchema={initialSchema}
+      initialDoubleOptInEmailId={doubleOptInEmailId ?? null}
     >
-      <FormBuilderContent formId={formId} />
+      <FormBuilderContent
+        formId={formId}
+        formStatus={formStatus}
+        formVersion={formVersion}
+        rootFormId={rootFormId}
+        versions={versions}
+        isLiveVersion={isLiveVersion}
+      />
     </FormBuilderProvider>
   );
 }

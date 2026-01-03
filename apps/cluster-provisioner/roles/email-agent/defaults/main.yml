@@ -1,8 +1,7 @@
 # Email Agent Role Defaults
 ---
-# Binary source
-email_agent_binary_url: ""
-email_agent_binary_checksum: ""
+# Binary source (local path relative to playbook)
+email_agent_binary_local_path: "{{ playbook_dir }}/../../email-agent/bin/email-agent-linux-amd64"
 
 # Service management
 email_agent_enable_service: true
@@ -28,6 +27,7 @@ email_agent_nats_tls_enabled: true
 # Worker configuration
 email_agent_stream_name: "EMAILS"
 email_agent_consumer_name: "email_agent_consumer"
+email_agent_filter_subject: "kibamail.emails.>"  # Must match server-side consumer config
 email_agent_fetch_batch: 100
 email_agent_fetch_workers: 30
 
@@ -46,3 +46,11 @@ email_agent_log_dir: "/var/log/email-agent"
 # User/group
 email_agent_user: "email-agent"
 email_agent_group: "email-agent"
+
+# OpenTelemetry configuration
+# OTel is enabled by default when otel_collector is deployed
+email_agent_otel_enabled: true
+email_agent_otel_endpoint: "localhost:4317"  # Local OTel Collector
+email_agent_otel_insecure: true  # Local connection, no TLS needed
+email_agent_otel_service_name: "email-agent"
+email_agent_otel_environment: "production"

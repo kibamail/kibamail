@@ -1,0 +1,92 @@
+{
+  "_comment": "Spam complaint - user marked email as spam via feedback loop (FBL). This is critical - should immediately unsubscribe the contact.",
+  "type": "Feedback",
+  "id": "h1i6d5e4-7h8f-9g1i-2d3e-4f5g6h7i8j9k",
+  "sender": "bounces+msg-jkl012@bounce.newsletter.acme.com",
+  "recipient": "angry.user@comcast.net",
+  "queue": "comcast.net",
+  "site": "mx1.comcast.net",
+  "size": 48320,
+  "response": {
+    "code": 250,
+    "enhanced_code": {
+      "class": 2,
+      "subject": 0,
+      "detail": 0
+    },
+    "content": "OK",
+    "command": null
+  },
+  "peer_address": {
+    "name": "fbl.comcast.net",
+    "addr": "96.114.157.80:25"
+  },
+  "timestamp": 1704153600,
+  "event_time": "2024-01-02T00:00:00Z",
+  "created": 1704067200,
+  "created_time": "2024-01-01T00:00:00Z",
+  "num_attempts": 1,
+  "bounce_classification": "Uncategorized",
+  "egress_pool": null,
+  "egress_source": null,
+  "source_address": null,
+  "feedback_report": {
+    "feedback_type": "abuse",
+    "user_agent": "ReturnPathFBL/2.0",
+    "version": "1",
+    "arrival_date": "2024-01-01T00:00:05Z",
+    "incidents": 1,
+    "original_envelope_id": null,
+    "original_mail_from": "<bounces+msg-jkl012@bounce.newsletter.acme.com>",
+    "reporting_mta": {
+      "mta_type": "dns",
+      "name": "fbl.comcast.net"
+    },
+    "source_ip": "10.0.2.100",
+    "authentication_results": [
+      "comcast.net; spf=pass smtp.mailfrom=bounce.newsletter.acme.com",
+      "comcast.net; dkim=pass header.d=newsletter.acme.com",
+      "comcast.net; dmarc=pass header.from=newsletter.acme.com"
+    ],
+    "original_rcpto_to": [
+      "<angry.user@comcast.net>"
+    ],
+    "reported_domain": [
+      "newsletter.acme.com",
+      "bounce.newsletter.acme.com"
+    ],
+    "reported_uri": [
+      "https://newsletter.acme.com/click/abc123",
+      "https://newsletter.acme.com/unsubscribe/jkl012"
+    ],
+    "extensions": {
+      "abuse-type": ["complaint"],
+      "source": ["Comcast"]
+    },
+    "original_message": "Date: Mon, 01 Jan 2024 00:00:00 +0000\nFrom: ACME Newsletter <newsletter@newsletter.acme.com>\nTo: angry.user@comcast.net\nSubject: Your Weekly Update from ACME\nMessage-ID: <msg-jkl012@newsletter.acme.com>\nX-KumoRef: eyJfQF8iOiJcXF8vIiwidGVuYW50X2lkIjoid3NfYWNtZV9jb3JwXzIwMjQiLCJicm9hZGNhc3RfaWQiOiJiY193ZWVrbHlfbmV3c2xldHRlcl9qYW4wMSIsImNvbnRhY3RfaWQiOiJjdF9hbmdyeXVzZXJfY29tY2FzdF9qa2wwMTIifQ==\n\nHello! Here is your weekly update...",
+    "supplemental_trace": {
+      "tenant_id": "ws_acme_corp_2024",
+      "broadcast_id": "bc_weekly_newsletter_jan01",
+      "contact_id": "ct_angryuser_comcast_jkl012"
+    }
+  },
+  "meta": {
+    "tenant_id": "ws_acme_corp_2024",
+    "broadcast_id": "bc_weekly_newsletter_jan01",
+    "contact_id": "ct_angryuser_comcast_jkl012",
+    "campaign": "weekly-newsletter",
+    "list_id": "subscribers-main"
+  },
+  "headers": {
+    "Subject": "Your Weekly Update from ACME",
+    "Message-ID": "<msg-jkl012@newsletter.acme.com>"
+  },
+  "delivery_protocol": null,
+  "reception_protocol": "ESMTP",
+  "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tls_cipher": null,
+  "tls_protocol_version": null,
+  "tls_peer_subject_name": null,
+  "provider_name": "comcast",
+  "session_id": null
+}

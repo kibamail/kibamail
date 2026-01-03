@@ -12,7 +12,7 @@ export function ContactColumnsManager({
   contactProperties,
   selectedColumns: initialColumns,
 }: ContactColumnsManagerProps) {
-  async function handleColumnsChange(columns: string[]) {
+  async function onColumnsChange(columns: string[]) {
     try {
       await fetch("/api/internal/v1/table-preferences", {
         method: "PUT",
@@ -35,7 +35,7 @@ export function ContactColumnsManager({
     <ContactColumnsSelector
       contactProperties={contactProperties}
       selectedColumns={initialColumns}
-      onColumnsChange={handleColumnsChange}
+      onColumnsChange={onColumnsChange}
     />
   );
 }

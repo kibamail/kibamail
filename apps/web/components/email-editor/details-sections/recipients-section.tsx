@@ -7,8 +7,8 @@ import { Text } from "@kibamail/owly/text";
 import { Group, Filter, User } from "iconoir-react";
 import { useTopics } from "@/hooks/use-topics";
 import { useSegments } from "@/hooks/use-segments";
-import { SectionHeader } from "./shared";
-import type { BroadcastDetails } from "../types";
+import { SectionHeader } from "@/components/email-editor/details-sections/shared";
+import type { BroadcastDetails } from "@/components/email-editor/types";
 
 type RecipientType = "all" | "topic" | "segment";
 

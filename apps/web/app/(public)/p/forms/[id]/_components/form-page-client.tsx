@@ -14,7 +14,6 @@ interface FormPageClientProps {
 }
 
 export function FormPageClient({ formId, schema, shouldSetViewCookie }: FormPageClientProps) {
-  // Set the view cookie client-side if tracking happened server-side
   useEffect(() => {
     if (shouldSetViewCookie) {
       const cookieName = `${VIEW_COOKIE_PREFIX}${formId}`
@@ -23,7 +22,7 @@ export function FormPageClient({ formId, schema, shouldSetViewCookie }: FormPage
     }
   }, [formId, shouldSetViewCookie])
 
-  const handleSubmit = async (data: FormSubmissionData) => {
+  async function onSubmit(data: FormSubmissionData): Promise<boolean> {
     try {
       const response = await fetch(`/api/internal/v1/forms/${formId}/submissions`, {
         method: "POST",
@@ -36,11 +35,24 @@ export function FormPageClient({ formId, schema, shouldSetViewCookie }: FormPage
       if (!response.ok) {
         const errorData = await response.json()
         console.error("Form submission failed:", errorData)
+        return false
       }
+
+      const successAction = schema.settings.successAction
+      if (successAction.type === "redirect") {
+        if (successAction.openInNewTab) {
+          window.open(successAction.url, "_blank", "noopener,noreferrer")
+        } else {
+          window.location.href = successAction.url
+        }
+      }
+
+      return true
     } catch (error) {
       console.error("Form submission error:", error)
+      return false
     }
   }
 
-  return <FormRenderer schema={schema} onSubmit={handleSubmit} />
+  return <FormRenderer schema={schema} onSubmit={onSubmit} />
 }

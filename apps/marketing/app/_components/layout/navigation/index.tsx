@@ -1,6 +1,6 @@
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
 import { NavArrowDown } from "iconoir-react";
-import { GithubIcon } from "../../_icons/github.svg";
+import { GithubIcon } from "@/app/_components/_icons/github.svg";
 import { ProductsMenu } from "./products-menu";
 import { ResourcesMenu } from "./resources-menu";
 import { CommunityMenu } from "./community-menu";

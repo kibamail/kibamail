@@ -1,0 +1,59 @@
+{
+  "_comment": "Soft bounce - temporary delivery failure. Will be retried.",
+  "type": "TransientFailure",
+  "id": "f9g5c4d3-6g7e-8f0h-1c2d-3e4f5g6h7i8j",
+  "sender": "bounces+msg-ghi789@bounce.newsletter.acme.com",
+  "recipient": "busy.user@outlook.com",
+  "queue": "outlook.com",
+  "site": "outlook-com.olc.protection.outlook.com",
+  "size": 42150,
+  "response": {
+    "code": 451,
+    "enhanced_code": {
+      "class": 4,
+      "subject": 7,
+      "detail": 0
+    },
+    "content": "451 4.7.0 Temporary server error. Please try again later. PRX4",
+    "command": "DATA"
+  },
+  "peer_address": {
+    "name": "outlook-com.olc.protection.outlook.com",
+    "addr": "52.101.73.24:25"
+  },
+  "timestamp": 1704067215,
+  "event_time": "2024-01-01T00:00:15Z",
+  "created": 1704067200,
+  "created_time": "2024-01-01T00:00:00Z",
+  "num_attempts": 3,
+  "bounce_classification": "TransientFailure",
+  "egress_pool": "default",
+  "egress_source": "10.0.2.102",
+  "source_address": {
+    "address": "10.0.2.102:45680",
+    "server": null,
+    "protocol": null
+  },
+  "feedback_report": null,
+  "meta": {
+    "tenant_id": "ws_acme_corp_2024",
+    "broadcast_id": "bc_weekly_newsletter_jan01",
+    "contact_id": "ct_busyuser_outlook_ghi789",
+    "campaign": "weekly-newsletter",
+    "list_id": "subscribers-main"
+  },
+  "headers": {
+    "Subject": "Your Weekly Update from ACME",
+    "Message-ID": "<msg-ghi789@newsletter.acme.com>"
+  },
+  "delivery_protocol": "ESMTP",
+  "reception_protocol": "ESMTP",
+  "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tls_cipher": "TLS_AES_256_GCM_SHA384",
+  "tls_protocol_version": "TLSv1.3",
+  "tls_peer_subject_name": [
+    "CN=mail.protection.outlook.com"
+  ],
+  "provider_name": "microsoft",
+  "session_id": "sess-delivery-003"
+}

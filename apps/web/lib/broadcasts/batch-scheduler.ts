@@ -6,7 +6,7 @@
  *
  * Key constraints:
  * - Max batch size: 1,000 contacts (to avoid storing too many IDs in a single job)
- * - Max hourly rate: 2,000 emails (2 batches per hour max)
+ * - Batches per hour: Dynamically calculated from domain's maxSendPerHour limit
  * - Batches are scheduled across days based on daily limits
  * - Contact IDs are snapshotted at scheduling time for consistency
  */
@@ -94,7 +94,8 @@ export interface BatchSchedulerConfig {
   maxBatchSize?: number;
 
   /**
-   * Maximum batches per hour (default: 2)
+   * Maximum batches per hour (default: 0, auto-calculated from maxSendPerHour)
+   * When 0, calculated as Math.ceil(maxSendPerHour / maxBatchSize)
    */
   maxBatchesPerHour?: number;
 
@@ -116,7 +117,7 @@ export interface BatchSchedulerConfig {
 
 const DEFAULT_CONFIG: Required<BatchSchedulerConfig> = {
   maxBatchSize: 1000,
-  maxBatchesPerHour: 2,
+  maxBatchesPerHour: 0, // 0 means auto-calculate from limits
   startHour: 8,
   endHour: 20,
   referenceDate: new Date(),
@@ -185,10 +186,17 @@ export function scheduleBroadcast(
   let currentIndex = 0;
   let dayOffset = 0;
 
-  // Calculate effective hourly limit (respecting both hourly limit and max batches per hour)
+  // Calculate effective batches per hour based on sending limits
+  // If maxBatchesPerHour is 0 (default), calculate from the hourly limit
+  const effectiveBatchesPerHour =
+    cfg.maxBatchesPerHour > 0
+      ? cfg.maxBatchesPerHour
+      : Math.ceil(limits.maxSendPerHour / cfg.maxBatchSize);
+
+  // Effective hourly limit respects both the domain limit and batch constraints
   const maxPerHour = Math.min(
     limits.maxSendPerHour,
-    cfg.maxBatchesPerHour * cfg.maxBatchSize
+    effectiveBatchesPerHour * cfg.maxBatchSize
   );
 
   while (currentIndex < contactIds.length) {

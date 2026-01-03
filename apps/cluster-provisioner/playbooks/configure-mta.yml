@@ -1,19 +1,25 @@
 # Configure MTA Node
 #
 # This playbook configures KumoMTA on a provisioned MTA node:
+# - Generates DKIM keys if they don't exist
 # - Copies policy files (init.lua, tsa_init.lua)
 # - Copies DKIM configuration (dkim_data.toml)
 # - Copies cluster-specific sources configuration (sources.toml)
+# - Creates KumoMTA environment file with required variables
 #
 # Prerequisites:
 # - MTA node must be provisioned with provision-mta.yml first
 # - KumoMTA must be installed
+# - Email Agent must be deployed and running
 #
 # Usage:
 #   ansible-playbook playbooks/configure-mta.yml -e mta_cluster=helsinki
 #
 # Variables:
 #   mta_cluster: The cluster name (e.g., helsinki) - REQUIRED
+#   dkim_domain: The domain for DKIM signing (default: kbmta.net)
+#   dkim_selector: The DKIM selector (default: kbmta)
+#   mta_hostname: FQDN for SMTP EHLO/banner (set in inventory)
 #
 ---
 - name: Configure MTA Node
@@ -26,6 +32,19 @@
 
     # KumoMTA policy directory on target
     kumomta_policy_dir: "/opt/kumomta/etc/policy"
+
+    # DKIM configuration
+    dkim_domain: "kbmta.net"
+    dkim_selector: "kbmta"
+    dkim_key_size: 2048
+    dkim_base_dir: "/opt/kumomta/etc/dkim"
+    dkim_credentials_dir: "{{ inventory_dir }}/credentials/dkim"
+
+    # KumoMTA environment configuration
+    kumomta_env_file: "/opt/kumomta/etc/kumod.env"
+    kumomta_email_agent_url: "http://127.0.0.1:8080"
+    kumomta_webhook_url: "http://127.0.0.1:8080"
+    kumomta_mta_hostname: "{{ mta_hostname }}"
 
   pre_tasks:
     - name: Validate mta_cluster is defined
@@ -54,6 +73,130 @@
           - Policy directory: {{ kumomta_policy_dir }}
 
   tasks:
+    # =========================================================================
+    # DKIM Key Generation
+    # =========================================================================
+
+    - name: Ensure local DKIM credentials directory exists
+      ansible.builtin.file:
+        path: "{{ dkim_credentials_dir }}/{{ dkim_domain }}"
+        state: directory
+        mode: "0700"
+      delegate_to: localhost
+      become: no
+
+    - name: Check if DKIM private key exists locally
+      ansible.builtin.stat:
+        path: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+      delegate_to: localhost
+      become: no
+      register: local_dkim_key
+
+    - name: Check if DKIM private key exists on server
+      ansible.builtin.stat:
+        path: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+      register: server_dkim_key
+
+    - name: Create DKIM directory on server
+      ansible.builtin.file:
+        path: "{{ dkim_base_dir }}/{{ dkim_domain }}"
+        state: directory
+        owner: kumod
+        group: kumod
+        mode: "0750"
+      when: not server_dkim_key.stat.exists and not local_dkim_key.stat.exists
+
+    - name: Generate DKIM private key on server
+      ansible.builtin.command:
+        cmd: openssl genrsa -f4 -out "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key" {{ dkim_key_size }}
+        creates: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+      when: not server_dkim_key.stat.exists and not local_dkim_key.stat.exists
+      register: dkim_key_generated
+
+    - name: Extract DKIM public key on server
+      ansible.builtin.command:
+        cmd: openssl rsa -in "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key" -outform PEM -pubout -out "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+        creates: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+      when: dkim_key_generated.changed | default(false)
+
+    - name: Set DKIM key permissions on server
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        owner: kumod
+        group: kumod
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key", mode: "0600" }
+        - { path: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub", mode: "0644" }
+      when: dkim_key_generated.changed | default(false)
+
+    - name: Fetch DKIM private key to local credentials
+      ansible.builtin.fetch:
+        src: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+        dest: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+        flat: yes
+      when: dkim_key_generated.changed | default(false)
+
+    - name: Fetch DKIM public key to local credentials
+      ansible.builtin.fetch:
+        src: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+        dest: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+        flat: yes
+      when: dkim_key_generated.changed | default(false)
+
+    - name: Set local DKIM key permissions
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        mode: "{{ item.mode }}"
+      loop:
+        - { path: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key", mode: "0600" }
+        - { path: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub", mode: "0644" }
+      delegate_to: localhost
+      become: no
+      when: dkim_key_generated.changed | default(false)
+
+    # If keys exist locally but not on server, copy them to server
+    - name: Create DKIM directory on server (from local keys)
+      ansible.builtin.file:
+        path: "{{ dkim_base_dir }}/{{ dkim_domain }}"
+        state: directory
+        owner: kumod
+        group: kumod
+        mode: "0750"
+      when: local_dkim_key.stat.exists and not server_dkim_key.stat.exists
+
+    - name: Copy DKIM private key from local to server
+      ansible.builtin.copy:
+        src: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+        dest: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key"
+        owner: kumod
+        group: kumod
+        mode: "0600"
+      when: local_dkim_key.stat.exists and not server_dkim_key.stat.exists
+
+    - name: Copy DKIM public key from local to server
+      ansible.builtin.copy:
+        src: "{{ dkim_credentials_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+        dest: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      when: local_dkim_key.stat.exists and not server_dkim_key.stat.exists
+
+    # Read public key for DNS record output
+    - name: Read DKIM public key for DNS record
+      ansible.builtin.slurp:
+        src: "{{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub"
+      register: dkim_public_key_content
+
+    - name: Extract DKIM public key data
+      ansible.builtin.set_fact:
+        dkim_public_key_data: "{{ dkim_public_key_content.content | b64decode | regex_replace('-----BEGIN PUBLIC KEY-----', '') | regex_replace('-----END PUBLIC KEY-----', '') | regex_replace('\\n', '') | trim }}"
+
+    # =========================================================================
+    # KumoMTA Policy Configuration
+    # =========================================================================
+
     # Ensure policy directory exists
     - name: Ensure KumoMTA policy directory exists
       ansible.builtin.file:
@@ -102,6 +245,32 @@
         mode: "0644"
       notify: restart kumomta
 
+    # =========================================================================
+    # KumoMTA Environment Configuration
+    # =========================================================================
+
+    - name: Create KumoMTA environment file
+      ansible.builtin.copy:
+        content: |
+          # KumoMTA Environment Configuration
+          # Generated by Ansible - DO NOT EDIT MANUALLY
+          #
+          # These variables are required by the init.lua policy file
+
+          # Email Agent API URL (for DKIM lookups, auth validation, webhooks)
+          EMAIL_AGENT_URL={{ kumomta_email_agent_url }}
+
+          # Webhook URL for delivery events (bounces, deliveries, etc.)
+          WEBHOOK_URL={{ kumomta_webhook_url }}
+
+          # MTA hostname for identification in logs and headers
+          MTA_HOSTNAME={{ kumomta_mta_hostname }}
+        dest: "{{ kumomta_env_file }}"
+        owner: kumod
+        group: kumod
+        mode: "0640"
+      notify: restart kumomta
+
   handlers:
     - name: restart kumomta
       ansible.builtin.debug:
@@ -128,8 +297,27 @@
             - {{ file.path }}
           {% endfor %}
 
+          Environment file: {{ kumomta_env_file }}
+            - EMAIL_AGENT_URL: {{ kumomta_email_agent_url }}
+            - WEBHOOK_URL: {{ kumomta_webhook_url }}
+            - MTA_HOSTNAME: {{ kumomta_mta_hostname }}
+
+          DKIM Keys:
+            - Private: {{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key
+            - Public:  {{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub
+            - Local:   {{ dkim_credentials_dir }}/{{ dkim_domain }}/
+
+          ============================================================
+          DKIM DNS RECORD (add this to your DNS):
+          ============================================================
+
+          Hostname: {{ dkim_selector }}._domainkey.{{ dkim_domain }}
+          Type:     TXT
+          Value:    v=DKIM1; k=rsa; h=sha256; p={{ dkim_public_key_data }}
+
+          ============================================================
+
           Next steps:
-          - Generate DKIM keys (if not already done)
-          - Obtain TLS certificates
-          - Create systemd services for kumod and kumo-tsa-daemon
-          - Start services
+          - Add the DKIM DNS TXT record above
+          - Obtain TLS certificates (certbot for Let's Encrypt)
+          - Start KumoMTA services: sudo systemctl start kumomta

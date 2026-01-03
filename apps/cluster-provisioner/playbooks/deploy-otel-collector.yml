@@ -1,0 +1,88 @@
+# Deploy OpenTelemetry Collector
+#
+# This playbook deploys the OTel Collector to MTA nodes for:
+# - Receiving traces/metrics from email-agent via OTLP
+# - Collecting logs from files
+# - Forwarding all telemetry to SigNoz
+#
+# Prerequisites:
+# - MTA node must be provisioned with provision-mta.yml first
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-otel-collector.yml -i inventory/helsinki/hosts.yml
+#
+# Required Variables (set in inventory group_vars/mta.yml):
+#   - otel_signoz_endpoint: SigNoz OTLP endpoint (e.g., ingest.monitor.kibamail.com:4317)
+#
+# Optional Variables:
+#   - otel_signoz_insecure: Use insecure connection (default: false)
+#   - otel_signoz_headers: Headers for authentication (e.g., signoz-ingestion-key)
+#   - otel_collector_log_paths: Log files to collect (default: /var/log/email-agent/*.log)
+#
+---
+- name: Deploy OpenTelemetry Collector
+  hosts: mta
+  become: yes
+
+  pre_tasks:
+    - name: Validate required variables
+      ansible.builtin.assert:
+        that:
+          - otel_signoz_endpoint is defined and otel_signoz_endpoint | length > 0
+        fail_msg: |
+          otel_signoz_endpoint is required.
+
+          Add to inventory group_vars/mta.yml:
+            otel_signoz_endpoint: "ingest.monitor.kibamail.com:4317"
+        success_msg: "SigNoz endpoint configured: {{ otel_signoz_endpoint }}"
+
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg: |
+          Deploying OpenTelemetry Collector to: {{ inventory_hostname }}
+          - SigNoz endpoint: {{ otel_signoz_endpoint }}
+          - Log paths: {{ otel_collector_log_paths | default(['/var/log/email-agent/*.log']) | join(', ') }}
+
+  roles:
+    - role: otel-collector
+      tags: [otel-collector, observability]
+
+  post_tasks:
+    - name: Wait for otel-collector to start
+      ansible.builtin.wait_for:
+        port: "{{ otel_collector_otlp_grpc_port }}"
+        host: "127.0.0.1"
+        delay: 2
+        timeout: 30
+      when: otel_collector_start_service | default(true)
+
+    - name: Check otel-collector health
+      ansible.builtin.uri:
+        url: "http://127.0.0.1:13133/"
+        method: GET
+        status_code: 200
+      register: health_check
+      when: otel_collector_start_service | default(true)
+      failed_when: false
+
+    - name: Display deployment status
+      ansible.builtin.debug:
+        msg: |
+          OpenTelemetry Collector deployment complete!
+
+          Service status: {{ 'HEALTHY' if health_check.status | default(0) == 200 else 'CHECK MANUALLY' }}
+
+          Commands:
+            - Status: systemctl status otel-collector
+            - Logs: journalctl -u otel-collector -f
+            - Config: cat {{ otel_collector_config_path }}
+
+          Local endpoints (for email-agent):
+            - OTLP gRPC: localhost:{{ otel_collector_otlp_grpc_port }}
+            - OTLP HTTP: localhost:{{ otel_collector_otlp_http_port }}
+
+          Debug endpoints:
+            - Health: http://127.0.0.1:13133/
+            - zPages: http://127.0.0.1:55679/debug/tracez
+
+          Next step: Configure email-agent to send telemetry to localhost:{{ otel_collector_otlp_grpc_port }}

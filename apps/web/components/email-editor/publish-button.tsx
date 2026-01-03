@@ -90,7 +90,7 @@ export function PublishButton({
     setOpen(newOpen);
   }
 
-  function handlePublish() {
+  function onPublishClick() {
     publishMutation.mutate();
   }
 
@@ -141,7 +141,7 @@ export function PublishButton({
               readiness={readiness}
               isLoading={isLoading}
               onViewLinks={onViewLinks}
-              onPublish={handlePublish}
+              onPublish={onPublishClick}
               isPublishing={publishMutation.isPending}
               labels={labels}
             />

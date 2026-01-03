@@ -10,8 +10,8 @@ import {
 } from "iconoir-react";
 import type { NodeProps } from "@xyflow/react";
 import { useQuery } from "@tanstack/react-query";
-import { BaseFlowNode } from "./base-flow-node";
-import { useFlowEditor } from "../flow-editor-context";
+import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
+import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
 import { internalApi } from "@/lib/api/client";
 
 function useTopicNames(topicIds: string[] | undefined) {

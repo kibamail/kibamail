@@ -27,6 +27,7 @@ type Config struct {
 	Worker     WorkerConfig     `koanf:"worker"`
 	Metrics    MetricsConfig    `koanf:"metrics"`
 	Health     HealthConfig     `koanf:"health"`
+	OTel       OTelConfig       `koanf:"otel"`
 }
 
 // AgentConfig contains agent-specific configuration
@@ -42,6 +43,8 @@ type NATSConfig struct {
 	NKeyFile      string        `koanf:"nkey_file"`
 	TLSEnabled    bool          `koanf:"tls_enabled"`
 	TLSCACert     string        `koanf:"tls_ca_cert"`
+	TLSCert       string        `koanf:"tls_cert"` // Client certificate for mTLS
+	TLSKey        string        `koanf:"tls_key"`  // Client key for mTLS
 	MaxReconnects int           `koanf:"max_reconnects"`
 	ReconnectWait time.Duration `koanf:"reconnect_wait"`
 }
@@ -93,12 +96,13 @@ type ControlAPIConfig struct {
 
 // WorkerConfig contains NATS consumer worker configuration
 type WorkerConfig struct {
-	StreamName   string        `koanf:"stream_name"`
-	ConsumerName string        `koanf:"consumer_name"`
-	FetchBatch   int           `koanf:"fetch_batch"`
-	FetchWorkers int           `koanf:"fetch_workers"`
-	AckTimeout   time.Duration `koanf:"ack_timeout"`
-	MaxRetries   int           `koanf:"max_retries"`
+	StreamName    string        `koanf:"stream_name"`
+	ConsumerName  string        `koanf:"consumer_name"`
+	FilterSubject string        `koanf:"filter_subject"` // Consumer filter subject (must match server-side config)
+	FetchBatch    int           `koanf:"fetch_batch"`
+	FetchWorkers  int           `koanf:"fetch_workers"`
+	AckTimeout    time.Duration `koanf:"ack_timeout"`
+	MaxRetries    int           `koanf:"max_retries"`
 }
 
 // MetricsConfig contains Prometheus metrics configuration
@@ -114,6 +118,15 @@ type HealthConfig struct {
 	Port          int    `koanf:"port"`
 	LivenessPath  string `koanf:"liveness_path"`
 	ReadinessPath string `koanf:"readiness_path"`
+}
+
+// OTelConfig contains OpenTelemetry configuration
+type OTelConfig struct {
+	Enabled     bool   `koanf:"enabled"`
+	Endpoint    string `koanf:"endpoint"`    // OTLP endpoint (e.g., localhost:4317)
+	Insecure    bool   `koanf:"insecure"`    // Use insecure connection (no TLS)
+	ServiceName string `koanf:"service_name"`
+	Environment string `koanf:"environment"`
 }
 
 // DefaultConfig returns a config with sensible defaults
@@ -164,12 +177,13 @@ func DefaultConfig() *Config {
 			Timeout: 10 * time.Second,
 		},
 		Worker: WorkerConfig{
-			StreamName:   "EMAILS",
-			ConsumerName: "email_agent_consumer",
-			FetchBatch:   100, // Fetch 100 messages at a time
-			FetchWorkers: 30,  // 30 concurrent fetchers for high throughput
-			AckTimeout:   30 * time.Second,
-			MaxRetries:   5,
+			StreamName:    "EMAILS",
+			ConsumerName:  "email_agent_consumer",
+			FilterSubject: "kibamail.emails.>", // Must match server-side consumer config
+			FetchBatch:    100,                 // Fetch 100 messages at a time
+			FetchWorkers:  30,                  // 30 concurrent fetchers for high throughput
+			AckTimeout:    30 * time.Second,
+			MaxRetries:    5,
 		},
 		Metrics: MetricsConfig{
 			Enabled: true,
@@ -181,6 +195,13 @@ func DefaultConfig() *Config {
 			Port:          8081,
 			LivenessPath:  "/live",
 			ReadinessPath: "/ready",
+		},
+		OTel: OTelConfig{
+			Enabled:     false, // Disabled by default
+			Endpoint:    "localhost:4317",
+			Insecure:    true,
+			ServiceName: "email-agent",
+			Environment: "development",
 		},
 	}
 }

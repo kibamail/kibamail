@@ -2,13 +2,13 @@
 
 import type { SendingDomain } from "@prisma/client";
 
-import { EmailEditorClient } from "../email-editor-client";
+import { EmailEditorClient } from "@/components/email-editor/email-editor-client";
 import type {
   TemplateDetails,
   EmailEditorMutations,
   SaveDraftPayload,
   TransformedSenderIdentity,
-} from "../types";
+} from "@/components/email-editor/types";
 
 /**
  * Example adapter for email templates (transactional emails).
@@ -75,7 +75,6 @@ export function TemplateEditorAdapter({
     onPublish,
     onUploadFile,
     onGetPreview,
-    // Templates don't need readiness checks
   };
 
   return (

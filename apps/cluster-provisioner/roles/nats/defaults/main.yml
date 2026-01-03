@@ -48,3 +48,6 @@ nats_account_name: "KIBAMAIL"
 # Certificate validity (days)
 nats_ca_validity_days: 3650
 nats_cert_validity_days: 365
+
+# Additional SANs for server certificate (for external access)
+nats_server_additional_sans: []

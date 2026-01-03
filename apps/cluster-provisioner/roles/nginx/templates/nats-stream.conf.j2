@@ -1,0 +1,19 @@
+# NATS TCP Stream Proxy
+# Managed by Ansible - DO NOT EDIT MANUALLY
+#
+# This configuration provides TCP passthrough for NATS.
+# TLS is NOT terminated here - it passes through to NATS.
+# Hostname: {{ nginx_nats_hostname }}
+
+upstream nats_backend {
+    server {{ nginx_nats_upstream_host }}:{{ nginx_nats_upstream_port }};
+}
+
+server {
+    listen {{ nginx_nats_listen_port }};
+    listen [::]:{{ nginx_nats_listen_port }};
+
+    proxy_pass nats_backend;
+    proxy_connect_timeout {{ nginx_proxy_connect_timeout }};
+    proxy_timeout {{ nginx_proxy_timeout }};
+}

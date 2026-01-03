@@ -33,7 +33,7 @@ export function SearchInput({
   },
   500);
 
-  function handleChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const newValue = event.target.value;
     setValue(newValue);
     debouncedSearch(newValue);
@@ -45,7 +45,7 @@ export function SearchInput({
         placeholder={placeholder}
         name={name}
         value={value}
-        onChange={handleChange}
+        onChange={onChange}
         {...props}
       >
         <TextField.Slot side="left">
