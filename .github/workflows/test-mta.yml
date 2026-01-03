@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   test-mta:
-    name: MTA Integration Tests
+    name: mta integration tests
     runs-on: ubuntu-latest
 
     timeout-minutes: 20
@@ -46,22 +46,22 @@ jobs:
       # Environment Setup
       # =============================================================================
 
-      - name: Checkout code
+      - name: checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Go
+      - name: setup go
         uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
           cache: true
           cache-dependency-path: apps/mta/testing/go.sum
 
-      - name: Verify Docker and Docker Compose
+      - name: verify docker and docker compose
         run: |
           docker --version
           docker compose version
 
-      - name: Free up disk space
+      - name: free up disk space
         run: |
           # Remove unused Docker images and containers
           docker system prune -af --volumes || true
@@ -74,7 +74,7 @@ jobs:
       # Certificate Generation
       # =============================================================================
 
-      - name: Generate test certificates
+      - name: generate test certificates
         run: |
           cd apps/mta/testing
           echo "Generating TLS and DKIM certificates..."
@@ -94,7 +94,7 @@ jobs:
       # Test Execution
       # =============================================================================
 
-      - name: Run MTA integration tests
+      - name: run mta integration tests
         run: |
           cd apps/mta/testing
 
@@ -119,7 +119,7 @@ jobs:
       # Debugging Information (on failure)
       # =============================================================================
 
-      - name: Collect test artifacts
+      - name: collect test artifacts
         if: failure() || cancelled()
         run: |
           cd apps/mta/testing
@@ -168,7 +168,7 @@ jobs:
       # Cleanup
       # =============================================================================
 
-      - name: Cleanup test environment
+      - name: cleanup test environment
         if: always()
         run: |
           cd apps/mta/testing
@@ -196,7 +196,7 @@ jobs:
 
           echo "Cleanup complete"
 
-      - name: Verify cleanup
+      - name: werify cleanup
         if: always()
         run: |
           echo "Verifying no containers remain..."

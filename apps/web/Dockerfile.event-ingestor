@@ -62,16 +62,11 @@ RUN mkdir -p /app/runtime_modules/@prisma && \
 RUN mkdir -p /app/runtime_modules && \
     cp -rL /app/node_modules/.pnpm/nats@*/node_modules/nats /app/runtime_modules/
 
-# Copy NATS dependencies (nkeys, nuid)
-RUN for dep in nkeys nuid; do \
-        depdir=$(find /app/node_modules/.pnpm -maxdepth 1 -type d -name "nats-io+${dep}@*" -o -name "@nats-io+${dep}@*" | head -1); \
-        if [ -n "$depdir" ]; then \
-            mkdir -p /app/runtime_modules/@nats-io; \
-            if [ -d "$depdir/node_modules/@nats-io/$dep" ]; then \
-                cp -rL "$depdir/node_modules/@nats-io/$dep" /app/runtime_modules/@nats-io/; \
-            fi; \
-        fi; \
-    done
+# Copy nkeys.js (NATS dependency)
+RUN cp -rL /app/node_modules/.pnpm/nkeys.js@*/node_modules/nkeys.js /app/runtime_modules/
+
+# Copy tweetnacl (nkeys.js dependency)
+RUN cp -rL /app/node_modules/.pnpm/tweetnacl@*/node_modules/tweetnacl /app/runtime_modules/
 
 # ============================================
 # Production runner
