@@ -70,7 +70,12 @@ jobs:
         id: nats-ca
         working-directory: apps/web
         run: |
-          echo "NATS_TLS_CA=$(cat docker/nats/certs/ca.pem | base64 -w 0)" >> $GITHUB_OUTPUT
+          {
+            echo 'NATS_TLS_CA<<EOF'
+            cat docker/nats/certs/ca.pem | base64 -w 0
+            echo ''
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
 
       - name: Run tests
         working-directory: apps/web

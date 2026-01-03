@@ -83,9 +83,10 @@ function createTestEmailMessage(
 }
 
 describe("NATS Publisher Integration Tests", () => {
-  const natsOptions = getTestNatsOptions();
+  let natsOptions: NatsConnectionOptions;
 
   beforeAll(async () => {
+    natsOptions = getTestNatsOptions();
     await getNatsConnection(natsOptions);
   });
 

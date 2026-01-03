@@ -87,10 +87,11 @@ async function publishTestEvents(
 }
 
 describe("NATS Event Consumer Integration Tests", () => {
-  const natsOptions = getTestNatsOptions();
+  let natsOptions: NatsConnectionOptions;
   const testConsumerName = `test-consumer-${Date.now()}`;
 
   beforeAll(async () => {
+    natsOptions = getTestNatsOptions();
     await getNatsConnection(natsOptions);
     await ensureEventsStream(natsOptions);
   });
