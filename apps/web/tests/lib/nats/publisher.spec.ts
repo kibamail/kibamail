@@ -83,55 +83,29 @@ function createTestEmailMessage(
 }
 
 describe("NATS Publisher Integration Tests", () => {
-  let natsOptions: NatsConnectionOptions;
-  let isNatsAvailable = false;
+  const natsOptions = getTestNatsOptions();
 
   beforeAll(async () => {
-    try {
-      natsOptions = getTestNatsOptions();
-      // Test connection
-      await getNatsConnection(natsOptions);
-      isNatsAvailable = true;
-    } catch (error) {
-      console.warn("NATS not available, skipping integration tests:", error);
-      isNatsAvailable = false;
-    }
+    await getNatsConnection(natsOptions);
   });
 
   afterAll(async () => {
-    if (isNatsAvailable) {
-      await closeNatsConnection();
-    }
+    await closeNatsConnection();
   });
 
   describe("Connection", () => {
     test("should connect to NATS with TLS", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const nc = await getNatsConnection(natsOptions);
       expect(nc).toBeDefined();
       expect(nc.isClosed()).toBe(false);
     });
 
     test("should get JetStream client", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const js = await getJetStream(natsOptions);
       expect(js).toBeDefined();
     });
 
     test("should verify EMAILS stream is ready", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const ready = await isStreamReady(natsOptions);
       expect(ready).toBe(true);
     });
@@ -139,11 +113,6 @@ describe("NATS Publisher Integration Tests", () => {
 
   describe("Publishing Single Email", () => {
     test("should publish an email message to NATS", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const message = createTestEmailMessage();
       const ack = await publishEmail(natsOptions, message);
 
@@ -154,11 +123,6 @@ describe("NATS Publisher Integration Tests", () => {
     });
 
     test("should detect duplicate messages", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const message = createTestEmailMessage();
 
       // First publish
@@ -171,11 +135,6 @@ describe("NATS Publisher Integration Tests", () => {
     });
 
     test("should publish to correct subject based on tenant and broadcast", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const message = createTestEmailMessage({
         tenant_id: "tenant-abc",
         broadcast_id: "broadcast-xyz",
@@ -189,11 +148,6 @@ describe("NATS Publisher Integration Tests", () => {
     });
 
     test("should include all required fields in published message", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const message = createTestEmailMessage({
         reply_to: { email: "reply@example.com", name: "Reply To" },
       });
@@ -235,11 +189,6 @@ describe("NATS Publisher Integration Tests", () => {
 
   describe("Publishing Email Batch", () => {
     test("should publish multiple emails in a batch", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const messages = [
         createTestEmailMessage({ contact_id: "contact-1" }),
         createTestEmailMessage({ contact_id: "contact-2" }),
@@ -256,21 +205,11 @@ describe("NATS Publisher Integration Tests", () => {
     });
 
     test("should handle empty batch", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const acks = await publishEmailBatch(natsOptions, []);
       expect(acks).toHaveLength(0);
     });
 
     test("should publish large batch efficiently", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       const batchSize = 100;
       const messages = Array.from({ length: batchSize }, (_, i) =>
         createTestEmailMessage({ contact_id: `contact-batch-${i}` })
@@ -293,11 +232,6 @@ describe("NATS Publisher Integration Tests", () => {
     });
 
     test("should identify duplicates in batch", async () => {
-      if (!isNatsAvailable) {
-        console.log("Skipping: NATS not available");
-        return;
-      }
-
       // Create unique message
       const uniqueMessage = createTestEmailMessage();
 
