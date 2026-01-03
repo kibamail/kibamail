@@ -1,33 +1,40 @@
 /**
- * Send Broadcast Batch Job
+ * Send Test Broadcast Job
  *
- * Processes a single batch of contacts for a broadcast.
- * This job receives a pre-computed list of contact IDs to send to.
+ * Sends test emails for a broadcast to a list of provided email addresses.
+ * This job is simpler than the regular batch job - no scheduling, no warmup
+ * limits, just immediate sending to test recipients.
  *
- * For each contact:
- * 1. Renders the email template with personalization
- * 2. Applies tracking (link rewriting, open pixel)
- * 3. Uploads content to S3
- * 4. Publishes email message to NATS for MTA injection
+ * For each test email:
+ * 1. Creates a synthetic contact from the email address
+ * 2. Renders the email template with personalization
+ * 3. Applies tracking (link rewriting, open pixel)
+ * 4. Uploads content to S3
+ * 5. Publishes email message to NATS for MTA injection
  */
 
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
-import { prepareEmailBatch, convertToNatsMessages, type EmailBroadcast } from "@/lib/email";
+import {
+  prepareEmailBatch,
+  convertToNatsMessages,
+  type EmailBroadcast,
+  type EmailContact,
+} from "@/lib/email";
 import { publishEmailBatch, getNatsOptions } from "@/lib/nats";
 
-const logger = queueLogger.child({ job: "send-broadcast-batch" });
+const logger = queueLogger.child({ job: "send-test-broadcast" });
 
-export const sendBroadcastBatch: JobProcessor<
+export const sendTestBroadcast: JobProcessor<
   "broadcasts",
-  "send-broadcast-batch"
+  "send-test-broadcast"
 > = async (data, jobId) => {
-  const { broadcastId, batchId, contactIds } = data;
+  const { broadcastId, testEmails } = data;
 
   logger.info(
-    { jobId, broadcastId, batchId, contactCount: contactIds.length },
-    "Processing broadcast batch"
+    { jobId, broadcastId, testEmailCount: testEmails.length },
+    "Sending test broadcast"
   );
 
   // Fetch the broadcast with all required relations
@@ -50,17 +57,8 @@ export const sendBroadcastBatch: JobProcessor<
   });
 
   if (!broadcast) {
-    logger.error({ jobId, broadcastId, batchId }, "Broadcast not found");
+    logger.error({ jobId, broadcastId }, "Broadcast not found");
     throw new Error(`Broadcast ${broadcastId} not found`);
-  }
-
-  // Check if broadcast was archived (cancelled)
-  if (broadcast.status === "DRAFT_ARCHIVED" || broadcast.status === "ARCHIVED") {
-    logger.warn(
-      { jobId, broadcastId, batchId },
-      "Broadcast was archived/cancelled, skipping batch"
-    );
-    return;
   }
 
   // Validate required data
@@ -73,41 +71,22 @@ export const sendBroadcastBatch: JobProcessor<
   }
 
   if (!broadcast.senderIdentity || !broadcast.sendingDomain) {
-    throw new Error(`Broadcast ${broadcastId} missing sender identity or sending domain`);
-  }
-
-  // Fetch contact details for this batch
-  const contacts = await prisma.contact.findMany({
-    where: {
-      id: { in: contactIds },
-      status: "SUBSCRIBED", // Double-check they're still subscribed
-    },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-    },
-  });
-
-  // Some contacts may have unsubscribed since scheduling
-  const skippedCount = contactIds.length - contacts.length;
-  if (skippedCount > 0) {
-    logger.info(
-      { jobId, broadcastId, batchId, skippedCount },
-      "Some contacts were skipped (unsubscribed or deleted)"
+    throw new Error(
+      `Broadcast ${broadcastId} missing sender identity or sending domain`
     );
   }
 
-  if (contacts.length === 0) {
-    logger.info(
-      { jobId, broadcastId, batchId },
-      "No eligible contacts remaining in batch"
-    );
-    return;
-  }
+  // Create synthetic contacts from test emails
+  // Use a timestamp-based ID to ensure uniqueness for tracking URLs
+  const timestamp = Date.now();
+  const testContacts: EmailContact[] = testEmails.map((email, idx) => ({
+    id: `test-${idx}-${timestamp}`,
+    email: email.trim(),
+    firstName: null,
+    lastName: null,
+  }));
 
-  // Build reply-to email: use replyToIdentity if set, otherwise default to senderIdentity (from email)
+  // Build reply-to email: use replyToIdentity if set, otherwise default to senderIdentity
   const replyToIdentity = broadcast.replyToIdentity ?? broadcast.senderIdentity;
   const replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain!.name}`;
 
@@ -132,17 +111,16 @@ export const sendBroadcastBatch: JobProcessor<
     replyToEmail,
   };
 
-  // Prepare all emails for the batch
-  const preparedEmails = await prepareEmailBatch(contacts, emailBroadcast);
+  // Prepare all test emails
+  const preparedEmails = await prepareEmailBatch(testContacts, emailBroadcast);
 
   logger.debug(
     {
       jobId,
       broadcastId,
-      batchId,
       preparedCount: preparedEmails.length,
     },
-    "Prepared emails for batch"
+    "Prepared test emails"
   );
 
   // Upload email content to S3 and convert to NATS message format
@@ -158,13 +136,11 @@ export const sendBroadcastBatch: JobProcessor<
     {
       jobId,
       broadcastId,
-      batchId,
-      processedCount: contacts.length,
+      testEmailCount: testEmails.length,
       preparedCount: preparedEmails.length,
       publishedCount: acks.length,
       duplicates,
-      skippedCount,
     },
-    "Batch processing complete - emails published to NATS"
+    "Test broadcast sent - emails published to NATS"
   );
 };

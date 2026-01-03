@@ -6,6 +6,7 @@ import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
 
 import { sendBroadcast } from "./broadcasts/send-broadcast";
 import { sendBroadcastBatch } from "./broadcasts/send-broadcast-batch";
+import { sendTestBroadcast } from "./broadcasts/send-test-broadcast";
 import { processImport } from "./contact-imports/process-import";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkVerification } from "./sending-domains/check-verification";
@@ -42,6 +43,7 @@ configureWorker("broadcasts", {
   processors: {
     "send-broadcast": sendBroadcast,
     "send-broadcast-batch": sendBroadcastBatch,
+    "send-test-broadcast": sendTestBroadcast,
   },
   concurrency: 5,
 });

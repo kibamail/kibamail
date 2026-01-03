@@ -2121,6 +2121,46 @@ class BroadcastsApi extends HttpClient {
   }
 
   /**
+   * Send test emails for a broadcast
+   *
+   * Sends the broadcast content to the provided email addresses
+   * without scheduling or affecting the broadcast status.
+   *
+   * @param broadcastId - ID of the broadcast
+   * @param emails - Array of email addresses to send to (max 10)
+   * @returns Success response with email count
+   *
+   * @example
+   * ```ts
+   * await internalApi.broadcasts().sendTest('broadcast_123', ['test@example.com'])
+   * ```
+   */
+  async sendTest(
+    broadcastId: string,
+    emails: string[]
+  ): Promise<{ success: boolean; message: string; emailCount: number }> {
+    const response = await fetch(
+      `/api/internal/v1/broadcasts/${broadcastId}/send-test`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emails }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData: ApiErrorResponse = await response.json();
+      const errorMessage =
+        typeof errorData.error === "string"
+          ? errorData.error
+          : errorData.error?.message || "Failed to send test emails";
+      throw new ApiClientError(errorMessage, response.status, errorData);
+    }
+
+    return response.json();
+  }
+
+  /**
    * Duplicate a broadcast
    *
    * Creates a copy of the broadcast with all its settings and email content.

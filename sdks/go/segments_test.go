@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSegmentsCreate(t *testing.T) {
@@ -29,8 +30,8 @@ func TestSegmentsCreate(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -63,8 +64,8 @@ func TestSegmentsCreate(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -75,8 +76,8 @@ func TestSegmentsList(t *testing.T) {
 	t.Run("should list segments with default pagination", func(t *testing.T) {
 		result, err := client.Segments.List(nil)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -84,8 +85,8 @@ func TestSegmentsList(t *testing.T) {
 		limit := 50
 		result, err := client.Segments.List(&ListOptions{Limit: &limit})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 }
@@ -97,8 +98,8 @@ func TestSegmentsGet(t *testing.T) {
 		segmentId := "segment_test_12345"
 		result, err := client.Segments.Get(segmentId)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -113,8 +114,8 @@ func TestSegmentsUpdate(t *testing.T) {
 			Description: "Updated description",
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -132,8 +133,8 @@ func TestSegmentsUpdate(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -145,7 +146,7 @@ func TestSegmentsDelete(t *testing.T) {
 		segmentId := "segment_test_12345"
 		err := client.Segments.Delete(segmentId)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -156,8 +157,8 @@ func TestSegmentsListContacts(t *testing.T) {
 		segmentId := "segment_test_12345"
 		result, err := client.Segments.ListContacts(segmentId, nil)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -166,8 +167,8 @@ func TestSegmentsListContacts(t *testing.T) {
 		limit := 50
 		result, err := client.Segments.ListContacts(segmentId, &ListOptions{Limit: &limit})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 }

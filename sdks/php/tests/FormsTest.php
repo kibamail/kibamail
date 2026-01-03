@@ -9,7 +9,6 @@ it('can create a form', function () {
     $result = $client->forms->create([
         'name' => 'Newsletter Signup',
         'description' => 'Subscribe to our newsletter',
-        'fields' => (object) [],
     ]);
 
     expect($result)->toBeInstanceOf(Form::class)
@@ -30,7 +29,6 @@ it('can get a form', function () {
 
     $form = $client->forms->create([
         'name' => 'Contact Form',
-        'fields' => (object) [],
     ]);
 
     $result = $client->forms->get($form->id);
@@ -44,7 +42,6 @@ it('can update a form', function () {
 
     $form = $client->forms->create([
         'name' => 'Original Form',
-        'fields' => (object) [],
     ]);
 
     $result = $client->forms->update($form->id, [
@@ -59,7 +56,6 @@ it('can delete a form', function () {
 
     $form = $client->forms->create([
         'name' => 'Form to Delete',
-        'fields' => (object) [],
     ]);
 
     $result = $client->forms->delete($form->id);

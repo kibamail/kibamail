@@ -18,6 +18,7 @@ export { generateEmailSendId, generateMessageIdForDomain } from "./message-id";
 export {
   prepareEmail,
   prepareEmailBatch,
+  convertToNatsMessages,
   type EmailContact,
   type EmailBroadcast,
   type PreparedEmail,

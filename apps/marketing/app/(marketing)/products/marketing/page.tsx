@@ -12,20 +12,20 @@ import {
   MailOpen,
   UserStar,
 } from "iconoir-react";
-import { HeroFeatures } from "@/app/(marketing)/_components/sections/heroes/hero-features";
-import { PageSection } from "@/app/(marketing)/_components/layout/page-section";
+import { HeroFeatures } from "@/app/_components/sections/heroes/hero-features";
+import { PageSection } from "@/app/_components/layout/page-section";
 import {
   BentoGrid,
   type BentoFeature,
-} from "@/app/(marketing)/_components/sections/bento-grid";
+} from "@/app/_components/sections/bento-grid";
 import {
   StickyFeatures,
   type StickyFeature,
-} from "@/app/(marketing)/_components/sections/sticky-features";
+} from "@/app/_components/sections/sticky-features";
 import {
   FeaturesWithCTA,
   type Feature,
-} from "@/app/(marketing)/_components/sections/features-with-cta";
+} from "@/app/_components/sections/features-with-cta";
 
 const marketingFeatures: BentoFeature[] = [
   {

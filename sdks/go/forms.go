@@ -9,7 +9,7 @@ import (
 type CreateFormRequest struct {
 	Name        string      `json:"name"`
 	Description string      `json:"description,omitempty"`
-	Fields      interface{} `json:"fields"`
+	Fields      interface{} `json:"fields,omitempty"`
 }
 
 // UpdateFormRequest is the request object for the Update call.

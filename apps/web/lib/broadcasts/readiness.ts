@@ -36,6 +36,20 @@ export interface BroadcastReadinessResult {
   linksValidation: LinksValidationResult;
 }
 
+/**
+ * Options for customizing which checks are performed
+ */
+export interface ReadinessCheckOptions {
+  /**
+   * Skip the recipients check (useful for test broadcasts where recipients are provided separately)
+   */
+  skipRecipients?: boolean;
+  /**
+   * Skip the send time check (useful for immediate test sends)
+   */
+  skipSendTime?: boolean;
+}
+
 type BroadcastWithRelations = Broadcast & {
   emailContent: EmailContent | null;
   senderIdentity:
@@ -64,11 +78,11 @@ export class BroadcastReadinessChecker {
     this.broadcast = broadcast;
   }
 
-  async check(): Promise<BroadcastReadinessResult> {
+  async check(options?: ReadinessCheckOptions): Promise<BroadcastReadinessResult> {
     await Promise.all([this.loadAudienceData(), this.validateLinks()]);
     await this.calculateRecipientCount();
 
-    const checklist = this.buildChecklist();
+    const checklist = this.buildChecklist(options);
     const { audienceType, audienceName } = this.getAudienceInfo();
 
     return {
@@ -156,15 +170,21 @@ export class BroadcastReadinessChecker {
     return { audienceType: "all" };
   }
 
-  private buildChecklist(): ReadinessCheckItem[] {
+  private buildChecklist(options?: ReadinessCheckOptions): ReadinessCheckItem[] {
     const checklist: ReadinessCheckItem[] = [];
 
     checklist.push(this.checkFromEmail());
     checklist.push(this.checkSubject());
     checklist.push(this.checkUnsubscribeLink());
     checklist.push(this.checkLinks());
-    checklist.push(this.checkSendTime());
-    checklist.push(this.checkRecipients());
+
+    if (!options?.skipSendTime) {
+      checklist.push(this.checkSendTime());
+    }
+
+    if (!options?.skipRecipients) {
+      checklist.push(this.checkRecipients());
+    }
 
     return checklist;
   }
@@ -303,10 +323,11 @@ export class BroadcastReadinessChecker {
 
 export async function checkBroadcastReadiness(
   workspaceId: string,
-  broadcast: BroadcastWithRelations
+  broadcast: BroadcastWithRelations,
+  options?: ReadinessCheckOptions
 ): Promise<BroadcastReadinessResult> {
   const checker = new BroadcastReadinessChecker(workspaceId, broadcast);
-  return checker.check();
+  return checker.check(options);
 }
 
 export function getReadinessErrors(result: BroadcastReadinessResult): string[] {

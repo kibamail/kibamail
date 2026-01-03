@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTopicsCreate(t *testing.T) {
@@ -16,8 +17,8 @@ func TestTopicsCreate(t *testing.T) {
 			Visibility:  "PUBLIC",
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -29,8 +30,8 @@ func TestTopicsCreate(t *testing.T) {
 			DefaultOptIn: true,
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -41,8 +42,8 @@ func TestTopicsList(t *testing.T) {
 	t.Run("should list topics with default pagination", func(t *testing.T) {
 		result, err := client.Topics.List(nil)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -50,8 +51,8 @@ func TestTopicsList(t *testing.T) {
 		limit := 50
 		result, err := client.Topics.List(&ListOptions{Limit: &limit})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 }
@@ -63,8 +64,8 @@ func TestTopicsGet(t *testing.T) {
 		topicId := "topic_test_12345"
 		result, err := client.Topics.Get(topicId)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -79,8 +80,8 @@ func TestTopicsUpdate(t *testing.T) {
 			Description: "Updated description",
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -90,8 +91,8 @@ func TestTopicsUpdate(t *testing.T) {
 			Visibility: "PRIVATE",
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -103,6 +104,6 @@ func TestTopicsDelete(t *testing.T) {
 		topicId := "topic_test_12345"
 		err := client.Topics.Delete(topicId)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }

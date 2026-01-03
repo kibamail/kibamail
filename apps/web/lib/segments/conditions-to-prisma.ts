@@ -33,7 +33,7 @@ export function validateConditionFields(
 ): { isValid: boolean; invalidFields: string[] } {
   const invalidFields: string[] = [];
   const propertyNames = new Set(contactProperties.map((p) => p.name));
-  const builtInFields = new Set(BUILT_IN_CONTACT_FIELDS);
+  const builtInFields: Set<string> = new Set(BUILT_IN_CONTACT_FIELDS);
 
   function checkFieldValidity(field: string): void {
     if (!builtInFields.has(field) && !propertyNames.has(field)) {

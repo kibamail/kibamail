@@ -49,6 +49,10 @@ export type QueueJobs = {
       batchId: string;
       contactIds: string[];
     };
+    "send-test-broadcast": {
+      broadcastId: string;
+      testEmails: string[];
+    };
   };
   // Sending domains queue for domain verification checks
   "sending-domains": {

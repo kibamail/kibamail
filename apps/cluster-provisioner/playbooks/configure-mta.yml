@@ -271,6 +271,109 @@
         mode: "0640"
       notify: restart kumomta
 
+    # =========================================================================
+    # TLS Certificate (Let's Encrypt via Cloudflare DNS)
+    # =========================================================================
+
+    - name: Check if TLS certificate already exists
+      ansible.builtin.stat:
+        path: /opt/kumomta/etc/tls/fullchain.pem
+      register: tls_cert_exists
+
+    - name: Validate CLOUDFLARE_API_TOKEN environment variable
+      ansible.builtin.fail:
+        msg: "CLOUDFLARE_API_TOKEN environment variable is required for TLS certificate issuance"
+      when:
+        - not tls_cert_exists.stat.exists
+        - lookup('env', 'CLOUDFLARE_API_TOKEN') == ''
+
+    - name: Install certbot and Cloudflare plugin
+      ansible.builtin.apt:
+        name:
+          - certbot
+          - python3-certbot-dns-cloudflare
+        state: present
+        update_cache: yes
+      when: not tls_cert_exists.stat.exists
+
+    - name: Create certbot credentials directory
+      ansible.builtin.file:
+        path: /etc/letsencrypt/cloudflare
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+      when: not tls_cert_exists.stat.exists
+
+    - name: Create Cloudflare credentials file
+      ansible.builtin.copy:
+        content: |
+          dns_cloudflare_api_token = {{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}
+        dest: /etc/letsencrypt/cloudflare/credentials.ini
+        owner: root
+        group: root
+        mode: "0600"
+      when: not tls_cert_exists.stat.exists
+
+    - name: Obtain TLS certificate from Let's Encrypt via Cloudflare DNS
+      ansible.builtin.command:
+        cmd: >
+          certbot certonly
+          --dns-cloudflare
+          --dns-cloudflare-credentials /etc/letsencrypt/cloudflare/credentials.ini
+          --dns-cloudflare-propagation-seconds 30
+          --non-interactive
+          --agree-tos
+          --email admin@kibamail.com
+          -d {{ mta_hostname }}
+      when: not tls_cert_exists.stat.exists
+      register: certbot_result
+
+    - name: Create KumoMTA TLS directory
+      ansible.builtin.file:
+        path: /opt/kumomta/etc/tls
+        state: directory
+        owner: kumod
+        group: kumod
+        mode: "0750"
+      when: certbot_result.changed | default(false)
+
+    - name: Copy TLS certificate to KumoMTA
+      ansible.builtin.copy:
+        src: /etc/letsencrypt/live/{{ mta_hostname }}/fullchain.pem
+        dest: /opt/kumomta/etc/tls/fullchain.pem
+        owner: kumod
+        group: kumod
+        mode: "0644"
+        remote_src: yes
+      when: certbot_result.changed | default(false)
+
+    - name: Copy TLS private key to KumoMTA
+      ansible.builtin.copy:
+        src: /etc/letsencrypt/live/{{ mta_hostname }}/privkey.pem
+        dest: /opt/kumomta/etc/tls/privkey.pem
+        owner: kumod
+        group: kumod
+        mode: "0600"
+        remote_src: yes
+      when: certbot_result.changed | default(false)
+
+    - name: Create certbot renewal hook for KumoMTA
+      ansible.builtin.copy:
+        content: |
+          #!/bin/bash
+          cp /etc/letsencrypt/live/{{ mta_hostname }}/fullchain.pem /opt/kumomta/etc/tls/fullchain.pem
+          cp /etc/letsencrypt/live/{{ mta_hostname }}/privkey.pem /opt/kumomta/etc/tls/privkey.pem
+          chown kumod:kumod /opt/kumomta/etc/tls/*.pem
+          chmod 644 /opt/kumomta/etc/tls/fullchain.pem
+          chmod 600 /opt/kumomta/etc/tls/privkey.pem
+          systemctl reload kumod || true
+        dest: /etc/letsencrypt/renewal-hooks/deploy/kumomta.sh
+        owner: root
+        group: root
+        mode: "0755"
+      when: certbot_result.changed | default(false)
+
   handlers:
     - name: restart kumomta
       ansible.builtin.debug:
@@ -286,6 +389,11 @@
         paths: "{{ kumomta_policy_dir }}"
         patterns: "*.lua,*.toml"
       register: policy_files
+
+    - name: Check TLS certificate status
+      ansible.builtin.stat:
+        path: /opt/kumomta/etc/tls/fullchain.pem
+      register: final_tls_check
 
     - name: Display configuration complete
       ansible.builtin.debug:
@@ -307,6 +415,16 @@
             - Public:  {{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.pub
             - Local:   {{ dkim_credentials_dir }}/{{ dkim_domain }}/
 
+          TLS Certificates:
+          {% if final_tls_check.stat.exists %}
+            - Certificate: /opt/kumomta/etc/tls/fullchain.pem
+            - Private Key: /opt/kumomta/etc/tls/privkey.pem
+            - Status: CONFIGURED
+            - Auto-renewal: /etc/letsencrypt/renewal-hooks/deploy/kumomta.sh
+          {% else %}
+            - Status: NOT CONFIGURED (certbot may have failed)
+          {% endif %}
+
           ============================================================
           DKIM DNS RECORD (add this to your DNS):
           ============================================================
@@ -319,5 +437,4 @@
 
           Next steps:
           - Add the DKIM DNS TXT record above
-          - Obtain TLS certificates (certbot for Let's Encrypt)
-          - Start KumoMTA services: sudo systemctl start kumomta
+          - Start KumoMTA services: sudo systemctl start kumod

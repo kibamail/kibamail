@@ -12,6 +12,8 @@ import type { Contact, SendingDomain, SenderIdentity } from "@prisma/client";
 import { renderBroadcastToHtml, type BroadcastDocument } from "@/lib/broadcast-renderer";
 import { applyTracking } from "./tracking";
 import { generateMessageIdForDomain } from "./message-id";
+import { uploadPrivateFile } from "@/lib/storage/private-storage";
+import type { EmailMessage } from "@/lib/nats";
 
 /**
  * Contact data needed for email personalization
@@ -250,4 +252,70 @@ export async function prepareEmailBatch(
   }
 
   return preparedEmails;
+}
+
+/**
+ * Convert prepared emails to NATS message format
+ *
+ * Uploads email content to S3 and creates the message payload
+ * expected by the email-agent.
+ *
+ * @param preparedEmails - Array of prepared emails
+ * @returns Array of NATS email messages ready for publishing
+ */
+export async function convertToNatsMessages(
+  preparedEmails: PreparedEmail[]
+): Promise<EmailMessage[]> {
+  const messages: EmailMessage[] = [];
+
+  for (const prepared of preparedEmails) {
+    // Upload HTML content to S3
+    const contentKey = `emails/${prepared.workspaceId}/${prepared.broadcastId}/${prepared.emailSendId}`;
+    const htmlKey = `${contentKey}/content.html`;
+
+    await uploadPrivateFile(htmlKey, prepared.htmlBody, "text/html");
+
+    // Upload plain text if available
+    if (prepared.textBody) {
+      const textKey = `${contentKey}/content.txt`;
+      await uploadPrivateFile(textKey, prepared.textBody, "text/plain");
+    }
+
+    // Build recipient name from first and last name
+    const recipientName = [prepared.recipientFirstName, prepared.recipientLastName]
+      .filter(Boolean)
+      .join(" ");
+
+    messages.push({
+      id: prepared.emailSendId,
+      tenant_id: prepared.workspaceId,
+      broadcast_id: prepared.broadcastId,
+      contact_id: prepared.contactId,
+      recipient: {
+        email: prepared.recipientEmail,
+        name: recipientName,
+      },
+      sender: {
+        email: prepared.senderEmail,
+        name: prepared.senderName,
+        domain: prepared.senderDomain,
+      },
+      reply_to: {
+        email: prepared.replyTo,
+        name: "",
+      },
+      subject: prepared.subject,
+      preview_text: prepared.previewText,
+      content_key: contentKey,
+      attachments: [],
+      metadata: {
+        message_id: prepared.messageId,
+        envelope_sender: prepared.envelopeSender,
+      },
+      track_opens: prepared.trackOpens,
+      track_clicks: prepared.trackClicks,
+    });
+  }
+
+  return messages;
 }

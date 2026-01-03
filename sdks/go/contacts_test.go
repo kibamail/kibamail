@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestContactsCreate(t *testing.T) {
@@ -16,8 +17,8 @@ func TestContactsCreate(t *testing.T) {
 			LastName:  "Doe",
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -32,8 +33,8 @@ func TestContactsCreate(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -45,8 +46,8 @@ func TestContactsCreate(t *testing.T) {
 			Topics:    []string{"topic_newsletter", "topic_updates"},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -57,8 +58,8 @@ func TestContactsList(t *testing.T) {
 	t.Run("should list contacts with default pagination", func(t *testing.T) {
 		result, err := client.Contacts.List(nil)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -66,8 +67,8 @@ func TestContactsList(t *testing.T) {
 		limit := 50
 		result, err := client.Contacts.List(&ListOptions{Limit: &limit})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -79,8 +80,8 @@ func TestContactsList(t *testing.T) {
 			After: &after,
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 }
@@ -92,8 +93,8 @@ func TestContactsGet(t *testing.T) {
 		contactId := "contact_test_12345"
 		result, err := client.Contacts.Get(contactId)
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -108,8 +109,8 @@ func TestContactsUpdate(t *testing.T) {
 			LastName:  "Name",
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -117,13 +118,13 @@ func TestContactsUpdate(t *testing.T) {
 		contactId := "contact_test_12345"
 		result, err := client.Contacts.Update(contactId, &UpdateContactRequest{
 			Properties: map[string]interface{}{
-				"Plan":           "Pro",
-				"Monthly Spend":  99.99,
+				"Plan":          "Pro",
+				"Monthly Spend": 99.99,
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 
@@ -133,8 +134,8 @@ func TestContactsUpdate(t *testing.T) {
 			Topics: []string{"topic_newsletter"},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotEmpty(t, result.ID)
 	})
 }
@@ -146,7 +147,7 @@ func TestContactsDelete(t *testing.T) {
 		contactId := "contact_test_12345"
 		err := client.Contacts.Delete(contactId)
 
-		assert.NoError(t, err)
+		require.NoError(t, err)
 	})
 }
 
@@ -166,8 +167,8 @@ func TestContactsSearch(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -198,8 +199,8 @@ func TestContactsSearch(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 
@@ -216,8 +217,8 @@ func TestContactsSearch(t *testing.T) {
 			},
 		})
 
-		assert.NoError(t, err)
-		assert.NotNil(t, result)
+		require.NoError(t, err)
+		require.NotNil(t, result)
 		assert.NotNil(t, result.Data)
 	})
 }

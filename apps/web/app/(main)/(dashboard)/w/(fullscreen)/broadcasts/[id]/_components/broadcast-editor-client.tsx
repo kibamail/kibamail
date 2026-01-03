@@ -27,6 +27,7 @@ import {
   getEmailFromSenderSelect,
 } from "@/components/sender-select";
 import { SendBroadcastButton } from "./send-broadcast-button";
+import { SendTestEmailModal } from "./send-test-email-modal";
 import Link from "next/link";
 
 type EditorTab = "content" | "details" | "preview" | "analytics";
@@ -74,6 +75,7 @@ export function BroadcastEditorClient({
   const searchParams = useSearchParams();
   const router = useRouter();
   const [stylesOpen, setStylesOpen] = useState(false);
+  const [testEmailModalOpen, setTestEmailModalOpen] = useState(false);
   const editorRef = useRef<BroadcastEmailEditorRef>(null);
   const queryClient = useQueryClient();
   const { success: toast } = useToast();
@@ -270,10 +272,22 @@ export function BroadcastEditorClient({
             >
               {saveDraftMutation.isPending ? "Saving..." : "Save Draft"}
             </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setTestEmailModalOpen(true)}
+            >
+              Send test email
+            </Button>
             <SendBroadcastButton
               broadcastId={broadcastId}
               onSaveDraft={onSaveDraftAsync}
               isSavingDraft={saveDraftMutation.isPending}
+            />
+            <SendTestEmailModal
+              open={testEmailModalOpen}
+              onOpenChange={setTestEmailModalOpen}
+              broadcastId={broadcastId}
+              onSaveDraft={onSaveDraftAsync}
             />
           </div>
         )}
