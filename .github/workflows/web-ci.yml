@@ -36,12 +36,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Generate NATS TLS certificates
-        working-directory: apps/web
-        run: |
-          chmod +x docker/nats/generate-certs.sh
-          docker/nats/generate-certs.sh
-
       - name: Start services with Docker Compose
         working-directory: apps/web
         run: |
@@ -65,17 +59,6 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
         run: pnpm exec prisma migrate deploy
-
-      - name: Prepare NATS TLS CA certificate
-        id: nats-ca
-        working-directory: apps/web
-        run: |
-          {
-            echo 'NATS_TLS_CA<<EOF'
-            cat docker/nats/certs/ca.pem | base64 -w 0
-            echo ''
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
 
       - name: Run tests
         working-directory: apps/web
@@ -114,7 +97,6 @@ jobs:
           NATS_URL: tls://localhost:4222
           NATS_USER: control_plane
           NATS_PASSWORD: control_plane_dev_password
-          NATS_TLS_CA: ${{ steps.nats-ca.outputs.NATS_TLS_CA }}
         run: pnpm test
 
   build-runner:
