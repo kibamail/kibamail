@@ -23,7 +23,7 @@ import type { NextRequest } from "next/server";
 import { logtoConfig } from "@/config/logto";
 import { env } from "@/env/schema";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   // Explicitly use LOGTO_BASE_URL for the callback to avoid issues with
   // internal Kubernetes hostnames (0.0.0.0:3000) being used instead
   const redirectUri = `${env.LOGTO_BASE_URL}/callback`;

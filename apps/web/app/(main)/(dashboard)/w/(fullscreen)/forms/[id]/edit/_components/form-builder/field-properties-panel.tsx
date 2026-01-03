@@ -23,7 +23,6 @@ import {
   type ButtonPosition,
   type ButtonSize,
   type ButtonVariant,
-  type ContactPropertyMapping,
   FIELD_TYPE_CONFIGS,
   type FieldWidth,
   type LabelPosition,
@@ -125,9 +124,9 @@ export function FieldPropertiesPanel() {
 
             {/* Label */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-kb-content-primary">
+              <p className="text-sm font-medium text-kb-content-primary">
                 Label
-              </label>
+              </p>
               <input
                 type="text"
                 value={submitButton.text}
@@ -140,9 +139,9 @@ export function FieldPropertiesPanel() {
 
             {/* Loading Text */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-kb-content-primary">
+              <p className="text-sm font-medium text-kb-content-primary">
                 Loading Text
-              </label>
+              </p>
               <input
                 type="text"
                 value={submitButton.loadingText}
@@ -179,9 +178,9 @@ export function FieldPropertiesPanel() {
             {/* Position */}
             {!submitButton.fullWidth && (
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-kb-content-primary">
+                <p className="text-sm font-medium text-kb-content-primary">
                   Position
-                </label>
+                </p>
                 <div className="grid grid-cols-3 gap-1">
                   {(["left", "center", "right"] as ButtonPosition[]).map(
                     (position) => (
@@ -206,9 +205,9 @@ export function FieldPropertiesPanel() {
 
             {/* Variant */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-kb-content-primary">
+              <p className="text-sm font-medium text-kb-content-primary">
                 Style
-              </label>
+              </p>
               <div className="grid grid-cols-2 gap-1">
                 {(
                   [
@@ -237,9 +236,9 @@ export function FieldPropertiesPanel() {
 
             {/* Size */}
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-kb-content-primary">
+              <p className="text-sm font-medium text-kb-content-primary">
                 Size
-              </label>
+              </p>
               <div className="grid grid-cols-3 gap-1">
                 {(["sm", "default", "lg"] as ButtonSize[]).map((size) => (
                   <button
@@ -268,15 +267,15 @@ export function FieldPropertiesPanel() {
     );
   }
 
-  const location = getFieldLocation(selectedFieldId!);
+  const location = getFieldLocation(selectedFieldId as string);
   if (!location) return null;
 
   const { pageIndex, sectionId } = location;
-  const field = selectedField!;
+  const field = selectedField as NonNullable<typeof selectedField>;
   const fieldConfig = FIELD_TYPE_CONFIGS[field.type];
 
   function onUpdate(updates: Parameters<typeof updateField>[3]) {
-    updateField(pageIndex, sectionId, selectedFieldId!, updates);
+    updateField(pageIndex, sectionId, selectedFieldId as string, updates);
   }
 
   return (
@@ -310,9 +309,7 @@ export function FieldPropertiesPanel() {
 
           {/* Label */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-kb-content-primary">
-              Label
-            </label>
+            <p className="text-sm font-medium text-kb-content-primary">Label</p>
             <input
               type="text"
               value={field.label}
@@ -323,9 +320,9 @@ export function FieldPropertiesPanel() {
 
           {/* Field Name */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-kb-content-primary">
+            <p className="text-sm font-medium text-kb-content-primary">
               Field Name
-            </label>
+            </p>
             <input
               type="text"
               value={field.name}
@@ -340,9 +337,9 @@ export function FieldPropertiesPanel() {
           {/* Placeholder */}
           {fieldConfig.supportsPlaceholder && (
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-kb-content-primary">
+              <p className="text-sm font-medium text-kb-content-primary">
                 Placeholder
-              </label>
+              </p>
               <input
                 type="text"
                 value={field.placeholder ?? ""}
@@ -357,9 +354,9 @@ export function FieldPropertiesPanel() {
 
           {/* Description */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-kb-content-primary">
+            <p className="text-sm font-medium text-kb-content-primary">
               Description
-            </label>
+            </p>
             <textarea
               value={field.description ?? ""}
               onChange={(event) =>
@@ -391,7 +388,7 @@ export function FieldPropertiesPanel() {
             </div>
 
             <div className="space-y-2">
-              {field.options.map((option, index) => (
+              {field.options.map((option, _index) => (
                 <div
                   key={option.id}
                   className="flex items-start gap-2 p-2 rounded-md bg-kb-surface-primary border border-kb-border-tertiary"
@@ -498,9 +495,9 @@ export function FieldPropertiesPanel() {
           {/* Required Message */}
           {field.validation?.required && (
             <div className="space-y-1.5 ml-7">
-              <label className="text-sm font-medium text-kb-content-primary">
+              <p className="text-sm font-medium text-kb-content-primary">
                 Error Message
-              </label>
+              </p>
               <input
                 type="text"
                 value={field.validation?.requiredMessage ?? ""}
@@ -527,9 +524,7 @@ export function FieldPropertiesPanel() {
 
           {/* Width */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-kb-content-primary">
-              Width
-            </label>
+            <p className="text-sm font-medium text-kb-content-primary">Width</p>
             <div className="grid grid-cols-4 gap-1">
               {(["full", "half", "third", "quarter"] as FieldWidth[]).map(
                 (width) => (
@@ -563,9 +558,9 @@ export function FieldPropertiesPanel() {
 
           {/* Label Position */}
           <div className="space-y-1.5">
-            <label className="text-sm font-medium text-kb-content-primary">
+            <p className="text-sm font-medium text-kb-content-primary">
               Label Position
-            </label>
+            </p>
             <div className="grid grid-cols-3 gap-1">
               {(["top", "left", "hidden"] as LabelPosition[]).map(
                 (position) => (

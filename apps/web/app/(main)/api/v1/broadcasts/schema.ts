@@ -128,8 +128,6 @@ export const broadcastListResponseSchema = z.object({
 /**
  * Type exports for TypeScript
  */
-type EmailContentRequest = z.infer<typeof emailContentSchema>;
-type EmailContentResponse = z.infer<typeof emailContentResponseSchema>;
 export type CreateBroadcastRequest = z.infer<typeof createBroadcastSchema>;
 export type UpdateBroadcastRequest = z.infer<typeof updateBroadcastSchema>;
 export type BroadcastResponse = z.infer<typeof broadcastResponseSchema>;

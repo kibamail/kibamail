@@ -531,7 +531,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
     const response = await SendBroadcast(request, { params });
-    const responseData = await response.json();
+    const _responseData = await response.json();
 
     expect(response.status).toBe(200);
 

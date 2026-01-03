@@ -100,7 +100,7 @@ export const updateContactPropertySchema = z
       .nullable(),
   })
   .refine(
-    (data) => {
+    (_data) => {
       // Cannot validate default value without knowing the type
       // Type changes are not allowed after creation
       return true;
@@ -133,7 +133,7 @@ export const contactPropertyListResponseSchema = z.object({
 /**
  * Contact Property Delete Response Schema
  */
-const contactPropertyDeleteResponseSchema = z.object({
+const _contactPropertyDeleteResponseSchema = z.object({
   object: z.literal("contact_property"),
   id: z.string().describe("ID of the deleted contact property"),
 });
@@ -144,13 +144,9 @@ const contactPropertyDeleteResponseSchema = z.object({
 export type CreateContactPropertyRequest = z.infer<
   typeof createContactPropertySchema
 >;
-type UpdateContactPropertyRequest = z.infer<typeof updateContactPropertySchema>;
 export type ContactPropertyResponse = z.infer<
   typeof contactPropertyResponseSchema
 >;
 export type ContactPropertyListResponse = z.infer<
   typeof contactPropertyListResponseSchema
->;
-type ContactPropertyDeleteResponse = z.infer<
-  typeof contactPropertyDeleteResponseSchema
 >;

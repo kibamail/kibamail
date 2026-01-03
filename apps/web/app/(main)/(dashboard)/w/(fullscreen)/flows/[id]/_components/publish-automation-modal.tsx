@@ -30,7 +30,7 @@ function groupErrorsByNode(
     if (!grouped.has(key)) {
       grouped.set(key, []);
     }
-    grouped.get(key)!.push(error);
+    grouped.get(key)?.push(error);
   }
 
   return grouped;

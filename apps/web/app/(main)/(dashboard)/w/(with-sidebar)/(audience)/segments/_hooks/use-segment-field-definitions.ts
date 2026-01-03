@@ -3,7 +3,6 @@
 import type { FilterFieldDefinition } from "@kibamail/owly/filter-builder";
 import { useQuery } from "@tanstack/react-query";
 import { internalApi } from "@/lib/api/client";
-import { BUILT_IN_CONTACT_FIELDS } from "@/lib/segments/conditions-to-prisma";
 
 /**
  * Hook to get field definitions for segment filtering

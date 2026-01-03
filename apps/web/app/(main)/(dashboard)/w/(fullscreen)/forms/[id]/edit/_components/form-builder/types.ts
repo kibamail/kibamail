@@ -22,6 +22,7 @@ export {
   type FormSection,
   type FormSettings,
   type FormStyling,
+  type FormSubmitButton,
   type FormSuccessAction,
   type FormTheme,
   type LabelPosition,

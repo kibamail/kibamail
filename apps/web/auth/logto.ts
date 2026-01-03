@@ -352,7 +352,7 @@ class WorkspaceManager {
   /**
    * Check if user has permission in workspace
    */
-  async hasPermission(workspaceId: string, permission: string) {
+  async hasPermission(_workspaceId: string, _permission: string) {
     // TODO: Implementation
     throw new Error("Not implemented");
   }
@@ -360,7 +360,7 @@ class WorkspaceManager {
   /**
    * Get workspace token with permissions
    */
-  async getToken(workspaceId: string) {
+  async getToken(_workspaceId: string) {
     // TODO: Implementation
     throw new Error("Not implemented");
   }
@@ -506,7 +506,7 @@ class UserManager {
   /**
    * Get user's roles in organization
    */
-  async rolesInOrganization(organizationId: string) {
+  async rolesInOrganization(_organizationId: string) {
     // TODO: Implementation
     throw new Error("Not implemented");
   }
@@ -521,7 +521,7 @@ class RoleManager {
   /**
    * Assign role to user in workspace
    */
-  async assign(workspaceId: string, userId: string, roleId: string) {
+  async assign(_workspaceId: string, _userId: string, _roleId: string) {
     // TODO: Implementation
     throw new Error("Not implemented");
   }
@@ -529,7 +529,7 @@ class RoleManager {
   /**
    * Remove role from user in workspace
    */
-  async revoke(workspaceId: string, userId: string, roleId: string) {
+  async revoke(_workspaceId: string, _userId: string, _roleId: string) {
     // TODO: Implementation
     throw new Error("Not implemented");
   }
@@ -545,7 +545,7 @@ class RoleManager {
   /**
    * Get role by ID
    */
-  async get(roleId: string) {
+  async get(_roleId: string) {
     // TODO: Implementation
     throw new Error("Not implemented");
   }

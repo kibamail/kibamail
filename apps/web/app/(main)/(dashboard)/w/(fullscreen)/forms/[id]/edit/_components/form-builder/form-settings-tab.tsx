@@ -9,7 +9,6 @@ import {
 } from "@kibamail/owly";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
-import { useMutation } from "@tanstack/react-query";
 import type { JSONContent } from "@tiptap/react";
 import { EditPencil, WarningTriangle } from "iconoir-react";
 import { useRouter } from "next/navigation";
@@ -17,7 +16,6 @@ import { useState } from "react";
 import { internalApi } from "@/lib/api/client";
 import { ContentFieldEditor } from "./content-field-editor";
 import { useFormBuilder } from "./form-builder-context";
-import type { FormSuccessAction } from "./types";
 
 function SettingsSection({
   title,

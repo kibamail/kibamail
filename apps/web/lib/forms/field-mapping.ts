@@ -175,7 +175,7 @@ export function extractFieldsWithContactProperty(
  * @param schema - The form builder schema
  * @returns Array of all form fields
  */
-function extractAllFieldsFromSchema(schema: unknown): FormField[] {
+function _extractAllFieldsFromSchema(schema: unknown): FormField[] {
   if (!schema || typeof schema !== "object") {
     return [];
   }

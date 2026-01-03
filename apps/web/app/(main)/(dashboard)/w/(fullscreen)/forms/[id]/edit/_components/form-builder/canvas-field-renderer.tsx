@@ -42,7 +42,6 @@ interface FieldDecoratorProps {
 }
 
 function FieldDecorator({
-  field,
   isSelected,
   onClick,
   onRemove,

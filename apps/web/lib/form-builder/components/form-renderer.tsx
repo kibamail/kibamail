@@ -71,7 +71,9 @@ function themeToStyleVars(theme: FormTheme): React.CSSProperties {
 interface FormRendererProps {
   schema: FormBuilderSchema;
   /** Called when the form is submitted. Return true for success, false for failure. */
-  onSubmit?: (data: FormSubmissionData) => Promise<boolean> | boolean | void;
+  onSubmit?: (
+    data: FormSubmissionData,
+  ) => Promise<boolean> | boolean | undefined;
   className?: string;
 }
 

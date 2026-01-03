@@ -56,7 +56,7 @@ function validateTriggerConditions(node: FlowNode): ValidationError[] {
 function validateTriggerNode(node: FlowNode): ValidationError[] {
   const errors: ValidationError[] = [];
   const data = node.data;
-  const triggerType = data.triggerType as string | undefined;
+  const _triggerType = data.triggerType as string | undefined;
 
   switch (node.type) {
     case AUTOMATION_TRIGGERS.PROPERTY_UPDATED.id:

@@ -137,7 +137,7 @@ export const contactResponseSchema = z.object({
 /**
  * Contact List Response Schema
  */
-const contactListResponseSchema = z.object({
+const _contactListResponseSchema = z.object({
   object: z.literal("contact_list"),
   hasMore: z.boolean(),
   data: z.array(contactResponseSchema.omit({ object: true })),
@@ -165,6 +165,4 @@ export const searchContactsSchema = z.object({
 export type CreateContactRequest = z.infer<typeof createContactSchema>;
 export type UpdateContactRequest = z.infer<typeof updateContactSchema>;
 export type ContactResponse = z.infer<typeof contactResponseSchema>;
-type ContactListResponse = z.infer<typeof contactListResponseSchema>;
 export type ContactDeleteResponse = z.infer<typeof contactDeleteResponseSchema>;
-type SearchContactsRequest = z.infer<typeof searchContactsSchema>;

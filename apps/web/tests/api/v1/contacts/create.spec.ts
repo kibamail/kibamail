@@ -5,7 +5,6 @@
  * - POST /api/v1/contacts - Create new contact
  */
 
-import type { Contact } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { POST } from "@/app/(main)/api/v1/contacts/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";

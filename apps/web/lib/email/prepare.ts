@@ -8,7 +8,7 @@
  * - Generating message IDs
  */
 
-import type { Contact, SenderIdentity, SendingDomain } from "@prisma/client";
+import type { SenderIdentity, SendingDomain } from "@prisma/client";
 import {
   type BroadcastDocument,
   renderBroadcastToHtml,
@@ -92,7 +92,7 @@ export interface PreparedEmail {
  * @param domain - The sending domain name
  * @returns Formatted from address (e.g., "John Doe <john@example.com>")
  */
-function buildFromAddress(
+function _buildFromAddress(
   senderIdentity: SenderIdentity,
   domain: string,
 ): string {

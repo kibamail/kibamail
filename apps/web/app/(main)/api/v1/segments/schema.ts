@@ -153,7 +153,7 @@ export const segmentListResponseSchema = z.object({
 /**
  * Segment Delete Response Schema
  */
-const segmentDeleteResponseSchema = z.object({
+const _segmentDeleteResponseSchema = z.object({
   object: z.literal("segment"),
   id: z.string().describe("ID of the deleted segment"),
 });
@@ -162,9 +162,5 @@ const segmentDeleteResponseSchema = z.object({
  * Type exports
  */
 export type CreateSegmentRequest = z.infer<typeof createSegmentSchema>;
-type UpdateSegmentRequest = z.infer<typeof updateSegmentSchema>;
 export type SegmentResponse = z.infer<typeof segmentResponseSchema>;
 export type SegmentListResponse = z.infer<typeof segmentListResponseSchema>;
-type SegmentDeleteResponse = z.infer<typeof segmentDeleteResponseSchema>;
-type FieldCondition = z.infer<typeof fieldConditionSchema>;
-type TopicCondition = z.infer<typeof topicConditionSchema>;

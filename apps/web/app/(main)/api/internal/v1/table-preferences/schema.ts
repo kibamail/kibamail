@@ -15,5 +15,3 @@ export const updateTablePreferencesSchema = z.object({
     columns: z.array(z.string()).optional(),
   }),
 });
-
-type UpdateTablePreferencesInput = z.infer<typeof updateTablePreferencesSchema>;

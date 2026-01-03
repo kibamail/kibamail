@@ -3494,7 +3494,6 @@ export interface paths {
     trace?: never;
   };
 }
-type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     /**
@@ -3649,7 +3648,6 @@ export interface components {
   headers: never;
   pathItems: never;
 }
-type $defs = Record<string, never>;
 export interface operations {
   ListApplications: {
     parameters: {

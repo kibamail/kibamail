@@ -95,7 +95,7 @@ export async function uploadPrivateFile(
  * const url = await getPrivateFileSignedUrl("exports/report.csv", 3600);
  * ```
  */
-async function getPrivateFileSignedUrl(
+async function _getPrivateFileSignedUrl(
   key: string,
   expiresIn: number = DEFAULT_SIGNED_URL_EXPIRY,
 ): Promise<string> {
@@ -125,7 +125,7 @@ async function getPrivateFileSignedUrl(
  * // Client can PUT directly to this URL
  * ```
  */
-async function getPrivateUploadSignedUrl(
+async function _getPrivateUploadSignedUrl(
   key: string,
   contentType?: string,
   expiresIn: number = DEFAULT_SIGNED_URL_EXPIRY,
@@ -174,7 +174,7 @@ export async function downloadPrivateFile(key: string) {
  * @param key - The object key (path) in the bucket
  * @returns Deletion confirmation
  */
-async function deletePrivateFile(key: string) {
+async function _deletePrivateFile(key: string) {
   const command = new DeleteObjectCommand({
     Bucket: env.S3_PRIVATE_BUCKET,
     Key: key,
@@ -195,7 +195,7 @@ async function deletePrivateFile(key: string) {
  * @param key - The object key (path) in the bucket
  * @returns True if file exists, false otherwise
  */
-async function privateFileExists(key: string): Promise<boolean> {
+async function _privateFileExists(key: string): Promise<boolean> {
   try {
     const command = new HeadObjectCommand({
       Bucket: env.S3_PRIVATE_BUCKET,
@@ -226,7 +226,7 @@ async function privateFileExists(key: string): Promise<boolean> {
  * @param maxKeys - Maximum number of keys to return (default: 1000)
  * @returns List of objects with metadata
  */
-async function listPrivateFiles(prefix?: string, maxKeys: number = 1000) {
+async function _listPrivateFiles(prefix?: string, maxKeys: number = 1000) {
   const command = new ListObjectsV2Command({
     Bucket: env.S3_PRIVATE_BUCKET,
     Prefix: prefix,
@@ -249,7 +249,7 @@ async function listPrivateFiles(prefix?: string, maxKeys: number = 1000) {
  * @param key - The object key (path) in the bucket
  * @returns File metadata
  */
-async function getPrivateFileMetadata(key: string) {
+async function _getPrivateFileMetadata(key: string) {
   const command = new HeadObjectCommand({
     Bucket: env.S3_PRIVATE_BUCKET,
     Key: key,

@@ -115,12 +115,15 @@ export function parsePaginationParams(request: NextRequest): PaginationParams {
   const searchParams = request.nextUrl.searchParams;
 
   const pageParam = searchParams.get("page");
-  const page = Math.max(1, Number.parseInt(pageParam ?? String(DEFAULT_PAGE)));
+  const page = Math.max(
+    1,
+    Number.parseInt(pageParam ?? String(DEFAULT_PAGE), 10),
+  );
 
   const limitParam = searchParams.get("limit");
   const limit = Math.min(
     MAX_LIMIT,
-    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT))),
+    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT), 10)),
   );
 
   const skip = (page - 1) * limit;
@@ -150,7 +153,7 @@ export function parseCursorPaginationParams(
   const searchParams = request.nextUrl.searchParams;
 
   const limitParam = searchParams.get("limit");
-  const parsedLimit = Number.parseInt(limitParam ?? String(DEFAULT_LIMIT));
+  const parsedLimit = Number.parseInt(limitParam ?? String(DEFAULT_LIMIT), 10);
 
   // Handle NaN by defaulting to DEFAULT_LIMIT
   const limit = Number.isNaN(parsedLimit)
@@ -224,7 +227,7 @@ export function createPaginationMeta(
  * );
  * ```
  */
-function createPaginatedResponse<T>(
+function _createPaginatedResponse<T>(
   data: T[],
   total: number,
   page: number,

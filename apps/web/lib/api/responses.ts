@@ -194,7 +194,7 @@ export function responseUnauthorized(
  * throw new ForbiddenError('You do not have permission to access this resource', ErrorCode.ACCESS_DENIED)
  * ```
  */
-function responseForbidden(
+function _responseForbidden(
   error = "Access denied",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 403 });
@@ -238,7 +238,7 @@ export function responseNotFound(
  * throw new ConflictError('Email already exists', ErrorCode.EMAIL_ALREADY_EXISTS)
  * ```
  */
-function responseConflict(error: string): NextResponse<ApiResponse<never>> {
+function _responseConflict(error: string): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 409 });
 }
 
@@ -282,7 +282,7 @@ function responseConflict(error: string): NextResponse<ApiResponse<never>> {
  * }
  * ```
  */
-function responseValidationFailed(
+function _responseValidationFailed(
   zodError: ZodError,
 ): NextResponse<ApiResponse<never>> {
   const fieldErrors: Record<string, string[]> = {};
@@ -320,7 +320,7 @@ function responseValidationFailed(
  * throw new RateLimitError('Too many requests. Try again in 60 seconds', ErrorCode.RATE_LIMIT_EXCEEDED)
  * ```
  */
-function responseRateLimitExceeded(
+function _responseRateLimitExceeded(
   error = "Rate limit exceeded",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 429 });
@@ -342,7 +342,7 @@ function responseRateLimitExceeded(
  * throw new InternalServerError('Database connection failed', ErrorCode.DATABASE_ERROR)
  * ```
  */
-function responseServerError(
+function _responseServerError(
   error = "Internal server error",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 500 });
@@ -364,7 +364,7 @@ function responseServerError(
  * throw new ServiceUnavailableError('Maintenance in progress', ErrorCode.SERVICE_UNAVAILABLE)
  * ```
  */
-function responseServiceUnavailable(
+function _responseServiceUnavailable(
   error = "Service temporarily unavailable",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 503 });

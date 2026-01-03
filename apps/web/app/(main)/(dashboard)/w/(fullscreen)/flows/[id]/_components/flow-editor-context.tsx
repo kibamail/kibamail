@@ -71,7 +71,7 @@ export function FlowEditorProvider({
       if (!errorsMap.has(key)) {
         errorsMap.set(key, []);
       }
-      errorsMap.get(key)!.push(error);
+      errorsMap.get(key)?.push(error);
     }
     setNodeErrorsState(errorsMap);
   }, []);

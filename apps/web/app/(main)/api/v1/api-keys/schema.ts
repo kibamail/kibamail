@@ -29,7 +29,7 @@ export const createApiKeySchema = z.object({
     ),
 });
 
-const createApiKeyResponseSchema = z.object({
+const _createApiKeyResponseSchema = z.object({
   object: z.literal("api_key"),
   id: z.string().describe("API key identifier"),
   key: z
@@ -40,10 +40,8 @@ const createApiKeyResponseSchema = z.object({
 /**
  * API Key Delete Response Schema
  */
-const apiKeyDeleteResponseSchema = z.object({
+const _apiKeyDeleteResponseSchema = z.object({
   object: z.literal("api_key"),
   id: z.string().describe("ID of the deleted API key"),
 });
 
-type CreateApiKeyInput = z.infer<typeof createApiKeySchema>;
-type ApiKeyDeleteResponse = z.infer<typeof apiKeyDeleteResponseSchema>;

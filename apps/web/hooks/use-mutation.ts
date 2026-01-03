@@ -6,7 +6,7 @@ import {
   type UseMutationResult,
   useMutation as useReactQueryMutation,
 } from "@tanstack/react-query";
-import type { UseFormSetError } from "react-hook-form";
+import type { FieldValues, UseFormSetError } from "react-hook-form";
 import { ZodError } from "zod";
 
 /**
@@ -17,6 +17,7 @@ export interface ExtendedUseMutationOptions<
   TError = Error,
   TVariables = void,
   TContext = unknown,
+  TFieldValues extends FieldValues = FieldValues,
 > extends UseMutationOptions<TData, TError, TVariables, TContext> {
   /**
    * React Hook Form's setError function for automatic validation error handling
@@ -34,7 +35,7 @@ export interface ExtendedUseMutationOptions<
    * });
    * ```
    */
-  setError?: UseFormSetError<any>;
+  setError?: UseFormSetError<TFieldValues>;
 }
 
 /**
@@ -72,8 +73,9 @@ export function useMutation<
   TError = Error,
   TVariables = void,
   TContext = unknown,
+  TFieldValues extends FieldValues = FieldValues,
 >(
-  options: ExtendedUseMutationOptions<TData, TError, TVariables, TContext>,
+  options: ExtendedUseMutationOptions<TData, TError, TVariables, TContext, TFieldValues>,
 ): UseMutationResult<TData, TError, TVariables, TContext> {
   const { error: toast } = useToast();
   const { setError: formSetError, ...reactQueryOptions } = options;

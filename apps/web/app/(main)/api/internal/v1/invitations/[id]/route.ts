@@ -10,7 +10,7 @@ import { getSession } from "@/lib/auth/get-session";
 import { cancelInvitation } from "./handler";
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   props: { params: Promise<{ id: string }> },
 ) {
   const session = await getSession();

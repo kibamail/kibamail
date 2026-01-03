@@ -75,7 +75,7 @@ export async function getNatsConnection(
 
   // Set up connection event handlers
   (async () => {
-    for await (const status of connection!.status()) {
+    for await (const status of connection?.status()) {
       switch (status.type) {
         case "disconnect":
           logger.warn({ data: status.data }, "NATS disconnected");
@@ -150,6 +150,6 @@ export async function closeNatsConnection(): Promise<void> {
 /**
  * Check if NATS is connected
  */
-function isNatsConnected(): boolean {
+function _isNatsConnected(): boolean {
   return connection !== null && !connection.isClosed();
 }

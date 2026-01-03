@@ -444,7 +444,7 @@ export const RBAC_CONFIG: RBACConfig = {
  * When a user accepts an invitation without a specific role assignment,
  * they are assigned this default role.
  */
-const DEFAULT_MEMBER_ROLE = "member";
+const _DEFAULT_MEMBER_ROLE = "member";
 
 /**
  * Helper: Get owner role name
@@ -458,7 +458,7 @@ export const OWNER_ROLE = "owner";
  *
  * Useful for validation and autocomplete.
  */
-const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
+const _PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
 
 /**
  * Helper: Get all role names
@@ -466,20 +466,6 @@ const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
  * Useful for validation and autocomplete.
  */
 export const ROLE_NAMES = ROLES.map((r) => r.name);
-
-/**
- * Type: Permission name
- *
- * Use this type for type-safe permission checking.
- *
- * @example
- * ```typescript
- * function checkPermission(permission: PermissionName) {
- *   // TypeScript ensures only valid permissions are passed
- * }
- * ```
- */
-type PermissionName = (typeof PERMISSION_NAMES)[number];
 
 /**
  * Type: Union of all available permissions
@@ -527,16 +513,3 @@ export type Permission =
   | "read:automations"
   | "manage:automations";
 
-/**
- * Type: Role name
- *
- * Use this type for type-safe role assignment.
- *
- * @example
- * ```typescript
- * function assignRole(role: RoleName) {
- *   // TypeScript ensures only valid roles are passed
- * }
- * ```
- */
-type RoleName = (typeof ROLE_NAMES)[number];

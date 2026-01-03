@@ -28,6 +28,9 @@ import {
   updateContactSchema,
 } from "./schema";
 
+/** Property value types supported in contact properties */
+type ContactPropertyValue = string | number | Date | null;
+
 /**
  * Build properties object for a contact from contact property definitions
  * Maps property names to their values from the contact's slot columns
@@ -47,13 +50,13 @@ import {
  * ```
  */
 function buildContactProperties(
-  contact: any,
+  contact: Record<string, unknown>,
   properties: Array<{ name: string; slot: string }>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
+): Record<string, ContactPropertyValue> {
+  const result: Record<string, ContactPropertyValue> = {};
 
   for (const property of properties) {
-    const value = contact[property.slot];
+    const value = contact[property.slot] as ContactPropertyValue | undefined;
 
     if (value !== null && value !== undefined) {
       result[property.name] = value;
@@ -86,8 +89,8 @@ function buildContactProperties(
 function mapPropertiesToSlots(
   properties: Record<string, string | number | null>,
   contactProperties: Array<{ name: string; slot: string }>,
-): Record<string, any> {
-  const slotData: Record<string, any> = {};
+): Record<string, string | number | null> {
+  const slotData: Record<string, string | number | null> = {};
   const propertyNameToSlot = new Map(
     contactProperties.map((prop) => [prop.name, prop.slot]),
   );

@@ -170,19 +170,3 @@ export const logtoConfig = {
   sessionWrapper: new RedisSessionWrapper(),
 } satisfies LogtoNextConfig;
 
-/**
- * Logto Configuration Type
- *
- * TypeScript type for the Logto configuration object.
- * Useful for type checking and IDE autocomplete.
- *
- * @example
- * ```typescript
- * import type { LogtoConfig } from '@/config/logto'
- *
- * function initializeAuth(config: LogtoConfig) {
- *   // ...
- * }
- * ```
- */
-type LogtoConfig = typeof logtoConfig;

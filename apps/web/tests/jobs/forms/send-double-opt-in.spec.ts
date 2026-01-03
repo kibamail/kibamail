@@ -261,7 +261,7 @@ describe("sendDoubleOptIn job", () => {
       test("should use default sender identity when email has no sender configured", async () => {
         // Setup: Create sending infrastructure
         const sendingDomain = await createTestSendingDomain(testWorkspace.id);
-        const senderIdentity = await createTestSenderIdentity(
+        const _senderIdentity = await createTestSenderIdentity(
           testWorkspace.id,
           sendingDomain.id,
         );

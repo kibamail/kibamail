@@ -138,7 +138,7 @@ async function getBatchJobsForBroadcast(broadcastId: string) {
  * Clean up all jobs created during tests
  */
 async function cleanupTestJobs() {
-  const broadcastQueue = queue("broadcasts").getQueue().getQueue();
+  const _broadcastQueue = queue("broadcasts").getQueue().getQueue();
 
   for (const broadcastId of broadcastIdsToCleanup) {
     const jobs = await getBatchJobsForBroadcast(broadcastId);

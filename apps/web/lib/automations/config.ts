@@ -243,13 +243,11 @@ export const TRIGGER_TYPES = Object.values(AUTOMATION_TRIGGERS).map(
 export type TriggerNodeId = (typeof TRIGGER_NODE_IDS)[number];
 export type ActionNodeId = (typeof ACTION_NODE_IDS)[number];
 export type RuleNodeId = (typeof RULE_NODE_IDS)[number];
-type NodeType = (typeof ALL_NODE_TYPES)[number];
-type TriggerType = (typeof TRIGGER_TYPES)[number];
 
 /**
  * Helper to get trigger config by type
  */
-function getTriggerByType(type: string) {
+function _getTriggerByType(type: string) {
   return Object.values(AUTOMATION_TRIGGERS).find((t) => t.type === type);
 }
 
@@ -291,13 +289,13 @@ export function isTriggerNode(id: string): boolean {
 /**
  * Helper to check if a node ID is an action
  */
-function isActionNode(id: string): boolean {
+function _isActionNode(id: string): boolean {
   return ACTION_NODE_IDS.includes(id as ActionNodeId);
 }
 
 /**
  * Helper to check if a node ID is a rule
  */
-function isRuleNode(id: string): boolean {
+function _isRuleNode(id: string): boolean {
   return RULE_NODE_IDS.includes(id as RuleNodeId);
 }

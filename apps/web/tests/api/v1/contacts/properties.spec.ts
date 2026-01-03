@@ -9,7 +9,6 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { GET as GET_CONTACT } from "@/app/(main)/api/v1/contacts/[contactId]/route";
 import { GET as LIST_CONTACTS } from "@/app/(main)/api/v1/contacts/route";
-import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
   type CreatedApiKey,
@@ -83,7 +82,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "age-test@example.com",
         firstName: "Alice",
-        [propertyRecord!.slot]: 30,
+        [propertyRecord?.slot]: 30,
       },
     });
 
@@ -126,7 +125,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "date-test@example.com",
         firstName: "Bob",
-        [propertyRecord!.slot]: joinDate,
+        [propertyRecord?.slot]: joinDate,
       },
     });
 
@@ -167,7 +166,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "string-test@example.com",
         firstName: "Charlie",
-        [propertyRecord!.slot]: "Marketing",
+        [propertyRecord?.slot]: "Marketing",
       },
     });
 
@@ -217,8 +216,8 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "multi-prop@example.com",
         firstName: "Diana",
-        [ageRecord!.slot]: 7,
-        [titleRecord!.slot]: "Senior Engineer",
+        [ageRecord?.slot]: 7,
+        [titleRecord?.slot]: "Senior Engineer",
       },
     });
 
@@ -249,7 +248,7 @@ describe("Contact Properties in Contact Responses", () => {
       fullAccessApiKey.key,
     );
     const propertyResponse = await CREATE_PROPERTY(propertyRequest);
-    const property = await propertyResponse.json();
+    const _property = await propertyResponse.json();
 
     // Create a contact without setting the property value (null)
     const contact = await prisma.contact.create({
@@ -298,7 +297,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "list-prop@example.com",
         firstName: "Frank",
-        [propertyRecord!.slot]: 150,
+        [propertyRecord?.slot]: 150,
       },
     });
 

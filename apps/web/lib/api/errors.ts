@@ -116,7 +116,7 @@ export class UnauthorizedError extends ApiError {
  * throw new ForbiddenError('Access denied', ErrorCode.ACCESS_DENIED)
  * ```
  */
-class ForbiddenError extends ApiError {
+class _ForbiddenError extends ApiError {
   constructor(
     message = "Access denied",
     errorCode: ErrorCode = ErrorCode.ACCESS_DENIED,
@@ -200,7 +200,7 @@ export class ValidationError extends ApiError {
  * throw new RateLimitError('Too many requests', ErrorCode.RATE_LIMIT_EXCEEDED)
  * ```
  */
-class RateLimitError extends ApiError {
+class _RateLimitError extends ApiError {
   constructor(
     message = "Rate limit exceeded",
     errorCode: ErrorCode = ErrorCode.RATE_LIMIT_EXCEEDED,
@@ -239,7 +239,7 @@ export class InternalServerError extends ApiError {
  * throw new ServiceUnavailableError('Maintenance in progress', ErrorCode.SERVICE_UNAVAILABLE)
  * ```
  */
-class ServiceUnavailableError extends ApiError {
+class _ServiceUnavailableError extends ApiError {
   constructor(
     message = "Service temporarily unavailable",
     errorCode: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,

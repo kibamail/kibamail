@@ -41,5 +41,4 @@ export const updateEmailSchema = z.object({
   type: z.enum(["TRANSACTIONAL", "AUTOMATION", "NOTIFICATION"]).optional(),
 });
 
-type CreateEmailInput = z.infer<typeof createEmailSchema>;
 export type UpdateEmailInput = z.infer<typeof updateEmailSchema>;

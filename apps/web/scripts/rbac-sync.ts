@@ -279,7 +279,7 @@ async function syncPermissions(
           throw new Error(`Failed to create permission: ${response.error}`);
         }
 
-        permissionMap.set(permission.name, response.data!.id);
+        permissionMap.set(permission.name, response.data?.id);
         log.success(`Created permission: ${permission.name}`);
       } else {
         log.detail("[DRY RUN] Would create this permission");
@@ -734,7 +734,7 @@ async function seedDevUsersAndOrgs(
           .workspaces()
           .members(organization.id)
           .add(user.id, [roleId]);
-      } catch (error) {
+      } catch (_error) {
         log.warn(`Failed to add user ${userData.username} to organization`);
       }
     }

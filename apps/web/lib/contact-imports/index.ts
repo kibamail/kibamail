@@ -7,8 +7,6 @@
 import type { ContactImport, ContactProperty, Prisma } from "@prisma/client";
 import type { ParsedRow } from "@/lib/csv";
 import { BatchProcessor } from "./batch-processor";
-import { ContactDataBuilder } from "./builder";
-import { ContactDataExtractor } from "./extractor";
 import { ContactImportProcessor } from "./processor";
 import type {
   ColumnMapping,

@@ -137,7 +137,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     const tierRecord = await prisma.contactProperty.findUnique({
       where: { id: tierData.id },
     });
-    const tierPropertySlot = tierRecord!.slot;
+    const tierPropertySlot = tierRecord?.slot;
 
     // Create contacts with tier property
     for (let i = 0; i < 3; i++) {

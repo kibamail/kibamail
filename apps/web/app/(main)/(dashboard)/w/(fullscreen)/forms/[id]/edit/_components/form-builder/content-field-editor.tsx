@@ -11,8 +11,9 @@ import "@repo/broadcast-editor/styles";
 
 interface ContentFieldEditorProps {
   content?: Record<string, unknown>;
-  onChange: (content: JSONContent) => void;
+  onChange?: (content: JSONContent) => void;
   placeholder?: string;
+  readOnly?: boolean;
 }
 
 async function placeholderUpload(): Promise<string> {
@@ -23,8 +24,11 @@ export function ContentFieldEditor({
   content,
   onChange,
   placeholder = "Add your content here...",
+  readOnly,
 }: ContentFieldEditorProps) {
   const editorRef = useRef<EmailEditorRef>(null);
+
+  const handleChange = onChange ?? (() => {});
 
   return (
     <div className="content-field-editor">
@@ -33,8 +37,9 @@ export function ContentFieldEditor({
         features={FORM_BUILDER_PRESET}
         placeholder={placeholder}
         initialContent={content as JSONContent | undefined}
-        onChange={onChange}
+        onChange={handleChange}
         onUpload={placeholderUpload}
+        editable={!readOnly}
       />
     </div>
   );

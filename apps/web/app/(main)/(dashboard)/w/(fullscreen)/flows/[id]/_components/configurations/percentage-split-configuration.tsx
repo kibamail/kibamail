@@ -79,7 +79,7 @@ export function PercentageSplitConfiguration() {
       setNodes(updatedNodes);
       setEdges(updatedEdges);
     },
-    [nodes, edges, selectedNodeId, setNodes, setEdges],
+    [nodes, edges, selectedNodeId, setNodes, setEdges, splits.find],
   );
 
   const branchAPercentage =

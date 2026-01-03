@@ -48,7 +48,7 @@ interface ChecklistItemProps {
   children: React.ReactNode;
 }
 
-function ChecklistItem({ children }: ChecklistItemProps) {
+function _ChecklistItem({ children }: ChecklistItemProps) {
   return (
     <li className="flex items-start gap-1 text-sm text-kb-content-secondary">
       <Check className="w-4 h-4 text-kb-content-success mt-0.5 shrink-0" />

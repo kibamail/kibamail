@@ -87,11 +87,11 @@ describe("POST /api/v1/domains", () => {
     });
 
     expect(domain).not.toBeNull();
-    expect(domain!.dkimPrivateKey).toBeDefined();
-    expect(domain!.dkimPublicKey).toBeDefined();
+    expect(domain?.dkimPrivateKey).toBeDefined();
+    expect(domain?.dkimPublicKey).toBeDefined();
 
     // Decrypt the private key
-    const privateKey = decrypt(domain!.dkimPrivateKey, env.APP_KEY);
+    const privateKey = decrypt(domain?.dkimPrivateKey, env.APP_KEY);
 
     // Test signing and verifying
     const message = "Test message for DKIM signing";
@@ -101,7 +101,7 @@ describe("POST /api/v1/domains", () => {
 
     const verify = createVerify("RSA-SHA256");
     verify.update(message);
-    const isValid = verify.verify(domain!.dkimPublicKey, signature, "base64");
+    const isValid = verify.verify(domain?.dkimPublicKey, signature, "base64");
 
     expect(isValid).toBe(true);
   });
@@ -243,7 +243,7 @@ describe("POST /api/v1/domains", () => {
 
   test("should reject domain with name exceeding max length", async () => {
     const domainData = {
-      name: "a".repeat(101) + ".example.com",
+      name: `${"a".repeat(101)}.example.com`,
     };
     const request = post("/domains", domainData, fullAccessApiKey.key);
 

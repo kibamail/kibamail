@@ -162,8 +162,8 @@ export async function verifyDnsRecords(
   dmarcReportingCode: string,
 ): Promise<DnsVerificationResult> {
   const expectedDkim = getDkimRecord(domain, dkimSubdomain, publicKey);
-  const expectedReturnPath = getReturnPathRecord(domain, returnPathSubdomain);
-  const expectedTracking = getTrackingRecord(domain, trackingSubdomain);
+  const _expectedReturnPath = getReturnPathRecord(domain, returnPathSubdomain);
+  const _expectedTracking = getTrackingRecord(domain, trackingSubdomain);
   const expectedDmarc = getDmarcRecord(domain, dmarcReportingCode);
 
   // Resolve all records in parallel

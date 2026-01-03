@@ -117,7 +117,7 @@ function useSession(): UserSession {
  * }
  * ```
  */
-function useUser() {
+function _useUser() {
   const session = useSession();
   return session.user;
 }
@@ -170,7 +170,7 @@ export function useOrganization() {
  * }
  * ```
  */
-function useOrganizations() {
+function _useOrganizations() {
   const session = useSession();
   return session.organizations;
 }

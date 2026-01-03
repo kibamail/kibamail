@@ -20,7 +20,6 @@ import type {
   FormTheme,
 } from "./types";
 import {
-  createEmptyField,
   DEFAULT_FIELD_APPEARANCE,
   DEFAULT_FORM_SETTINGS,
   DEFAULT_FORM_STYLING,

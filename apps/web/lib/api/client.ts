@@ -61,10 +61,7 @@ import {
   type ActivateWorkspaceResponse,
   activateWorkspaceResponseSchema,
 } from "@/app/(main)/api/internal/v1/workspaces/[id]/activate/schema";
-import {
-  type UpdateLogoResponse,
-  updateLogoResponseSchema,
-} from "@/app/(main)/api/internal/v1/workspaces/[id]/logo/schema";
+import type { UpdateLogoResponse } from "@/app/(main)/api/internal/v1/workspaces/[id]/logo/schema";
 import {
   type ChangeMemberRoleInput,
   type ChangeMemberRoleResponse,
@@ -236,8 +233,8 @@ class HttpClient {
   protected async request<TRequest, TResponse>(
     method: string,
     path: string,
-    requestSchema: ZodType<TRequest> | null,
-    responseSchema: ZodType<TResponse>,
+    _requestSchema: ZodType<TRequest> | null,
+    _responseSchema: ZodType<TResponse>,
     data?: TRequest,
   ): Promise<TResponse> {
     const response = await fetch(path, {

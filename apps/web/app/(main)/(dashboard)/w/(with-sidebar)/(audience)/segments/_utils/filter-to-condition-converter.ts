@@ -145,6 +145,17 @@ function mapOperatorToSegmentOperator(
   return operatorMap[filterOperator] || "eq";
 }
 
+/** FilterBuilder value types */
+type FilterBuilderValueData =
+  | { type: "text"; value: string }
+  | { type: "number"; value: number }
+  | { type: "boolean"; value: boolean }
+  | { type: "select"; value: string }
+  | { type: "multi-select"; values: string[] }
+  | { type: "date-single"; value: Date }
+  | { type: "date-range"; start: Date; end: Date }
+  | { type: "none" };
+
 /**
  * Convert FilterBuilder value to segment schema value
  *
@@ -153,7 +164,7 @@ function mapOperatorToSegmentOperator(
  * @returns Value in segment schema format
  */
 function convertValueToSegmentValue(
-  value: any,
+  value: FilterBuilderValueData,
   operatorId: string,
 ): string | number | boolean | null | (string | number)[] {
   switch (value.type) {
@@ -305,9 +316,9 @@ function mapSegmentOperatorToFilterOperator(segmentOperator: string): string {
 function convertSegmentValueToFilterValue(
   value: string | number | boolean | null | (string | number)[],
   operator: string,
-): any {
+): FilterBuilderValueData {
   if (value === null) {
-    return { type: "none", value: null };
+    return { type: "none" };
   }
 
   if (typeof value === "boolean") {
@@ -330,8 +341,8 @@ function convertSegmentValueToFilterValue(
   }
 
   if (Array.isArray(value)) {
-    return { type: "multi-select", values: value };
+    return { type: "multi-select", values: value.map((v) => String(v)) };
   }
 
-  return { type: "none", value: null };
+  return { type: "none" };
 }

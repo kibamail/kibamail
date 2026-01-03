@@ -122,7 +122,7 @@ export const DoubleOptInEmailEditor = forwardRef<
   DoubleOptInEmailEditorRef,
   DoubleOptInEmailEditorProps
 >(function DoubleOptInEmailEditor(
-  { emailId, stylesOpen, onStylesOpenChange, initialContent, initialStyles },
+  { stylesOpen, onStylesOpenChange, initialContent, initialStyles },
   ref,
 ) {
   const emailEditorRef = useRef<EmailEditorRef>(null);

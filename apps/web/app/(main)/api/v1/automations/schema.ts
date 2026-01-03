@@ -129,8 +129,6 @@ export const automationListResponseSchema = z.object({
   data: z.array(automationResponseSchema.omit({ object: true })),
 });
 
-type CreateAutomationRequest = z.infer<typeof createAutomationSchema>;
-type UpdateAutomationRequest = z.infer<typeof updateAutomationSchema>;
 export type AutomationResponse = z.infer<typeof automationResponseSchema>;
 export type AutomationListResponse = z.infer<
   typeof automationListResponseSchema

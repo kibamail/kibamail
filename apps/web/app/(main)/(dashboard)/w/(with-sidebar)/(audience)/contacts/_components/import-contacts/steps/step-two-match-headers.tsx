@@ -12,7 +12,6 @@ import {
   CheckCircle,
   Clock,
   Globe,
-  Hashtag,
   InfoCircle,
   Mail,
   MapPin,
@@ -105,7 +104,7 @@ export function StepTwoMatchHeaders() {
 
   const matchingErrorAlertRef = useRef<HTMLDivElement | null>(null);
   const createPropertyModalState = useToggleState();
-  const [columnForNewProperty, setColumnForNewProperty] = useState("");
+  const [_columnForNewProperty, setColumnForNewProperty] = useState("");
 
   const { data: dbContactProperties } = useQuery({
     queryKey: ["contact-properties"],

@@ -134,8 +134,14 @@ describe("GET /api/v1/segments", () => {
   });
 
   test("should support before cursor for backward pagination", async () => {
-    const segment1 = await createTestSegment(fullAccessApiKey, "Before Test 1");
-    const segment2 = await createTestSegment(fullAccessApiKey, "Before Test 2");
+    const _segment1 = await createTestSegment(
+      fullAccessApiKey,
+      "Before Test 1",
+    );
+    const _segment2 = await createTestSegment(
+      fullAccessApiKey,
+      "Before Test 2",
+    );
     const segment3 = await createTestSegment(fullAccessApiKey, "Before Test 3");
 
     const request = get(

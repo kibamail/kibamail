@@ -75,8 +75,9 @@ export function InviteMembers({
     },
   });
 
-  const { mutate, isPending } =
+  const selectedMutation =
     mode === "invite" ? inviteMutation : changeRoleMutation;
+  const isPending = selectedMutation.isPending;
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

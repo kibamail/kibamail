@@ -314,7 +314,7 @@ describe("GET /api/v1/forms/{formId}/versions - Error Cases", () => {
   test("should return 404 for form from different workspace", async () => {
     // Create another workspace with a form
     const otherWorkspace = createTestWorkspace();
-    const otherApiKey = await createFullAccessApiKey(otherWorkspace.id);
+    const _otherApiKey = await createFullAccessApiKey(otherWorkspace.id);
 
     const otherForm = await prisma.form.create({
       data: {
@@ -369,7 +369,7 @@ describe("GET /api/v1/forms/{formId}/versions - Workspace Isolation", () => {
   test("should not return versions from other workspaces", async () => {
     // Create another workspace with same form ID structure
     const otherWorkspace = createTestWorkspace();
-    const otherApiKey = await createFullAccessApiKey(otherWorkspace.id);
+    const _otherApiKey = await createFullAccessApiKey(otherWorkspace.id);
 
     // Create a form in other workspace
     const otherRoot = await prisma.form.create({

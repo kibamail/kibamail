@@ -104,7 +104,7 @@ describe("GET /api/v1/broadcasts", () => {
 
   test("should paginate broadcasts with after cursor", async () => {
     // Create broadcasts
-    const broadcast1 = await createTestBroadcast(
+    const _broadcast1 = await createTestBroadcast(
       fullAccessApiKey,
       "Cursor Test 1",
     );

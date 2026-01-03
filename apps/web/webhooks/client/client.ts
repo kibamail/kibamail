@@ -1,4 +1,4 @@
-import createClient, { type Middleware } from "openapi-fetch";
+import createClient from "openapi-fetch";
 import { env } from "@/env/schema";
 import type { paths } from "./schema";
 

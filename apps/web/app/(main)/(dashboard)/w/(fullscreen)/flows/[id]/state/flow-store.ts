@@ -107,7 +107,7 @@ export const useFlowStore = create<FlowState>((set) => ({
       const downstreamNodeIds = new Set<string>();
       const queue = [edge.target];
       while (queue.length > 0) {
-        const currentId = queue.shift()!;
+        const currentId = queue.shift() as string;
         if (downstreamNodeIds.has(currentId)) continue;
         downstreamNodeIds.add(currentId);
 

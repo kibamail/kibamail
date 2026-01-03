@@ -111,7 +111,7 @@ function validateRequest<T>(
  * }
  * ```
  */
-function validateOrThrow<T>(schema: ZodType<T>, data: unknown): T {
+function _validateOrThrow<T>(schema: ZodType<T>, data: unknown): T {
   return schema.parse(data);
 }
 

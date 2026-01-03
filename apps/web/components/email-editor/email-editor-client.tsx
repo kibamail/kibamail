@@ -255,7 +255,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
                 onCheckReadiness={mutations.onCheckReadiness}
                 onPublish={async () => {
                   const payload = getSavePayload();
-                  await mutations.onPublish!(payload);
+                  await mutations.onPublish?.(payload);
                 }}
                 successRedirectUrl={successRedirectUrl}
                 labels={labels}

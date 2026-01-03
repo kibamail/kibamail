@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { DELETE, GET, PUT } from "@/app/(main)/api/v1/forms/[formId]/route";
 import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { POST } from "@/app/(main)/api/v1/forms/route";
-import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
   apiRequest,

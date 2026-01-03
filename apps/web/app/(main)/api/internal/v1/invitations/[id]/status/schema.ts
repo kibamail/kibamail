@@ -34,4 +34,3 @@ export type UpdateInvitationStatusInput = z.infer<
 export type UpdateInvitationStatusResponse = z.infer<
   typeof updateInvitationStatusResponseSchema
 >;
-type InvitationStatus = z.infer<typeof invitationStatusSchema>;

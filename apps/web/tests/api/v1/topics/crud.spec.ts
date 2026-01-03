@@ -10,7 +10,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { DELETE, GET, PUT } from "@/app/(main)/api/v1/topics/[topicId]/route";
 import { POST } from "@/app/(main)/api/v1/topics/route";
-import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { ErrorType } from "@/lib/api/error-codes";
 import {
   type CreatedApiKey,
   cleanupWorkspace,

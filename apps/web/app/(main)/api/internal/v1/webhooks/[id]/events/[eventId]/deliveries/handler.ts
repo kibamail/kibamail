@@ -16,7 +16,7 @@ import { outpost } from "@/webhooks/client/client";
  */
 export async function listEventDeliveries(
   session: UserSession,
-  request: NextRequest,
+  _request: NextRequest,
   params: { id: string; eventId: string },
 ) {
   const workspaceId = session.currentOrganization?.id as string;

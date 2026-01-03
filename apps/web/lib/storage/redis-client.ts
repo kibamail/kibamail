@@ -139,7 +139,7 @@ export function getRedisClient(): RedisClient {
  * await closeRedisClient();
  * ```
  */
-async function closeRedisClient(): Promise<void> {
+async function _closeRedisClient(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;

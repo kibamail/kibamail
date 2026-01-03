@@ -6,7 +6,7 @@
  */
 
 import type { ConnectionOptions } from "bullmq";
-import Redis, { Cluster } from "ioredis";
+import { Cluster } from "ioredis";
 import { env } from "@/env/schema";
 
 /**

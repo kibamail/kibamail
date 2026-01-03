@@ -35,14 +35,18 @@ export async function updateWorkspace(
   const data = updateWorkspaceSchema.parse(body);
 
   // Build update payload for Logto
-  const updatePayload: any = {};
+  const updatePayload: {
+    name?: string;
+    description?: string;
+    branding?: { logoUrl: string };
+  } = {};
 
   if (data.name !== undefined) {
     updatePayload.name = data.name;
   }
 
   if (data.description !== undefined) {
-    updatePayload.description = data.description;
+    updatePayload.description = data.description ?? undefined;
   }
 
   if (data.logoUrl !== undefined) {

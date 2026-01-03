@@ -114,7 +114,7 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
     const ageRecord = await prisma.contactProperty.findUnique({
       where: { id: ageData.id },
     });
-    const agePropertySlot = ageRecord!.slot;
+    const agePropertySlot = ageRecord?.slot;
 
     // Create contacts with different ages
     for (let i = 0; i < 3; i++) {

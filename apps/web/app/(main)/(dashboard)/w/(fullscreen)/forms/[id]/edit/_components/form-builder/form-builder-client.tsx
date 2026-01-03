@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { EditPencil, Eye, Settings, StatUp, Xmark } from "iconoir-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { internalApi } from "@/lib/api/client";
 import { FieldPropertiesPanel } from "./field-properties-panel";
 import { FieldsSidebar } from "./fields-sidebar";

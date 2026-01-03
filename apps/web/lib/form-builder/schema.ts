@@ -4,7 +4,7 @@ import { z } from "zod";
 // FIELD TYPES
 // =============================================================================
 
-const FIELD_TYPES = {
+const _FIELD_TYPES = {
   TEXT: "text",
   EMAIL: "email",
   NUMBER: "number",
@@ -125,7 +125,7 @@ export type FieldOption = z.infer<typeof fieldOptionSchema>;
 // CONDITIONAL LOGIC
 // =============================================================================
 
-const COMPARISON_OPERATORS = {
+const _COMPARISON_OPERATORS = {
   EQUALS: "equals",
   NOT_EQUALS: "not_equals",
   CONTAINS: "contains",
@@ -155,16 +155,12 @@ const comparisonOperatorSchema = z.enum([
   "ends_with",
 ]);
 
-type ComparisonOperator = z.infer<typeof comparisonOperatorSchema>;
-
-const LOGICAL_OPERATORS = {
+const _LOGICAL_OPERATORS = {
   AND: "and",
   OR: "or",
 } as const;
 
 const logicalOperatorSchema = z.enum(["and", "or"]);
-
-type LogicalOperator = z.infer<typeof logicalOperatorSchema>;
 
 const conditionSchema = z.object({
   fieldId: z.string().min(1),
@@ -173,8 +169,6 @@ const conditionSchema = z.object({
     .union([z.string(), z.number(), z.boolean(), z.array(z.string())])
     .optional(),
 });
-
-type Condition = z.infer<typeof conditionSchema>;
 
 const conditionalLogicSchema = z.object({
   enabled: z.boolean(),
@@ -201,7 +195,6 @@ const fieldAppearanceSchema = z.object({
 
 export type FieldWidth = z.infer<typeof fieldWidthSchema>;
 export type LabelPosition = z.infer<typeof labelPositionSchema>;
-type FieldSize = z.infer<typeof fieldSizeSchema>;
 export type FieldAppearance = z.infer<typeof fieldAppearanceSchema>;
 
 // =============================================================================
@@ -220,8 +213,6 @@ export const STANDARD_CONTACT_PROPERTIES = [
   "timezone",
   "city",
 ] as const;
-
-type StandardContactProperty = (typeof STANDARD_CONTACT_PROPERTIES)[number];
 
 /**
  * Maps a form field to a contact property (either standard or custom)
@@ -390,22 +381,16 @@ const formThemeColorsSchema = z.object({
   ring: z.string(),
 });
 
-type FormThemeColors = z.infer<typeof formThemeColorsSchema>;
-
 const formThemeFontSchema = z.object({
   family: z.string(),
   url: z.string().url(),
 });
-
-type FormThemeFont = z.infer<typeof formThemeFontSchema>;
 
 // CSS properties schema - allows any valid CSS property/value pairs
 const cssPropertiesSchema = z.record(
   z.string(),
   z.union([z.string(), z.number()]),
 );
-
-type CSSPropertiesRecord = z.infer<typeof cssPropertiesSchema>;
 
 const formThemeSchema = z.object({
   mode: z.enum(["light", "dark"]),
@@ -655,15 +640,13 @@ const ELEGANT_THEME: FormTheme = {
 };
 
 // Export all themes for easy access
-const FORM_THEMES = {
+const _FORM_THEMES = {
   light: DEFAULT_LIGHT_THEME,
   dark: DEFAULT_DARK_THEME,
   brutalist: BRUTALIST_THEME,
   playful: PLAYFUL_THEME,
   elegant: ELEGANT_THEME,
 } as const;
-
-type FormThemeKey = keyof typeof FORM_THEMES;
 
 // =============================================================================
 // FORM STYLING
@@ -681,10 +664,6 @@ const formStylingSchema = z.object({
   spacing: spacingSchema,
 });
 
-type FormLayout = z.infer<typeof formLayoutSchema>;
-type LabelStyle = z.infer<typeof labelStyleSchema>;
-type BorderRadius = z.infer<typeof borderRadiusSchema>;
-type Spacing = z.infer<typeof spacingSchema>;
 export type FormStyling = z.infer<typeof formStylingSchema>;
 
 // =============================================================================
@@ -934,7 +913,7 @@ export const DEFAULT_FORM_STYLING: FormStyling = {
   spacing: "default",
 };
 
-const DEFAULT_CONDITIONAL_LOGIC: ConditionalLogic = {
+const _DEFAULT_CONDITIONAL_LOGIC: ConditionalLogic = {
   enabled: false,
   action: "show",
   logicalOperator: "and",
@@ -958,7 +937,7 @@ export function createEmptyField(type: FieldType, id: string): FormField {
   };
 }
 
-function createEmptySection(id: string): FormSection {
+function _createEmptySection(id: string): FormSection {
   return {
     id,
     fields: [],
@@ -967,7 +946,7 @@ function createEmptySection(id: string): FormSection {
   } as unknown as FormSection; // fields will be populated
 }
 
-function createEmptyPage(id: string): FormPage {
+function _createEmptyPage(id: string): FormPage {
   const sectionId = `section_${id}_1`;
   return {
     id,

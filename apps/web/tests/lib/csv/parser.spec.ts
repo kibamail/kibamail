@@ -428,7 +428,7 @@ describe("processCsvInBatches", () => {
     const result = await processCsvInBatches(
       content,
       2,
-      async (batch, batchIndex) => {
+      async (batch, _batchIndex) => {
         return batch.length;
       },
     );

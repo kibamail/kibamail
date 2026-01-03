@@ -532,7 +532,7 @@ export const surveyFormFields: FormBuilderSchema = {
 /**
  * Form schema with content block (presentation field).
  */
-const formWithContentBlock: FormBuilderSchema = {
+const _formWithContentBlock: FormBuilderSchema = {
   id: "content_form",
   version: 1,
   title: "Form With Content",

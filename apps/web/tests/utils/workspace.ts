@@ -80,7 +80,7 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
   });
 }
 
-async function cleanupWorkspaces(workspaceIds: string[]): Promise<void> {
+async function _cleanupWorkspaces(workspaceIds: string[]): Promise<void> {
   await Promise.all(workspaceIds.map(cleanupWorkspace));
 }
 

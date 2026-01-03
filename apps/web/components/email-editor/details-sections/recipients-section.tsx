@@ -43,7 +43,7 @@ export function RecipientsSection({
 
   useEffect(() => {
     setRecipientType(getCurrentRecipientType());
-  }, [topicId, segmentId]);
+  }, [getCurrentRecipientType]);
 
   function onRecipientTypeChange(type: string) {
     const newType = type as RecipientType;

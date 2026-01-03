@@ -5,7 +5,7 @@
  * The format follows RFC 5322 for Message-ID headers.
  */
 
-import { randomBytes } from "crypto";
+import { randomBytes } from "node:crypto";
 
 /**
  * Generate a unique email send ID

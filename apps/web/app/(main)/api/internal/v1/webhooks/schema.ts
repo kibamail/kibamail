@@ -115,7 +115,6 @@ export const webhookEventDeliveriesResponseSchema = z.object({
 export const emptyResponseSchema = z.object({});
 
 // Type exports
-type ListEventsQuery = z.infer<typeof listEventsQuerySchema>;
 export type ListEventsResponse = z.infer<typeof listEventsResponseSchema>;
 export type WebhookDestinationResponse = z.infer<
   typeof webhookDestinationResponseSchema

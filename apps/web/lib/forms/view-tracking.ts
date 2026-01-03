@@ -12,7 +12,7 @@ import { UAParser } from "ua-parser-js";
 import { prisma } from "@/lib/db";
 
 const VIEW_COOKIE_PREFIX = "kiba_fv_";
-const VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+const _VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 /**
  * Parse user agent string to extract device, OS, and browser info

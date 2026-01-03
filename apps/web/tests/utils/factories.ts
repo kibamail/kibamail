@@ -85,14 +85,14 @@ export function fakeMinimalContact(
  * @param overrides - Optional field overrides
  * @returns Fake tag data
  */
-function fakeTag(
+function _fakeTag(
   overrides: Partial<{
     name: string;
     color: string;
   }> = {},
 ) {
   return {
-    name: overrides.name || faker.word.adjective() + " " + faker.word.noun(),
+    name: overrides.name || `${faker.word.adjective()} ${faker.word.noun()}`,
     color: overrides.color || faker.color.rgb(),
   };
 }
@@ -103,7 +103,7 @@ function fakeTag(
  * @param overrides - Optional field overrides
  * @returns Fake topic data
  */
-function fakeTopic(
+function _fakeTopic(
   overrides: Partial<{
     name: string;
     description: string;
@@ -126,7 +126,7 @@ function fakeTopic(
  * @param overrides - Optional field overrides
  * @returns Fake segment data
  */
-function fakeSegment(
+function _fakeSegment(
   overrides: Partial<{
     name: string;
     description: string;
@@ -135,7 +135,7 @@ function fakeSegment(
   }> = {},
 ) {
   return {
-    name: overrides.name || faker.word.words(2) + " Segment",
+    name: overrides.name || `${faker.word.words(2)} Segment`,
     description: overrides.description || faker.lorem.sentence(),
     type:
       overrides.type ||
@@ -158,14 +158,14 @@ function fakeSegment(
  * @param overrides - Optional field overrides
  * @returns Fake API key data
  */
-function fakeApiKey(
+function _fakeApiKey(
   overrides: Partial<{
     name: string;
     scopes: string[];
   }> = {},
 ) {
   return {
-    name: overrides.name || faker.company.name() + " API Key",
+    name: overrides.name || `${faker.company.name()} API Key`,
     scopes: overrides.scopes || ["read:contacts", "write:contacts"],
   };
 }

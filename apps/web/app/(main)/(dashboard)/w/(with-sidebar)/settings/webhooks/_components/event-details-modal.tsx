@@ -6,7 +6,6 @@ import { Badge } from "@kibamail/owly/badge";
 import * as Dialog from "@kibamail/owly/dialog";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import { useEffect } from "react";
 import { internalApi } from "@/lib/api/client";
 import type { DeliveryAttempt } from "@/webhooks/client/types";
 

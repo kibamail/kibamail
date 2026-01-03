@@ -43,7 +43,7 @@ function viewRequest(
     headers["X-Forwarded-For"] = options.ip;
   }
   if (options.referer) {
-    headers["Referer"] = options.referer;
+    headers.Referer = options.referer;
   }
 
   return new Request(`http://localhost:3000/api/internal/v1${path}`, {

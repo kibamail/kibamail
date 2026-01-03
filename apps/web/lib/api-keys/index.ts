@@ -4,7 +4,7 @@
  * Functions for generating, hashing, validating, and managing API keys.
  */
 
-import { createHash, randomBytes } from "crypto";
+import { createHash, randomBytes } from "node:crypto";
 import { API_KEY_CONFIG } from "@/config/api";
 
 /**
@@ -65,7 +65,7 @@ export function hashApiKey(key: string): string {
  * validateApiKeyFormat("pk_abc123") // false (wrong prefix)
  * ```
  */
-function validateApiKeyFormat(key: string): boolean {
+function _validateApiKeyFormat(key: string): boolean {
   // Check if key starts with the correct prefix
   if (!key.startsWith(`${API_KEY_CONFIG.PREFIX}_`)) {
     return false;
@@ -99,7 +99,7 @@ function validateApiKeyFormat(key: string): boolean {
  * maskApiKey("kb_abc123def456ghi789") // "kb_abc123de..."
  * ```
  */
-function maskApiKey(key: string, visibleChars: number = 8): string {
+function _maskApiKey(key: string, visibleChars: number = 8): string {
   const prefix = `${API_KEY_CONFIG.PREFIX}_`;
   if (!key.startsWith(prefix)) {
     return key; // Return as-is if format is unexpected

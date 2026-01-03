@@ -96,7 +96,7 @@ function getPublicFileUrl(key: string): string {
  * @param key - The object key (path) in the bucket
  * @returns Deletion confirmation
  */
-async function deletePublicFile(key: string) {
+async function _deletePublicFile(key: string) {
   const command = new DeleteObjectCommand({
     Bucket: env.S3_PUBLIC_BUCKET,
     Key: key,
@@ -117,7 +117,7 @@ async function deletePublicFile(key: string) {
  * @param key - The object key (path) in the bucket
  * @returns True if file exists, false otherwise
  */
-async function publicFileExists(key: string): Promise<boolean> {
+async function _publicFileExists(key: string): Promise<boolean> {
   try {
     const command = new HeadObjectCommand({
       Bucket: env.S3_PUBLIC_BUCKET,
@@ -126,8 +126,9 @@ async function publicFileExists(key: string): Promise<boolean> {
 
     await publicS3Client.send(command);
     return true;
-  } catch (error: any) {
-    if (error.name === "NotFound" || error.$metadata?.httpStatusCode === 404) {
+  } catch (error: unknown) {
+    const s3Error = error as { name?: string; $metadata?: { httpStatusCode?: number } };
+    if (s3Error.name === "NotFound" || s3Error.$metadata?.httpStatusCode === 404) {
       return false;
     }
     throw error;
@@ -141,7 +142,7 @@ async function publicFileExists(key: string): Promise<boolean> {
  * @param maxKeys - Maximum number of keys to return (default: 1000)
  * @returns List of objects with metadata
  */
-async function listPublicFiles(prefix?: string, maxKeys: number = 1000) {
+async function _listPublicFiles(prefix?: string, maxKeys: number = 1000) {
   const command = new ListObjectsV2Command({
     Bucket: env.S3_PUBLIC_BUCKET,
     Prefix: prefix,
@@ -164,7 +165,7 @@ async function listPublicFiles(prefix?: string, maxKeys: number = 1000) {
  * @param key - The object key (path) in the bucket
  * @returns File metadata
  */
-async function getPublicFileMetadata(key: string) {
+async function _getPublicFileMetadata(key: string) {
   const command = new HeadObjectCommand({
     Bucket: env.S3_PUBLIC_BUCKET,
     Key: key,

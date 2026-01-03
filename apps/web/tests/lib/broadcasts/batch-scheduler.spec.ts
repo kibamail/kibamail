@@ -53,7 +53,7 @@ describe("scheduleBroadcast", () => {
       const result = scheduleBroadcast(contactIds, limits, config);
       const emailsPerDay = getEmailsPerDay(result.batches);
 
-      for (const [day, count] of emailsPerDay) {
+      for (const [_day, count] of emailsPerDay) {
         expect(count).toBeLessThanOrEqual(250);
       }
     });
@@ -62,7 +62,7 @@ describe("scheduleBroadcast", () => {
       const result = scheduleBroadcast(contactIds, limits, config);
       const batchesByDay = getBatchesByDay(result.batches);
 
-      for (const [day, dayBatches] of batchesByDay) {
+      for (const [_day, dayBatches] of batchesByDay) {
         // Group by hour
         const byHour = new Map<number, number>();
         for (const batch of dayBatches) {
@@ -70,7 +70,7 @@ describe("scheduleBroadcast", () => {
           byHour.set(batch.hour, current + batch.count);
         }
 
-        for (const [hour, count] of byHour) {
+        for (const [_hour, count] of byHour) {
           expect(count).toBeLessThanOrEqual(50);
         }
       }

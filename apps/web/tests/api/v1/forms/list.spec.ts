@@ -362,7 +362,7 @@ describe("GET /api/v1/forms - Workspace Isolation", () => {
   test("should only return forms from the authenticated workspace", async () => {
     // Create another workspace with a form
     const otherWorkspace = createTestWorkspace();
-    const otherApiKey = await createFullAccessApiKey(otherWorkspace.id);
+    const _otherApiKey = await createFullAccessApiKey(otherWorkspace.id);
 
     await prisma.form.create({
       data: {

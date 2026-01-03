@@ -88,7 +88,7 @@ export const sendTestBroadcast: JobProcessor<
 
   // Build reply-to email: use replyToIdentity if set, otherwise default to senderIdentity
   const replyToIdentity = broadcast.replyToIdentity ?? broadcast.senderIdentity;
-  const replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain!.name}`;
+  const replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain?.name}`;
 
   // Prepare the broadcast data for email preparation
   const emailBroadcast: EmailBroadcast = {

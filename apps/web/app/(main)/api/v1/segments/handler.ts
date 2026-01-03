@@ -323,11 +323,11 @@ export async function getSegmentContacts(
 
   // Build contact properties for each contact
   const formattedContacts = items.map((contact) => {
-    const properties: Record<string, any> = {};
+    const properties: Record<string, string | number | Date | null> = {};
     for (const property of contactProperties) {
       const value = contact[property.slot as keyof typeof contact];
       if (value !== null && value !== undefined) {
-        properties[property.name] = value;
+        properties[property.name] = value as string | number | Date | null;
       }
     }
 

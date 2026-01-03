@@ -123,9 +123,6 @@ export type CreateSendingDomainRequest = z.infer<
 export type UpdateSendingDomainRequest = z.infer<
   typeof updateSendingDomainSchema
 >;
-type DnsRecord = z.infer<typeof dnsRecordSchema>;
-type DnsRecords = z.infer<typeof dnsRecordsSchema>;
-type DnsVerification = z.infer<typeof dnsVerificationSchema>;
 export type SendingDomainResponse = z.infer<typeof sendingDomainResponseSchema>;
 export type SendingDomainListResponse = z.infer<
   typeof sendingDomainListResponseSchema

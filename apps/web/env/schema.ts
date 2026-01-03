@@ -942,24 +942,3 @@ export const env = createEnv({
   emptyStringAsUndefined: true,
 });
 
-/**
- * Environment Variable Types
- *
- * TypeScript type inferred from the schema. This is automatically generated
- * and provides full type safety when using the env object.
- *
- * You can use this type for type annotations if needed:
- *
- * @example
- * ```typescript
- * import type { Env } from '@/env/schema'
- *
- * function connectToDb(dbUrl: Env['DATABASE_URL']) {
- *   // ...
- * }
- *
- * // Or extract a subset of env vars
- * type LogtoConfig = Pick<Env, 'LOGTO_ENDPOINT' | 'LOGTO_APP_ID' | 'LOGTO_APP_SECRET'>
- * ```
- */
-type Env = typeof env;

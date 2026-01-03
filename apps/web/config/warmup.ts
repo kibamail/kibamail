@@ -128,7 +128,7 @@ function getTierByNumber(tierNumber: number): WarmupTier | undefined {
  * Get tier configuration by daily limit
  * Useful for determining current tier from domain's maxSendPerDay
  */
-function getTierByDailyLimit(dailyLimit: number): WarmupTier | undefined {
+function _getTierByDailyLimit(dailyLimit: number): WarmupTier | undefined {
   return WARMUP_TIERS.find((t) => t.dailyLimit === dailyLimit);
 }
 
@@ -136,7 +136,7 @@ function getTierByDailyLimit(dailyLimit: number): WarmupTier | undefined {
  * Get the next tier (for promotion)
  * Returns undefined if already at max tier
  */
-function getNextTier(currentTier: number): WarmupTier | undefined {
+function _getNextTier(currentTier: number): WarmupTier | undefined {
   if (currentTier >= 12) return undefined;
   return getTierByNumber(currentTier + 1);
 }
@@ -145,7 +145,7 @@ function getNextTier(currentTier: number): WarmupTier | undefined {
  * Get the previous tier (for demotion)
  * Returns undefined if already at minimum tier
  */
-function getPreviousTier(currentTier: number): WarmupTier | undefined {
+function _getPreviousTier(currentTier: number): WarmupTier | undefined {
   if (currentTier <= 1) return undefined;
   return getTierByNumber(currentTier - 1);
 }
@@ -158,7 +158,7 @@ export const DEFAULT_WARMUP_TIER = WARMUP_TIERS[0];
 /**
  * Check if a daily limit indicates unlimited sending
  */
-function isUnlimitedTier(dailyLimit: number): boolean {
+function _isUnlimitedTier(dailyLimit: number): boolean {
   return dailyLimit === -1;
 }
 

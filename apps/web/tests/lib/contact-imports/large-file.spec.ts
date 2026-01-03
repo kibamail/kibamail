@@ -183,7 +183,7 @@ describe("Large CSV File Processing", () => {
     const emails = parsed.rows.slice(0, 100).map((row) => row.data["Email 1"]);
 
     // All emails should have @ symbol
-    const validEmails = emails.filter((email) => email && email.includes("@"));
+    const validEmails = emails.filter((email) => email?.includes("@"));
     expect(validEmails.length).toBeGreaterThan(90);
   });
 });

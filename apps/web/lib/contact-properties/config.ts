@@ -17,7 +17,7 @@ const PROPERTY_SLOT_LIMITS = {
  * Number of indexed property slots per type
  * These are the first N slots that have database indexes for faster queries
  */
-const INDEXED_PROPERTY_SLOTS = {
+const _INDEXED_PROPERTY_SLOTS = {
   FLOAT: 10,
   STRING: 10,
 } as const;

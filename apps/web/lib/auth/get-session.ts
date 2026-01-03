@@ -178,7 +178,7 @@ export async function getSession(): Promise<UserSession> {
  * }
  * ```
  */
-async function isAuthenticated(): Promise<boolean> {
+async function _isAuthenticated(): Promise<boolean> {
   const ctx = await getLogtoContext(logtoConfig);
   return ctx.isAuthenticated;
 }

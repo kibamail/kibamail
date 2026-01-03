@@ -179,13 +179,13 @@ describe("NATS Event Consumer Integration Tests", () => {
     });
 
     test("should batch events efficiently", async () => {
-      let batchCount = 0;
+      let _batchCount = 0;
       let totalEvents = 0;
 
       const consumer = await startEventConsumer(
         natsOptions,
         async (events) => {
-          batchCount++;
+          _batchCount++;
           totalEvents += events.length;
         },
         {
@@ -243,8 +243,8 @@ describe("NATS Event Consumer Integration Tests", () => {
       await consumer.stop();
 
       expect(receivedEvent).toBeDefined();
-      expect(receivedEvent!.type).toBe("Delivery");
-      expect(receivedEvent!.response.code).toBe(250);
+      expect(receivedEvent?.type).toBe("Delivery");
+      expect(receivedEvent?.response.code).toBe(250);
     });
 
     test("should handle bounce events", async () => {
@@ -280,8 +280,8 @@ describe("NATS Event Consumer Integration Tests", () => {
       await consumer.stop();
 
       expect(receivedEvent).toBeDefined();
-      expect(receivedEvent!.type).toBe("Bounce");
-      expect(receivedEvent!.bounce_classification).toBe("InvalidRecipient");
+      expect(receivedEvent?.type).toBe("Bounce");
+      expect(receivedEvent?.bounce_classification).toBe("InvalidRecipient");
     });
 
     test("should handle feedback events", async () => {
@@ -315,7 +315,7 @@ describe("NATS Event Consumer Integration Tests", () => {
       await consumer.stop();
 
       expect(receivedEvent).toBeDefined();
-      expect(receivedEvent!.type).toBe("Feedback");
+      expect(receivedEvent?.type).toBe("Feedback");
     });
   });
 });

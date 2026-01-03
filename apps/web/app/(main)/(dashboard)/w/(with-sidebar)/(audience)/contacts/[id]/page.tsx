@@ -4,7 +4,6 @@ import {
   DashboardLayoutStickyDetailHeaderDescription,
   DashboardLayoutStickyDetailHeaderTitle,
 } from "@kibamail/owly/dashboard-layout";
-import type { ContactPropertyType } from "@prisma/client";
 import dayjs from "dayjs";
 import gravatarUrl from "gravatar-url";
 import { notFound } from "next/navigation";
@@ -20,11 +19,17 @@ interface ContactDetailPageProps {
   }>;
 }
 
+/** Property value types supported in contact properties */
+type ContactPropertyValue = string | number | Date | null;
+
+/** Contact record with dynamic slot columns */
+type ContactWithSlots = Record<string, ContactPropertyValue>;
+
 function buildContactProperties(
-  contact: any,
+  contact: ContactWithSlots,
   properties: Array<{ name: string; slot: string }>,
-): Record<string, any> {
-  const result: Record<string, any> = {};
+): Record<string, ContactPropertyValue> {
+  const result: Record<string, ContactPropertyValue> = {};
 
   for (const property of properties) {
     const value = contact[property.slot];
@@ -72,7 +77,10 @@ export default async function ContactDetailPage({
     select: { name: true, slot: true, type: true },
   });
 
-  const properties = buildContactProperties(contact, contactProperties);
+  const properties = buildContactProperties(
+    contact as unknown as ContactWithSlots,
+    contactProperties,
+  );
 
   const topicDetails = await prisma.topic.findMany({
     where: {

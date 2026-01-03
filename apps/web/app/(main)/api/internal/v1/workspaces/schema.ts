@@ -38,7 +38,6 @@ export const createWorkspaceResponseSchema = z.object({
 });
 
 // Type exports
-type Workspace = z.infer<typeof workspaceSchema>;
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 export type CreateWorkspaceResponse = z.infer<
   typeof createWorkspaceResponseSchema

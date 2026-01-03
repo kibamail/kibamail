@@ -54,7 +54,7 @@ export async function createTestApiKey(
   const apiKey = await prisma.apiKey.create({
     data: {
       workspaceId: options.workspaceId,
-      name: options.name || faker.company.name() + " API Key",
+      name: options.name || `${faker.company.name()} API Key`,
       keyHash,
       keyPreview: preview,
       scopes: options.scopes || ["read:api-keys"],
@@ -158,7 +158,7 @@ export async function createReadOnlyApiKey(
  *
  * @param workspaceId - Workspace ID to clean up
  */
-async function cleanupApiKeys(workspaceId: string): Promise<void> {
+async function _cleanupApiKeys(workspaceId: string): Promise<void> {
   await prisma.apiKey.deleteMany({
     where: { workspaceId },
   });
@@ -169,7 +169,7 @@ async function cleanupApiKeys(workspaceId: string): Promise<void> {
  *
  * @param apiKeyId - API key ID to delete
  */
-async function deleteApiKey(apiKeyId: string): Promise<void> {
+async function _deleteApiKey(apiKeyId: string): Promise<void> {
   await prisma.apiKey.delete({
     where: { id: apiKeyId },
   });

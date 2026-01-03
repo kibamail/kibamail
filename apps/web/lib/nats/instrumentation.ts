@@ -5,12 +5,8 @@
  */
 
 import {
-  Attributes,
-  Counter,
   context,
-  Histogram,
   metrics,
-  ObservableGauge,
   type Span,
   SpanStatusCode,
   trace,
@@ -375,7 +371,7 @@ export function calculateBatchStats(
 /**
  * Record metrics for a processed batch
  */
-function recordBatchStats(stats: BatchStats): void {
+function _recordBatchStats(stats: BatchStats): void {
   for (const [eventType, count] of Object.entries(stats.eventsByType)) {
     for (const [workspaceId, wsCount] of Object.entries(
       stats.eventsByWorkspace,

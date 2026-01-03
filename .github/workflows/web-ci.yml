@@ -1,4 +1,4 @@
-name: Web CI/CD
+name: web ci/cd
 
 on:
   push:
@@ -16,52 +16,52 @@ env:
 
 jobs:
   test:
-    name: Test
+    name: test
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
+      - name: setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9.15.4
 
-      - name: Setup Node.js
+      - name: setup node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: "pnpm"
 
-      - name: Install dependencies
+      - name: install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Start services with Docker Compose
+      - name: start services with docker compose
         working-directory: apps/web
         run: |
           docker compose -f docker-compose.ci.yml up --wait
           docker wait ci-nats-init
 
-      - name: Build shared packages
+      - name: build shared packages
         run: |
           pnpm --filter @repo/tracking-utils build
           cd packages/owly && pnpm build:clean && pnpm build:css && pnpm build:components
           pnpm --filter @repo/broadcast-editor build
 
-      - name: Generate Prisma client
+      - name: generate prisma client
         working-directory: apps/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
         run: pnpm exec prisma generate
 
-      - name: Run database migrations
+      - name: run database migrations
         working-directory: apps/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
         run: pnpm exec prisma migrate deploy
 
-      - name: Run tests
+      - name: run tests
         working-directory: apps/web
         env:
           NODE_ENV: test
@@ -101,7 +101,7 @@ jobs:
         run: pnpm test
 
   build-runner:
-    name: Build Production Image
+    name: build web image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -110,13 +110,13 @@ jobs:
       image-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: set up docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: log in to container registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
@@ -124,7 +124,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -133,7 +133,7 @@ jobs:
             type=sha,prefix=
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push (production runner)
+      - name: build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -147,12 +147,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Get image tag for deployment
+      - name: get image tag for deployment
         id: get-tag
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   build-cli:
-    name: Build CLI Image
+    name: build cli image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -161,13 +161,13 @@ jobs:
       image-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: set up docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: log in to container registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
@@ -175,7 +175,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -184,7 +184,7 @@ jobs:
             type=sha,prefix=,suffix=-cli
             type=raw,value=staging-cli,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push (CLI stage)
+      - name: build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -196,12 +196,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Get image tag for deployment
+      - name: get image tag for deployment
         id: get-tag
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   build-worker:
-    name: Build Worker Image
+    name: build worker image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -210,13 +210,13 @@ jobs:
       image-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: set up docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: log in to container registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
@@ -224,7 +224,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -234,7 +234,7 @@ jobs:
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
             type=raw,value=staging-worker,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push (worker)
+      - name: build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -245,12 +245,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Get image tag for deployment
+      - name: get image tag for deployment
         id: get-tag
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   build-event-ingestor:
-    name: Build Event Ingestor Image
+    name: build event ingestor image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -259,13 +259,13 @@ jobs:
       image-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: set up docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: log in to container registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
@@ -273,7 +273,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -282,7 +282,7 @@ jobs:
             type=sha,prefix=
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push (event-ingestor)
+      - name: build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -293,12 +293,12 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Get image tag for deployment
+      - name: get image tag for deployment
         id: get-tag
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   build-tracking:
-    name: Build Tracking Image
+    name: build tracking image
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -307,13 +307,13 @@ jobs:
       image-tag: ${{ steps.get-tag.outputs.tag }}
 
     steps:
-      - name: Checkout
+      - name: checkout
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
+      - name: set up docker buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to Container Registry
+      - name: log in to container registry
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
@@ -321,7 +321,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract metadata
+      - name: extract metadata
         id: meta
         uses: docker/metadata-action@v5
         with:
@@ -330,7 +330,7 @@ jobs:
             type=sha,prefix=
             type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
 
-      - name: Build and push (tracking)
+      - name: build and push
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -341,36 +341,36 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Get image tag for deployment
+      - name: get image tag for deployment
         id: get-tag
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
   deploy-staging:
-    name: Deploy to Staging
+    name: deploy to staging
     needs: [test, build-runner, build-cli, build-worker, build-event-ingestor, build-tracking]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: staging
 
     steps:
-      - name: Set up kubectl
+      - name: set up kubectl
         uses: azure/setup-kubectl@v4
         with:
           version: "v1.31.0"
 
-      - name: Configure kubeconfig
+      - name: configure kubeconfig
         run: |
           mkdir -p ~/.kube
           echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Deploy Web to Kubernetes
+      - name: deploy web to kubernetes
         run: |
           kubectl set image deployment/kibamail-control-plane \
             -n kibamail-control-plane \
             web=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-runner.outputs.image-tag }}
 
-      - name: Patch initContainers in Web deployment
+      - name: patch initcontainers in web deployment
         run: |
           kubectl patch deployment kibamail-control-plane \
             -n kibamail-control-plane \
@@ -383,55 +383,55 @@ jobs:
               }
             ]'
 
-      - name: Deploy API to Kubernetes
+      - name: deploy api to kubernetes
         run: |
           kubectl set image deployment/kibamail-api \
             -n kibamail-api \
             api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-runner.outputs.image-tag }}
 
-      - name: Deploy Workers to Kubernetes
+      - name: deploy workers to kubernetes
         run: |
           kubectl set image deployment/kibamail-workers \
             -n kibamail-workers \
             worker=${{ env.REGISTRY }}/${{ env.WORKER_IMAGE_NAME }}:${{ needs.build-worker.outputs.image-tag }}
 
-      - name: Deploy Event Ingestor to Kubernetes
+      - name: deploy event ingestor to kubernetes
         run: |
           kubectl set image deployment/kibamail-event-ingestor \
             -n kibamail-event-ingestor \
             event-ingestor=${{ env.REGISTRY }}/${{ env.EVENT_INGESTOR_IMAGE_NAME }}:${{ needs.build-event-ingestor.outputs.image-tag }}
 
-      - name: Deploy Tracking to Kubernetes
+      - name: deploy tracking to kubernetes
         run: |
           kubectl set image deployment/kibamail-tracking \
             -n kibamail-tracking \
             tracking=${{ env.REGISTRY }}/${{ env.TRACKING_IMAGE_NAME }}:${{ needs.build-tracking.outputs.image-tag }}
 
-      - name: Wait for Web rollout
+      - name: wait for web rollout
         run: |
           kubectl rollout status deployment/kibamail-control-plane \
             -n kibamail-control-plane \
             --timeout=300s
 
-      - name: Wait for API rollout
+      - name: wait for api rollout
         run: |
           kubectl rollout status deployment/kibamail-api \
             -n kibamail-api \
             --timeout=300s
 
-      - name: Wait for Workers rollout
+      - name: wait for workers rollout
         run: |
           kubectl rollout status deployment/kibamail-workers \
             -n kibamail-workers \
             --timeout=300s
 
-      - name: Wait for Event Ingestor rollout
+      - name: wait for event ingestor rollout
         run: |
           kubectl rollout status deployment/kibamail-event-ingestor \
             -n kibamail-event-ingestor \
             --timeout=300s
 
-      - name: Wait for Tracking rollout
+      - name: wait for tracking rollout
         run: |
           kubectl rollout status deployment/kibamail-tracking \
             -n kibamail-tracking \
