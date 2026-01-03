@@ -5,22 +5,22 @@
  * - GET /api/v1/contacts - List contacts with cursor-based pagination
  */
 
-import { GET } from "@/app/(main)/api/v1/contacts/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { Contact } from "@prisma/client";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET } from "@/app/(main)/api/v1/contacts/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
   createTestContacts,
+  createTestWorkspace,
   fakeContacts,
   get,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -74,7 +74,9 @@ describe("GET /api/v1/contacts", () => {
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });
@@ -98,13 +100,18 @@ describe("GET /api/v1/contacts", () => {
   });
 
   test("should paginate through all 50 contacts with 10 per page", async () => {
-    const allContacts: Array<{ id: string; email: string; properties: Record<string, string | number> }> = [];
+    const allContacts: Array<{
+      id: string;
+      email: string;
+      properties: Record<string, string | number>;
+    }> = [];
     let cursor: string | null = null;
     let pageCount = 0;
     let hasMore = true;
 
     // Paginate through all contacts
-    while (hasMore && pageCount < 10) { // Safety limit to prevent infinite loops
+    while (hasMore && pageCount < 10) {
+      // Safety limit to prevent infinite loops
       const request = apiRequest("/contacts")
         .method("GET")
         .auth(fullAccessApiKey.key)
@@ -127,9 +134,10 @@ describe("GET /api/v1/contacts", () => {
 
       // Update pagination state
       hasMore = responseData.hasMore;
-      cursor = responseData.data.length > 0
-        ? responseData.data[responseData.data.length - 1].id
-        : null;
+      cursor =
+        responseData.data.length > 0
+          ? responseData.data[responseData.data.length - 1].id
+          : null;
 
       pageCount++;
 
@@ -148,12 +156,12 @@ describe("GET /api/v1/contacts", () => {
     expect(hasMore).toBe(false);
 
     // Validate no duplicate contacts
-    const contactIds = allContacts.map(contact => contact.id);
+    const contactIds = allContacts.map((contact) => contact.id);
     const uniqueIds = new Set(contactIds);
     expect(uniqueIds.size).toBe(50);
 
     // Validate all contacts have required fields
-    allContacts.forEach(contact => {
+    allContacts.forEach((contact) => {
       expect(contact.email).toBeDefined();
       expect(contact.id).toBeDefined();
       expect(contact.properties).toBeDefined();
@@ -193,12 +201,18 @@ describe("GET /api/v1/contacts", () => {
     expect(secondData.hasMore).toBe(true);
 
     // Ensure the cursor contact is excluded from results
-    expect(secondData.data.every((contact: Contact) => contact.id !== cursorContactId)).toBe(true);
+    expect(
+      secondData.data.every(
+        (contact: Contact) => contact.id !== cursorContactId,
+      ),
+    ).toBe(true);
 
     // Ensure no overlap between pages
     const firstPageIds = firstData.data.map((contact: Contact) => contact.id);
     const secondPageIds = secondData.data.map((contact: Contact) => contact.id);
-    const overlap = firstPageIds.filter((id: string) => secondPageIds.includes(id));
+    const overlap = firstPageIds.filter((id: string) =>
+      secondPageIds.includes(id),
+    );
     expect(overlap.length).toBe(0);
   });
 
@@ -243,6 +257,10 @@ describe("GET /api/v1/contacts", () => {
     expect(beforeData.data.length).toBe(10);
 
     // Ensure the before cursor contact is excluded
-    expect(beforeData.data.every((contact: Contact) => contact.id !== thirdPageFirstContactId)).toBe(true);
+    expect(
+      beforeData.data.every(
+        (contact: Contact) => contact.id !== thirdPageFirstContactId,
+      ),
+    ).toBe(true);
   });
 });

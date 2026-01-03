@@ -10,8 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getContact, updateContact, deleteContact } from "@/app/(main)/api/v1/contacts/handler";
+import {
+  deleteContact,
+  getContact,
+  updateContact,
+} from "@/app/(main)/api/v1/contacts/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/contacts/[contactId]
@@ -21,15 +25,15 @@ import { getContact, updateContact, deleteContact } from "@/app/(main)/api/v1/co
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ contactId: string }> }
+  { params }: { params: Promise<{ contactId: string }> },
 ) {
   const { contactId } = await params;
-  
+
   return withErrorHandling(request, () =>
     withApiSession(
       request,
       (apiKey) => getContact(apiKey.workspaceId, contactId),
-      ["read:contacts"]
+      ["read:contacts"],
     ),
   );
 }
@@ -42,15 +46,16 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ contactId: string }> }
+  { params }: { params: Promise<{ contactId: string }> },
 ) {
   const { contactId } = await params;
-  
+
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => updateContact(apiKey.workspaceId, contactId, request),
-      ["update:contacts"]
+      (apiKey, request) =>
+        updateContact(apiKey.workspaceId, contactId, request),
+      ["update:contacts"],
     ),
   );
 }
@@ -63,15 +68,15 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ contactId: string }> }
+  { params }: { params: Promise<{ contactId: string }> },
 ) {
   const { contactId } = await params;
-  
+
   return withErrorHandling(request, () =>
     withApiSession(
       request,
       (apiKey) => deleteContact(apiKey.workspaceId, contactId),
-      ["delete:contacts"]
+      ["delete:contacts"],
     ),
   );
 }

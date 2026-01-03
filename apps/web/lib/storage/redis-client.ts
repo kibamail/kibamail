@@ -8,7 +8,7 @@
  * @see https://github.com/redis/ioredis
  */
 
-import Redis, { Cluster } from "ioredis";
+import Redis, { type Cluster } from "ioredis";
 import { env } from "@/env/schema";
 
 /**
@@ -63,13 +63,13 @@ export function getRedisClient(): RedisClient {
           clusterRetryStrategy(times) {
             const delay = Math.min(times * 50, 2000);
             console.log(
-              `Redis cluster connection failed. Retrying in ${delay}ms...`
+              `Redis cluster connection failed. Retrying in ${delay}ms...`,
             );
             return delay;
           },
           enableReadyCheck: true,
           scaleReads: "slave",
-        }
+        },
       );
     } else {
       // Standalone mode
@@ -86,7 +86,9 @@ export function getRedisClient(): RedisClient {
         reconnectOnError(err) {
           const targetErrors = ["READONLY", "ETIMEDOUT", "ECONNRESET"];
           if (
-            targetErrors.some((targetError) => err.message.includes(targetError))
+            targetErrors.some((targetError) =>
+              err.message.includes(targetError),
+            )
           ) {
             return true;
           }
@@ -137,15 +139,10 @@ export function getRedisClient(): RedisClient {
  * await closeRedisClient();
  * ```
  */
-export async function closeRedisClient(): Promise<void> {
+async function closeRedisClient(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;
     console.log("Redis client connection closed gracefully");
   }
 }
-
-/**
- * Default export for convenience
- */
-export default getRedisClient;

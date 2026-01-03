@@ -19,7 +19,10 @@ export const createEmailSchema = z.object({
   replyToIdentityId: z.string().optional(),
   trackClicks: z.boolean().optional().default(true),
   trackOpens: z.boolean().optional().default(true),
-  type: z.enum(["TRANSACTIONAL", "AUTOMATION", "NOTIFICATION"]).optional().default("TRANSACTIONAL"),
+  type: z
+    .enum(["TRANSACTIONAL", "AUTOMATION", "NOTIFICATION"])
+    .optional()
+    .default("TRANSACTIONAL"),
 });
 
 /**
@@ -38,5 +41,5 @@ export const updateEmailSchema = z.object({
   type: z.enum(["TRANSACTIONAL", "AUTOMATION", "NOTIFICATION"]).optional(),
 });
 
-export type CreateEmailInput = z.infer<typeof createEmailSchema>;
+type CreateEmailInput = z.infer<typeof createEmailSchema>;
 export type UpdateEmailInput = z.infer<typeof updateEmailSchema>;

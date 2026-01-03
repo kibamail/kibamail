@@ -2,10 +2,10 @@
 
 import * as Select from "@kibamail/owly/select-field";
 import { useCallback } from "react";
-import { TriggerNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { FormFilledConfig } from "./form-filled-config";
+import { TriggerNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 import { EventTriggeredConfig } from "./event-triggered-config";
+import { FormFilledConfig } from "./form-filled-config";
 import { TriggerConditionsConfig } from "./trigger-conditions-config";
 
 const triggerOptions = [
@@ -32,12 +32,12 @@ export function TriggerConfiguration() {
               type: value,
               data: { ...node.data, triggerType: value },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   return (
@@ -59,7 +59,9 @@ export function TriggerConfiguration() {
 
       <div className="my-3 h-px w-full bg-kb-border-tertiary"></div>
 
-      {currentTriggerType === TriggerNodeType.FORM_FILLED && <FormFilledConfig />}
+      {currentTriggerType === TriggerNodeType.FORM_FILLED && (
+        <FormFilledConfig />
+      )}
       {currentTriggerType === TriggerNodeType.EVENT_TRIGGERED && (
         <EventTriggeredConfig />
       )}

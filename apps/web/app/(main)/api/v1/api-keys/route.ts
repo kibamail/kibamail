@@ -9,7 +9,7 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 import { createApiKeyHandler } from "./handlers/create-api-key";
 import { listApiKeysHandler } from "./handlers/list-api-keys";
 

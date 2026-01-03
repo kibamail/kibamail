@@ -1,7 +1,7 @@
-import { prisma } from "@/lib/db";
 import type { ParsedRow } from "@/lib/csv";
-import { ContactDataExtractor } from "./extractor";
+import { prisma } from "@/lib/db";
 import { ContactDataBuilder } from "./builder";
+import { ContactDataExtractor } from "./extractor";
 import type { BatchContext, RowProcessResult, StandardField } from "./types";
 
 export class BatchProcessor {
@@ -11,7 +11,7 @@ export class BatchProcessor {
   constructor(private context: BatchContext) {
     this.extractor = new ContactDataExtractor(
       context.columnMapping,
-      context.contactProperties
+      context.contactProperties,
     );
     this.builder = new ContactDataBuilder();
   }
@@ -23,8 +23,13 @@ export class BatchProcessor {
       return invalidResults;
     }
 
-    const existingContacts = await this.fetchExistingContacts([...validRows.keys()]);
-    const processedResults = await this.processValidRows(validRows, existingContacts);
+    const existingContacts = await this.fetchExistingContacts([
+      ...validRows.keys(),
+    ]);
+    const processedResults = await this.processValidRows(
+      validRows,
+      existingContacts,
+    );
 
     return [...invalidResults, ...processedResults];
   }
@@ -52,7 +57,10 @@ export class BatchProcessor {
     return { validRows, invalidResults };
   }
 
-  private createFailedResult(row: ParsedRow, errors: string[]): RowProcessResult {
+  private createFailedResult(
+    row: ParsedRow,
+    errors: string[],
+  ): RowProcessResult {
     return {
       rowIndex: row.index,
       lineNumber: row.lineNumber,
@@ -62,7 +70,7 @@ export class BatchProcessor {
   }
 
   private async fetchExistingContacts(
-    emails: string[]
+    emails: string[],
   ): Promise<Map<string, { id: string }>> {
     const contacts = await prisma.contact.findMany({
       where: { workspaceId: this.context.workspaceId, email: { in: emails } },
@@ -73,7 +81,7 @@ export class BatchProcessor {
 
   private async processValidRows(
     rowsByEmail: Map<string, ParsedRow[]>,
-    existingContacts: Map<string, { id: string }>
+    existingContacts: Map<string, { id: string }>,
   ): Promise<RowProcessResult[]> {
     const results: RowProcessResult[] = [];
 
@@ -81,7 +89,11 @@ export class BatchProcessor {
       const primaryRow = emailRows[0];
       const duplicateResults = this.createSkippedResults(emailRows.slice(1));
 
-      const result = await this.processContact(email, primaryRow, existingContacts.get(email));
+      const result = await this.processContact(
+        email,
+        primaryRow,
+        existingContacts.get(email),
+      );
       results.push(result, ...duplicateResults);
     }
 
@@ -100,9 +112,10 @@ export class BatchProcessor {
   private async processContact(
     email: string,
     row: ParsedRow,
-    existingContact?: { id: string }
+    existingContact?: { id: string },
   ): Promise<RowProcessResult> {
-    const { standardFields, customProperties, errors } = this.extractor.extract(row);
+    const { standardFields, customProperties, errors } =
+      this.extractor.extract(row);
 
     if (errors.length > 0) {
       return this.createFailedResult(row, errors);
@@ -110,9 +123,20 @@ export class BatchProcessor {
 
     try {
       if (existingContact) {
-        return await this.handleExistingContact(row, email, standardFields, customProperties, existingContact);
+        return await this.handleExistingContact(
+          row,
+          email,
+          standardFields,
+          customProperties,
+          existingContact,
+        );
       }
-      return await this.createNewContact(row, email, standardFields, customProperties);
+      return await this.createNewContact(
+        row,
+        email,
+        standardFields,
+        customProperties,
+      );
     } catch (error) {
       return {
         rowIndex: row.index,
@@ -128,10 +152,15 @@ export class BatchProcessor {
     email: string,
     standardFields: Partial<Record<StandardField, string>>,
     customProperties: Record<string, string>,
-    existingContact: { id: string }
+    existingContact: { id: string },
   ): Promise<RowProcessResult> {
     if (!this.context.updateExisting) {
-      return { rowIndex: row.index, lineNumber: row.lineNumber, success: true, action: "skipped" };
+      return {
+        rowIndex: row.index,
+        lineNumber: row.lineNumber,
+        success: true,
+        action: "skipped",
+      };
     }
 
     const updateData = this.builder.build(
@@ -140,24 +169,36 @@ export class BatchProcessor {
       this.context.workspaceId,
       email,
       this.context.autoSubscribe,
-      this.context.sourceId
+      this.context.sourceId,
     );
 
-    const { workspaceId: _, email: __, sourceType: ___, sourceId: ____, ...updateFields } = updateData;
+    const {
+      workspaceId: _,
+      email: __,
+      sourceType: ___,
+      sourceId: ____,
+      ...updateFields
+    } = updateData;
 
     await prisma.contact.update({
       where: { id: existingContact.id },
       data: updateFields,
     });
 
-    return { rowIndex: row.index, lineNumber: row.lineNumber, success: true, action: "updated", contactId: existingContact.id };
+    return {
+      rowIndex: row.index,
+      lineNumber: row.lineNumber,
+      success: true,
+      action: "updated",
+      contactId: existingContact.id,
+    };
   }
 
   private async createNewContact(
     row: ParsedRow,
     email: string,
     standardFields: Partial<Record<StandardField, string>>,
-    customProperties: Record<string, string>
+    customProperties: Record<string, string>,
   ): Promise<RowProcessResult> {
     const createData = this.builder.build(
       standardFields,
@@ -165,7 +206,7 @@ export class BatchProcessor {
       this.context.workspaceId,
       email,
       this.context.autoSubscribe,
-      this.context.sourceId
+      this.context.sourceId,
     );
 
     const newContact = await prisma.contact.create({ data: createData });
@@ -174,7 +215,13 @@ export class BatchProcessor {
       await this.subscribeToTopics(newContact.id);
     }
 
-    return { rowIndex: row.index, lineNumber: row.lineNumber, success: true, action: "created", contactId: newContact.id };
+    return {
+      rowIndex: row.index,
+      lineNumber: row.lineNumber,
+      success: true,
+      action: "created",
+      contactId: newContact.id,
+    };
   }
 
   private async subscribeToTopics(contactId: string): Promise<void> {

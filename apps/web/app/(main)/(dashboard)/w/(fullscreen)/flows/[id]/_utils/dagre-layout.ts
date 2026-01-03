@@ -1,5 +1,5 @@
-import type { Edge, Node } from "@xyflow/react";
 import dagre from "@dagrejs/dagre";
+import type { Edge, Node } from "@xyflow/react";
 
 const NODE_WIDTH = 300;
 const NODE_HEIGHT = 92;
@@ -41,7 +41,7 @@ function getEdgeOrder(edge: Edge): number {
 export function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
-  direction: LayoutDirection = "TB"
+  direction: LayoutDirection = "TB",
 ): { nodes: Node[]; edges: Edge[] } {
   const dagreGraph = new dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 

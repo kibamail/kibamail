@@ -8,21 +8,25 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { GET, PUT, DELETE } from "@/app/(main)/api/v1/segments/[segmentId]/route";
-import { POST } from "@/app/(main)/api/v1/segments/route";
 import {
-  createTestWorkspace,
+  DELETE,
+  GET,
+  PUT,
+} from "@/app/(main)/api/v1/segments/[segmentId]/route";
+import { POST } from "@/app/(main)/api/v1/segments/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import {
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
-  post,
-  get,
-  put,
+  createTestWorkspace,
   del,
+  get,
+  post,
+  put,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -61,7 +65,10 @@ afterAll(async () => {
 
 describe("GET /api/v1/segments/[segmentId]", () => {
   test("should retrieve a segment by ID", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Retrieve Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Retrieve Test",
+    );
     const request = get(`/segments/${createdSegment.id}`, fullAccessApiKey.key);
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
@@ -93,7 +100,10 @@ describe("GET /api/v1/segments/[segmentId]", () => {
   });
 
   test("should not retrieve segment from different workspace", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Workspace Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Workspace Test",
+    );
 
     // Create different workspace
     const otherWorkspace = createTestWorkspace();
@@ -117,7 +127,10 @@ describe("GET /api/v1/segments/[segmentId]", () => {
   });
 
   test("should reject request without read:segments scope", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Scope Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Scope Test",
+    );
     const writeOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
       scopes: ["write:segments"],
@@ -140,9 +153,16 @@ describe("GET /api/v1/segments/[segmentId]", () => {
 
 describe("PUT /api/v1/segments/[segmentId]", () => {
   test("should update segment name", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Original Name");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Original Name",
+    );
     const updateData = { name: "Updated Name" };
-    const request = put(`/segments/${createdSegment.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/segments/${createdSegment.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
     const response = await PUT(request, { params });
@@ -154,7 +174,10 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
   });
 
   test("should update segment conditions", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Conditions Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Conditions Test",
+    );
     const updateData = {
       conditions: {
         $and: [
@@ -171,7 +194,11 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
         ],
       },
     };
-    const request = put(`/segments/${createdSegment.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/segments/${createdSegment.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
     const response = await PUT(request, { params });
@@ -182,9 +209,16 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
   });
 
   test("should update segment description", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Description Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Description Test",
+    );
     const updateData = { description: "New description" };
-    const request = put(`/segments/${createdSegment.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/segments/${createdSegment.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
     const response = await PUT(request, { params });
@@ -195,7 +229,10 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
   });
 
   test("should update multiple fields at once", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Multi Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Multi Test",
+    );
     const updateData = {
       name: "Updated Multi",
       description: "New description",
@@ -205,7 +242,11 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
         value: "UNSUBSCRIBED",
       },
     };
-    const request = put(`/segments/${createdSegment.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/segments/${createdSegment.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
     const response = await PUT(request, { params });
@@ -216,7 +257,10 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
   });
 
   test("should reject update with invalid conditions", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Validation Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Validation Test",
+    );
     const updateData = {
       conditions: {
         field: "status",
@@ -224,7 +268,11 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
         value: "SUBSCRIBED",
       },
     };
-    const request = put(`/segments/${createdSegment.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/segments/${createdSegment.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
     const response = await PUT(request, { params });
@@ -241,14 +289,21 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
   });
 
   test("should reject update without update:segments scope", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Scope Update Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Scope Update Test",
+    );
     const readOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
       scopes: ["read:segments"],
     });
 
     const updateData = { name: "Should Fail" };
-    const request = put(`/segments/${createdSegment.id}`, updateData, readOnlyApiKey.key);
+    const request = put(
+      `/segments/${createdSegment.id}`,
+      updateData,
+      readOnlyApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
     const response = await PUT(request, { params });
@@ -264,7 +319,11 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
 
   test("should return 404 when updating non-existent segment", async () => {
     const updateData = { name: "Does Not Exist" };
-    const request = put("/segments/non_existent_id", updateData, fullAccessApiKey.key);
+    const request = put(
+      "/segments/non_existent_id",
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ segmentId: "non_existent_id" });
 
     const response = await PUT(request, { params });
@@ -282,7 +341,10 @@ describe("PUT /api/v1/segments/[segmentId]", () => {
 
 describe("DELETE /api/v1/segments/[segmentId]", () => {
   test("should delete a segment", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Segment to Delete");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Segment to Delete",
+    );
     const request = del(`/segments/${createdSegment.id}`, fullAccessApiKey.key);
     const params = Promise.resolve({ segmentId: createdSegment.id });
 
@@ -294,7 +356,10 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
     expect(responseData.id).toBe(createdSegment.id);
 
     // Verify segment is actually deleted
-    const getRequest = get(`/segments/${createdSegment.id}`, fullAccessApiKey.key);
+    const getRequest = get(
+      `/segments/${createdSegment.id}`,
+      fullAccessApiKey.key,
+    );
     const getParams = Promise.resolve({ segmentId: createdSegment.id });
     const getResponse = await GET(getRequest, { params: getParams });
 
@@ -318,7 +383,10 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
   });
 
   test("should reject delete without delete:segments scope", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Scope Delete Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Scope Delete Test",
+    );
     const readOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
       scopes: ["read:segments"],
@@ -339,7 +407,10 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
   });
 
   test("should not delete segment from different workspace", async () => {
-    const createdSegment = await createTestSegment(fullAccessApiKey, "Workspace Delete Test");
+    const createdSegment = await createTestSegment(
+      fullAccessApiKey,
+      "Workspace Delete Test",
+    );
 
     // Create different workspace
     const otherWorkspace = createTestWorkspace();
@@ -360,7 +431,10 @@ describe("DELETE /api/v1/segments/[segmentId]", () => {
     expect(responseData.error.requestId).toMatch(/^req_/);
 
     // Verify original segment still exists
-    const getRequest = get(`/segments/${createdSegment.id}`, fullAccessApiKey.key);
+    const getRequest = get(
+      `/segments/${createdSegment.id}`,
+      fullAccessApiKey.key,
+    );
     const getParams = Promise.resolve({ segmentId: createdSegment.id });
     const getResponse = await GET(getRequest, { params: getParams });
 

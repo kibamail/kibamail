@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useId } from "react";
+import * as Alert from "@kibamail/owly/alert";
 import * as Popover from "@kibamail/owly/popover";
 import * as Select from "@kibamail/owly/select-field";
-import * as TextField from "@kibamail/owly/text-field";
-import * as Alert from "@kibamail/owly/alert";
 import { Text } from "@kibamail/owly/text";
-import { WarningTriangle } from "iconoir-react";
+import * as TextField from "@kibamail/owly/text-field";
 import type { SendingDomain } from "@prisma/client";
+import { WarningTriangle } from "iconoir-react";
+import { useId, useState } from "react";
 import { CreateDomainModal, type CreatedDomain } from "./create-domain-modal";
 
 export type { CreatedDomain };
@@ -57,7 +57,9 @@ export function SenderSelect({
 }: SenderSelectProps) {
   const [internalIsAddingNew, setInternalIsAddingNew] = useState(false);
   const [internalLocalPart, setInternalLocalPart] = useState("");
-  const [internalDomainId, setInternalDomainId] = useState(domains[0]?.id || "");
+  const [internalDomainId, setInternalDomainId] = useState(
+    domains[0]?.id || "",
+  );
   const [domainPopoverOpen, setDomainPopoverOpen] = useState(false);
   const [createDomainModalOpen, setCreateDomainModalOpen] = useState(false);
   const localPartFieldId = useId();
@@ -140,7 +142,11 @@ export function SenderSelect({
 
   if (hasSenderIdentities && !isAddingNew) {
     return (
-      <Select.Root value={value} onValueChange={onSenderSelect} disabled={disabled}>
+      <Select.Root
+        value={value}
+        onValueChange={onSenderSelect}
+        disabled={disabled}
+      >
         <Select.Label help={labelHelp}>{label}</Select.Label>
         <Select.Trigger placeholder="Select sender" />
         <Select.Content className="z-50">
@@ -165,9 +171,14 @@ export function SenderSelect({
       placeholder="newsletter"
       disabled={disabled}
     >
-      <TextField.Label>{label === "From" ? "From email" : label}</TextField.Label>
+      <TextField.Label>
+        {label === "From" ? "From email" : label}
+      </TextField.Label>
       <TextField.Slot side="right">
-        <Popover.Root open={domainPopoverOpen} onOpenChange={setDomainPopoverOpen}>
+        <Popover.Root
+          open={domainPopoverOpen}
+          onOpenChange={setDomainPopoverOpen}
+        >
           <Popover.Trigger asChild>
             <button
               type="button"
@@ -241,7 +252,9 @@ export function getEmailFromSenderSelect({
   }
 
   if (senderIdentityId) {
-    const selectedIdentity = senderIdentities.find((si) => si.id === senderIdentityId);
+    const selectedIdentity = senderIdentities.find(
+      (si) => si.id === senderIdentityId,
+    );
     return selectedIdentity?.email;
   }
 

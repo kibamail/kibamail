@@ -2,22 +2,24 @@ import type { FilterBuilderFilter } from "@kibamail/owly/filter-builder";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
 const operatorMap: Record<string, string> = {
-  "equals": "eq",
+  equals: "eq",
   "not-equals": "ne",
-  "contains": "contains",
+  contains: "contains",
   "starts-with": "startsWith",
   "ends-with": "endsWith",
   "greater-than": "gt",
   "less-than": "lt",
   "greater-than-or-equal": "gte",
   "less-than-or-equal": "lte",
-  "in": "in",
+  in: "in",
   "not-in": "nin",
   "is-empty": "exists",
   "is-not-empty": "exists",
 };
 
-function extractValue(valueData: FilterBuilderFilter["value"]): string | number | boolean | null | (string | number)[] {
+function extractValue(
+  valueData: FilterBuilderFilter["value"],
+): string | number | boolean | null | (string | number)[] {
   switch (valueData.type) {
     case "text":
       return valueData.value;
@@ -95,12 +97,31 @@ function transformFilter(filter: FilterBuilderFilter): ConditionInput | null {
 
   return {
     field,
-    operator: backendOperator as "eq" | "ne" | "gt" | "gte" | "lt" | "lte" | "in" | "nin" | "contains" | "startsWith" | "endsWith" | "exists",
-    value: extractedValue as string | number | boolean | null | (string | number)[],
+    operator: backendOperator as
+      | "eq"
+      | "ne"
+      | "gt"
+      | "gte"
+      | "lt"
+      | "lte"
+      | "in"
+      | "nin"
+      | "contains"
+      | "startsWith"
+      | "endsWith"
+      | "exists",
+    value: extractedValue as
+      | string
+      | number
+      | boolean
+      | null
+      | (string | number)[],
   };
 }
 
-export function transformFiltersToConditions(filters: FilterBuilderFilter[]): ConditionInput | null {
+export function transformFiltersToConditions(
+  filters: FilterBuilderFilter[],
+): ConditionInput | null {
   if (!filters || filters.length === 0) {
     return null;
   }
@@ -125,13 +146,16 @@ export function transformFiltersToConditions(filters: FilterBuilderFilter[]): Co
   return { $and: conditions };
 }
 
-export function transformConditionsToFilters(conditions: ConditionInput | null): FilterBuilderFilter[] {
+export function transformConditionsToFilters(
+  conditions: ConditionInput | null,
+): FilterBuilderFilter[] {
   if (!conditions) {
     return [];
   }
 
   const filters: FilterBuilderFilter[] = [];
-  const generateId = () => `filter-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  const generateId = () =>
+    `filter-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
   function processCondition(condition: ConditionInput): void {
     if ("$and" in condition && condition.$and) {
@@ -179,9 +203,10 @@ export function transformConditionsToFilters(conditions: ConditionInput | null):
     if ("field" in condition && "operator" in condition) {
       const { field, operator, value } = condition;
 
-      const operatorId = Object.entries(operatorMap).find(
-        ([_, backendOp]) => backendOp === operator
-      )?.[0] || operator;
+      const operatorId =
+        Object.entries(operatorMap).find(
+          ([_, backendOp]) => backendOp === operator,
+        )?.[0] || operator;
 
       let finalOperatorId = operatorId;
       let filterValue: FilterBuilderFilter["value"];

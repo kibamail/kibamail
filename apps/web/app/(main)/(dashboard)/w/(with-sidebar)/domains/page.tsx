@@ -24,6 +24,7 @@ async function getDomains(workspaceId: string) {
       dkimVerifiedAt: true,
       returnPathDomainVerifiedAt: true,
       trackingDomainVerifiedAt: true,
+      dmarcVerifiedAt: true,
       openTrackingEnabled: true,
       clickTrackingEnabled: true,
       createdAt: true,

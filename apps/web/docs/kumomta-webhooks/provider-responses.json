@@ -3,7 +3,10 @@
   "providers": {
     "gmail": {
       "provider_name": "gmail",
-      "mx_hosts": ["gmail-smtp-in.l.google.com", "alt1.gmail-smtp-in.l.google.com"],
+      "mx_hosts": [
+        "gmail-smtp-in.l.google.com",
+        "alt1.gmail-smtp-in.l.google.com"
+      ],
       "responses": {
         "success": {
           "code": 250,

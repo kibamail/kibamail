@@ -3,18 +3,18 @@
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import { ConfirmDialog } from "@kibamail/owly/dialog";
+import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
-import { MoreHoriz, EditPencil, Trash } from "iconoir-react";
-import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import { useToast } from "@kibamail/owly/toast";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
-import { useToggleState } from "@/hooks/utils/useToggleState";
 import type { ContactProperty } from "@prisma/client";
 import { format } from "date-fns";
+import { EditPencil, MoreHoriz, Trash } from "iconoir-react";
+import { useRouter } from "next/navigation";
 import { CreateContactPropertyModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/create-contact-property-modal";
+import { useMutation } from "@/hooks/use-mutation";
+import { useToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
 
 interface PropertiesTableProps {
   properties: Pick<ContactProperty, "id" | "name" | "type" | "defaultValue">[];
@@ -22,7 +22,7 @@ interface PropertiesTableProps {
 
 function formatDefaultValue(
   type: ContactProperty["type"],
-  value: string | null
+  value: string | null,
 ): string {
   if (!value) return "—";
 
@@ -159,10 +159,10 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
                     property.type === "STRING"
                       ? "neutral"
                       : property.type === "NUMBER"
-                      ? "success"
-                      : property.type === "DATE"
-                      ? "warning"
-                      : "error" // BOOLEAN
+                        ? "success"
+                        : property.type === "DATE"
+                          ? "warning"
+                          : "error" // BOOLEAN
                   }
                   size="sm"
                 >

@@ -5,19 +5,19 @@
  * - GET /api/v1/segments - List segments with cursor-based pagination
  */
 
-import { POST, GET } from "@/app/(main)/api/v1/segments/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET, POST } from "@/app/(main)/api/v1/segments/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
-  post,
+  createTestWorkspace,
   get,
+  post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -77,7 +77,7 @@ describe("GET /api/v1/segments", () => {
     for (let i = 1; i <= 50; i++) {
       const segment = await createTestSegment(
         fullAccessApiKey,
-        `Pagination Test ${i}`
+        `Pagination Test ${i}`,
       );
       segments.push(segment);
     }
@@ -95,7 +95,7 @@ describe("GET /api/v1/segments", () => {
     const lastIdFromFirstPage = firstData.data[firstData.data.length - 1].id;
     const secondRequest = get(
       `/segments?limit=20&after=${lastIdFromFirstPage}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const secondResponse = await GET(secondRequest);
     const secondData = await secondResponse.json();
@@ -108,7 +108,7 @@ describe("GET /api/v1/segments", () => {
     const lastIdFromSecondPage = secondData.data[secondData.data.length - 1].id;
     const thirdRequest = get(
       `/segments?limit=20&after=${lastIdFromSecondPage}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const thirdResponse = await GET(thirdRequest);
     const thirdData = await thirdResponse.json();
@@ -123,7 +123,7 @@ describe("GET /api/v1/segments", () => {
 
     const request = get(
       `/segments?limit=10&after=${segment1.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request);
     const responseData = await response.json();
@@ -140,7 +140,7 @@ describe("GET /api/v1/segments", () => {
 
     const request = get(
       `/segments?limit=10&before=${segment3.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request);
     const responseData = await response.json();
@@ -218,7 +218,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     const foundSegment = responseData.data.find(
-      (s: any) => s.id === segment.id
+      (s: any) => s.id === segment.id,
     );
 
     expect(foundSegment).toBeDefined();
@@ -237,7 +237,7 @@ describe("GET /api/v1/segments", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();

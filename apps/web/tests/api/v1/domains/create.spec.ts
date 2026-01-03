@@ -5,23 +5,23 @@
  * - POST /api/v1/domains - Create new sending domain
  */
 
-import { POST } from "@/app/(main)/api/v1/domains/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import {
-  createTestWorkspace,
-  createFullAccessApiKey,
-  createTestApiKey,
-  cleanupWorkspace,
-  post,
-  apiRequest,
-  type TestWorkspace,
-  type CreatedApiKey,
-} from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 import { createSign, createVerify } from "node:crypto";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/v1/domains/route";
+import { env } from "@/env/schema";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/sending-domains/dkim";
-import { env } from "@/env/schema";
+import {
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
+  createFullAccessApiKey,
+  createTestApiKey,
+  createTestWorkspace,
+  post,
+  type TestWorkspace,
+} from "@/tests/utils";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -152,7 +152,9 @@ describe("POST /api/v1/domains", () => {
 
     expect(response2.status).toBe(409);
     expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.SENDING_DOMAIN_ALREADY_EXISTS);
+    expect(responseData.error.code).toBe(
+      ErrorCode.SENDING_DOMAIN_ALREADY_EXISTS,
+    );
   });
 
   test("should allow same domain name in different workspaces", async () => {
@@ -179,14 +181,19 @@ describe("POST /api/v1/domains", () => {
 
   test("should reject request with missing Authorization header", async () => {
     const domainData = { name: "test.example.com" };
-    const request = apiRequest("/domains").method("POST").body(domainData).build();
+    const request = apiRequest("/domains")
+      .method("POST")
+      .body(domainData)
+      .build();
 
     const response = await POST(request);
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
+    );
   });
 
   test("should reject request without write:domains scope", async () => {

@@ -21,7 +21,7 @@ const emailFromSchema = z
   .string()
   .regex(
     /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-    "Invalid email format. Must be in format: name@domain.com"
+    "Invalid email format. Must be in format: name@domain.com",
   )
   .refine(
     (email) => {
@@ -30,14 +30,14 @@ const emailFromSchema = z
     },
     {
       message: `Email local part must be ${MAX_EMAIL_LOCAL_PART_LENGTH} characters or less`,
-    }
+    },
   );
 
 /**
  * Email Content Schema
  * Used for both create and update requests
  */
-export const emailContentSchema = z.object({
+const emailContentSchema = z.object({
   subject: z
     .string()
     .max(255, "Subject must be 255 characters or less")
@@ -90,7 +90,7 @@ export const updateBroadcastSchema = z.object({
 /**
  * Email Content Response Schema
  */
-export const emailContentResponseSchema = z.object({
+const emailContentResponseSchema = z.object({
   subject: z.string().nullable(),
   text: z.string().nullable(),
   html: z.string().nullable(),
@@ -128,8 +128,8 @@ export const broadcastListResponseSchema = z.object({
 /**
  * Type exports for TypeScript
  */
-export type EmailContentRequest = z.infer<typeof emailContentSchema>;
-export type EmailContentResponse = z.infer<typeof emailContentResponseSchema>;
+type EmailContentRequest = z.infer<typeof emailContentSchema>;
+type EmailContentResponse = z.infer<typeof emailContentResponseSchema>;
 export type CreateBroadcastRequest = z.infer<typeof createBroadcastSchema>;
 export type UpdateBroadcastRequest = z.infer<typeof updateBroadcastSchema>;
 export type BroadcastResponse = z.infer<typeof broadcastResponseSchema>;

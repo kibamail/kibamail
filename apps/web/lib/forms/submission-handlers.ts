@@ -1,15 +1,15 @@
-import { z } from "zod";
-import crypto from "crypto";
 import { ContactSourceType, ContactStatus } from "@prisma/client";
-import { prisma } from "@/lib/db";
-import { responseCreated } from "@/lib/api/responses";
-import { ValidationError, type ValidationErrorDetail } from "@/lib/api/errors";
+import crypto from "crypto";
+import { z } from "zod";
+import { createContactSchema } from "@/app/(main)/api/v1/contacts/schema";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { ValidationError, type ValidationErrorDetail } from "@/lib/api/errors";
+import { responseCreated } from "@/lib/api/responses";
+import { prisma } from "@/lib/db";
+import type { FormSettings } from "@/lib/form-builder/schema";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import { transformToContactData } from "@/lib/forms/field-mapping";
-import { createContactSchema } from "@/app/(main)/api/v1/contacts/schema";
 import { queue } from "@/lib/queue";
-import type { FormSettings } from "@/lib/form-builder/schema";
 
 export interface SubmissionMetadata {
   ipAddress: string | null;
@@ -26,8 +26,8 @@ export function generateConfirmationToken(): string {
   return crypto.randomBytes(32).toString("hex");
 }
 
-export function generateSurveyValidationSchema(
-  fieldMapping: FormFieldMapping
+function generateSurveyValidationSchema(
+  fieldMapping: FormFieldMapping,
 ): z.ZodObject<Record<string, z.ZodTypeAny>> {
   const shape: Record<string, z.ZodTypeAny> = {};
 
@@ -42,9 +42,9 @@ export function generateSurveyValidationSchema(
   return z.object(shape).passthrough();
 }
 
-export function mapSubmissionToSlots(
+function mapSubmissionToSlots(
   data: Record<string, unknown>,
-  fieldMapping: FormFieldMapping
+  fieldMapping: FormFieldMapping,
 ): Record<string, string | number | null> {
   const slotData: Record<string, string | number | null> = {};
 
@@ -74,7 +74,7 @@ export async function handleSignUpSubmission(
   rawData: Record<string, unknown>,
   fieldMapping: FormFieldMapping,
   metadata: SubmissionMetadata,
-  doubleOptIn?: DoubleOptInConfig
+  doubleOptIn?: DoubleOptInConfig,
 ) {
   const contactData = transformToContactData(rawData, fieldMapping);
 
@@ -86,13 +86,13 @@ export async function handleSignUpSubmission(
         field: issue.path.join("."),
         code: ErrorCode.VALIDATION_FAILED,
         message: issue.message,
-      })
+      }),
     );
 
     throw new ValidationError(
       "Validation failed",
       ErrorCode.VALIDATION_FAILED,
-      errors
+      errors,
     );
   }
 
@@ -155,7 +155,9 @@ export async function handleSignUpSubmission(
       },
     },
     update: contactUpdateData,
-    create: contactCreateData as Parameters<typeof prisma.contact.create>[0]["data"],
+    create: contactCreateData as Parameters<
+      typeof prisma.contact.create
+    >[0]["data"],
   });
 
   const slotData = mapSubmissionToSlots(rawData, fieldMapping);
@@ -190,7 +192,7 @@ export async function handleSurveySubmission(
   formId: string,
   rawData: Record<string, unknown>,
   fieldMapping: FormFieldMapping,
-  metadata: SubmissionMetadata
+  metadata: SubmissionMetadata,
 ) {
   const validationSchema = generateSurveyValidationSchema(fieldMapping);
 
@@ -202,20 +204,20 @@ export async function handleSurveySubmission(
         field: issue.path.join("."),
         code: ErrorCode.VALIDATION_FAILED,
         message: issue.message,
-      })
+      }),
     );
 
     throw new ValidationError(
       "Validation failed",
       ErrorCode.VALIDATION_FAILED,
-      errors
+      errors,
     );
   }
 
   let contactId: string | null = null;
 
   const emailFieldName = Object.entries(fieldMapping).find(
-    ([, mapping]) => mapping.contactPropertyId === "email"
+    ([, mapping]) => mapping.contactPropertyId === "email",
   )?.[0];
 
   if (emailFieldName) {
@@ -257,6 +259,6 @@ export async function handleSurveySubmission(
     {
       id: submission.id,
     },
-    "form_submission"
+    "form_submission",
   );
 }

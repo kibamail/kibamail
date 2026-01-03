@@ -6,27 +6,27 @@
  * Workspace is deduced from the API key, not from URL parameters
  */
 
+import { ContactSourceType, TopicSubscriptionStatus } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { TopicSubscriptionStatus, ContactSourceType } from "@prisma/client";
+import { ErrorCode } from "@/lib/api/error-codes";
+import { BadRequestError, NotFoundError } from "@/lib/api/errors";
+import {
+  createCursorPaginatedResponse,
+  parseCursorPaginationParams,
+} from "@/lib/api/pagination";
+import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
-import { responseCreated, responseOk } from "@/lib/api/responses";
-import { NotFoundError, BadRequestError } from "@/lib/api/errors";
-import { ErrorCode } from "@/lib/api/error-codes";
-import {
-  createContactSchema,
-  updateContactSchema,
-  searchContactsSchema,
-} from "./schema";
 import {
   conditionsToPrismaWhere,
   validateConditionFields,
 } from "@/lib/segments/conditions-to-prisma";
 import {
-  createCursorPaginatedResponse,
-  parseCursorPaginationParams,
-} from "@/lib/api/pagination";
+  createContactSchema,
+  searchContactsSchema,
+  updateContactSchema,
+} from "./schema";
 
 /**
  * Build properties object for a contact from contact property definitions
@@ -48,7 +48,7 @@ import {
  */
 function buildContactProperties(
   contact: any,
-  properties: Array<{ name: string; slot: string }>
+  properties: Array<{ name: string; slot: string }>,
 ): Record<string, any> {
   const result: Record<string, any> = {};
 
@@ -85,11 +85,11 @@ function buildContactProperties(
  */
 function mapPropertiesToSlots(
   properties: Record<string, string | number | null>,
-  contactProperties: Array<{ name: string; slot: string }>
+  contactProperties: Array<{ name: string; slot: string }>,
 ): Record<string, any> {
   const slotData: Record<string, any> = {};
   const propertyNameToSlot = new Map(
-    contactProperties.map((prop) => [prop.name, prop.slot])
+    contactProperties.map((prop) => [prop.name, prop.slot]),
   );
 
   for (const [propertyName, propertyValue] of Object.entries(properties)) {
@@ -98,7 +98,7 @@ function mapPropertiesToSlots(
     if (!slot) {
       throw new BadRequestError(
         `Property "${propertyName}" does not exist in this workspace`,
-        ErrorCode.INVALID_PARAMETER
+        ErrorCode.INVALID_PARAMETER,
       );
     }
 
@@ -134,7 +134,7 @@ export interface CreateContactOptions {
 export async function createContact(
   workspaceId: string,
   request: NextRequest,
-  options: CreateContactOptions = {}
+  options: CreateContactOptions = {},
 ) {
   const { sourceType = ContactSourceType.API, sourceId } = options;
 
@@ -178,7 +178,7 @@ export async function createContact(
     {
       id: contact.id,
     },
-    "contact"
+    "contact",
   );
 }
 
@@ -211,12 +211,12 @@ export async function listContacts(workspaceId: string, request: NextRequest) {
         skip: 1,
       })
     : before
-    ? await prisma.contact.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.contact.findMany(baseQuery);
+      ? await prisma.contact.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.contact.findMany(baseQuery);
 
   const hasMore = contacts.length > limit;
   const items = hasMore ? contacts.slice(0, -1) : contacts;
@@ -243,7 +243,7 @@ export async function listContacts(workspaceId: string, request: NextRequest) {
   const paginatedResponse = createCursorPaginatedResponse(
     formattedContacts,
     hasMore,
-    "contact_list"
+    "contact_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -257,7 +257,7 @@ export async function listContacts(workspaceId: string, request: NextRequest) {
  */
 export async function searchContacts(
   workspaceId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const { filters } = await validateRequestBody(searchContactsSchema, request);
   const { limit, after, before } = parseCursorPaginationParams(request);
@@ -270,10 +270,10 @@ export async function searchContacts(
   if (!validation.isValid) {
     throw new BadRequestError(
       `Invalid field(s) in conditions: ${validation.invalidFields.join(
-        ", "
+        ", ",
       )}. ` +
         `Fields must be built-in contact fields or defined custom properties.`,
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -295,12 +295,12 @@ export async function searchContacts(
         skip: 1,
       })
     : before
-    ? await prisma.contact.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.contact.findMany(baseQuery);
+      ? await prisma.contact.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.contact.findMany(baseQuery);
 
   const hasMore = contacts.length > limit;
   const items = hasMore ? contacts.slice(0, -1) : contacts;
@@ -327,7 +327,7 @@ export async function searchContacts(
   const paginatedResponse = createCursorPaginatedResponse(
     formattedContacts,
     hasMore,
-    "contact_list"
+    "contact_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -377,7 +377,7 @@ export async function getContact(workspaceId: string, contactId: string) {
       properties: buildContactProperties(contact, contactProperties),
       topics: contact.topics.map((t) => t.topicId),
     },
-    "contact"
+    "contact",
   );
 }
 
@@ -393,7 +393,7 @@ export async function getContact(workspaceId: string, contactId: string) {
 export async function updateContact(
   workspaceId: string,
   contactId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateContactSchema, request);
 
@@ -441,7 +441,7 @@ export async function updateContact(
     {
       id: updatedContact.id,
     },
-    "contact"
+    "contact",
   );
 }
 
@@ -464,6 +464,6 @@ export async function deleteContact(workspaceId: string, contactId: string) {
     {
       id: deletedContact.id,
     },
-    "contact"
+    "contact",
   );
 }

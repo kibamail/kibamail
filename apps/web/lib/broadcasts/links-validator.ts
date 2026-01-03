@@ -202,7 +202,7 @@ async function pingUrl(url: string): Promise<ExtractedLink> {
 }
 
 export async function validateLinks(
-  urls: string[]
+  urls: string[],
 ): Promise<LinksValidationResult> {
   const results: ExtractedLink[] = [];
 
@@ -240,7 +240,7 @@ export async function validateLinks(
 }
 
 export async function validateContentLinks(
-  contentJson: unknown
+  contentJson: unknown,
 ): Promise<LinksValidationResult> {
   const urls = extractLinksFromContent(contentJson);
 

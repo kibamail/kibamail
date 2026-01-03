@@ -8,7 +8,14 @@
  * - Database running and migrated
  */
 
-import { describe, expect, test, beforeAll, beforeEach, afterAll } from "vitest";
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "vitest";
 import { prisma } from "@/lib/db";
 import {
   bulkInsertEvents,
@@ -97,7 +104,7 @@ describe("Event Processor Tests", () => {
 
     test("should insert multiple events in batch", async () => {
       const events = Array.from({ length: 50 }, (_, i) =>
-        createTestEvent({ sending_id: `batch-${Date.now()}-${i}` })
+        createTestEvent({ sending_id: `batch-${Date.now()}-${i}` }),
       );
 
       const count = await bulkInsertEvents(events);
@@ -150,7 +157,7 @@ describe("Event Processor Tests", () => {
       ];
 
       const events = eventTypes.map((type) =>
-        createTestEvent({ type, sending_id: `type-${type}-${Date.now()}` })
+        createTestEvent({ type, sending_id: `type-${type}-${Date.now()}` }),
       );
 
       await bulkInsertEvents(events);
@@ -308,7 +315,7 @@ describe("Event Processor Tests", () => {
           type: "Bounce",
           bounce_classification: classification,
           recipient: `permanent-${i}@example.com`,
-        })
+        }),
       );
 
       await processEventsWithSideEffects(events);
@@ -351,7 +358,7 @@ describe("Event Processor Tests", () => {
         createTestEvent({
           sending_id: `perf-${Date.now()}-${i}`,
           recipient: `perf-${i}@example.com`,
-        })
+        }),
       );
 
       const startTime = Date.now();
@@ -365,8 +372,8 @@ describe("Event Processor Tests", () => {
 
       console.log(
         `Inserted ${batchSize} events in ${duration}ms (${Math.round(
-          (batchSize / duration) * 1000
-        )} events/sec)`
+          (batchSize / duration) * 1000,
+        )} events/sec)`,
       );
     });
   });

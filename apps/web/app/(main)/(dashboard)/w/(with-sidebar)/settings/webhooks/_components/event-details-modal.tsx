@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import * as Dialog from "@kibamail/owly/dialog";
+import { Button } from "@kibamail/owly";
 import * as Accordion from "@kibamail/owly/accordion";
 import { Badge } from "@kibamail/owly/badge";
+import * as Dialog from "@kibamail/owly/dialog";
+import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
+import { useEffect } from "react";
 import { internalApi } from "@/lib/api/client";
 import type { DeliveryAttempt } from "@/webhooks/client/types";
-import { Button } from "@kibamail/owly";
 
 interface EventDetailsModalProps {
   eventId: string | null;
@@ -117,7 +117,7 @@ export function EventDetailsModal({
                               {JSON.stringify(
                                 delivery.response_headers,
                                 null,
-                                2
+                                2,
                               )}
                             </pre>
                           </div>
@@ -127,7 +127,7 @@ export function EventDetailsModal({
                             {JSON.stringify(
                               delivery.response_data?.body,
                               null,
-                              2
+                              2,
                             )}
                           </pre>
                         )}

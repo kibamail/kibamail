@@ -8,8 +8,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 import { sendBroadcast } from "@/app/(main)/api/v1/broadcasts/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;
@@ -28,8 +28,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey) =>
-        sendBroadcast(apiKey.workspaceId, broadcastId),
+      (apiKey) => sendBroadcast(apiKey.workspaceId, broadcastId),
       ["write:broadcasts"],
     ),
   );

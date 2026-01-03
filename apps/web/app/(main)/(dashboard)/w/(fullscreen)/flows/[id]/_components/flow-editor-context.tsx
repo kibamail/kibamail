@@ -1,22 +1,22 @@
 "use client";
 
+import type { Edge, Node } from "@xyflow/react";
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
   useEffect,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
-import type { Edge, Node } from "@xyflow/react";
 import { useDebouncedCallback } from "use-debounce";
-import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
 import type {
   AutomationResponse,
   UpdateAutomationInput,
 } from "@/app/(main)/api/v1/automations/schema";
+import { useMutation } from "@/hooks/use-mutation";
+import { internalApi } from "@/lib/api/client";
 import type { ValidationError } from "@/lib/automations/validation";
 
 type SaveStatus = "idle" | "saving" | "success" | "error";
@@ -55,7 +55,7 @@ export function FlowEditorProvider({
   children,
 }: FlowEditorProviderProps) {
   const [automation, setAutomation] = useState<AutomationResponse | null>(
-    initialAutomation
+    initialAutomation,
   );
   const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -84,7 +84,7 @@ export function FlowEditorProvider({
     (nodeId: string): ValidationError[] => {
       return nodeErrors.get(nodeId) || [];
     },
-    [nodeErrors]
+    [nodeErrors],
   );
 
   const { mutate: performUpdate } = useMutation({
@@ -152,7 +152,7 @@ export function FlowEditorProvider({
       setHasUnsavedChanges(true);
       debouncedSave();
     },
-    [debouncedSave]
+    [debouncedSave],
   );
 
   useEffect(() => {

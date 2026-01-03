@@ -4,9 +4,9 @@ import { Checkbox, type CheckboxProps } from "@kibamail/owly/checkbox";
 import { Text } from "@kibamail/owly/text";
 import {
   createContext,
+  type PropsWithChildren,
   useContext,
   useId,
-  type PropsWithChildren,
 } from "react";
 
 interface CheckboxFieldContextValue {

@@ -1,8 +1,8 @@
 "use client";
 
 import * as TextField from "@kibamail/owly/text-field";
-import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 import { useCallback } from "react";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 
 interface Split {
   id: string;
@@ -79,7 +79,7 @@ export function PercentageSplitConfiguration() {
       setNodes(updatedNodes);
       setEdges(updatedEdges);
     },
-    [nodes, edges, selectedNodeId, setNodes, setEdges]
+    [nodes, edges, selectedNodeId, setNodes, setEdges],
   );
 
   const branchAPercentage =

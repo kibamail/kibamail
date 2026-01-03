@@ -104,9 +104,7 @@ export async function getTenant(tenantId: string) {
         try {
           decryptedPrivateKey = decrypt(domain.dkimPrivateKey, env.APP_KEY);
         } catch {
-          console.error(
-            `Failed to decrypt DKIM key for domain ${domain.name}`,
-          );
+          console.error(`Failed to decrypt DKIM key for domain ${domain.name}`);
         }
       }
 
@@ -309,7 +307,10 @@ export async function getTenantByDmarcCode(dmarcCode: string) {
  * Validate an API key hash and return associated tenant info.
  * Used by email-agent to validate SMTP credentials.
  */
-export async function validateApiKey(keyHash: string, requiredScopes?: string[]) {
+export async function validateApiKey(
+  keyHash: string,
+  requiredScopes?: string[],
+) {
   const apiKey = await prisma.apiKey.findUnique({
     where: { keyHash },
     select: {
@@ -320,16 +321,17 @@ export async function validateApiKey(keyHash: string, requiredScopes?: string[])
   });
 
   if (!apiKey) {
-    throw new NotFoundError(
-      "API key not found",
-      ErrorCode.INVALID_API_KEY,
-    );
+    throw new NotFoundError("API key not found", ErrorCode.INVALID_API_KEY);
   }
 
-  const scopes = Array.isArray(apiKey.scopes) ? (apiKey.scopes as string[]) : [];
+  const scopes = Array.isArray(apiKey.scopes)
+    ? (apiKey.scopes as string[])
+    : [];
 
   if (requiredScopes && requiredScopes.length > 0) {
-    const hasAllScopes = requiredScopes.every((scope) => scopes.includes(scope));
+    const hasAllScopes = requiredScopes.every((scope) =>
+      scopes.includes(scope),
+    );
     if (!hasAllScopes) {
       return responseOk(
         {

@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { WebhooksTable } from "./webhooks-table";
 import type { WebhookDestination } from "@/webhooks/client/types";
+import { WebhooksTable } from "./webhooks-table";
 
 interface WebhooksPageClientProps {
   destinations: WebhookDestination[];

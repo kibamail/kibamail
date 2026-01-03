@@ -12,7 +12,10 @@ export function CreateSegmentButton({ ...props }: CreateSegmentButtonProps) {
 
   return (
     <>
-      <Button {...props} onClick={() => createSegmentState.onOpenChange?.(true)}>
+      <Button
+        {...props}
+        onClick={() => createSegmentState.onOpenChange?.(true)}
+      >
         <Plus className="w-4 h-4" />
         Create Segment
       </Button>

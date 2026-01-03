@@ -6,33 +6,35 @@
  */
 
 import {
-  type JsMsg,
-  type ConsumerMessages,
   AckPolicy,
+  type ConsumerMessages,
   DeliverPolicy,
+  type JsMsg,
+  RetentionPolicy,
+  StorageType,
   StringCodec,
 } from "nats";
+import { queueLogger } from "@/lib/queue";
 import { getJetStream, getJetStreamManager } from "./client";
-import type { NatsConnectionOptions } from "./types";
 import type {
   EmailEvent,
-  EventConsumerConfig,
   EventBatch,
+  EventConsumerConfig,
 } from "./event-types";
 import { DEFAULT_CONSUMER_CONFIG } from "./event-types";
-import { queueLogger } from "@/lib/queue";
 import {
-  recordBatchSize,
+  type BatchTraceContext,
+  calculateBatchStats,
+  endBatchSpan,
   recordBatchDuration,
+  recordBatchSize,
+  recordEventsFailed,
   recordMessageAcked,
   recordMessageNacked,
-  recordEventsFailed,
-  updateConsumerStats,
   startBatchSpan,
-  endBatchSpan,
-  calculateBatchStats,
-  type BatchTraceContext,
+  updateConsumerStats,
 } from "./instrumentation";
+import type { NatsConnectionOptions } from "./types";
 
 const logger = queueLogger.child({ module: "nats-consumer" });
 const sc = StringCodec();
@@ -55,17 +57,14 @@ interface ConsumerState {
  */
 async function ensureConsumer(
   options: NatsConnectionOptions,
-  config: EventConsumerConfig
+  config: EventConsumerConfig,
 ): Promise<void> {
   const jsm = await getJetStreamManager(options);
 
   try {
     // Check if consumer exists
     await jsm.consumers.info("EVENTS", config.consumerName);
-    logger.info(
-      { consumer: config.consumerName },
-      "Using existing consumer"
-    );
+    logger.info({ consumer: config.consumerName }, "Using existing consumer");
   } catch {
     // Create consumer if it doesn't exist
     await jsm.consumers.add("EVENTS", {
@@ -76,10 +75,7 @@ async function ensureConsumer(
       max_ack_pending: 10000,
       ack_wait: 30_000_000_000, // 30 seconds in nanoseconds
     });
-    logger.info(
-      { consumer: config.consumerName },
-      "Created new consumer"
-    );
+    logger.info({ consumer: config.consumerName }, "Created new consumer");
   }
 }
 
@@ -93,7 +89,7 @@ function parseEventMessage(msg: JsMsg): EmailEvent | null {
   } catch (error) {
     logger.error(
       { error, subject: msg.subject },
-      "Failed to parse event message"
+      "Failed to parse event message",
     );
     return null;
   }
@@ -104,8 +100,11 @@ function parseEventMessage(msg: JsMsg): EmailEvent | null {
  */
 async function processBatch(
   batch: EventBatch,
-  processor: (events: EmailEvent[], traceContext?: BatchTraceContext) => Promise<void>,
-  consumerName: string
+  processor: (
+    events: EmailEvent[],
+    traceContext?: BatchTraceContext,
+  ) => Promise<void>,
+  consumerName: string,
 ): Promise<void> {
   const startTime = Date.now();
   const batchSize = batch.events.length;
@@ -118,8 +117,14 @@ async function processBatch(
 
   // Start trace span
   const traceContext = startBatchSpan(batchSize, consumerName);
-  traceContext.span.setAttribute("batch.event_types", JSON.stringify(stats.eventsByType));
-  traceContext.span.setAttribute("batch.workspace_count", Object.keys(stats.eventsByWorkspace).length);
+  traceContext.span.setAttribute(
+    "batch.event_types",
+    JSON.stringify(stats.eventsByType),
+  );
+  traceContext.span.setAttribute(
+    "batch.workspace_count",
+    Object.keys(stats.eventsByWorkspace).length,
+  );
 
   try {
     await processor(batch.events, traceContext);
@@ -142,7 +147,7 @@ async function processBatch(
         eventTypes: stats.eventsByType,
         workspaceCount: Object.keys(stats.eventsByWorkspace).length,
       },
-      "Batch processed successfully"
+      "Batch processed successfully",
     );
   } catch (error) {
     const duration = Date.now() - startTime;
@@ -156,7 +161,7 @@ async function processBatch(
 
     logger.error(
       { error, count: batchSize, eventTypes: stats.eventsByType },
-      "Failed to process batch"
+      "Failed to process batch",
     );
     throw error;
   }
@@ -167,8 +172,11 @@ async function processBatch(
  */
 export async function startEventConsumer(
   options: NatsConnectionOptions,
-  processor: (events: EmailEvent[], traceContext?: BatchTraceContext) => Promise<void>,
-  config: EventConsumerConfig = DEFAULT_CONSUMER_CONFIG
+  processor: (
+    events: EmailEvent[],
+    traceContext?: BatchTraceContext,
+  ) => Promise<void>,
+  config: EventConsumerConfig = DEFAULT_CONSUMER_CONFIG,
 ): Promise<{
   stop: () => Promise<void>;
   isRunning: () => boolean;
@@ -255,10 +263,7 @@ export async function startEventConsumer(
   async function consumeMessages(): Promise<void> {
     state.isRunning = true;
 
-    logger.info(
-      { config },
-      "Starting event consumer"
-    );
+    logger.info({ config }, "Starting event consumer");
 
     try {
       // Use consume() for continuous message consumption
@@ -278,10 +283,7 @@ export async function startEventConsumer(
           try {
             await addToBatch(event, msg);
           } catch (error) {
-            logger.error(
-              { error, event },
-              "Error adding event to batch"
-            );
+            logger.error({ error, event }, "Error adding event to batch");
             // NAK the message so it can be redelivered
             msg.nak();
             recordMessageNacked(1);
@@ -385,7 +387,7 @@ export async function startEventConsumer(
  * for development/testing scenarios.
  */
 export async function ensureEventsStream(
-  options: NatsConnectionOptions
+  options: NatsConnectionOptions,
 ): Promise<void> {
   const jsm = await getJetStreamManager(options);
 
@@ -396,9 +398,9 @@ export async function ensureEventsStream(
     await jsm.streams.add({
       name: "EVENTS",
       subjects: ["kibamail.events.>"],
-      retention: "workqueue" as any,
+      retention: RetentionPolicy.Workqueue,
       max_age: 7 * 24 * 60 * 60 * 1000000000, // 7 days in nanoseconds
-      storage: "file" as any,
+      storage: StorageType.File,
     });
     logger.info("Created EVENTS stream");
   }

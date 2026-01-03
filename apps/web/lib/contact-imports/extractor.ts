@@ -2,15 +2,15 @@ import type { ContactProperty } from "@prisma/client";
 import type { ParsedRow } from "@/lib/csv";
 import { isValidEmail, normalizeEmail } from "@/lib/csv";
 import {
-  normalizePhone,
-  normalizeCountry,
-  normalizeTimezone,
   normalizeCity,
+  normalizeCountry,
+  normalizePhone,
+  normalizeTimezone,
 } from "./normalizers";
 import {
-  isStandardField,
   type ColumnMapping,
   type ExtractedData,
+  isStandardField,
   type StandardField,
 } from "./types";
 

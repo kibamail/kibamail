@@ -1,9 +1,9 @@
+import type { FormStatus } from "@prisma/client";
+import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
-import { notFound } from "next/navigation";
 import { FormBuilderClient } from "./_components/form-builder";
 import type { FormBuilderSchema } from "./_components/form-builder/types";
-import type { FormStatus } from "@prisma/client";
 
 export interface FormVersion {
   id: string;
@@ -29,7 +29,7 @@ interface FormWithVersions {
 
 async function getFormWithVersions(
   workspaceId: string,
-  formId: string
+  formId: string,
 ): Promise<FormWithVersions | null> {
   // First, get the requested form
   const form = await prisma.form.findFirst({

@@ -1,23 +1,23 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ContactImport } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
-  processContactImport,
-  processBatch,
-  extractContactData,
   buildContactData,
-  isStandardField,
-  STANDARD_FIELDS,
   type ColumnMapping,
+  extractContactData,
+  isStandardField,
+  processBatch,
+  processContactImport,
+  STANDARD_FIELDS,
 } from "@/lib/contact-imports";
 import { parseCsv } from "@/lib/csv";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
   cleanupWorkspace,
   createTestContacts,
   createTestTopics,
+  createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils/workspace";
 
@@ -34,7 +34,7 @@ async function createTestContactImport(
     autoSubscribe: boolean;
     updateExisting: boolean;
     totalRows: number;
-  }> = {}
+  }> = {},
 ): Promise<ContactImport> {
   return prisma.contactImport.create({
     data: {
@@ -159,7 +159,7 @@ describe("buildContactData", () => {
       {},
       "workspace-123",
       "john@example.com",
-      { autoSubscribe: false, sourceId: "import-123" }
+      { autoSubscribe: false, sourceId: "import-123" },
     );
 
     expect(result.email).toBe("john@example.com");
@@ -178,7 +178,7 @@ describe("buildContactData", () => {
       {},
       "workspace-123",
       "john@example.com",
-      { autoSubscribe: true, sourceId: "import-123" }
+      { autoSubscribe: true, sourceId: "import-123" },
     );
 
     expect(result.status).toBe("SUBSCRIBED");
@@ -196,10 +196,12 @@ describe("buildContactData", () => {
       customProperties,
       "workspace-123",
       "john@example.com",
-      { autoSubscribe: false, sourceId: "import-123" }
+      { autoSubscribe: false, sourceId: "import-123" },
     );
 
-    expect((result as Record<string, unknown>).propertyString0).toBe("Custom Value");
+    expect((result as Record<string, unknown>).propertyString0).toBe(
+      "Custom Value",
+    );
     expect((result as Record<string, unknown>).propertyFloat0).toBe(123.45);
   });
 
@@ -214,10 +216,12 @@ describe("buildContactData", () => {
       customProperties,
       "workspace-123",
       "john@example.com",
-      { autoSubscribe: false, sourceId: "import-123" }
+      { autoSubscribe: false, sourceId: "import-123" },
     );
 
-    expect(((result as Record<string, unknown>).propertyString0 as string).length).toBe(255);
+    expect(
+      ((result as Record<string, unknown>).propertyString0 as string).length,
+    ).toBe(255);
   });
 
   it("should handle invalid numeric values gracefully", () => {
@@ -230,7 +234,7 @@ describe("buildContactData", () => {
       customProperties,
       "workspace-123",
       "john@example.com",
-      { autoSubscribe: false, sourceId: "import-123" }
+      { autoSubscribe: false, sourceId: "import-123" },
     );
 
     expect((result as Record<string, unknown>).propertyFloat0).toBeUndefined();
@@ -735,7 +739,10 @@ describe("standard field normalization", () => {
     await processContactImport(contactImport, csvContent);
 
     const invalidPhone = await prisma.contact.findFirst({
-      where: { workspaceId: testWorkspace.id, email: "invalid-phone@example.com" },
+      where: {
+        workspaceId: testWorkspace.id,
+        email: "invalid-phone@example.com",
+      },
     });
     expect(invalidPhone).not.toBeNull();
     expect(invalidPhone?.firstName).toBe("Tom");
@@ -794,7 +801,10 @@ describe("standard field normalization", () => {
     await processContactImport(contactImport, csvContent);
 
     const invalidCountry = await prisma.contact.findFirst({
-      where: { workspaceId: testWorkspace.id, email: "invalid-country@example.com" },
+      where: {
+        workspaceId: testWorkspace.id,
+        email: "invalid-country@example.com",
+      },
     });
     expect(invalidCountry).not.toBeNull();
     expect(invalidCountry?.firstName).toBe("Sarah");
@@ -843,7 +853,10 @@ describe("standard field normalization", () => {
     await processContactImport(contactImport, csvContent);
 
     const invalidTimezone = await prisma.contact.findFirst({
-      where: { workspaceId: testWorkspace.id, email: "invalid-timezone@example.com" },
+      where: {
+        workspaceId: testWorkspace.id,
+        email: "invalid-timezone@example.com",
+      },
     });
     expect(invalidTimezone).not.toBeNull();
     expect(invalidTimezone?.firstName).toBe("Mike");
@@ -892,7 +905,10 @@ describe("standard field normalization", () => {
     await processContactImport(contactImport, csvContent);
 
     const invalidCity = await prisma.contact.findFirst({
-      where: { workspaceId: testWorkspace.id, email: "invalid-city-numbers@example.com" },
+      where: {
+        workspaceId: testWorkspace.id,
+        email: "invalid-city-numbers@example.com",
+      },
     });
     expect(invalidCity).not.toBeNull();
     expect(invalidCity?.firstName).toBe("Lisa");
@@ -963,7 +979,10 @@ describe("standard field normalization", () => {
     await processContactImport(contactImport, csvContent);
 
     const allInvalid = await prisma.contact.findFirst({
-      where: { workspaceId: testWorkspace.id, email: "all-invalid@example.com" },
+      where: {
+        workspaceId: testWorkspace.id,
+        email: "all-invalid@example.com",
+      },
     });
     expect(allInvalid).not.toBeNull();
     expect(allInvalid?.firstName).toBe("Empty");
@@ -987,7 +1006,10 @@ describe("standard field normalization", () => {
     await processContactImport(contactImport, csvContent);
 
     const validWithSpaces = await prisma.contact.findFirst({
-      where: { workspaceId: testWorkspace.id, email: "valid-with-spaces@example.com" },
+      where: {
+        workspaceId: testWorkspace.id,
+        email: "valid-with-spaces@example.com",
+      },
     });
     expect(validWithSpaces?.country).toBe("FR");
     expect(validWithSpaces?.city).toBe("Paris");
@@ -1015,7 +1037,10 @@ describe("processBatch", () => {
     const csvContent = loadTestCsv("perfect.csv");
     const parsed = parseCsv(csvContent);
 
-    const columnMapping: ColumnMapping = { email: "email", first_name: "firstName" };
+    const columnMapping: ColumnMapping = {
+      email: "email",
+      first_name: "firstName",
+    };
 
     const results = await processBatch(
       parsed.rows.slice(0, 2),
@@ -1027,7 +1052,7 @@ describe("processBatch", () => {
         updateExisting: false,
         topicIds: [],
         sourceId: "test-import",
-      }
+      },
     );
 
     expect(results.length).toBe(2);
@@ -1064,7 +1089,7 @@ describe("processBatch", () => {
         updateExisting: false,
         topicIds: [],
         sourceId: "test-import",
-      }
+      },
     );
 
     const created = results.filter((r) => r.action === "created");

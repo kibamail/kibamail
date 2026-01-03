@@ -9,16 +9,16 @@
  * Returns the rendered HTML exactly as it will appear in an email
  */
 
-import { NextResponse, type NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { prisma } from "@/lib/db";
-import { NotFoundError } from "@/lib/api/errors";
+import { type NextRequest, NextResponse } from "next/server";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { NotFoundError } from "@/lib/api/errors";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 import {
-  renderBroadcastToHtml,
   type BroadcastDocument,
   type BroadcastStyles,
+  renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
+import { prisma } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;
@@ -55,7 +55,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       if (!broadcast) {
         throw new NotFoundError(
           "Broadcast not found",
-          ErrorCode.BROADCAST_NOT_FOUND
+          ErrorCode.BROADCAST_NOT_FOUND,
         );
       }
 
@@ -67,12 +67,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             html: "<html><body><p>No content to preview</p></body></html>",
             hasContent: false,
           },
-          { status: 200 }
+          { status: 200 },
         );
       }
 
       // Get styles from the email content (if stored)
-      const storedStyles = (broadcast.emailContent?.styles as BroadcastStyles) || {};
+      const storedStyles =
+        (broadcast.emailContent?.styles as BroadcastStyles) || {};
 
       // Render the broadcast to HTML with styles
       const html = await renderBroadcastToHtml(
@@ -88,7 +89,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             view_in_browser_url: "#view-in-browser",
           },
         },
-        storedStyles
+        storedStyles,
       );
 
       return NextResponse.json(
@@ -96,8 +97,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           html,
           hasContent: true,
         },
-        { status: 200 }
+        { status: 200 },
       );
-    })
+    }),
   );
 }

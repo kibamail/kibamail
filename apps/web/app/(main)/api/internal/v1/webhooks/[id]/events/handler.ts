@@ -5,10 +5,10 @@
  */
 
 import type { NextRequest } from "next/server";
+import { listEventsQuerySchema } from "@/app/(main)/api/internal/v1/webhooks/schema";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
 import { outpost } from "@/webhooks/client/client";
-import { listEventsQuerySchema } from "@/app/(main)/api/internal/v1/webhooks/schema";
 
 /**
  * GET /api/internal/v1/webhooks/[id]/events

@@ -25,8 +25,7 @@ export function MemberActionsDropdown({
     onChangeRole(member);
   }
 
-  function onRemoveMember() {
-  }
+  function onRemoveMember() {}
 
   return (
     <DropdownMenu.Root>

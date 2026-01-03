@@ -27,7 +27,9 @@
         "original_mail_from": "<bounces+msg-001@bounce.acme.com>",
         "reporting_mta": null,
         "source_ip": null,
-        "authentication_results": ["authentication result string is not available"],
+        "authentication_results": [
+          "authentication result string is not available"
+        ],
         "original_rcpto_to": ["complainer@yahoo.com"],
         "reported_domain": ["bounce.acme.com"],
         "reported_uri": [],
@@ -35,7 +37,11 @@
         "original_message": "Date: Mon, 01 Jan 2024 00:00:00 +0000\nTo: complainer@yahoo.com\nSubject: Your Weekly Update\n\nContent here...",
         "supplemental_trace": null
       },
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_yahoo_001" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_yahoo_001"
+      }
     },
     {
       "_provider": "Comcast/Xfinity via Return Path",
@@ -70,12 +76,18 @@
         "extensions": {
           "abuse-type": ["complaint"],
           "source": ["Comcast"],
-          "subscription-link": ["https://fbl.returnpath.net/manage/subscriptions/xxx"]
+          "subscription-link": [
+            "https://fbl.returnpath.net/manage/subscriptions/xxx"
+          ]
         },
         "original_message": "Date: Mon, 01 Jan 2024 00:00:00 +0000\nTo: user@comcast.net\nSubject: Special Offer Inside\n\nContent here...",
         "supplemental_trace": null
       },
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_002", "contact_id": "ct_comcast_001" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_002",
+        "contact_id": "ct_comcast_001"
+      }
     },
     {
       "_provider": "Microsoft/Outlook via JMRP",
@@ -121,7 +133,11 @@
           "contact_id": "ct_outlook_001"
         }
       },
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_003", "contact_id": "ct_outlook_001" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_003",
+        "contact_id": "ct_outlook_001"
+      }
     },
     {
       "_provider": "AOL",
@@ -160,7 +176,11 @@
         "original_message": "Full original message headers and body...",
         "supplemental_trace": null
       },
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_004", "contact_id": "ct_aol_001" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_004",
+        "contact_id": "ct_aol_001"
+      }
     }
   ]
 }

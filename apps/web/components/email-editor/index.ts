@@ -1,59 +1,32 @@
-// Main component
-export { EmailEditorClient } from "./email-editor-client";
-
 // Adapters for specific use cases
-export {
-  BroadcastEditorAdapter,
-  TemplateEditorAdapter,
-  AutomationEmailEditorAdapter,
-} from "./adapters";
+export { BroadcastEditorAdapter } from "./adapters";
 
 // Sub-components
-export { ContentEditor, type ContentEditorRef } from "./content-editor";
-export { EmailPreview } from "./email-preview";
-export { EmailDetailsTab } from "./email-details-tab";
-export { PublishButton } from "./publish-button";
-
-// Detail sections
-export {
-  SectionHeader,
-  SectionDivider,
-  SectionSaveButton,
-  ChecklistItem,
-  EmailSubjectSection,
-  SenderDetailsSection,
-  TrackingSection,
-  RecipientsSection,
-  SendTimeSection,
-  useSendTime,
-} from "./details-sections";
+export type { ContentEditorRef } from "./content-editor";
 
 // Types
 export type {
-  EmailEditorMode,
+  AutomationEmailDetails,
+  BroadcastDetails,
+  CreatedDomain,
+  Domain,
+  EditorDetails,
+  EditorTab,
   EmailContent,
   EmailDetails,
-  BroadcastDetails,
-  TemplateDetails,
-  AutomationEmailDetails,
-  EditorDetails,
-  Domain,
-  SenderSelectState,
-  SenderSelectActions,
-  EditorTab,
-  TabConfig,
-  EmailEditorMutations,
-  SaveDraftPayload,
-  ReadinessResponse,
-  ReadinessChecklistItem,
-  LinksValidation,
-  LinkStatus,
-  ExtractedLink,
-  EmailEditorProps,
   EmailEditorLabels,
+  EmailEditorMode,
+  EmailEditorMutations,
+  EmailEditorProps,
+  ExtractedLink,
+  LinkStatus,
+  LinksValidation,
+  ReadinessChecklistItem,
+  ReadinessResponse,
+  SaveDraftPayload,
+  SenderSelectActions,
+  SenderSelectState,
+  TabConfig,
+  TemplateDetails,
   TransformedSenderIdentity,
-  CreatedDomain,
 } from "./types";
-
-// Utilities
-export { getTabsForMode, getDefaultLabels } from "./types";

@@ -9,7 +9,7 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 import { createForm, listForms } from "./handler";
 
 /**
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => listForms(apiKey.workspaceId, request),
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }
 
@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => createForm(apiKey.workspaceId, request),
-      ["write:forms"]
-    )
+      ["write:forms"],
+    ),
   );
 }

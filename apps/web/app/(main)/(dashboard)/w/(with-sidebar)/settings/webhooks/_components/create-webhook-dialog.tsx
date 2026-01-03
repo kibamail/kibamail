@@ -1,18 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
 import { Button } from "@kibamail/owly/button";
 import { Checkbox } from "@kibamail/owly/checkbox";
 import * as Dialog from "@kibamail/owly/dialog";
 import * as Select from "@kibamail/owly/select-field";
 import * as TextField from "@kibamail/owly/text-field";
 import { useToast } from "@kibamail/owly/toast";
-import type { WebhookDestinationType } from "@/webhooks/client/types";
-import type { ToggleState } from "@/hooks/utils/useToggleState";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "@/hooks/use-mutation";
+import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
+import type { WebhookDestinationType } from "@/webhooks/client/types";
 
 interface CreateWebhookFormData {
   destination_type: string;
@@ -277,7 +277,7 @@ export function CreateWebhookDialog({
                           />
                         </div>
                       );
-                    }
+                    },
                   )}
                 </div>
               )}
@@ -432,7 +432,7 @@ export function CreateWebhookDialog({
                                 field.onChange([...currentTopics, topic]);
                               } else {
                                 field.onChange(
-                                  currentTopics.filter((t) => t !== topic)
+                                  currentTopics.filter((t) => t !== topic),
                                 );
                               }
                             }}

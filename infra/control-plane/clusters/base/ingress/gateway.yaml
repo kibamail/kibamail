@@ -21,3 +21,14 @@ spec:
       allowedRoutes:
         namespaces:
           from: All
+    - name: https-tracking
+      protocol: HTTPS
+      port: 30443
+      hostname: e.kbmta.net
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - name: tracking-tls
+      allowedRoutes:
+        namespaces:
+          from: All

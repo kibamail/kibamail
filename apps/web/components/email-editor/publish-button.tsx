@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@kibamail/owly/button";
 import * as Popover from "@kibamail/owly/popover";
 import { Text } from "@kibamail/owly/text";
 import { useToast } from "@kibamail/owly/toast";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Check, NavArrowLeft, NavArrowRight, Xmark } from "iconoir-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import type {
-  EmailEditorMode,
   EmailEditorLabels,
+  EmailEditorMode,
   ReadinessResponse,
 } from "./types";
 
@@ -73,7 +73,7 @@ export function PublishButton({
     },
     onError: (error) => {
       toastError(
-        error instanceof Error ? error.message : getErrorMessage(mode)
+        error instanceof Error ? error.message : getErrorMessage(mode),
       );
     },
   });

@@ -34,7 +34,7 @@ const DEFAULT_OPTIONS: Required<CsvOptions> = {
   maxFieldLength: 10000,
 };
 
-export class CsvParser {
+class CsvParser {
   private options: Required<CsvOptions>;
 
   constructor(options: CsvOptions = {}) {
@@ -125,7 +125,7 @@ export class CsvParser {
   private parseRows(
     lines: string[],
     headers: string[],
-    startIndex: number
+    startIndex: number,
   ): CsvParseResult {
     const rows: ParsedRow[] = [];
     const errors: Array<{ lineNumber: number; message: string }> = [];
@@ -139,7 +139,8 @@ export class CsvParser {
       const lineNumber = i + 1;
       const values = this.parseLine(line);
       const data = this.buildDataObject(headers, values);
-      const isValid = !this.options.hasHeaders || values.length === headers.length;
+      const isValid =
+        !this.options.hasHeaders || values.length === headers.length;
 
       if (isValid) {
         validRows++;
@@ -159,10 +160,20 @@ export class CsvParser {
       });
     }
 
-    return { headers, rows, totalRows: rows.length, validRows, invalidRows, errors };
+    return {
+      headers,
+      rows,
+      totalRows: rows.length,
+      validRows,
+      invalidRows,
+      errors,
+    };
   }
 
-  private buildDataObject(headers: string[], values: string[]): Record<string, string> {
+  private buildDataObject(
+    headers: string[],
+    values: string[],
+  ): Record<string, string> {
     const data: Record<string, string> = {};
     for (let i = 0; i < headers.length; i++) {
       data[headers[i]] = values[i] ?? "";
@@ -170,7 +181,11 @@ export class CsvParser {
     return data;
   }
 
-  private finalizeValue(value: string, trim: boolean, maxLength: number): string {
+  private finalizeValue(
+    value: string,
+    trim: boolean,
+    maxLength: number,
+  ): string {
     const result = trim ? value.trim() : value;
     return result.length > maxLength ? result.substring(0, maxLength) : result;
   }
@@ -192,7 +207,10 @@ export class CsvParser {
 }
 
 // Convenience functions
-export function parseCsv(content: string, options?: CsvOptions): CsvParseResult {
+export function parseCsv(
+  content: string,
+  options?: CsvOptions,
+): CsvParseResult {
   return new CsvParser(options).parse(content);
 }
 
@@ -220,7 +238,7 @@ export async function processCsvInBatches<T>(
   content: string,
   batchSize: number,
   processor: (batch: ParsedRow[], batchIndex: number) => Promise<T>,
-  options?: CsvOptions
+  options?: CsvOptions,
 ): Promise<{ results: T[]; totalRows: number; totalBatches: number }> {
   const { rows, totalRows } = parseCsv(content, options);
   const results: T[] = [];
@@ -230,5 +248,9 @@ export async function processCsvInBatches<T>(
     results.push(await processor(batch, Math.floor(i / batchSize)));
   }
 
-  return { results, totalRows, totalBatches: Math.ceil(rows.length / batchSize) };
+  return {
+    results,
+    totalRows,
+    totalBatches: Math.ceil(rows.length / batchSize),
+  };
 }

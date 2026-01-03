@@ -11,13 +11,13 @@ import { cookies, headers } from "next/headers";
 import { UAParser } from "ua-parser-js";
 import { prisma } from "@/lib/db";
 
-export const VIEW_COOKIE_PREFIX = "kiba_fv_";
-export const VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
+const VIEW_COOKIE_PREFIX = "kiba_fv_";
+const VIEW_COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 /**
  * Parse user agent string to extract device, OS, and browser info
  */
-export function parseUserAgent(userAgent: string | null): {
+function parseUserAgent(userAgent: string | null): {
   device: string | null;
   os: string | null;
   browser: string | null;
@@ -47,7 +47,7 @@ export function parseUserAgent(userAgent: string | null): {
 /**
  * Get the cookie name for a specific form
  */
-export function getViewCookieName(formId: string): string {
+function getViewCookieName(formId: string): string {
   return `${VIEW_COOKIE_PREFIX}${formId}`;
 }
 
@@ -55,7 +55,7 @@ export function getViewCookieName(formId: string): string {
  * Check if a form view has already been tracked (server component safe)
  * Only reads cookies - does not set them.
  */
-export async function hasFormBeenViewed(formId: string): Promise<boolean> {
+async function hasFormBeenViewed(formId: string): Promise<boolean> {
   const cookieStore = await cookies();
   const cookieName = getViewCookieName(formId);
   const existingCookie = cookieStore.get(cookieName);
@@ -74,17 +74,16 @@ export async function hasFormBeenViewed(formId: string): Promise<boolean> {
  * @param workspaceId - The workspace ID
  * @returns The created page view ID
  */
-export async function trackFormView(
+async function trackFormView(
   formId: string,
-  workspaceId: string
+  workspaceId: string,
 ): Promise<string> {
   const headerStore = await headers();
 
   // Extract request metadata from headers
   const forwardedFor = headerStore.get("x-forwarded-for");
-  const ipAddress = forwardedFor?.split(",")[0]?.trim() ||
-    headerStore.get("x-real-ip") ||
-    null;
+  const ipAddress =
+    forwardedFor?.split(",")[0]?.trim() || headerStore.get("x-real-ip") || null;
   const userAgent = headerStore.get("user-agent") || null;
   const referrerUrl = headerStore.get("referer") || null;
 
@@ -116,7 +115,7 @@ export async function trackFormView(
  */
 export async function trackUniqueFormView(
   formId: string,
-  workspaceId: string
+  workspaceId: string,
 ): Promise<{ tracked: boolean; formId: string }> {
   const alreadyViewed = await hasFormBeenViewed(formId);
 

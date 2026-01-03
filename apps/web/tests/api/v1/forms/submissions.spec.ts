@@ -5,21 +5,24 @@
  * - POST /api/v1/forms/[formId]/submissions - Submit data to a form
  */
 
-import { POST } from "@/app/(main)/api/v1/forms/[formId]/submissions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/v1/forms/[formId]/submissions/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   post,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { signUpFormFields, surveyFormFields } from "@/tests/utils/form-fixtures";
-import { prisma } from "@/lib/db";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
+import {
+  signUpFormFields,
+  surveyFormFields,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -48,9 +51,27 @@ beforeAll(async () => {
       fields: signUpFormFields as never,
       publishedAt: new Date(),
       fieldMapping: {
-        email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-        firstName: { slot: "fieldString1", type: "string", fieldType: "text", contactPropertyId: "firstName", contactPropertyType: "standard" },
-        lastName: { slot: "fieldString2", type: "string", fieldType: "text", contactPropertyId: "lastName", contactPropertyType: "standard" },
+        email: {
+          slot: "fieldString0",
+          type: "string",
+          fieldType: "email",
+          contactPropertyId: "email",
+          contactPropertyType: "standard",
+        },
+        firstName: {
+          slot: "fieldString1",
+          type: "string",
+          fieldType: "text",
+          contactPropertyId: "firstName",
+          contactPropertyType: "standard",
+        },
+        lastName: {
+          slot: "fieldString2",
+          type: "string",
+          fieldType: "text",
+          contactPropertyId: "lastName",
+          contactPropertyType: "standard",
+        },
       } as never,
     },
   });
@@ -73,9 +94,23 @@ beforeAll(async () => {
       fields: surveyFormFields as never,
       publishedAt: new Date(),
       fieldMapping: {
-        email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-        feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
-        satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
+        email: {
+          slot: "fieldString0",
+          type: "string",
+          fieldType: "email",
+          contactPropertyId: "email",
+          contactPropertyType: "standard",
+        },
+        feedback: {
+          slot: "fieldString1",
+          type: "string",
+          fieldType: "textarea",
+        },
+        satisfaction: {
+          slot: "fieldNum0",
+          type: "number",
+          fieldType: "rating",
+        },
       } as never,
     },
   });
@@ -123,7 +158,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Authentication", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
   });
 
@@ -131,7 +166,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Authentication", () => {
     const request = post(
       `/forms/${signUpFormId}/submissions`,
       { email: "test@example.com" },
-      "kb_invalid_key_12345678"
+      "kb_invalid_key_12345678",
     );
 
     const response = await POST(request, {
@@ -153,7 +188,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Authentication", () => {
     const request = post(
       `/forms/${signUpFormId}/submissions`,
       { email: "test@example.com" },
-      readOnlyKey.key
+      readOnlyKey.key,
     );
 
     const response = await POST(request, {
@@ -172,7 +207,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Validation", () => {
     const request = post(
       "/forms/nonexistent-form-id/submissions",
       { email: "test@example.com" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -188,7 +223,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Validation", () => {
     const request = post(
       `/forms/${unpublishedFormId}/submissions`,
       { email: "test@example.com" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -211,7 +246,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SIGN_UP Forms", () => {
         firstName: "John",
         lastName: "Doe",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -264,7 +299,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SIGN_UP Forms", () => {
         firstName: "New",
         lastName: "Name",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -290,7 +325,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SIGN_UP Forms", () => {
         firstName: "John",
         lastName: "Doe",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -310,7 +345,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SIGN_UP Forms", () => {
         email: "invalid-email",
         firstName: "John",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -332,7 +367,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SIGN_UP Forms", () => {
         firstName: "Jane",
         lastName: "Smith",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -361,7 +396,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SURVEY Forms", () => {
         feedback: "Great product!",
         satisfaction: 5,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -390,7 +425,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SURVEY Forms", () => {
         feedback: "Excellent service",
         satisfaction: 4,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -415,7 +450,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SURVEY Forms", () => {
       {
         feedback: "Only feedback provided",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -439,7 +474,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SURVEY Forms", () => {
     const request = post(
       `/forms/${surveyFormId}/submissions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -459,7 +494,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SURVEY Forms", () => {
         unknownField: "This should be ignored",
         anotherUnknownField: 123,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -483,7 +518,7 @@ describe("POST /api/v1/forms/[formId]/submissions - SURVEY Forms", () => {
       {
         satisfaction: "5", // String instead of number
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {
@@ -510,7 +545,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Workspace Isolation", () => 
     const request = post(
       `/forms/${signUpFormId}/submissions`,
       { email: "test@example.com" },
-      otherApiKey.key
+      otherApiKey.key,
     );
 
     const response = await POST(request, {
@@ -539,9 +574,23 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
         version: 1,
         fields: surveyFormFields as never,
         fieldMapping: {
-          email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-          feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
-          satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
+          email: {
+            slot: "fieldString0",
+            type: "string",
+            fieldType: "email",
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+          },
+          feedback: {
+            slot: "fieldString1",
+            type: "string",
+            fieldType: "textarea",
+          },
+          satisfaction: {
+            slot: "fieldNum0",
+            type: "number",
+            fieldType: "rating",
+          },
         } as never,
       },
     });
@@ -583,10 +632,24 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
           ],
         } as never,
         fieldMapping: {
-          email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-          feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
+          email: {
+            slot: "fieldString0",
+            type: "string",
+            fieldType: "email",
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+          },
+          feedback: {
+            slot: "fieldString1",
+            type: "string",
+            fieldType: "textarea",
+          },
           newField: { slot: "fieldString2", type: "string", fieldType: "text" },
-          satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
+          satisfaction: {
+            slot: "fieldNum0",
+            type: "number",
+            fieldType: "rating",
+          },
         } as never,
       },
     });
@@ -606,7 +669,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
         newField: "New field value",
         satisfaction: 5,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request, {

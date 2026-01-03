@@ -5,20 +5,20 @@
  */
 
 import type { NextRequest } from "next/server";
-import type { UserSession } from "@/lib/auth/get-session";
 import {
   responseCreated,
   responseNoContent,
   responseOk,
 } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
+import type { UserSession } from "@/lib/auth/get-session";
+import { outpost } from "@/webhooks/client/client";
 import {
   createWebhookDestinationSchema,
-  updateWebhookDestinationSchema,
   type OutpostDestinationCreate,
   type OutpostDestinationUpdate,
+  updateWebhookDestinationSchema,
 } from "./schema";
-import { outpost } from "@/webhooks/client/client";
 
 /**
  * POST /api/internal/v1/webhooks

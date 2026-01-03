@@ -1,7 +1,7 @@
 import * as Tabs from "@kibamail/owly/tabs";
-import { PropertiesTable } from "./_components/properties-table";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
+import { PropertiesTable } from "./_components/properties-table";
 
 async function getContactProperties(workspaceId: string) {
   const properties = await prisma.contactProperty.findMany({

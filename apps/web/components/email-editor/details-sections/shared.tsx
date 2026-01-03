@@ -1,7 +1,7 @@
 "use client";
 
-import { Text } from "@kibamail/owly/text";
 import { Button } from "@kibamail/owly/button";
+import { Text } from "@kibamail/owly/text";
 import { Check } from "iconoir-react";
 
 interface SectionHeaderProps {
@@ -31,7 +31,10 @@ interface SectionSaveButtonProps {
   isSaving: boolean;
 }
 
-export function SectionSaveButton({ onSave, isSaving }: SectionSaveButtonProps) {
+export function SectionSaveButton({
+  onSave,
+  isSaving,
+}: SectionSaveButtonProps) {
   return (
     <div className="mt-6 flex justify-end">
       <Button onClick={onSave} disabled={isSaving} loading={isSaving}>
@@ -45,7 +48,7 @@ interface ChecklistItemProps {
   children: React.ReactNode;
 }
 
-export function ChecklistItem({ children }: ChecklistItemProps) {
+function ChecklistItem({ children }: ChecklistItemProps) {
   return (
     <li className="flex items-start gap-1 text-sm text-kb-content-secondary">
       <Check className="w-4 h-4 text-kb-content-success mt-0.5 shrink-0" />

@@ -4,12 +4,12 @@ import { formBuilderSchema } from "@/lib/form-builder/schema";
 /**
  * Form type enum values
  */
-export const formTypeEnum = z.enum(["SIGN_UP", "SURVEY"]);
+const formTypeEnum = z.enum(["SIGN_UP", "SURVEY"]);
 
 /**
  * Form display enum values
  */
-export const formDisplayEnum = z.enum(["POPUP", "INLINE_EMBED"]);
+const formDisplayEnum = z.enum(["POPUP", "INLINE_EMBED"]);
 
 /**
  * Create Form Request Schema
@@ -63,7 +63,7 @@ export const formResponseSchema = z.object({
 /**
  * Form List Item Schema (simplified for list endpoints)
  */
-export const formListItemSchema = z.object({
+const formListItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -84,7 +84,7 @@ export const formListResponseSchema = z.object({
 /**
  * Form Version Item Schema (for versions list)
  */
-export const formVersionItemSchema = z.object({
+const formVersionItemSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -97,7 +97,7 @@ export const formVersionItemSchema = z.object({
 /**
  * Form Version List Response Schema
  */
-export const formVersionListResponseSchema = z.object({
+const formVersionListResponseSchema = z.object({
   object: z.literal("form_version_list"),
   data: z.array(formVersionItemSchema),
 });
@@ -105,7 +105,7 @@ export const formVersionListResponseSchema = z.object({
 /**
  * Form Delete Response Schema
  */
-export const formDeleteResponseSchema = z.object({
+const formDeleteResponseSchema = z.object({
   object: z.literal("form"),
   id: z.string().describe("ID of the deleted form"),
 });
@@ -124,8 +124,10 @@ export const formSubmissionResponseSchema = z.object({
  * Type exports
  */
 export type CreateFormRequest = z.infer<typeof createFormSchema>;
-export type UpdateFormRequest = z.infer<typeof updateFormSchema>;
+type UpdateFormRequest = z.infer<typeof updateFormSchema>;
 export type FormResponse = z.infer<typeof formResponseSchema>;
 export type FormListResponse = z.infer<typeof formListResponseSchema>;
-export type FormDeleteResponse = z.infer<typeof formDeleteResponseSchema>;
-export type FormSubmissionResponse = z.infer<typeof formSubmissionResponseSchema>;
+type FormDeleteResponse = z.infer<typeof formDeleteResponseSchema>;
+export type FormSubmissionResponse = z.infer<
+  typeof formSubmissionResponseSchema
+>;

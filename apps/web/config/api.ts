@@ -200,18 +200,21 @@ export const API_SCOPE_NAMES = API_SCOPES.map((s) => s.name);
  *
  * Use this type for type-safe scope checking.
  */
-export type ApiScope = (typeof API_SCOPE_NAMES)[number];
+type ApiScope = (typeof API_SCOPE_NAMES)[number];
 
 /**
  * Helper: Get scopes grouped by category
  */
-export const API_SCOPES_BY_CATEGORY = API_SCOPES.reduce((acc, scope) => {
-  if (!acc[scope.category]) {
-    acc[scope.category] = [];
-  }
-  acc[scope.category].push(scope);
-  return acc;
-}, {} as Record<string, ApiScopeDefinition[]>);
+export const API_SCOPES_BY_CATEGORY = API_SCOPES.reduce(
+  (acc, scope) => {
+    if (!acc[scope.category]) {
+      acc[scope.category] = [];
+    }
+    acc[scope.category].push(scope);
+    return acc;
+  },
+  {} as Record<string, ApiScopeDefinition[]>,
+);
 
 /**
  * API Key Preset Definition

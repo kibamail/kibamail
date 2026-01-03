@@ -5,11 +5,11 @@
  */
 
 import type { NextRequest } from "next/server";
-import { validateRequestBody } from "@/lib/api/validation";
-import { prisma } from "@/lib/db";
-import { responseCreated } from "@/lib/api/responses";
 import { createApiKeySchema } from "@/app/(main)/api/v1/api-keys/schema";
+import { responseCreated } from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
+import { prisma } from "@/lib/db";
 
 /**
  * Create a new API key for the workspace
@@ -26,7 +26,6 @@ export async function createApiKeyHandler(
   request: NextRequest,
 ) {
   const data = await validateRequestBody(createApiKeySchema, request);
-
 
   const { key, preview } = generateApiKey();
   const keyHash = hashApiKey(key);

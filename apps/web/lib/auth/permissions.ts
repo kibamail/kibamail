@@ -1,6 +1,6 @@
 import type { Permission } from "@/config/rbac";
-import type { UserSession } from "@/lib/auth/get-session";
 import { UnauthorizedError } from "@/lib/api/errors";
+import type { UserSession } from "@/lib/auth/get-session";
 
 export function hasPermission(
   session: UserSession,

@@ -1,8 +1,8 @@
-import { notFound, redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth/get-session";
-import { FlowEditorClient } from "./_components/flow-editor-client";
 import type { Automation, Prisma } from "@prisma/client";
+import { notFound, redirect } from "next/navigation";
+import { getSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
+import { FlowEditorClient } from "./_components/flow-editor-client";
 
 interface FlowPageProps {
   params: Promise<{ id: string }>;
@@ -31,7 +31,10 @@ function formatAutomation(automation: Automation) {
   };
 }
 
-export default async function FlowPage({ params, searchParams }: FlowPageProps) {
+export default async function FlowPage({
+  params,
+  searchParams,
+}: FlowPageProps) {
   const { id } = await params;
   const { version: versionParam } = await searchParams;
   const session = await getSession();
@@ -79,7 +82,7 @@ export default async function FlowPage({ params, searchParams }: FlowPageProps) 
   }
 
   const allVersions = [rootAutomation, ...rootAutomation.versions].sort(
-    (a, b) => b.version - a.version
+    (a, b) => b.version - a.version,
   );
 
   let selectedVersion: Automation | undefined;
@@ -97,7 +100,9 @@ export default async function FlowPage({ params, searchParams }: FlowPageProps) 
     if (latestDraft) {
       selectedVersion = latestDraft;
     } else {
-      const publishedVersion = allVersions.find((v) => v.status === "PUBLISHED");
+      const publishedVersion = allVersions.find(
+        (v) => v.status === "PUBLISHED",
+      );
       const sourceVersion = publishedVersion || allVersions[0];
 
       const maxVersion = Math.max(...allVersions.map((v) => v.version));
@@ -112,7 +117,8 @@ export default async function FlowPage({ params, searchParams }: FlowPageProps) 
           version: newVersionNumber,
           parentId: rootId,
           triggerType: sourceVersion.triggerType,
-          triggerConfig: (sourceVersion.triggerConfig as Prisma.JsonObject) || {},
+          triggerConfig:
+            (sourceVersion.triggerConfig as Prisma.JsonObject) || {},
           nodes: sourceVersion.nodes as Prisma.JsonArray,
           edges: sourceVersion.edges as Prisma.JsonArray,
           settings: (sourceVersion.settings as Prisma.JsonObject) || {},

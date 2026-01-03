@@ -16,20 +16,19 @@
  *   - OTEL_SERVICE_NAME: Service name for telemetry (default: kibamail-event-ingestor)
  */
 
-// Initialize OpenTelemetry instrumentation first (before any other imports)
-import { shutdownOtel } from "./instrumentation";
-
 import express from "express";
-import { queueLogger } from "@/lib/queue";
 import {
+  closeNatsConnection,
+  ensureEventsStream,
   getNatsOptions,
   startEventConsumer,
-  ensureEventsStream,
-  closeNatsConnection,
 } from "@/lib/nats";
 import { processEventsWithSideEffects } from "@/lib/nats/event-processor";
-import type { BatchTraceContext } from "@/lib/nats/instrumentation";
 import type { EventConsumerConfig } from "@/lib/nats/event-types";
+import type { BatchTraceContext } from "@/lib/nats/instrumentation";
+import { queueLogger } from "@/lib/queue";
+// Initialize OpenTelemetry instrumentation first (before any other imports)
+import { shutdownOtel } from "./instrumentation";
 
 const logger = queueLogger.child({ worker: "event-ingestor" });
 const METRICS_PORT = process.env.METRICS_PORT || 9091;
@@ -80,7 +79,7 @@ async function start(): Promise<void> {
         throw error;
       }
     },
-    consumerConfig
+    consumerConfig,
   );
 
   logger.info("Event ingestor started successfully");
@@ -185,7 +184,7 @@ const shutdown = async (signal: string) => {
       eventsProcessed,
       eventsErrors,
     },
-    "Event ingestor stopped"
+    "Event ingestor stopped",
   );
 
   process.exit(0);
@@ -197,7 +196,7 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("uncaughtException", (error) => {
   logger.error(
     { error: error.message, stack: error.stack },
-    "Uncaught exception"
+    "Uncaught exception",
   );
   shutdown("uncaughtException");
 });

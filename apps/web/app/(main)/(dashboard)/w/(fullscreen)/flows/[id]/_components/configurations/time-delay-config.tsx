@@ -1,10 +1,10 @@
 "use client";
 
+import { InputLabel, Text } from "@kibamail/owly";
 import * as Select from "@kibamail/owly/select-field";
 import * as TextField from "@kibamail/owly/text-field";
 import { useCallback } from "react";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { InputLabel, Text } from "@kibamail/owly";
 
 type DelayUnit = "hours" | "days" | "weeks";
 
@@ -37,12 +37,12 @@ export function TimeDelayConfig() {
               ...node,
               data: { ...node.data, delayValue: value },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   const onUnitChange = useCallback(
@@ -55,12 +55,12 @@ export function TimeDelayConfig() {
               ...node,
               data: { ...node.data, delayUnit: unit },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   return (
@@ -84,10 +84,7 @@ export function TimeDelayConfig() {
           </div>
 
           <div className="flex-1">
-            <Select.Root
-              value={currentDelayUnit}
-              onValueChange={onUnitChange}
-            >
+            <Select.Root value={currentDelayUnit} onValueChange={onUnitChange}>
               <Select.Trigger placeholder="Select unit" />
               <Select.Content>
                 {delayUnits.map((unit) => (

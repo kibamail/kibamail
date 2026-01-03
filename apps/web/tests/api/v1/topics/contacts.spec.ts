@@ -6,21 +6,21 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { GET } from "@/app/(main)/api/v1/topics/[topicId]/contacts/route";
 import { POST as CREATE_TOPIC } from "@/app/(main)/api/v1/topics/route";
-import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   get,
   post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -45,8 +45,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Newsletter ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topicData = await topicResponse.json();
     const topicId = topicData.id;
@@ -119,8 +119,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Premium ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topicData = await topicResponse.json();
     const topicId = topicData.id;
@@ -130,8 +130,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
       post(
         "/contact-properties",
         { name: `Tier_${timestamp}`, type: "STRING" },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const tierData = await tierProperty.json();
     const tierRecord = await prisma.contactProperty.findUnique({
@@ -184,8 +184,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Large List ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topicData = await topicResponse.json();
     const topicId = topicData.id;
@@ -213,7 +213,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     // Get first page
     const firstRequest = get(
       `/topics/${topicId}/contacts?limit=10`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const firstResponse = await GET(firstRequest, {
       params: Promise.resolve({ topicId: topicId }),
@@ -228,7 +228,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     const lastIdFromFirstPage = firstData.data[firstData.data.length - 1].id;
     const secondRequest = get(
       `/topics/${topicId}/contacts?limit=10&after=${lastIdFromFirstPage}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const secondResponse = await GET(secondRequest, {
       params: Promise.resolve({ topicId: topicId }),
@@ -254,8 +254,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Empty Topic ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topicData = await topicResponse.json();
     const topicId = topicData.id;
@@ -277,7 +277,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
   test("should return 404 for non-existent topic", async () => {
     const request = get(
       "/topics/nonexistent-topic-id/contacts",
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request, {
       params: Promise.resolve({ topicId: "nonexistent-topic-id" }),
@@ -301,8 +301,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `W1 Topic ${timestamp}`,
         },
-        apiKey1.key
-      )
+        apiKey1.key,
+      ),
     );
     const topic1Data = await topic1Response.json();
     const topic1Id = topic1Data.id;
@@ -354,8 +354,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Test Topic ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topicData = await topicResponse.json();
     const topicId = topicData.id;
@@ -389,8 +389,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Topic 1 ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topic1Data = await topic1Response.json();
     const topic1Id = topic1Data.id;
@@ -401,8 +401,8 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
         {
           name: `Topic 2 ${timestamp}`,
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const topic2Data = await topic2Response.json();
     const topic2Id = topic2Data.id;
@@ -442,7 +442,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     expect(response1.status).toBe(200);
     expect(responseData1.data.length).toBe(1);
     expect(responseData1.data[0].email).toBe(
-      `multitopic_${timestamp}@example.com`
+      `multitopic_${timestamp}@example.com`,
     );
 
     // Get contacts in topic 2
@@ -455,7 +455,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     expect(response2.status).toBe(200);
     expect(responseData2.data.length).toBe(1);
     expect(responseData2.data[0].email).toBe(
-      `multitopic_${timestamp}@example.com`
+      `multitopic_${timestamp}@example.com`,
     );
   });
 });

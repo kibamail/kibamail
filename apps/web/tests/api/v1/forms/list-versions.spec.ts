@@ -5,21 +5,21 @@
  * - GET /api/v1/forms/{formId}/versions - List all versions of a form
  */
 
-import { GET } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   get,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
 import { validFormFields } from "@/tests/utils/form-fixtures";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
-import { prisma } from "@/lib/db";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -118,7 +118,7 @@ describe("GET /api/v1/forms/{formId}/versions - Authentication & Authorization",
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
@@ -127,7 +127,7 @@ describe("GET /api/v1/forms/{formId}/versions - Authentication & Authorization",
   test("should reject request with invalid API key", async () => {
     const request = get(
       `/forms/${rootFormId}/versions`,
-      "kb_invalid_key_12345"
+      "kb_invalid_key_12345",
     );
 
     const response = await GET(request, {
@@ -264,7 +264,7 @@ describe("GET /api/v1/forms/{formId}/versions - List Versions", () => {
   test("should handle null description correctly", async () => {
     const request = get(
       `/forms/${anotherRootFormId}/versions`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await GET(request, {
@@ -329,7 +329,7 @@ describe("GET /api/v1/forms/{formId}/versions - Error Cases", () => {
     // Try to access other workspace's form with original API key
     const request = get(
       `/forms/${otherForm.id}/versions`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await GET(request, {
@@ -350,7 +350,7 @@ describe("GET /api/v1/forms/{formId}/versions - Single Version Form", () => {
   test("should return single version when form has no child versions", async () => {
     const request = get(
       `/forms/${anotherRootFormId}/versions`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await GET(request, {
@@ -396,7 +396,7 @@ describe("GET /api/v1/forms/{formId}/versions - Workspace Isolation", () => {
 
     // None should be from other workspace
     const hasOtherWorkspaceVersion = responseData.data.some(
-      (v: any) => v.id === otherRoot.id
+      (v: any) => v.id === otherRoot.id,
     );
     expect(hasOtherWorkspaceVersion).toBe(false);
 

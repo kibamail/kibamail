@@ -1,15 +1,15 @@
 "use client";
 
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 import {
+  Bookmark,
+  EditPencil,
   Mail,
   MouseButtonRight,
   Page,
   UserPlus,
-  EditPencil,
-  Bookmark,
 } from "iconoir-react";
-import dayjs from "dayjs";
-import relativeTime from "dayjs/plugin/relativeTime";
 
 dayjs.extend(relativeTime);
 

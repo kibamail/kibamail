@@ -8,7 +8,7 @@ export class ContactDataBuilder {
     workspaceId: string,
     email: string,
     autoSubscribe: boolean,
-    sourceId: string
+    sourceId: string,
   ): Prisma.ContactCreateInput {
     return {
       workspaceId,
@@ -23,7 +23,7 @@ export class ContactDataBuilder {
   }
 
   private buildStandardFields(
-    fields: Partial<Record<StandardField, string>>
+    fields: Partial<Record<StandardField, string>>,
   ): Record<string, string> {
     const result: Record<string, string> = {};
     for (const [key, value] of Object.entries(fields)) {
@@ -33,7 +33,7 @@ export class ContactDataBuilder {
   }
 
   private buildCustomProperties(
-    properties: Record<string, string>
+    properties: Record<string, string>,
   ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
 

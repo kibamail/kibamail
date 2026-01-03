@@ -10,10 +10,9 @@
  */
 
 import type { NextRequest } from "next/server";
-
-import { prisma } from "@/lib/db";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { responseCreated, responseNotFound } from "@/lib/api/responses";
+import { prisma } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;
@@ -87,6 +86,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       });
 
       return responseCreated({ id: duplicate.id }, "broadcast");
-    })
+    }),
   );
 }

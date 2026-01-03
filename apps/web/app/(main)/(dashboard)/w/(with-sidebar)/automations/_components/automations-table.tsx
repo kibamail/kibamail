@@ -6,6 +6,7 @@ import * as Dialog from "@kibamail/owly/dialog";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
+import type { Automation } from "@prisma/client";
 import {
   Archive,
   EditPencil,
@@ -16,7 +17,6 @@ import {
 } from "iconoir-react";
 import Link from "next/link";
 import { useState } from "react";
-import type { Automation } from "@prisma/client";
 import { CreateAutomationButton } from "./create-automation-button";
 
 type AutomationWithVersions = Automation & {

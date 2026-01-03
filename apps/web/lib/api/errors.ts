@@ -14,7 +14,11 @@
  * ```
  */
 
-import { ErrorCode, ErrorType, getErrorTypeFromStatus } from "./error-codes";
+import {
+  ErrorCode,
+  type ErrorType,
+  getErrorTypeFromStatus,
+} from "./error-codes";
 
 /**
  * Validation error detail structure
@@ -49,7 +53,7 @@ export class ApiError extends Error {
     errorCode: ErrorCode,
     validationErrors?: ValidationErrorDetail[],
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, { cause });
     this.name = this.constructor.name;
@@ -77,7 +81,7 @@ export class BadRequestError extends ApiError {
     message: string,
     errorCode: ErrorCode = ErrorCode.INVALID_PARAMETER,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 400, errorCode, undefined, details, cause);
   }
@@ -97,7 +101,7 @@ export class UnauthorizedError extends ApiError {
     message = "Authentication required",
     errorCode: ErrorCode = ErrorCode.AUTHENTICATION_REQUIRED,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 401, errorCode, undefined, details, cause);
   }
@@ -112,12 +116,12 @@ export class UnauthorizedError extends ApiError {
  * throw new ForbiddenError('Access denied', ErrorCode.ACCESS_DENIED)
  * ```
  */
-export class ForbiddenError extends ApiError {
+class ForbiddenError extends ApiError {
   constructor(
     message = "Access denied",
     errorCode: ErrorCode = ErrorCode.ACCESS_DENIED,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 403, errorCode, undefined, details, cause);
   }
@@ -137,7 +141,7 @@ export class NotFoundError extends ApiError {
     message = "Resource not found",
     errorCode: ErrorCode = ErrorCode.RESOURCE_NOT_FOUND,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 404, errorCode, undefined, details, cause);
   }
@@ -157,7 +161,7 @@ export class ConflictError extends ApiError {
     message: string,
     errorCode: ErrorCode = ErrorCode.RESOURCE_CONFLICT,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 409, errorCode, undefined, details, cause);
   }
@@ -182,7 +186,7 @@ export class ValidationError extends ApiError {
     errorCode: ErrorCode = ErrorCode.VALIDATION_FAILED,
     validationErrors: ValidationErrorDetail[] = [],
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 422, errorCode, validationErrors, details, cause);
   }
@@ -196,12 +200,12 @@ export class ValidationError extends ApiError {
  * throw new RateLimitError('Too many requests', ErrorCode.RATE_LIMIT_EXCEEDED)
  * ```
  */
-export class RateLimitError extends ApiError {
+class RateLimitError extends ApiError {
   constructor(
     message = "Rate limit exceeded",
     errorCode: ErrorCode = ErrorCode.RATE_LIMIT_EXCEEDED,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 429, errorCode, undefined, details, cause);
   }
@@ -221,7 +225,7 @@ export class InternalServerError extends ApiError {
     message = "Internal server error",
     errorCode: ErrorCode = ErrorCode.INTERNAL_SERVER_ERROR,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 500, errorCode, undefined, details, cause);
   }
@@ -235,12 +239,12 @@ export class InternalServerError extends ApiError {
  * throw new ServiceUnavailableError('Maintenance in progress', ErrorCode.SERVICE_UNAVAILABLE)
  * ```
  */
-export class ServiceUnavailableError extends ApiError {
+class ServiceUnavailableError extends ApiError {
   constructor(
     message = "Service temporarily unavailable",
     errorCode: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,
     details?: Record<string, unknown>,
-    cause?: Error
+    cause?: Error,
   ) {
     super(message, 503, errorCode, undefined, details, cause);
   }

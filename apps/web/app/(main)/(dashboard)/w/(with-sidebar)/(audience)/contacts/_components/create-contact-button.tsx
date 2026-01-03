@@ -12,7 +12,10 @@ export function CreateContactButton({ ...props }: CreateContactButtonProps) {
 
   return (
     <>
-      <Button {...props} onClick={() => createContactState.onOpenChange?.(true)}>
+      <Button
+        {...props}
+        onClick={() => createContactState.onOpenChange?.(true)}
+      >
         <Plus className="w-4 h-4" />
         Add Contact
       </Button>

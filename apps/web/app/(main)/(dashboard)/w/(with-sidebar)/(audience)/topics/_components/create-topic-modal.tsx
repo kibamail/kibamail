@@ -1,20 +1,20 @@
 "use client";
 
 import { Button } from "@kibamail/owly/button";
-import * as Switch from "@kibamail/owly/switch";
 import * as Dialog from "@kibamail/owly/dialog";
 import * as Select from "@kibamail/owly/select-field";
+import * as Switch from "@kibamail/owly/switch";
 import * as TextField from "@kibamail/owly/text-field";
 import * as TextareaField from "@kibamail/owly/textarea-field";
 import { useToast } from "@kibamail/owly/toast";
+import type { Topic } from "@prisma/client";
 import { Globe, Lock } from "iconoir-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
-import type { Topic } from "@prisma/client";
-import { useEffect } from "react";
+import { internalApi } from "@/lib/api/client";
 
 interface TopicFormData {
   name: string;
@@ -79,7 +79,11 @@ export function CreateTopicModal({
       }
     },
     onSuccess() {
-      toast(isEditMode ? "Topic updated successfully." : "Topic created successfully.");
+      toast(
+        isEditMode
+          ? "Topic updated successfully."
+          : "Topic created successfully.",
+      );
       onClose();
       router.refresh();
     },
@@ -105,8 +109,7 @@ export function CreateTopicModal({
             <Dialog.Description>
               {isEditMode
                 ? "Update the topic details and subscriber preferences."
-                : "Create a new topic to organize your content and manage subscriber preferences."
-              }
+                : "Create a new topic to organize your content and manage subscriber preferences."}
             </Dialog.Description>
           </Dialog.Header>
 
@@ -150,7 +153,9 @@ export function CreateTopicModal({
             <div className="space-y-2">
               <Select.Root
                 value={watch("visibility")}
-                onValueChange={(value) => setValue("visibility", value as "PUBLIC" | "PRIVATE")}
+                onValueChange={(value) =>
+                  setValue("visibility", value as "PUBLIC" | "PRIVATE")
+                }
               >
                 <Select.Label help="Public topics are visible to all contacts, while private topics are only visible to specific contacts you choose.">
                   Visibility

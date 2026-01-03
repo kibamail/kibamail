@@ -1,8 +1,8 @@
-export { renderBroadcastEmail, renderBroadcastToHtml } from "./renderer";
+export { renderBroadcastToHtml } from "./renderer";
 export type {
-  Node,
-  Mark,
   BroadcastDocument,
-  RenderContext,
   BroadcastStyles,
+  Mark,
+  Node,
+  RenderContext,
 } from "./types";

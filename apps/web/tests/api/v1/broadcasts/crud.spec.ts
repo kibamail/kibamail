@@ -8,11 +8,15 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { DELETE, GET, PUT } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
+import {
+  DELETE,
+  GET,
+  PUT,
+} from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
 import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
 import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
-import { POST as CreateTopic } from "@/app/(main)/api/v1/topics/route";
 import { POST as CreateSegment } from "@/app/(main)/api/v1/segments/route";
+import { POST as CreateTopic } from "@/app/(main)/api/v1/topics/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
@@ -36,7 +40,16 @@ let fullAccessApiKey: CreatedApiKey;
  */
 async function createTestBroadcast(
   apiKey: CreatedApiKey,
-  data: { name: string; from?: string; emailContent?: { subject?: string; text?: string; html?: string; previewText?: string } },
+  data: {
+    name: string;
+    from?: string;
+    emailContent?: {
+      subject?: string;
+      text?: string;
+      html?: string;
+      previewText?: string;
+    };
+  },
 ) {
   const request = post("/broadcasts", data, apiKey.key);
   const response = await CreateBroadcast(request);
@@ -97,7 +110,10 @@ describe("GET /api/v1/broadcasts/[broadcastId]", () => {
     const createdBroadcast = await createTestBroadcast(fullAccessApiKey, {
       name: "Get Test Broadcast",
     });
-    const request = get(`/broadcasts/${createdBroadcast.id}`, fullAccessApiKey.key);
+    const request = get(
+      `/broadcasts/${createdBroadcast.id}`,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
     const response = await GET(request, { params });
@@ -152,7 +168,10 @@ describe("GET /api/v1/broadcasts/[broadcastId]", () => {
       scopes: ["write:broadcasts"],
     });
 
-    const request = get(`/broadcasts/${createdBroadcast.id}`, writeOnlyApiKey.key);
+    const request = get(
+      `/broadcasts/${createdBroadcast.id}`,
+      writeOnlyApiKey.key,
+    );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
     const response = await GET(request, { params });
@@ -284,7 +303,11 @@ describe("PUT /api/v1/broadcasts/[broadcastId]", () => {
 
     // First set topic
     await PUT(
-      put(`/broadcasts/${createdBroadcast.id}`, { topicId: topic.id }, fullAccessApiKey.key),
+      put(
+        `/broadcasts/${createdBroadcast.id}`,
+        { topicId: topic.id },
+        fullAccessApiKey.key,
+      ),
       { params: Promise.resolve({ broadcastId: createdBroadcast.id }) },
     );
 
@@ -347,12 +370,18 @@ describe("PUT /api/v1/broadcasts/[broadcastId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error.code).toBe(ErrorCode.BROADCAST_INVALID_FROM_DOMAIN);
+    expect(responseData.error.code).toBe(
+      ErrorCode.BROADCAST_INVALID_FROM_DOMAIN,
+    );
   });
 
   test("should return 404 when updating non-existent broadcast", async () => {
     const updateData = { name: "Update Non-Existent" };
-    const request = put("/broadcasts/non_existent_id", updateData, fullAccessApiKey.key);
+    const request = put(
+      "/broadcasts/non_existent_id",
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ broadcastId: "non_existent_id" });
 
     const response = await PUT(request, { params });
@@ -392,7 +421,10 @@ describe("DELETE /api/v1/broadcasts/[broadcastId]", () => {
     const createdBroadcast = await createTestBroadcast(fullAccessApiKey, {
       name: "Delete Test Broadcast",
     });
-    const request = del(`/broadcasts/${createdBroadcast.id}`, fullAccessApiKey.key);
+    const request = del(
+      `/broadcasts/${createdBroadcast.id}`,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
     const response = await DELETE(request, { params });
@@ -403,7 +435,10 @@ describe("DELETE /api/v1/broadcasts/[broadcastId]", () => {
     expect(responseData.id).toBe(createdBroadcast.id);
 
     // Verify broadcast is actually deleted
-    const getRequest = get(`/broadcasts/${createdBroadcast.id}`, fullAccessApiKey.key);
+    const getRequest = get(
+      `/broadcasts/${createdBroadcast.id}`,
+      fullAccessApiKey.key,
+    );
     const getParams = Promise.resolve({ broadcastId: createdBroadcast.id });
     const getResponse = await GET(getRequest, { params: getParams });
 
@@ -421,7 +456,10 @@ describe("DELETE /api/v1/broadcasts/[broadcastId]", () => {
       data: { status: "SENT" },
     });
 
-    const request = del(`/broadcasts/${createdBroadcast.id}`, fullAccessApiKey.key);
+    const request = del(
+      `/broadcasts/${createdBroadcast.id}`,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
     const response = await DELETE(request, { params });
@@ -451,7 +489,10 @@ describe("DELETE /api/v1/broadcasts/[broadcastId]", () => {
       scopes: ["read:broadcasts"],
     });
 
-    const request = del(`/broadcasts/${createdBroadcast.id}`, readOnlyApiKey.key);
+    const request = del(
+      `/broadcasts/${createdBroadcast.id}`,
+      readOnlyApiKey.key,
+    );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
     const response = await DELETE(request, { params });
@@ -480,7 +521,10 @@ describe("DELETE /api/v1/broadcasts/[broadcastId]", () => {
     expect(responseData.error.code).toBe(ErrorCode.BROADCAST_NOT_FOUND);
 
     // Verify original broadcast still exists
-    const getRequest = get(`/broadcasts/${createdBroadcast.id}`, fullAccessApiKey.key);
+    const getRequest = get(
+      `/broadcasts/${createdBroadcast.id}`,
+      fullAccessApiKey.key,
+    );
     const getParams = Promise.resolve({ broadcastId: createdBroadcast.id });
     const getResponse = await GET(getRequest, { params: getParams });
 

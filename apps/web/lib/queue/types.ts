@@ -66,6 +66,10 @@ export type QueueJobs = {
       emailId: string;
       workspaceId: string;
     };
+    "confirm-double-opt-in": {
+      formId: string;
+      confirmationToken: string;
+    };
   };
 };
 

@@ -5,12 +5,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import type { UserSession } from "@/lib/auth/get-session";
 import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
-import { createApiKeySchema } from "./schema";
-import { prisma } from "@/lib/db";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
+import type { UserSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
+import { createApiKeySchema } from "./schema";
 
 /**
  * POST /api/internal/v1/api-keys
@@ -75,7 +75,7 @@ export async function listApiKeys(session: UserSession) {
         createdAt: key.createdAt.toISOString(),
       })),
     },
-    "api_key"
+    "api_key",
   );
 }
 
@@ -86,7 +86,7 @@ export async function listApiKeys(session: UserSession) {
  */
 export async function deleteApiKey(
   session: UserSession,
-  params: { id: string }
+  params: { id: string },
 ) {
   await prisma.apiKey.deleteMany({
     where: {

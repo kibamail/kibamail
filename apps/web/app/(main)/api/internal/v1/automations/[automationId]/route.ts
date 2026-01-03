@@ -12,12 +12,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import {
+  deleteAutomation,
   getAutomation,
   updateAutomation,
-  deleteAutomation,
 } from "@/app/(main)/api/v1/automations/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * GET /api/internal/v1/automations/[automationId]
@@ -28,7 +28,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   const { automationId } = await params;
 
@@ -41,8 +41,8 @@ export async function GET(
         }
         return getAutomation(session.currentOrganization.id, automationId);
       },
-      ["read:automations"]
-    )
+      ["read:automations"],
+    ),
   );
 }
 
@@ -55,7 +55,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   const { automationId } = await params;
 
@@ -69,11 +69,11 @@ export async function PUT(
         return updateAutomation(
           session.currentOrganization.id,
           automationId,
-          request
+          request,
         );
       },
-      ["manage:automations"]
-    )
+      ["manage:automations"],
+    ),
   );
 }
 
@@ -86,7 +86,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   const { automationId } = await params;
 
@@ -99,7 +99,7 @@ export async function DELETE(
         }
         return deleteAutomation(session.currentOrganization.id, automationId);
       },
-      ["manage:automations"]
-    )
+      ["manage:automations"],
+    ),
   );
 }

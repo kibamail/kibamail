@@ -2,10 +2,10 @@
 
 import * as TextField from "@kibamail/owly/text-field";
 import {
-  BorderTop,
   BorderBottom,
   BorderLeft,
   BorderRight,
+  BorderTop,
 } from "iconoir-react";
 
 interface SpacingInputProps {

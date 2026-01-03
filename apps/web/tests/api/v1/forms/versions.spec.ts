@@ -5,23 +5,23 @@
  * - POST /api/v1/forms/[formId]/versions - Create new version
  */
 
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET } from "@/app/(main)/api/v1/forms/[formId]/route";
 import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { POST } from "@/app/(main)/api/v1/forms/route";
-import { GET } from "@/app/(main)/api/v1/forms/[formId]/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   post,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
 import { validFormFields } from "@/tests/utils/form-fixtures";
-import { prisma } from "@/lib/db";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -48,11 +48,7 @@ describe("POST /api/v1/forms/[formId]/versions - Authentication & Authorization"
       scopes: ["read:forms"],
     });
 
-    const request = post(
-      "/forms/some-id/versions",
-      {},
-      readOnlyKey.key
-    );
+    const request = post("/forms/some-id/versions", {}, readOnlyKey.key);
 
     const response = await CREATE_VERSION(request, {
       params: Promise.resolve({ formId: "some-id" }),
@@ -74,7 +70,7 @@ describe("POST /api/v1/forms/[formId]/versions - Authentication & Authorization"
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -88,7 +84,7 @@ describe("POST /api/v1/forms/[formId]/versions - Authentication & Authorization"
     const versionRequest = post(
       `/forms/${createdForm.id}/versions`,
       {},
-      writeFormsKey.key
+      writeFormsKey.key,
     );
 
     const response = await CREATE_VERSION(versionRequest, {
@@ -112,7 +108,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         description: "Original description",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -122,7 +118,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const versionRequest = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const versionResponse = await CREATE_VERSION(versionRequest, {
@@ -161,7 +157,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         name: "Root Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -181,7 +177,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const version2Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version2Response = await CREATE_VERSION(version2Request, {
@@ -207,7 +203,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const version3Request = post(
       `/forms/${version2.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version3Response = await CREATE_VERSION(version3Request, {
@@ -241,7 +237,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         description: "Original description",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -265,7 +261,11 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
                   name: "email",
                   label: "Email Address",
                   validation: { required: true },
-                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                  appearance: {
+                    width: "full",
+                    labelPosition: "top",
+                    size: "default",
+                  },
                 },
                 {
                   id: "field_firstName",
@@ -273,7 +273,11 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
                   name: "firstName",
                   label: "First Name",
                   validation: { required: true },
-                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                  appearance: {
+                    width: "full",
+                    labelPosition: "top",
+                    size: "default",
+                  },
                 },
               ],
               collapsible: false,
@@ -292,7 +296,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         description: "Updated description",
         fields: newFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const versionResponse = await CREATE_VERSION(versionRequest, {
@@ -326,7 +330,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         description: "Original description",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -338,7 +342,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Updated Name Only",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const versionResponse = await CREATE_VERSION(versionRequest, {
@@ -366,7 +370,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const request = post(
       "/forms/nonexistent/versions",
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_VERSION(request, {
@@ -389,7 +393,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         name: "Multi-version Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -418,7 +422,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const version2Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version2Response = await CREATE_VERSION(version2Request, {
@@ -454,7 +458,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const version3Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version3Response = await CREATE_VERSION(version3Request, {
@@ -484,7 +488,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -500,7 +504,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const version2Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version2Response = await CREATE_VERSION(version2Request, {
@@ -513,7 +517,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const version3Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version3Response = await CREATE_VERSION(version3Request, {
@@ -522,6 +526,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const responseData = await version3Response.json();
 
     expect(version3Response.status).toBe(409);
-    expect(responseData.error.message).toContain("DRAFT version already exists");
+    expect(responseData.error.message).toContain(
+      "DRAFT version already exists",
+    );
   });
 });

@@ -15,9 +15,12 @@ import type { EmailMessage } from "@/lib/nats";
  */
 function convertToNatsMessage(
   prepared: PreparedEmail,
-  contentKey: string
+  contentKey: string,
 ): EmailMessage {
-  const recipientName = [prepared.recipientFirstName, prepared.recipientLastName]
+  const recipientName = [
+    prepared.recipientFirstName,
+    prepared.recipientLastName,
+  ]
     .filter(Boolean)
     .join(" ");
 
@@ -55,7 +58,9 @@ function convertToNatsMessage(
 /**
  * Create a mock PreparedEmail for testing
  */
-function createMockPreparedEmail(overrides: Partial<PreparedEmail> = {}): PreparedEmail {
+function createMockPreparedEmail(
+  overrides: Partial<PreparedEmail> = {},
+): PreparedEmail {
   return {
     emailSendId: "email-send-123",
     messageId: "<email-send-123@example.com>",
@@ -93,7 +98,7 @@ describe("PreparedEmail to EmailMessage Conversion", () => {
 
       const message = convertToNatsMessage(
         prepared,
-        `emails/${prepared.workspaceId}/${prepared.broadcastId}/${prepared.emailSendId}`
+        `emails/${prepared.workspaceId}/${prepared.broadcastId}/${prepared.emailSendId}`,
       );
 
       expect(message.id).toBe("unique-id-123");
@@ -263,7 +268,9 @@ describe("PreparedEmail to EmailMessage Conversion", () => {
 
       const message = convertToNatsMessage(prepared, "test-key");
 
-      expect(message.metadata.envelope_sender).toBe("bounces+abc123@bounce.example.com");
+      expect(message.metadata.envelope_sender).toBe(
+        "bounces+abc123@bounce.example.com",
+      );
     });
   });
 

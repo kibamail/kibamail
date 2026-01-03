@@ -3,14 +3,14 @@
 import * as MultiSelect from "@kibamail/owly/multi-select";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { internalApi } from "@/lib/api/client";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import { internalApi } from "@/lib/api/client";
 
 interface TopicConfigProps {
   mode: "add" | "remove";
 }
 
-export function TopicConfig({ mode }: TopicConfigProps) {
+function TopicConfig({ mode }: TopicConfigProps) {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
@@ -36,12 +36,12 @@ export function TopicConfig({ mode }: TopicConfigProps) {
               ...node,
               data: { ...node.data, topicIds },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   const label = mode === "add" ? "Topics to add" : "Topics to remove";
@@ -52,10 +52,7 @@ export function TopicConfig({ mode }: TopicConfigProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <MultiSelect.Root
-        value={currentTopicIds}
-        onValueChange={onTopicsChange}
-      >
+      <MultiSelect.Root value={currentTopicIds} onValueChange={onTopicsChange}>
         <MultiSelect.Label>{label}</MultiSelect.Label>
         <MultiSelect.Trigger
           placeholder={isLoading ? "Loading topics..." : placeholder}

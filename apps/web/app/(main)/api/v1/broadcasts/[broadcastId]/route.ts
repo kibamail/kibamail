@@ -10,8 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  deleteBroadcast,
+  getBroadcast,
+  updateBroadcast,
+} from "@/app/(main)/api/v1/broadcasts/handler";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-import { deleteBroadcast, getBroadcast, updateBroadcast } from "@/app/(main)/api/v1/broadcasts/handler";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;

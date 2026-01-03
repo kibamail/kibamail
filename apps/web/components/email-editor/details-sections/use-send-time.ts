@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from "react";
 import dayjs from "dayjs";
+import { useCallback, useMemo } from "react";
 
 interface TimeOption {
   value: string;
@@ -82,7 +82,7 @@ export function useSendTime({ sendAt, onChange }: UseSendTimeProps) {
         .toDate();
       onChange(combined);
     },
-    [onChange]
+    [onChange],
   );
 
   // Handle date change with validation
@@ -110,7 +110,7 @@ export function useSendTime({ sendAt, onChange }: UseSendTimeProps) {
 
       combineDateAndTime(date, selectedTime);
     },
-    [combineDateAndTime, selectedTime]
+    [combineDateAndTime, selectedTime],
   );
 
   // Handle time change
@@ -118,7 +118,7 @@ export function useSendTime({ sendAt, onChange }: UseSendTimeProps) {
     (time: string) => {
       combineDateAndTime(selectedDate, time);
     },
-    [combineDateAndTime, selectedDate]
+    [combineDateAndTime, selectedDate],
   );
 
   // Get relative time string for display

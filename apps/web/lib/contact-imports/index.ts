@@ -6,9 +6,9 @@
 
 import type { ContactImport, ContactProperty, Prisma } from "@prisma/client";
 import type { ParsedRow } from "@/lib/csv";
-import { ContactDataExtractor } from "./extractor";
-import { ContactDataBuilder } from "./builder";
 import { BatchProcessor } from "./batch-processor";
+import { ContactDataBuilder } from "./builder";
+import { ContactDataExtractor } from "./extractor";
 import { ContactImportProcessor } from "./processor";
 import type {
   ColumnMapping,
@@ -21,27 +21,25 @@ import type {
 
 // Re-export types
 export {
-  STANDARD_FIELDS,
-  isStandardField,
-  type StandardField,
-  type ColumnMapping,
-  type RowProcessResult,
-  type ImportProcessResult,
-  type ProcessorOptions,
-  type ExtractedData,
   type BatchContext,
+  type ColumnMapping,
+  type ExtractedData,
+  type ImportProcessResult,
+  isStandardField,
+  type ProcessorOptions,
+  type RowProcessResult,
+  STANDARD_FIELDS,
+  type StandardField,
 } from "./types";
 
-// Re-export classes
-export { ContactDataExtractor } from "./extractor";
-export { ContactDataBuilder } from "./builder";
-export { BatchProcessor } from "./batch-processor";
-export { ContactImportProcessor } from "./processor";
+import { ContactDataBuilder } from "./builder";
+// Import classes for use in convenience functions
+import { ContactDataExtractor } from "./extractor";
 
 // Re-export readiness checker
 export {
-  ImportReadinessChecker,
   checkImportReadiness,
+  ImportReadinessChecker,
   type ReadinessResult,
 } from "./readiness";
 
@@ -49,9 +47,11 @@ export {
 export function extractContactData(
   row: ParsedRow,
   columnMapping: ColumnMapping,
-  contactProperties: ContactProperty[]
+  contactProperties: ContactProperty[],
 ): ExtractedData {
-  return new ContactDataExtractor(columnMapping, contactProperties).extract(row);
+  return new ContactDataExtractor(columnMapping, contactProperties).extract(
+    row,
+  );
 }
 
 export function buildContactData(
@@ -59,7 +59,7 @@ export function buildContactData(
   customProperties: Record<string, string>,
   workspaceId: string,
   email: string,
-  options: { autoSubscribe: boolean; sourceId: string }
+  options: { autoSubscribe: boolean; sourceId: string },
 ): Prisma.ContactCreateInput {
   return new ContactDataBuilder().build(
     standardFields,
@@ -67,7 +67,7 @@ export function buildContactData(
     workspaceId,
     email,
     options.autoSubscribe,
-    options.sourceId
+    options.sourceId,
   );
 }
 
@@ -81,7 +81,7 @@ export async function processBatch(
     updateExisting: boolean;
     topicIds: string[];
     sourceId: string;
-  }
+  },
 ): Promise<RowProcessResult[]> {
   return new BatchProcessor({
     workspaceId,
@@ -94,7 +94,7 @@ export async function processBatch(
 export async function processContactImport(
   contactImport: ContactImport,
   csvContent: string | null = null,
-  options: ProcessorOptions = {}
+  options: ProcessorOptions = {},
 ): Promise<ImportProcessResult> {
   return new ContactImportProcessor(options).process(contactImport, csvContent);
 }

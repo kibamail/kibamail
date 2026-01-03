@@ -22,7 +22,7 @@ import { conditionsToPrismaWhere } from "@/lib/segments/conditions-to-prisma";
  */
 export async function fetchBroadcastRecipientIds(
   workspaceId: string,
-  broadcast: Pick<Broadcast, "topicId" | "segmentId">
+  broadcast: Pick<Broadcast, "topicId" | "segmentId">,
 ): Promise<string[]> {
   // Topic-based audience
   if (broadcast.topicId) {
@@ -83,7 +83,7 @@ export async function fetchBroadcastRecipientIds(
       const whereClause = segment.conditions
         ? conditionsToPrismaWhere(
             segment.conditions as ConditionInput,
-            contactProperties
+            contactProperties,
           )
         : {};
 

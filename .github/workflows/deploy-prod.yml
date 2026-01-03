@@ -10,6 +10,7 @@ env:
   MARKETING_IMAGE: ${{ github.repository_owner }}/kibamail-marketing
   WORKER_IMAGE: ${{ github.repository_owner }}/kibamail-worker
   EVENT_INGESTOR_IMAGE: ${{ github.repository_owner }}/kibamail-event-ingestor
+  TRACKING_IMAGE: ${{ github.repository_owner }}/kibamail-tracking
 
 jobs:
   build-web:
@@ -249,9 +250,56 @@ jobs:
         id: get-tag
         run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
 
+  build-tracking:
+    name: Build Tracking Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image-tag: ${{ steps.get-tag.outputs.tag }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.TRACKING_IMAGE }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=raw,value=prod
+
+      - name: Build and push (tracking)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/tracking/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Get image tag
+        id: get-tag
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
   deploy:
     name: Deploy to Production
-    needs: [build-web, build-cli, build-marketing, build-worker, build-event-ingestor]
+    needs: [build-web, build-cli, build-marketing, build-worker, build-event-ingestor, build-tracking]
     runs-on: ubuntu-latest
     environment: production
 
@@ -310,6 +358,12 @@ jobs:
             -n kibamail-event-ingestor \
             event-ingestor=${{ env.REGISTRY }}/${{ env.EVENT_INGESTOR_IMAGE }}:${{ needs.build-event-ingestor.outputs.image-tag }}
 
+      - name: Deploy Tracking to Kubernetes
+        run: |
+          kubectl set image deployment/kibamail-tracking \
+            -n kibamail-tracking \
+            tracking=${{ env.REGISTRY }}/${{ env.TRACKING_IMAGE }}:${{ needs.build-tracking.outputs.image-tag }}
+
       - name: Wait for Web rollout
         run: |
           kubectl rollout status deployment/kibamail-control-plane \
@@ -338,4 +392,10 @@ jobs:
         run: |
           kubectl rollout status deployment/kibamail-event-ingestor \
             -n kibamail-event-ingestor \
+            --timeout=300s
+
+      - name: Wait for Tracking rollout
+        run: |
+          kubectl rollout status deployment/kibamail-tracking \
+            -n kibamail-tracking \
             --timeout=300s

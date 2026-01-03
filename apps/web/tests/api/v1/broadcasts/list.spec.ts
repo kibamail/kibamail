@@ -6,7 +6,10 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { GET as ListBroadcasts, POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
+import {
+  POST as CreateBroadcast,
+  GET as ListBroadcasts,
+} from "@/app/(main)/api/v1/broadcasts/route";
 import { ErrorCode } from "@/lib/api/error-codes";
 import {
   type CreatedApiKey,
@@ -101,7 +104,10 @@ describe("GET /api/v1/broadcasts", () => {
 
   test("should paginate broadcasts with after cursor", async () => {
     // Create broadcasts
-    const broadcast1 = await createTestBroadcast(fullAccessApiKey, "Cursor Test 1");
+    const broadcast1 = await createTestBroadcast(
+      fullAccessApiKey,
+      "Cursor Test 1",
+    );
     await createTestBroadcast(fullAccessApiKey, "Cursor Test 2");
 
     // First page
@@ -113,7 +119,10 @@ describe("GET /api/v1/broadcasts", () => {
     const firstId = firstData.data[0].id;
 
     // Second page using after cursor
-    const secondRequest = get(`/broadcasts?limit=1&after=${firstId}`, fullAccessApiKey.key);
+    const secondRequest = get(
+      `/broadcasts?limit=1&after=${firstId}`,
+      fullAccessApiKey.key,
+    );
     const secondResponse = await ListBroadcasts(secondRequest);
     const secondData = await secondResponse.json();
 
@@ -174,9 +183,18 @@ describe("GET /api/v1/broadcasts", () => {
 
   test("should return broadcasts in descending order by default", async () => {
     // Create broadcasts with known order
-    const first = await createTestBroadcast(fullAccessApiKey, "Order Test First");
-    const second = await createTestBroadcast(fullAccessApiKey, "Order Test Second");
-    const third = await createTestBroadcast(fullAccessApiKey, "Order Test Third");
+    const first = await createTestBroadcast(
+      fullAccessApiKey,
+      "Order Test First",
+    );
+    const second = await createTestBroadcast(
+      fullAccessApiKey,
+      "Order Test Second",
+    );
+    const third = await createTestBroadcast(
+      fullAccessApiKey,
+      "Order Test Third",
+    );
 
     const request = get("/broadcasts?limit=10", fullAccessApiKey.key);
     const response = await ListBroadcasts(request);

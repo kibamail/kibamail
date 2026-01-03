@@ -1,20 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@kibamail/owly/toast";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
-import {
-  NavArrowDown,
-  Check,
-  Plus,
-  Flash,
-  Clock,
-  Archive,
-  EditPencil,
-} from "iconoir-react";
-import { internalApi } from "@/lib/api/client";
+import { useToast } from "@kibamail/owly/toast";
 import type { FormStatus } from "@prisma/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  Archive,
+  Check,
+  Clock,
+  EditPencil,
+  Flash,
+  NavArrowDown,
+  Plus,
+} from "iconoir-react";
+import { useRouter } from "next/navigation";
+import { internalApi } from "@/lib/api/client";
 
 export interface FormVersionItem {
   id: string;
@@ -149,8 +149,8 @@ export function FormVersionDropdown({
           <span
             className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadgeClasses(currentStatus, isLiveVersion)}`}
           >
-            {getStatusIcon(currentStatus, isLiveVersion)}
-            v{currentVersion} - {getStatusLabel(currentStatus, isLiveVersion)}
+            {getStatusIcon(currentStatus, isLiveVersion)}v{currentVersion} -{" "}
+            {getStatusLabel(currentStatus, isLiveVersion)}
           </span>
           <NavArrowDown className="w-4 h-4 text-kb-content-tertiary" />
         </button>

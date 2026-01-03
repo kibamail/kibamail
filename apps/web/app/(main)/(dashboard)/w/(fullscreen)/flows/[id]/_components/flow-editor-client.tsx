@@ -1,21 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { Edge, Node } from "@xyflow/react";
 import { Badge, Button, Heading } from "@kibamail/owly";
 import * as SelectField from "@kibamail/owly/select-field";
-import { Check, EditPencil, Xmark, SendDiagonal, Undo } from "iconoir-react";
+import type { Edge, Node } from "@xyflow/react";
+import { Check, EditPencil, SendDiagonal, Undo, Xmark } from "iconoir-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { FlowCanvas } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/canvas/flow";
 import { FlowComposerSidebar } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-composer-sidebar";
-import { FlowEditorProvider, useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
-import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { useFlowAutoSave } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_hooks/use-flow-auto-save";
+import {
+  FlowEditorProvider,
+  useFlowEditor,
+} from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
 import { PublishAutomationModal } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/publish-automation-modal";
 import { RenameAutomationModal } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/rename-automation-modal";
+import { useFlowAutoSave } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_hooks/use-flow-auto-save";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 import type { AutomationResponse } from "@/app/(main)/api/v1/automations/schema";
-import { internalApi } from "@/lib/api/client";
-import { useRouter } from "next/navigation";
 import { useMutation } from "@/hooks/use-mutation";
+import { internalApi } from "@/lib/api/client";
 
 interface FlowEditorClientProps {
   automation: AutomationResponse;
@@ -33,7 +36,7 @@ function FlowEditorContent({
   const [isRenameModalOpen, setIsRenameModalOpen] = useState(false);
   const router = useRouter();
   const initializeFromAutomation = useFlowStore(
-    (state) => state.initializeFromAutomation
+    (state) => state.initializeFromAutomation,
   );
 
   const rollbackMutation = useMutation({
@@ -47,7 +50,7 @@ function FlowEditorContent({
     if (automation.nodes && automation.edges) {
       initializeFromAutomation(
         automation.nodes as Node[],
-        automation.edges as Edge[]
+        automation.edges as Edge[],
       );
     }
   }, [automation.nodes, automation.edges, initializeFromAutomation]);
@@ -109,8 +112,8 @@ function FlowEditorContent({
       version.status === "PUBLISHED"
         ? " (Live)"
         : version.status === "DRAFT"
-        ? " (Draft)"
-        : "";
+          ? " (Draft)"
+          : "";
     return `v${version.version}${statusLabel}`;
   };
 

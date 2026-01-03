@@ -11,8 +11,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { createTopic, listTopics } from "@/app/(main)/api/v1/topics/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * POST /api/internal/v1/topics
@@ -31,8 +31,8 @@ export async function POST(request: NextRequest) {
         }
         return createTopic(session.currentOrganization.id, request);
       },
-      ["manage:topics"]
-    )
+      ["manage:topics"],
+    ),
   );
 }
 
@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         }
         return listTopics(session.currentOrganization.id, request);
       },
-      ["read:topics"]
-    )
+      ["read:topics"],
+    ),
   );
 }

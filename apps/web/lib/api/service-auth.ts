@@ -13,7 +13,9 @@ import { UnauthorizedError } from "@/lib/api/errors";
 /**
  * Handler that receives the request after service authentication
  */
-type ServiceHandler = (request: NextRequest) => Promise<NextResponse> | NextResponse;
+type ServiceHandler = (
+  request: NextRequest,
+) => Promise<NextResponse> | NextResponse;
 
 /**
  * Constant-time string comparison to prevent timing attacks

@@ -1,9 +1,9 @@
 import * as z from "zod/v4";
 import { ALL_NODE_TYPES, TRIGGER_TYPES } from "@/lib/automations/config";
 
-export const AutomationStatusEnum = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]);
+const AutomationStatusEnum = z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]);
 
-export const AutomationTriggerEnum = z.enum(TRIGGER_TYPES as [string, ...string[]]);
+const AutomationTriggerEnum = z.enum(TRIGGER_TYPES as [string, ...string[]]);
 
 const positionSchema = z.object({
   x: z.number(),
@@ -68,10 +68,10 @@ export const createAutomationSchema = z
       if (data.nodes.length === 0) return true;
       const nodeIds = new Set(data.nodes.map((n) => n.id));
       return data.edges.every(
-        (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
+        (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target),
       );
     },
-    { message: "All edges must reference existing nodes" }
+    { message: "All edges must reference existing nodes" },
   );
 
 // Update schema without defaults - allows partial updates without defaults overriding undefined values
@@ -97,10 +97,10 @@ export const updateAutomationSchema = z
       if (!data.edges) return true;
       const nodeIds = new Set(data.nodes.map((n) => n.id));
       return data.edges.every(
-        (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target)
+        (edge) => nodeIds.has(edge.source) && nodeIds.has(edge.target),
       );
     },
-    { message: "All edges must reference existing nodes" }
+    { message: "All edges must reference existing nodes" },
   );
 
 export const automationResponseSchema = z.object({
@@ -129,8 +129,8 @@ export const automationListResponseSchema = z.object({
   data: z.array(automationResponseSchema.omit({ object: true })),
 });
 
-export type CreateAutomationRequest = z.infer<typeof createAutomationSchema>;
-export type UpdateAutomationRequest = z.infer<typeof updateAutomationSchema>;
+type CreateAutomationRequest = z.infer<typeof createAutomationSchema>;
+type UpdateAutomationRequest = z.infer<typeof updateAutomationSchema>;
 export type AutomationResponse = z.infer<typeof automationResponseSchema>;
 export type AutomationListResponse = z.infer<
   typeof automationListResponseSchema

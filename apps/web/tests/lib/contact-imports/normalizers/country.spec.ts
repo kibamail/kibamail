@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
-  normalizeCountry,
   isValidCountryCode,
+  normalizeCountry,
 } from "@/lib/contact-imports/normalizers/country";
 
 describe("normalizeCountry", () => {

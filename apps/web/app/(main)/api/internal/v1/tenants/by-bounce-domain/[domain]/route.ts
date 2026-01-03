@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
+import { validateBounceDomain } from "@/app/(main)/api/internal/v1/tenants/[tenantId]/handler";
 import { withErrorHandling } from "@/lib/api/requests";
 import { withServiceAuth } from "@/lib/api/service-auth";
-import { validateBounceDomain } from "@/app/(main)/api/internal/v1/tenants/[tenantId]/handler";
 
 export async function GET(
   request: NextRequest,

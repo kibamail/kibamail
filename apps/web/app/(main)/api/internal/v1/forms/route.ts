@@ -11,8 +11,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { createForm, listForms } from "@/app/(main)/api/v1/forms/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * GET /api/internal/v1/forms
@@ -31,8 +31,8 @@ export async function GET(request: NextRequest) {
         }
         return listForms(session.currentOrganization.id, request);
       },
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }
 
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         }
         return createForm(session.currentOrganization.id, request);
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }

@@ -9,7 +9,7 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 import { createSendingDomain, listSendingDomains } from "./handler";
 
 /**
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => createSendingDomain(apiKey.workspaceId, request),
-      ["write:domains"]
-    )
+      ["write:domains"],
+    ),
   );
 }
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => listSendingDomains(apiKey.workspaceId, request),
-      ["read:domains"]
-    )
+      ["read:domains"],
+    ),
   );
 }

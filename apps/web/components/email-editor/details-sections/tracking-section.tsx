@@ -1,10 +1,10 @@
 "use client";
 
-import { useId } from "react";
 import * as Alert from "@kibamail/owly/alert";
 import { Checkbox } from "@kibamail/owly/checkbox";
 import { Text } from "@kibamail/owly/text";
 import { WarningTriangle } from "iconoir-react";
+import { useId } from "react";
 import { SectionHeader } from "@/components/email-editor/details-sections/shared";
 import type { EmailDetails } from "@/components/email-editor/types";
 

@@ -87,7 +87,7 @@ export function UserProvider({ session, children }: UserProviderProps) {
  * }
  * ```
  */
-export function useSession(): UserSession {
+function useSession(): UserSession {
   const context = useContext(UserContext);
   if (!context) {
     throw new Error("useSession must be used within a UserProvider");
@@ -117,7 +117,7 @@ export function useSession(): UserSession {
  * }
  * ```
  */
-export function useUser() {
+function useUser() {
   const session = useSession();
   return session.user;
 }
@@ -170,7 +170,7 @@ export function useOrganization() {
  * }
  * ```
  */
-export function useOrganizations() {
+function useOrganizations() {
   const session = useSession();
   return session.organizations;
 }

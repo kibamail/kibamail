@@ -1,7 +1,7 @@
 import type { SendingDomain } from "@prisma/client";
 import type {
-  TransformedSenderIdentity,
   CreatedDomain,
+  TransformedSenderIdentity,
 } from "@/components/sender-select";
 
 export type { TransformedSenderIdentity, CreatedDomain };
@@ -109,7 +109,10 @@ export function getTabsForMode(mode: EmailEditorMode): TabConfig[] {
   ];
 
   if (mode === "broadcast") {
-    return [...baseTabs, { id: "analytics", label: "Analytics", enabled: true }];
+    return [
+      ...baseTabs,
+      { id: "analytics", label: "Analytics", enabled: true },
+    ];
   }
 
   return baseTabs;

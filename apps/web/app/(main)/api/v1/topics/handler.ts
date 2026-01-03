@@ -7,20 +7,15 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { validateRequestBody } from "@/lib/api/validation";
-import {
-  responseCreated,
-  responseOk,
-} from "@/lib/api/responses";
-import {
-  NotFoundError,
-} from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { NotFoundError } from "@/lib/api/errors";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
+import { responseCreated, responseOk } from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
+import { prisma } from "@/lib/db";
 import { createTopicSchema, updateTopicSchema } from "./schema";
 
 /**
@@ -44,7 +39,7 @@ export async function createTopic(workspaceId: string, request: NextRequest) {
     {
       id: topic.id,
     },
-    "topic"
+    "topic",
   );
 }
 
@@ -72,12 +67,12 @@ export async function listTopics(workspaceId: string, request: NextRequest) {
         skip: 1,
       })
     : before
-    ? await prisma.topic.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.topic.findMany(baseQuery);
+      ? await prisma.topic.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.topic.findMany(baseQuery);
 
   const hasMore = topics.length > limit;
   const items = hasMore ? topics.slice(0, -1) : topics;
@@ -97,7 +92,7 @@ export async function listTopics(workspaceId: string, request: NextRequest) {
   const paginatedResponse = createCursorPaginatedResponse(
     formattedTopics,
     hasMore,
-    "topic_list"
+    "topic_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -110,7 +105,6 @@ export async function listTopics(workspaceId: string, request: NextRequest) {
  * Returns 404 if topic not found or belongs to a different workspace.
  */
 export async function getTopic(workspaceId: string, topicId: string) {
-
   const topic = await prisma.topic.findFirst({
     where: {
       id: topicId,
@@ -130,7 +124,7 @@ export async function getTopic(workspaceId: string, topicId: string) {
       visibility: topic.visibility,
       defaultOptIn: topic.defaultOptIn,
     },
-    "topic"
+    "topic",
   );
 }
 
@@ -144,7 +138,7 @@ export async function getTopic(workspaceId: string, topicId: string) {
 export async function updateTopic(
   workspaceId: string,
   topicId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateTopicSchema, request);
 
@@ -162,7 +156,7 @@ export async function updateTopic(
     {
       id: updatedTopic.id,
     },
-    "topic"
+    "topic",
   );
 }
 
@@ -175,7 +169,6 @@ export async function updateTopic(
  * Cascade deletes all contact_topic relationships.
  */
 export async function deleteTopic(workspaceId: string, topicId: string) {
-
   const deletedTopic = await prisma.topic.delete({
     where: {
       id: topicId,
@@ -187,7 +180,7 @@ export async function deleteTopic(workspaceId: string, topicId: string) {
     {
       id: deletedTopic.id,
     },
-    "topic"
+    "topic",
   );
 }
 
@@ -201,7 +194,7 @@ export async function deleteTopic(workspaceId: string, topicId: string) {
 export async function getTopicContacts(
   workspaceId: string,
   topicId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
@@ -244,12 +237,12 @@ export async function getTopicContacts(
         skip: 1,
       })
     : before
-    ? await prisma.contact.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.contact.findMany(baseQuery);
+      ? await prisma.contact.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.contact.findMany(baseQuery);
 
   const hasMore = contacts.length > limit;
   const items = hasMore ? contacts.slice(0, -1) : contacts;
@@ -285,7 +278,7 @@ export async function getTopicContacts(
   const paginatedResponse = createCursorPaginatedResponse(
     formattedContacts,
     hasMore,
-    "contact_list"
+    "contact_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }

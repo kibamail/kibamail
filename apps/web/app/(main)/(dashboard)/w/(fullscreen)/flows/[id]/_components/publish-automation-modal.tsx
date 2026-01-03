@@ -1,23 +1,19 @@
 "use client";
 
-import { useEffect } from "react";
-import * as Dialog from "@kibamail/owly/dialog";
 import * as Alert from "@kibamail/owly/alert";
-import { Button } from "@kibamail/owly/button";
-import { Text } from "@kibamail/owly/text";
 import { Badge } from "@kibamail/owly/badge";
+import { Button } from "@kibamail/owly/button";
+import * as Dialog from "@kibamail/owly/dialog";
 import { Spinner } from "@kibamail/owly/spinner";
+import { Text } from "@kibamail/owly/text";
 import { useToast } from "@kibamail/owly/toast";
-import {
-  WarningTriangle,
-  CheckCircle,
-  SendDiagonal,
-} from "iconoir-react";
-import { useMutation } from "@/hooks/use-mutation";
-import { internalApi, ApiClientError } from "@/lib/api/client";
-import { useFlowEditor } from "./flow-editor-context";
+import { CheckCircle, SendDiagonal, WarningTriangle } from "iconoir-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { useMutation } from "@/hooks/use-mutation";
+import { ApiClientError, internalApi } from "@/lib/api/client";
 import type { ValidationError } from "@/lib/automations/validation";
+import { useFlowEditor } from "./flow-editor-context";
 
 interface PublishAutomationModalProps {
   open: boolean;
@@ -25,7 +21,7 @@ interface PublishAutomationModalProps {
 }
 
 function groupErrorsByNode(
-  errors: ValidationError[]
+  errors: ValidationError[],
 ): Map<string, ValidationError[]> {
   const grouped = new Map<string, ValidationError[]>();
 
@@ -88,7 +84,13 @@ export function PublishAutomationModal({
 }: PublishAutomationModalProps) {
   const router = useRouter();
   const { success: toast } = useToast();
-  const { automationId, automation, nodeErrors, setNodeErrors, clearNodeErrors } = useFlowEditor();
+  const {
+    automationId,
+    automation,
+    nodeErrors,
+    setNodeErrors,
+    clearNodeErrors,
+  } = useFlowEditor();
 
   useEffect(() => {
     if (open) {
@@ -145,9 +147,7 @@ export function PublishAutomationModal({
       <Dialog.Content className="max-w-lg">
         <Dialog.Header>
           <Dialog.Title>
-            {hasValidationErrors
-              ? "Unable to Publish"
-              : "Publish Automation"}
+            {hasValidationErrors ? "Unable to Publish" : "Publish Automation"}
           </Dialog.Title>
         </Dialog.Header>
 

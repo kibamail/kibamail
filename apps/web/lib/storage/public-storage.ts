@@ -11,12 +11,12 @@
  */
 
 import {
-  S3Client,
-  PutObjectCommand,
   DeleteObjectCommand,
-  ListObjectsV2Command,
   HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
   type PutObjectCommandInput,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { env } from "@/env/schema";
 
@@ -85,7 +85,7 @@ export async function uploadPublicFile(
  * // Returns: https://assets.kibamail.com/broadcasts/123/image.jpg
  * ```
  */
-export function getPublicFileUrl(key: string): string {
+function getPublicFileUrl(key: string): string {
   const baseUrl = env.S3_PUBLIC_URL.replace(/\/$/, "");
   return `${baseUrl}/${key}`;
 }
@@ -96,7 +96,7 @@ export function getPublicFileUrl(key: string): string {
  * @param key - The object key (path) in the bucket
  * @returns Deletion confirmation
  */
-export async function deletePublicFile(key: string) {
+async function deletePublicFile(key: string) {
   const command = new DeleteObjectCommand({
     Bucket: env.S3_PUBLIC_BUCKET,
     Key: key,
@@ -117,7 +117,7 @@ export async function deletePublicFile(key: string) {
  * @param key - The object key (path) in the bucket
  * @returns True if file exists, false otherwise
  */
-export async function publicFileExists(key: string): Promise<boolean> {
+async function publicFileExists(key: string): Promise<boolean> {
   try {
     const command = new HeadObjectCommand({
       Bucket: env.S3_PUBLIC_BUCKET,
@@ -141,7 +141,7 @@ export async function publicFileExists(key: string): Promise<boolean> {
  * @param maxKeys - Maximum number of keys to return (default: 1000)
  * @returns List of objects with metadata
  */
-export async function listPublicFiles(prefix?: string, maxKeys: number = 1000) {
+async function listPublicFiles(prefix?: string, maxKeys: number = 1000) {
   const command = new ListObjectsV2Command({
     Bucket: env.S3_PUBLIC_BUCKET,
     Prefix: prefix,
@@ -164,7 +164,7 @@ export async function listPublicFiles(prefix?: string, maxKeys: number = 1000) {
  * @param key - The object key (path) in the bucket
  * @returns File metadata
  */
-export async function getPublicFileMetadata(key: string) {
+async function getPublicFileMetadata(key: string) {
   const command = new HeadObjectCommand({
     Bucket: env.S3_PUBLIC_BUCKET,
     Key: key,
@@ -180,5 +180,3 @@ export async function getPublicFileMetadata(key: string) {
     metadata: response.Metadata,
   };
 }
-
-export { publicS3Client };

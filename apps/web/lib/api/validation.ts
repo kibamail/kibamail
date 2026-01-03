@@ -67,9 +67,9 @@ type ValidationResult<T> = ValidationSuccess<T> | ValidationFailure;
  * const { email, name } = result.data
  * ```
  */
-export function validateRequest<T>(
+function validateRequest<T>(
   schema: ZodType<T>,
-  data: unknown
+  data: unknown,
 ): ValidationResult<T> {
   const result = schema.safeParse(data);
 
@@ -111,7 +111,7 @@ export function validateRequest<T>(
  * }
  * ```
  */
-export function validateOrThrow<T>(schema: ZodType<T>, data: unknown): T {
+function validateOrThrow<T>(schema: ZodType<T>, data: unknown): T {
   return schema.parse(data);
 }
 
@@ -156,17 +156,17 @@ export function validateOrThrow<T>(schema: ZodType<T>, data: unknown): T {
  */
 export async function validateRequestBody<T>(
   schema: ZodType<T>,
-  request: Request
+  request: Request,
 ): Promise<T>;
 export async function validateRequestBody<T>(
   schema: ZodType<T>,
   request: Request,
-  options: { shouldThrow: false }
+  options: { shouldThrow: false },
 ): Promise<ValidationResult<T>>;
 export async function validateRequestBody<T>(
   schema: ZodType<T>,
   request: Request,
-  options?: { shouldThrow?: boolean }
+  options?: { shouldThrow?: boolean },
 ): Promise<ValidationResult<T> | T> {
   const shouldThrow = options?.shouldThrow ?? true;
 

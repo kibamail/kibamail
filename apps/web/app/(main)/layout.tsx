@@ -1,6 +1,6 @@
+import { ToastProvider } from "@kibamail/owly/toast";
 import type { Metadata } from "next";
 import { Manrope } from "next/font/google";
-import { ToastProvider } from "@kibamail/owly/toast";
 import "../globals.css";
 
 const manrope = Manrope();
@@ -11,10 +11,18 @@ const description =
 export const metadata: Metadata = {
   title: {
     default: "kibamail · the open source aws ses alternative",
-    template: "%s | Kibamail"
+    template: "%s | Kibamail",
   },
   description,
-  keywords: ["email", "ses", "aws", "alternative", "open source", "transactional", "marketing"],
+  keywords: [
+    "email",
+    "ses",
+    "aws",
+    "alternative",
+    "open source",
+    "transactional",
+    "marketing",
+  ],
   authors: [{ name: "Kibamail" }],
   creator: "Kibamail",
   publisher: "Kibamail",

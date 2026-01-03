@@ -1,18 +1,18 @@
-import dayjs from "dayjs";
-import advancedFormat from "dayjs/plugin/advancedFormat";
 import type {
   Broadcast,
   EmailContent,
   Segment,
-  SendingDomain,
   SenderIdentity,
+  SendingDomain,
   Topic,
 } from "@prisma/client";
+import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
 import { prisma } from "@/lib/db";
 import {
-  validateContentLinks,
-  type LinksValidationResult,
   type ExtractedLink,
+  type LinksValidationResult,
+  validateContentLinks,
 } from "./links-validator";
 
 export type { LinksValidationResult, ExtractedLink };
@@ -60,7 +60,7 @@ type BroadcastWithRelations = Broadcast & {
   sendingDomain: SendingDomain | null;
 };
 
-export class BroadcastReadinessChecker {
+class BroadcastReadinessChecker {
   private workspaceId: string;
   private broadcast: BroadcastWithRelations;
   private topic: Topic | null = null;
@@ -78,7 +78,9 @@ export class BroadcastReadinessChecker {
     this.broadcast = broadcast;
   }
 
-  async check(options?: ReadinessCheckOptions): Promise<BroadcastReadinessResult> {
+  async check(
+    options?: ReadinessCheckOptions,
+  ): Promise<BroadcastReadinessResult> {
     await Promise.all([this.loadAudienceData(), this.validateLinks()]);
     await this.calculateRecipientCount();
 
@@ -170,7 +172,9 @@ export class BroadcastReadinessChecker {
     return { audienceType: "all" };
   }
 
-  private buildChecklist(options?: ReadinessCheckOptions): ReadinessCheckItem[] {
+  private buildChecklist(
+    options?: ReadinessCheckOptions,
+  ): ReadinessCheckItem[] {
     const checklist: ReadinessCheckItem[] = [];
 
     checklist.push(this.checkFromEmail());
@@ -248,8 +252,8 @@ export class BroadcastReadinessChecker {
       reason: !hasSenderIdentity
         ? "No sender email configured"
         : !isDomainVerified
-        ? "Sending domain is not fully verified"
-        : undefined,
+          ? "Sending domain is not fully verified"
+          : undefined,
     };
   }
 
@@ -324,7 +328,7 @@ export class BroadcastReadinessChecker {
 export async function checkBroadcastReadiness(
   workspaceId: string,
   broadcast: BroadcastWithRelations,
-  options?: ReadinessCheckOptions
+  options?: ReadinessCheckOptions,
 ): Promise<BroadcastReadinessResult> {
   const checker = new BroadcastReadinessChecker(workspaceId, broadcast);
   return checker.check(options);

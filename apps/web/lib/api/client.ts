@@ -19,7 +19,7 @@
  * ```
  */
 
-import { z, ZodError, type ZodType } from "zod";
+import { ZodError, type ZodType, z } from "zod";
 import {
   type CreateApiKeyInput,
   type CreateApiKeyResponse,
@@ -30,6 +30,14 @@ import {
   type ListApiKeysResponse,
   listApiKeysResponseSchema,
 } from "@/app/(main)/api/internal/v1/api-keys/schema";
+import type { UploadBroadcastFilesResponse } from "@/app/(main)/api/internal/v1/broadcasts/[broadcastId]/files/schema";
+import type { BroadcastReadinessResponse } from "@/app/(main)/api/internal/v1/broadcasts/[broadcastId]/readiness/route";
+import type {
+  ContactImportResponse,
+  CreateContactImportResponse,
+  UpdateContactImportRequest,
+  UpdateContactImportResponse,
+} from "@/app/(main)/api/internal/v1/contact-imports/schema";
 import {
   type UpdateInvitationStatusInput,
   type UpdateInvitationStatusResponse,
@@ -95,14 +103,6 @@ import {
   type CreateBroadcastRequest,
   type UpdateBroadcastRequest,
 } from "@/app/(main)/api/v1/broadcasts/schema";
-import { type UploadBroadcastFilesResponse } from "@/app/(main)/api/internal/v1/broadcasts/[broadcastId]/files/schema";
-import {
-  type CreateContactImportResponse,
-  type UpdateContactImportRequest,
-  type UpdateContactImportResponse,
-  type ContactImportResponse,
-} from "@/app/(main)/api/internal/v1/contact-imports/schema";
-import type { BroadcastReadinessResponse } from "@/app/(main)/api/internal/v1/broadcasts/[broadcastId]/readiness/route";
 import {
   type ContactPropertyListResponse,
   type ContactPropertyResponse,
@@ -150,6 +150,7 @@ import {
 export interface UpdateFormClientInput extends Partial<CreateFormRequest> {
   doubleOptInEmailId?: string | null;
 }
+
 import {
   type UpdateEmailInput,
   updateEmailSchema,
@@ -171,6 +172,7 @@ export interface CreateEmailClientInput {
   trackOpens?: boolean;
   type?: "TRANSACTIONAL" | "AUTOMATION" | "NOTIFICATION";
 }
+
 import {
   type CreateSegmentRequest,
   createSegmentSchema,
@@ -2077,14 +2079,14 @@ class BroadcastsApi extends HttpClient {
   }
 
   async preview(
-    broadcastId: string
+    broadcastId: string,
   ): Promise<{ html: string; hasContent: boolean }> {
     const response = await fetch(
       `/api/internal/v1/broadcasts/${broadcastId}/preview`,
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -2105,7 +2107,7 @@ class BroadcastsApi extends HttpClient {
       {
         method: "GET",
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -2137,7 +2139,7 @@ class BroadcastsApi extends HttpClient {
    */
   async sendTest(
     broadcastId: string,
-    emails: string[]
+    emails: string[],
   ): Promise<{ success: boolean; message: string; emailCount: number }> {
     const response = await fetch(
       `/api/internal/v1/broadcasts/${broadcastId}/send-test`,
@@ -2145,7 +2147,7 @@ class BroadcastsApi extends HttpClient {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emails }),
-      }
+      },
     );
 
     if (!response.ok) {
@@ -2174,7 +2176,7 @@ class BroadcastsApi extends HttpClient {
    * ```
    */
   async duplicate(
-    broadcastId: string
+    broadcastId: string,
   ): Promise<{ object: string; id: string }> {
     return this.request(
       "POST",
@@ -2236,13 +2238,7 @@ class EmailsApi extends HttpClient {
    * ```
    */
   async create(data: CreateEmailClientInput): Promise<EmailResponse> {
-    return this.request(
-      "POST",
-      "/api/internal/v1/emails",
-      null,
-      z.any(),
-      data,
-    );
+    return this.request("POST", "/api/internal/v1/emails", null, z.any(), data);
   }
 
   /**
@@ -2352,7 +2348,9 @@ class EmailsApi extends HttpClient {
    * const { html, hasContent } = await internalApi.emails().preview('email_123')
    * ```
    */
-  async preview(emailId: string): Promise<{ html: string; hasContent: boolean }> {
+  async preview(
+    emailId: string,
+  ): Promise<{ html: string; hasContent: boolean }> {
     return this.request(
       "GET",
       `/api/internal/v1/emails/${emailId}/preview`,
@@ -2506,7 +2504,7 @@ class DomainsApi extends HttpClient {
  *
  * Provides namespaced, type-safe methods for all internal API endpoints.
  */
-export class InternalApi {
+class InternalApi {
   private _workspaces: WorkspacesApi;
   private _invitations: InvitationsApi;
   private _apiKeys: ApiKeysApi;

@@ -21,12 +21,12 @@ export function EventTriggeredConfig() {
               ...node,
               data: { ...node.data, eventName: event.target.value },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   return (

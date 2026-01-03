@@ -8,6 +8,7 @@
  * - /u/{contactId}/{broadcastId} - Unsubscribe handling
  * - /p/{contactId} - Preferences page
  * - /v/{broadcastId}/{contactId} - View in browser
+ * - /confirm/{formId}/{token} - Double opt-in confirmation
  *
  * This server lives at e.kbmta.net. Users point their tracking subdomain
  * (e.g., e.example.com) as a CNAME to this domain.
@@ -21,6 +22,7 @@ import { imageRoute } from "./routes/image.js";
 import { openRoute } from "./routes/open.js";
 import { clickRoute } from "./routes/click.js";
 import { unsubscribeRoute } from "./routes/unsubscribe.js";
+import { confirmRoute } from "./routes/confirm.js";
 
 const app = new Hono();
 
@@ -35,6 +37,7 @@ app.route("/i", imageRoute);
 app.route("/o", openRoute);
 app.route("/c", clickRoute);
 app.route("/u", unsubscribeRoute);
+app.route("/confirm", confirmRoute);
 
 // 404 handler
 app.notFound((c) => {
@@ -56,6 +59,7 @@ console.log(`  - GET /i/{encoded} - Image proxy`);
 console.log(`  - GET /o/{encoded} - Open tracking pixel`);
 console.log(`  - GET /c/{encoded} - Click tracking redirect`);
 console.log(`  - GET /u/{contactId}/{broadcastId} - Unsubscribe`);
+console.log(`  - GET /confirm/{formId}/{token} - Double opt-in confirmation`);
 
 serve({
   fetch: app.fetch,

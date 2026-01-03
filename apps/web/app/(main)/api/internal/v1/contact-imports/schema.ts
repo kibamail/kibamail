@@ -7,7 +7,7 @@
 import { z } from "zod";
 
 // Response schema for creating a contact import
-export const createContactImportResponseSchema = z.object({
+const createContactImportResponseSchema = z.object({
   id: z.string(),
   fileKey: z.string(),
   fileName: z.string(),
@@ -34,7 +34,7 @@ export type UpdateContactImportRequest = z.infer<
 >;
 
 // Response schema for updating a contact import
-export const updateContactImportResponseSchema = z.object({
+const updateContactImportResponseSchema = z.object({
   id: z.string(),
   status: z.string(),
   ready: z.boolean(),
@@ -47,7 +47,7 @@ export type UpdateContactImportResponse = z.infer<
 >;
 
 // Response schema for getting a contact import
-export const contactImportResponseSchema = z.object({
+const contactImportResponseSchema = z.object({
   id: z.string(),
   fileKey: z.string(),
   fileName: z.string(),

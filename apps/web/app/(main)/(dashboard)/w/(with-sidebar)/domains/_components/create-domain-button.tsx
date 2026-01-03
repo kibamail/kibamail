@@ -3,8 +3,11 @@
 import { Button } from "@kibamail/owly/button";
 import { Plus } from "iconoir-react";
 import { useRouter } from "next/navigation";
+import {
+  CreateDomainModal,
+  type CreatedDomain,
+} from "@/components/create-domain-modal";
 import { useToggleState } from "@/hooks/utils/useToggleState";
-import { CreateDomainModal, type CreatedDomain } from "@/components/create-domain-modal";
 
 export function CreateDomainButton() {
   const router = useRouter();

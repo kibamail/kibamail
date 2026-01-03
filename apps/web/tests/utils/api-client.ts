@@ -111,7 +111,11 @@ export function get(path: string, apiKey?: string): NextRequest {
 /**
  * Quick helper for POST requests
  */
-export function post(path: string, body: unknown, apiKey?: string): NextRequest {
+export function post(
+  path: string,
+  body: unknown,
+  apiKey?: string,
+): NextRequest {
   const builder = apiRequest(path).method("POST").body(body);
   if (apiKey) builder.auth(apiKey);
   return builder.build();

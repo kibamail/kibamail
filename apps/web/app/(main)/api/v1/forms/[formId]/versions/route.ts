@@ -9,8 +9,11 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  createFormVersion,
+  listFormVersions,
+} from "@/app/(main)/api/v1/forms/handler";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-import { createFormVersion, listFormVersions } from "@/app/(main)/api/v1/forms/handler";
 
 /**
  * GET /api/v1/forms/[formId]/versions
@@ -20,7 +23,7 @@ import { createFormVersion, listFormVersions } from "@/app/(main)/api/v1/forms/h
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -28,8 +31,8 @@ export async function GET(
     withApiSession(
       request,
       (apiKey) => listFormVersions(apiKey.workspaceId, formId),
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }
 
@@ -42,15 +45,16 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => createFormVersion(apiKey.workspaceId, formId, request),
-      ["write:forms"]
-    )
+      (apiKey, request) =>
+        createFormVersion(apiKey.workspaceId, formId, request),
+      ["write:forms"],
+    ),
   );
 }

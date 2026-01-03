@@ -5,8 +5,8 @@
  */
 
 import { logto } from "@/auth/logto";
+import { responseBadRequest, responseNoContent } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
-import { responseNoContent, responseBadRequest } from "@/lib/api/responses";
 import { prisma } from "@/lib/db";
 
 /**

@@ -9,16 +9,16 @@
  * Returns the rendered HTML exactly as it will appear in an email
  */
 
-import { NextResponse, type NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { prisma } from "@/lib/db";
-import { NotFoundError } from "@/lib/api/errors";
+import { type NextRequest, NextResponse } from "next/server";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { NotFoundError } from "@/lib/api/errors";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 import {
-  renderBroadcastToHtml,
   type BroadcastDocument,
   type BroadcastStyles,
+  renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
+import { prisma } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ emailId: string }>;
@@ -52,7 +52,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         });
 
         if (!email) {
-          throw new NotFoundError("Email not found", ErrorCode.RESOURCE_NOT_FOUND);
+          throw new NotFoundError(
+            "Email not found",
+            ErrorCode.RESOURCE_NOT_FOUND,
+          );
         }
 
         // Check if there's content to render
@@ -63,7 +66,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               html: "<html><body><p>No content to preview</p></body></html>",
               hasContent: false,
             },
-            { status: 200 }
+            { status: 200 },
           );
         }
 
@@ -82,7 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
               confirmation_url: "#confirm-subscription",
             },
           },
-          storedStyles
+          storedStyles,
         );
 
         return NextResponse.json(
@@ -90,10 +93,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             html,
             hasContent: true,
           },
-          { status: 200 }
+          { status: 200 },
         );
       },
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }

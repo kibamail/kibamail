@@ -1,25 +1,27 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
-import { Xmark, Settings, Eye } from "iconoir-react";
-import Link from "next/link";
 import type { SendingDomain } from "@prisma/client";
-
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Eye, Settings, Xmark } from "iconoir-react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type {
+  CreatedDomain,
+  TransformedSenderIdentity,
+} from "@/components/sender-select";
+import { internalApi } from "@/lib/api/client";
+import {
+  DoubleOptInDetailsTab,
+  type EmailDetails,
+} from "./double-opt-in-details-tab";
 import {
   DoubleOptInEmailEditor,
   type DoubleOptInEmailEditorRef,
 } from "./double-opt-in-email-editor";
-import { DoubleOptInDetailsTab, type EmailDetails } from "./double-opt-in-details-tab";
 import { DoubleOptInPreview } from "./double-opt-in-preview";
-import { internalApi } from "@/lib/api/client";
-import {
-  type TransformedSenderIdentity,
-  type CreatedDomain,
-} from "@/components/sender-select";
 
 type EditorTab = "content" | "details" | "preview";
 
@@ -96,7 +98,7 @@ export function DoubleOptInEmailEditorClient({
   const [senderLocalPart, setSenderLocalPart] = useState("");
   const [senderDomainId, setSenderDomainId] = useState(domains[0]?.id || "");
   const [isAddingNewSender, setIsAddingNewSender] = useState(
-    !initialSenderIdentityId && senderIdentities.length === 0
+    !initialSenderIdentityId && senderIdentities.length === 0,
   );
 
   const allDomains = [...domains, ...addedDomains];
@@ -112,10 +114,10 @@ export function DoubleOptInEmailEditorClient({
           updates.senderIdentityId !== prev.senderIdentityId
         ) {
           const prevSender = senderIdentities.find(
-            (s) => s.id === prev.senderIdentityId
+            (s) => s.id === prev.senderIdentityId,
           );
           const nextSender = senderIdentities.find(
-            (s) => s.id === updates.senderIdentityId
+            (s) => s.id === updates.senderIdentityId,
           );
 
           if (prevSender?.domainId !== nextSender?.domainId) {
@@ -126,7 +128,7 @@ export function DoubleOptInEmailEditorClient({
         return next;
       });
     },
-    [senderIdentities]
+    [senderIdentities],
   );
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {

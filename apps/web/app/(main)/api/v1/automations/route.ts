@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => createAutomation(apiKey.workspaceId, request),
-      ["write:automations"]
-    )
+      ["write:automations"],
+    ),
   );
 }
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => listAutomations(apiKey.workspaceId, request),
-      ["read:automations"]
-    )
+      ["read:automations"],
+    ),
   );
 }

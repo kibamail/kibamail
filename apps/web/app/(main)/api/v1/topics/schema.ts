@@ -3,7 +3,7 @@ import * as z from "zod/v4";
 /**
  * Topic Visibility Enum
  */
-export const TopicVisibilityEnum = z.enum(["PUBLIC", "PRIVATE"]);
+const TopicVisibilityEnum = z.enum(["PUBLIC", "PRIVATE"]);
 
 /**
  * Create Topic Request Schema
@@ -68,7 +68,7 @@ export const topicListResponseSchema = z.object({
 /**
  * Topic Delete Response Schema
  */
-export const topicDeleteResponseSchema = z.object({
+const topicDeleteResponseSchema = z.object({
   object: z.literal("topic"),
   id: z.string().describe("ID of the deleted topic"),
 });
@@ -77,7 +77,7 @@ export const topicDeleteResponseSchema = z.object({
  * Type exports
  */
 export type CreateTopicRequest = z.infer<typeof createTopicSchema>;
-export type UpdateTopicRequest = z.infer<typeof updateTopicSchema>;
+type UpdateTopicRequest = z.infer<typeof updateTopicSchema>;
 export type TopicResponse = z.infer<typeof topicResponseSchema>;
 export type TopicListResponse = z.infer<typeof topicListResponseSchema>;
-export type TopicDeleteResponse = z.infer<typeof topicDeleteResponseSchema>;
+type TopicDeleteResponse = z.infer<typeof topicDeleteResponseSchema>;

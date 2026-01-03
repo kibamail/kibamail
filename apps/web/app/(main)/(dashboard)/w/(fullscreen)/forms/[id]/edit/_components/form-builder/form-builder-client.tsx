@@ -1,17 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
-import { Xmark, StatUp, Settings, Eye, EditPencil } from "iconoir-react";
+import type { FormStatus } from "@prisma/client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { EditPencil, Eye, Settings, StatUp, Xmark } from "iconoir-react";
 import Link from "next/link";
-
-import { FormBuilderProvider, useFormBuilder } from "./form-builder-context";
-import { FieldsSidebar } from "./fields-sidebar";
-import { FormCanvas } from "./form-canvas";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { internalApi } from "@/lib/api/client";
 import { FieldPropertiesPanel } from "./field-properties-panel";
+import { FieldsSidebar } from "./fields-sidebar";
+import { FormBuilderProvider, useFormBuilder } from "./form-builder-context";
+import { FormCanvas } from "./form-canvas";
 import { FormLivePreview } from "./form-live-preview";
 import { FormSettingsTab } from "./form-settings-tab";
 import {
@@ -19,8 +20,6 @@ import {
   type FormVersionItem,
 } from "./form-version-dropdown";
 import type { FormBuilderSchema } from "./types";
-import { internalApi } from "@/lib/api/client";
-import type { FormStatus } from "@prisma/client";
 
 type EditorTab = "create" | "settings" | "preview" | "analytics";
 
@@ -214,7 +213,9 @@ function FormBuilderContent({
         {/* Settings tab */}
         <div
           className={`absolute inset-0 ${
-            activeTab === "settings" ? "visible" : "invisible pointer-events-none"
+            activeTab === "settings"
+              ? "visible"
+              : "invisible pointer-events-none"
           }`}
         >
           <FormSettingsTab />
@@ -223,7 +224,9 @@ function FormBuilderContent({
         {/* Preview tab */}
         <div
           className={`absolute inset-0 ${
-            activeTab === "preview" ? "visible" : "invisible pointer-events-none"
+            activeTab === "preview"
+              ? "visible"
+              : "invisible pointer-events-none"
           }`}
         >
           <FormLivePreview isActive={activeTab === "preview"} />
@@ -232,7 +235,9 @@ function FormBuilderContent({
         {/* Analytics tab */}
         <div
           className={`absolute inset-0 ${
-            activeTab === "analytics" ? "visible" : "invisible pointer-events-none"
+            activeTab === "analytics"
+              ? "visible"
+              : "invisible pointer-events-none"
           }`}
         >
           <FormAnalyticsPlaceholder />

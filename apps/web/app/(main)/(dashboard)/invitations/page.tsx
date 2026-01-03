@@ -5,14 +5,13 @@
  * Users can view and accept invitations to join workspaces.
  */
 
-import { logto, LogtoWorkspace } from "@/auth/logto";
+import { Button } from "@kibamail/owly";
+import { ArrowRight } from "iconoir-react";
+import Image from "next/image";
+import { redirect } from "next/navigation";
+import { type LogtoWorkspace, logto } from "@/auth/logto";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
-import { redirect } from "next/navigation";
-
-import { Button } from "@kibamail/owly";
-import Image from "next/image";
-import { ArrowRight } from "iconoir-react";
 import { InvitationCard } from "./_components/invitation-card";
 
 export default async function InvitationsPage() {
@@ -29,7 +28,7 @@ export default async function InvitationsPage() {
   }
 
   const workspaces = await Promise.allSettled(
-    invitations.map((invite) => logto.workspaces().get(invite.workspaceId))
+    invitations.map((invite) => logto.workspaces().get(invite.workspaceId)),
   );
 
   const knownWorkspaces: Record<string, LogtoWorkspace> = {};

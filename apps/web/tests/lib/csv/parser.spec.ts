@@ -1,13 +1,13 @@
-import { describe, it, expect } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { describe, expect, it } from "vitest";
 import {
-  parseCsv,
-  parseCsvLine,
-  splitCsvLines,
   isValidEmail,
   normalizeEmail,
+  parseCsv,
+  parseCsvLine,
   processCsvInBatches,
+  splitCsvLines,
 } from "@/lib/csv/parser";
 
 function loadTestCsv(filename: string): string {
@@ -126,7 +126,13 @@ describe("parseCsv", () => {
       const content = loadTestCsv("perfect.csv");
       const result = parseCsv(content);
 
-      expect(result.headers).toEqual(["email", "first_name", "last_name", "company", "phone"]);
+      expect(result.headers).toEqual([
+        "email",
+        "first_name",
+        "last_name",
+        "company",
+        "phone",
+      ]);
       expect(result.totalRows).toBe(5);
       expect(result.validRows).toBe(5);
       expect(result.invalidRows).toBe(0);
@@ -164,7 +170,7 @@ describe("parseCsv", () => {
 
       // Find the row with missing columns
       const missingColumnsRow = result.rows.find(
-        (row) => row.data.email === "missing@columns.com"
+        (row) => row.data.email === "missing@columns.com",
       );
       expect(missingColumnsRow).toBeDefined();
       expect(missingColumnsRow?.isValid).toBe(false);
@@ -176,7 +182,7 @@ describe("parseCsv", () => {
 
       // Find the row with extra columns
       const extraColumnsRow = result.rows.find(
-        (row) => row.data.email === "extra@columns.com"
+        (row) => row.data.email === "extra@columns.com",
       );
       expect(extraColumnsRow).toBeDefined();
       expect(extraColumnsRow?.isValid).toBe(false);
@@ -221,7 +227,9 @@ describe("parseCsv", () => {
       const content = loadTestCsv("quoted-fields.csv");
       const result = parseCsv(content);
 
-      const row = result.rows.find((r) => r.data.email === "charlie@example.com");
+      const row = result.rows.find(
+        (r) => r.data.email === "charlie@example.com",
+      );
       expect(row?.data.notes).toBe('Mixed "quotes" and, commas');
     });
   });
@@ -240,7 +248,7 @@ describe("parseCsv", () => {
       const result = parseCsv(content);
 
       const row = result.rows.find((r) =>
-        r.data.email?.toLowerCase().includes("spaces")
+        r.data.email?.toLowerCase().includes("spaces"),
       );
       expect(row?.data.email).not.toMatch(/^\s|\s$/);
     });
@@ -250,7 +258,7 @@ describe("parseCsv", () => {
       const result = parseCsv(content);
 
       const duplicateRows = result.rows.filter(
-        (r) => r.data.email?.toLowerCase() === "duplicate@example.com"
+        (r) => r.data.email?.toLowerCase() === "duplicate@example.com",
       );
       expect(duplicateRows.length).toBe(2);
     });
@@ -261,7 +269,9 @@ describe("parseCsv", () => {
       const content = loadTestCsv("special-chars.csv");
       const result = parseCsv(content);
 
-      const row = result.rows.find((r) => r.data.email === "unicode@example.com");
+      const row = result.rows.find(
+        (r) => r.data.email === "unicode@example.com",
+      );
       expect(row?.data.first_name).toBe("José");
       expect(row?.data.last_name).toBe("García");
     });
@@ -286,7 +296,9 @@ describe("parseCsv", () => {
       const content = loadTestCsv("special-chars.csv");
       const result = parseCsv(content);
 
-      const row = result.rows.find((r) => r.data.email === "cyrillic@example.com");
+      const row = result.rows.find(
+        (r) => r.data.email === "cyrillic@example.com",
+      );
       expect(row?.data.first_name).toBe("Иван");
     });
 
@@ -294,7 +306,9 @@ describe("parseCsv", () => {
       const content = loadTestCsv("special-chars.csv");
       const result = parseCsv(content);
 
-      const row = result.rows.find((r) => r.data.email === "arabic@example.com");
+      const row = result.rows.find(
+        (r) => r.data.email === "arabic@example.com",
+      );
       expect(row?.data.first_name).toBe("محمد");
     });
   });
@@ -316,7 +330,13 @@ describe("parseCsv", () => {
       const content = loadTestCsv("headers-only.csv");
       const result = parseCsv(content);
 
-      expect(result.headers).toEqual(["email", "first_name", "last_name", "company", "phone"]);
+      expect(result.headers).toEqual([
+        "email",
+        "first_name",
+        "last_name",
+        "company",
+        "phone",
+      ]);
       expect(result.rows).toHaveLength(0);
       expect(result.totalRows).toBe(0);
     });
@@ -393,14 +413,10 @@ describe("processCsvInBatches", () => {
     const content = loadTestCsv("perfect.csv");
     const batchSizes: number[] = [];
 
-    await processCsvInBatches(
-      content,
-      2,
-      async (batch, batchIndex) => {
-        batchSizes.push(batch.length);
-        return batchIndex;
-      }
-    );
+    await processCsvInBatches(content, 2, async (batch, batchIndex) => {
+      batchSizes.push(batch.length);
+      return batchIndex;
+    });
 
     // 5 rows with batch size 2 = 3 batches (2, 2, 1)
     expect(batchSizes).toEqual([2, 2, 1]);
@@ -414,7 +430,7 @@ describe("processCsvInBatches", () => {
       2,
       async (batch, batchIndex) => {
         return batch.length;
-      }
+      },
     );
 
     expect(result.results).toEqual([2, 2, 1]);

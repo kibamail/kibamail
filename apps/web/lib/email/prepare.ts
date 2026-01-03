@@ -8,12 +8,15 @@
  * - Generating message IDs
  */
 
-import type { Contact, SendingDomain, SenderIdentity } from "@prisma/client";
-import { renderBroadcastToHtml, type BroadcastDocument } from "@/lib/broadcast-renderer";
-import { applyTracking } from "./tracking";
-import { generateMessageIdForDomain } from "./message-id";
-import { uploadPrivateFile } from "@/lib/storage/private-storage";
+import type { Contact, SenderIdentity, SendingDomain } from "@prisma/client";
+import {
+  type BroadcastDocument,
+  renderBroadcastToHtml,
+} from "@/lib/broadcast-renderer";
 import type { EmailMessage } from "@/lib/nats";
+import { uploadPrivateFile } from "@/lib/storage/private-storage";
+import { generateMessageIdForDomain } from "./message-id";
+import { applyTracking } from "./tracking";
 
 /**
  * Contact data needed for email personalization
@@ -91,7 +94,7 @@ export interface PreparedEmail {
  */
 function buildFromAddress(
   senderIdentity: SenderIdentity,
-  domain: string
+  domain: string,
 ): string {
   const email = `${senderIdentity.email}@${domain}`;
   if (senderIdentity.name) {
@@ -109,7 +112,7 @@ function buildFromAddress(
  */
 function buildVariables(
   contact: EmailContact,
-  broadcast: EmailBroadcast
+  broadcast: EmailBroadcast,
 ): Record<string, string> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
@@ -137,7 +140,7 @@ function buildVariables(
  */
 function substituteVariables(
   text: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): string {
   return text.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (match, varName) => {
     return variables[varName] ?? match;
@@ -152,7 +155,7 @@ function substituteVariables(
  * @param options - Tracking options
  * @returns Prepared email ready for injection
  */
-export async function prepareEmail(
+async function prepareEmail(
   contact: EmailContact,
   broadcast: EmailBroadcast,
 ): Promise<PreparedEmail> {
@@ -171,10 +174,13 @@ export async function prepareEmail(
   if (broadcast.emailContent.contentJson) {
     htmlBody = await renderBroadcastToHtml(
       broadcast.emailContent.contentJson as BroadcastDocument,
-      { variables }
+      { variables },
     );
   } else if (broadcast.emailContent.contentHtml) {
-    htmlBody = substituteVariables(broadcast.emailContent.contentHtml, variables);
+    htmlBody = substituteVariables(
+      broadcast.emailContent.contentHtml,
+      variables,
+    );
   } else {
     throw new Error(`Broadcast ${broadcast.id} has no content`);
   }
@@ -188,14 +194,20 @@ export async function prepareEmail(
   // Prepare plain text version
   let textBody: string | undefined;
   if (broadcast.emailContent.contentText) {
-    textBody = substituteVariables(broadcast.emailContent.contentText, variables);
+    textBody = substituteVariables(
+      broadcast.emailContent.contentText,
+      variables,
+    );
   }
 
   // Build envelope sender for bounce handling
   const envelopeSender = `bounces+${emailSendId}@${broadcast.sendingDomain.returnPathSubDomain}.${domain}`;
 
   // Substitute variables in subject and preview text
-  const subject = substituteVariables(broadcast.emailContent.subject, variables);
+  const subject = substituteVariables(
+    broadcast.emailContent.subject,
+    variables,
+  );
   const previewText = broadcast.emailContent.previewText
     ? substituteVariables(broadcast.emailContent.previewText, variables)
     : "";
@@ -264,7 +276,7 @@ export async function prepareEmailBatch(
  * @returns Array of NATS email messages ready for publishing
  */
 export async function convertToNatsMessages(
-  preparedEmails: PreparedEmail[]
+  preparedEmails: PreparedEmail[],
 ): Promise<EmailMessage[]> {
   const messages: EmailMessage[] = [];
 
@@ -282,7 +294,10 @@ export async function convertToNatsMessages(
     }
 
     // Build recipient name from first and last name
-    const recipientName = [prepared.recipientFirstName, prepared.recipientLastName]
+    const recipientName = [
+      prepared.recipientFirstName,
+      prepared.recipientLastName,
+    ]
       .filter(Boolean)
       .join(" ");
 

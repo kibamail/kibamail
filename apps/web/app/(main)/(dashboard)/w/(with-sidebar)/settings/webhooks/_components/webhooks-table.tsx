@@ -47,8 +47,8 @@ export function WebhooksTable({ destinations }: WebhooksTableProps) {
                 destination.type === "webhook"
                   ? (destination.config as { url?: string })?.url
                   : destination.type === "aws_sqs"
-                  ? (destination.config as { queue_url?: string })?.queue_url
-                  : null;
+                    ? (destination.config as { queue_url?: string })?.queue_url
+                    : null;
 
               return (
                 <Table.Row key={destination.id}>
@@ -129,7 +129,7 @@ export function WebhooksTable({ destinations }: WebhooksTableProps) {
                               month: "short",
                               day: "numeric",
                               year: "numeric",
-                            }
+                            },
                           )
                         : "—"}
                     </span>

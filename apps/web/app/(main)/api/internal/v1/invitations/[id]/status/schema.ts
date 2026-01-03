@@ -9,7 +9,7 @@ import { z } from "zod";
 /**
  * Invitation status values
  */
-export const invitationStatusSchema = z.enum(["Accepted", "Revoked"]);
+const invitationStatusSchema = z.enum(["Accepted", "Revoked"]);
 
 /**
  * PUT /api/internal/v1/invitations/[id]/status - Update Invitation Status
@@ -34,4 +34,4 @@ export type UpdateInvitationStatusInput = z.infer<
 export type UpdateInvitationStatusResponse = z.infer<
   typeof updateInvitationStatusResponseSchema
 >;
-export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
+type InvitationStatus = z.infer<typeof invitationStatusSchema>;

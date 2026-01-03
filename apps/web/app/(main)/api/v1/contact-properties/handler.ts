@@ -7,29 +7,23 @@
  * Slot assignment is handled internally and not exposed via API.
  */
 
+import type { ContactPropertyType } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { ContactPropertyType } from "@prisma/client";
-import { validateRequestBody } from "@/lib/api/validation";
-import { prisma } from "@/lib/db";
-import {
-  responseCreated,
-  responseOk,
-} from "@/lib/api/responses";
-import {
-  NotFoundError,
-  BadRequestError,
-} from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
-import {
-  createContactPropertySchema,
-  updateContactPropertySchema,
-} from "./schema";
+import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
+import { responseCreated, responseOk } from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
 import { getMaxSlots, getSlotPrefix } from "@/lib/contact-properties/config";
+import { prisma } from "@/lib/db";
+import {
+  createContactPropertySchema,
+  updateContactPropertySchema,
+} from "./schema";
 
 /**
  * Find next available slot for a given property type
@@ -39,7 +33,7 @@ import { getMaxSlots, getSlotPrefix } from "@/lib/contact-properties/config";
  */
 async function findAvailableSlot(
   workspaceId: string,
-  type: ContactPropertyType
+  type: ContactPropertyType,
 ): Promise<string | null> {
   const slotPrefix = getSlotPrefix(type);
   const maxSlots = getMaxSlots(type);
@@ -58,7 +52,7 @@ async function findAvailableSlot(
     occupiedSlots.map((prop) => {
       const match = prop.slot.match(/\d+$/);
       return match ? parseInt(match[0], 10) : -1;
-    })
+    }),
   );
 
   for (let i = 0; i < maxSlots; i++) {
@@ -79,7 +73,7 @@ async function findAvailableSlot(
  */
 export async function createContactProperty(
   workspaceId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(createContactPropertySchema, request);
 
@@ -89,7 +83,7 @@ export async function createContactProperty(
     const maxSlots = getMaxSlots(data.type);
     throw new BadRequestError(
       `No available slots for property type ${data.type}. Maximum of ${maxSlots} properties per type reached.`,
-      ErrorCode.CONTACT_PROPERTY_LIMIT_REACHED
+      ErrorCode.CONTACT_PROPERTY_LIMIT_REACHED,
     );
   }
 
@@ -107,7 +101,7 @@ export async function createContactProperty(
     {
       id: contactProperty.id,
     },
-    "contact_property"
+    "contact_property",
   );
 }
 
@@ -120,7 +114,7 @@ export async function createContactProperty(
  */
 export async function listContactProperties(
   workspaceId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
@@ -137,12 +131,12 @@ export async function listContactProperties(
         skip: 1,
       })
     : before
-    ? await prisma.contactProperty.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.contactProperty.findMany(baseQuery);
+      ? await prisma.contactProperty.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.contactProperty.findMany(baseQuery);
 
   const hasMore = contactProperties.length > limit;
   const items = hasMore ? contactProperties.slice(0, -1) : contactProperties;
@@ -161,7 +155,7 @@ export async function listContactProperties(
   const paginatedResponse = createCursorPaginatedResponse(
     formattedProperties,
     hasMore,
-    "contact_property_list"
+    "contact_property_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -175,7 +169,7 @@ export async function listContactProperties(
  */
 export async function getContactProperty(
   workspaceId: string,
-  contactPropertyId: string
+  contactPropertyId: string,
 ) {
   const contactProperty = await prisma.contactProperty.findFirst({
     where: {
@@ -185,7 +179,10 @@ export async function getContactProperty(
   });
 
   if (!contactProperty) {
-    throw new NotFoundError("Contact property not found", ErrorCode.CONTACT_PROPERTY_NOT_FOUND);
+    throw new NotFoundError(
+      "Contact property not found",
+      ErrorCode.CONTACT_PROPERTY_NOT_FOUND,
+    );
   }
 
   return responseOk(
@@ -195,7 +192,7 @@ export async function getContactProperty(
       type: contactProperty.type,
       defaultValue: contactProperty.defaultValue,
     },
-    "contact_property"
+    "contact_property",
   );
 }
 
@@ -210,7 +207,7 @@ export async function getContactProperty(
 export async function updateContactProperty(
   workspaceId: string,
   contactPropertyId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateContactPropertySchema, request);
 
@@ -222,7 +219,10 @@ export async function updateContactProperty(
   });
 
   if (!existingProperty) {
-    throw new NotFoundError("Contact property not found", ErrorCode.CONTACT_PROPERTY_NOT_FOUND);
+    throw new NotFoundError(
+      "Contact property not found",
+      ErrorCode.CONTACT_PROPERTY_NOT_FOUND,
+    );
   }
 
   if (data.defaultValue !== undefined && data.defaultValue !== null) {
@@ -234,14 +234,14 @@ export async function updateContactProperty(
       if (!dateRegex.test(value)) {
         throw new BadRequestError(
           "Date default value must be a Unix timestamp in milliseconds",
-          ErrorCode.INVALID_FIELD_VALUE
+          ErrorCode.INVALID_FIELD_VALUE,
         );
       }
       const timestamp = parseInt(value, 10);
       if (timestamp <= 0 || timestamp > Date.now() + 315360000000) {
         throw new BadRequestError(
           "Unix timestamp must be a valid date within acceptable range",
-          ErrorCode.INVALID_FIELD_VALUE
+          ErrorCode.INVALID_FIELD_VALUE,
         );
       }
     } else if (type === "NUMBER") {
@@ -249,14 +249,14 @@ export async function updateContactProperty(
       if (!numberRegex.test(value)) {
         throw new BadRequestError(
           "Number default value must be a decimal number",
-          ErrorCode.INVALID_FIELD_VALUE
+          ErrorCode.INVALID_FIELD_VALUE,
         );
       }
     } else if (type === "STRING") {
       if (value.length < 1 || value.length > 255) {
         throw new BadRequestError(
           "String default value must be 1-255 characters",
-          ErrorCode.INVALID_FIELD_VALUE
+          ErrorCode.INVALID_FIELD_VALUE,
         );
       }
     }
@@ -276,7 +276,7 @@ export async function updateContactProperty(
     {
       id: updatedProperty.id,
     },
-    "contact_property"
+    "contact_property",
   );
 }
 
@@ -291,7 +291,7 @@ export async function updateContactProperty(
  */
 export async function deleteContactProperty(
   workspaceId: string,
-  contactPropertyId: string
+  contactPropertyId: string,
 ) {
   const property = await prisma.contactProperty.findFirst({
     where: {
@@ -301,7 +301,10 @@ export async function deleteContactProperty(
   });
 
   if (!property) {
-    throw new NotFoundError("Contact property not found", ErrorCode.CONTACT_PROPERTY_NOT_FOUND);
+    throw new NotFoundError(
+      "Contact property not found",
+      ErrorCode.CONTACT_PROPERTY_NOT_FOUND,
+    );
   }
 
   const timestamp = Date.now();
@@ -330,6 +333,6 @@ export async function deleteContactProperty(
     {
       id: deletedProperty.id,
     },
-    "contact_property"
+    "contact_property",
   );
 }

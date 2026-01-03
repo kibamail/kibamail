@@ -11,8 +11,11 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  createSegment,
+  listSegments,
+} from "@/app/(main)/api/v1/segments/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { createSegment, listSegments } from "@/app/(main)/api/v1/segments/handler";
 
 /**
  * POST /api/internal/v1/segments
@@ -24,15 +27,15 @@ import { createSegment, listSegments } from "@/app/(main)/api/v1/segments/handle
 export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withSession(
-      request, 
+      request,
       (session, request) => {
         if (!session.currentOrganization) {
           throw new Error("No active workspace found");
         }
         return createSegment(session.currentOrganization.id, request);
       },
-      ["manage:segments"]
-    )
+      ["manage:segments"],
+    ),
   );
 }
 
@@ -53,7 +56,7 @@ export async function GET(request: NextRequest) {
         }
         return listSegments(session.currentOrganization.id, request);
       },
-      ["read:segments"]
-    )
+      ["read:segments"],
+    ),
   );
 }

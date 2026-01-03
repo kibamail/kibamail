@@ -5,23 +5,23 @@
  * - POST /api/v1/contacts - Create new contact
  */
 
-import { POST } from "@/app/(main)/api/v1/contacts/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { Contact } from "@prisma/client";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/v1/contacts/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createReadOnlyApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   fakeContact,
   fakeMinimalContact,
   post,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
-import { prisma } from "@/lib/db";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -106,7 +106,7 @@ describe("POST /api/v1/contacts", () => {
     const duplicateRequest = post(
       "/contacts",
       contactData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await POST(duplicateRequest);
     const responseData = await response.json();
@@ -131,7 +131,7 @@ describe("POST /api/v1/contacts", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
@@ -155,7 +155,7 @@ describe("POST /api/v1/contacts", () => {
     const request = post(
       "/contacts",
       { firstName: "John", lastName: "Doe" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request);
@@ -173,7 +173,7 @@ describe("POST /api/v1/contacts", () => {
     const request = post(
       "/contacts",
       { email: "invalid-email" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await POST(request);

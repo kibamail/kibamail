@@ -50,7 +50,7 @@ export interface WarmupTier {
  * 12-tier progression model with daily and hourly volume limits.
  * Tier 12 represents "graduated" status with unlimited sending (plan-based limits only).
  */
-export const WARMUP_TIERS: WarmupTier[] = [
+const WARMUP_TIERS: WarmupTier[] = [
   {
     tier: 1,
     name: "Entry",
@@ -120,7 +120,7 @@ export const WARMUP_TIERS: WarmupTier[] = [
 /**
  * Get tier configuration by tier number
  */
-export function getTierByNumber(tierNumber: number): WarmupTier | undefined {
+function getTierByNumber(tierNumber: number): WarmupTier | undefined {
   return WARMUP_TIERS.find((t) => t.tier === tierNumber);
 }
 
@@ -128,9 +128,7 @@ export function getTierByNumber(tierNumber: number): WarmupTier | undefined {
  * Get tier configuration by daily limit
  * Useful for determining current tier from domain's maxSendPerDay
  */
-export function getTierByDailyLimit(
-  dailyLimit: number
-): WarmupTier | undefined {
+function getTierByDailyLimit(dailyLimit: number): WarmupTier | undefined {
   return WARMUP_TIERS.find((t) => t.dailyLimit === dailyLimit);
 }
 
@@ -138,7 +136,7 @@ export function getTierByDailyLimit(
  * Get the next tier (for promotion)
  * Returns undefined if already at max tier
  */
-export function getNextTier(currentTier: number): WarmupTier | undefined {
+function getNextTier(currentTier: number): WarmupTier | undefined {
   if (currentTier >= 12) return undefined;
   return getTierByNumber(currentTier + 1);
 }
@@ -147,7 +145,7 @@ export function getNextTier(currentTier: number): WarmupTier | undefined {
  * Get the previous tier (for demotion)
  * Returns undefined if already at minimum tier
  */
-export function getPreviousTier(currentTier: number): WarmupTier | undefined {
+function getPreviousTier(currentTier: number): WarmupTier | undefined {
   if (currentTier <= 1) return undefined;
   return getTierByNumber(currentTier - 1);
 }
@@ -160,7 +158,7 @@ export const DEFAULT_WARMUP_TIER = WARMUP_TIERS[0];
 /**
  * Check if a daily limit indicates unlimited sending
  */
-export function isUnlimitedTier(dailyLimit: number): boolean {
+function isUnlimitedTier(dailyLimit: number): boolean {
   return dailyLimit === -1;
 }
 
@@ -171,7 +169,10 @@ export function isUnlimitedTier(dailyLimit: number): boolean {
  * const tier5 = WARMUP_TIERS_BY_NUMBER[5];
  * console.log(tier5.dailyLimit); // 1000
  */
-export const WARMUP_TIERS_BY_NUMBER = WARMUP_TIERS.reduce((acc, tier) => {
-  acc[tier.tier] = tier;
-  return acc;
-}, {} as Record<number, WarmupTier>);
+export const WARMUP_TIERS_BY_NUMBER = WARMUP_TIERS.reduce(
+  (acc, tier) => {
+    acc[tier.tier] = tier;
+    return acc;
+  },
+  {} as Record<number, WarmupTier>,
+);

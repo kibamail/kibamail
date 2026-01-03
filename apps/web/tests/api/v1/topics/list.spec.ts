@@ -5,21 +5,21 @@
  * - GET /api/v1/topics - List topics with cursor-based pagination
  */
 
-import { GET } from "@/app/(main)/api/v1/topics/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { Topic } from "@prisma/client";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET } from "@/app/(main)/api/v1/topics/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   get,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
-import { prisma } from "@/lib/db";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -89,7 +89,9 @@ describe("GET /api/v1/topics", () => {
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });
@@ -113,7 +115,7 @@ describe("GET /api/v1/topics", () => {
   });
 
   test("should paginate through all 50 topics with 10 per page", async () => {
-    let allTopics: Topic[] = [];
+    const allTopics: Topic[] = [];
     let cursor: string | null = null;
     let pageCount = 0;
     let hasMore = true;
@@ -209,14 +211,14 @@ describe("GET /api/v1/topics", () => {
 
     // Ensure the cursor topic is excluded from results
     expect(
-      secondData.data.every((topic: Topic) => topic.id !== cursorTopicId)
+      secondData.data.every((topic: Topic) => topic.id !== cursorTopicId),
     ).toBe(true);
 
     // Ensure no overlap between pages
     const firstPageIds = firstData.data.map((topic: Topic) => topic.id);
     const secondPageIds = secondData.data.map((topic: Topic) => topic.id);
     const overlap = firstPageIds.filter((id: string) =>
-      secondPageIds.includes(id)
+      secondPageIds.includes(id),
     );
     expect(overlap.length).toBe(0);
   });
@@ -263,7 +265,9 @@ describe("GET /api/v1/topics", () => {
 
     // Ensure the before cursor topic is excluded
     expect(
-      beforeData.data.every((topic: Topic) => topic.id !== thirdPageFirstTopicId)
+      beforeData.data.every(
+        (topic: Topic) => topic.id !== thirdPageFirstTopicId,
+      ),
     ).toBe(true);
   });
 

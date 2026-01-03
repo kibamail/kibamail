@@ -5,19 +5,19 @@
  * Optimized for high-throughput ingestion.
  */
 
-import { Prisma, EventType } from "@prisma/client";
+import type { EventType, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
+import { queueLogger } from "@/lib/queue";
 import type { EmailEvent } from "./event-types";
 import { mapEventType } from "./event-types";
-import { queueLogger } from "@/lib/queue";
 import {
+  type BatchTraceContext,
   recordDbInsertDuration,
+  recordEventsProcessed,
   recordSuppressionCreated,
   recordSuppressionDuration,
-  recordEventsProcessed,
   withDbSpan,
   withSuppressionSpan,
-  type BatchTraceContext,
 } from "./instrumentation";
 
 const logger = queueLogger.child({ module: "event-processor" });
@@ -29,8 +29,12 @@ function transformEvent(event: EmailEvent): Prisma.EventCreateManyInput {
   const eventType = mapEventType(event.type) as EventType;
 
   // Convert empty strings to null for optional foreign key fields
-  const broadcastId = event.broadcast_id && event.broadcast_id.length > 0 ? event.broadcast_id : null;
-  const contactId = event.contact_id && event.contact_id.length > 0 ? event.contact_id : null;
+  const broadcastId =
+    event.broadcast_id && event.broadcast_id.length > 0
+      ? event.broadcast_id
+      : null;
+  const contactId =
+    event.contact_id && event.contact_id.length > 0 ? event.contact_id : null;
 
   return {
     sendingId: event.sending_id,
@@ -59,7 +63,7 @@ function transformEvent(event: EmailEvent): Prisma.EventCreateManyInput {
  */
 export async function bulkInsertEvents(
   events: EmailEvent[],
-  traceContext?: BatchTraceContext
+  traceContext?: BatchTraceContext,
 ): Promise<number> {
   if (events.length === 0) {
     return 0;
@@ -80,7 +84,12 @@ export async function bulkInsertEvents(
     };
 
     const result = traceContext
-      ? await withDbSpan(traceContext.span, "bulk_insert", events.length, insertFn)
+      ? await withDbSpan(
+          traceContext.span,
+          "bulk_insert",
+          events.length,
+          insertFn,
+        )
       : await insertFn();
 
     const duration = Date.now() - startTime;
@@ -110,7 +119,7 @@ export async function bulkInsertEvents(
         durationMs: duration,
         eventsPerSecond: Math.round((result.count / duration) * 1000),
       },
-      "Bulk insert completed"
+      "Bulk insert completed",
     );
 
     return result.count;
@@ -124,7 +133,7 @@ export async function bulkInsertEvents(
         count: events.length,
         durationMs: duration,
       },
-      "Bulk insert failed"
+      "Bulk insert failed",
     );
     throw error;
   }
@@ -140,14 +149,14 @@ export async function bulkInsertEvents(
  */
 export async function processEventsWithSideEffects(
   events: EmailEvent[],
-  traceContext?: BatchTraceContext
+  traceContext?: BatchTraceContext,
 ): Promise<void> {
   // First, bulk insert the events
   await bulkInsertEvents(events, traceContext);
 
   // Group events by type for batch processing
   const bounces = events.filter(
-    (e) => e.type === "Bounce" || e.type === "AdminBounce"
+    (e) => e.type === "Bounce" || e.type === "AdminBounce",
   );
   const complaints = events.filter((e) => e.type === "Feedback");
   const deliveries = events.filter((e) => e.type === "Delivery");
@@ -175,7 +184,7 @@ export async function processEventsWithSideEffects(
  */
 async function processBounces(
   bounces: EmailEvent[],
-  traceContext?: BatchTraceContext
+  traceContext?: BatchTraceContext,
 ): Promise<void> {
   const permanentBounceClassifications = [
     "InvalidRecipient",
@@ -185,7 +194,7 @@ async function processBounces(
   ];
 
   const hardBounces = bounces.filter((b) =>
-    permanentBounceClassifications.includes(b.bounce_classification)
+    permanentBounceClassifications.includes(b.bounce_classification),
   );
 
   if (hardBounces.length === 0) {
@@ -196,7 +205,7 @@ async function processBounces(
 
   logger.info(
     { count: hardBounces.length },
-    "Processing hard bounces for suppression"
+    "Processing hard bounces for suppression",
   );
 
   // Group by workspace for batch suppression
@@ -231,19 +240,24 @@ async function processBounces(
 
         logger.info(
           { workspaceId, count: result.count },
-          "Created suppression entries for bounces"
+          "Created suppression entries for bounces",
         );
       } catch (error) {
         logger.error(
           { error, workspaceId },
-          "Failed to create suppression entries for bounces"
+          "Failed to create suppression entries for bounces",
         );
       }
     }
   };
 
   if (traceContext) {
-    await withSuppressionSpan(traceContext.span, "bounced", hardBounces.length, createSuppressions);
+    await withSuppressionSpan(
+      traceContext.span,
+      "bounced",
+      hardBounces.length,
+      createSuppressions,
+    );
   } else {
     await createSuppressions();
   }
@@ -260,13 +274,13 @@ async function processBounces(
  */
 async function processComplaints(
   complaints: EmailEvent[],
-  traceContext?: BatchTraceContext
+  traceContext?: BatchTraceContext,
 ): Promise<void> {
   const startTime = Date.now();
 
   logger.info(
     { count: complaints.length },
-    "Processing complaints for suppression"
+    "Processing complaints for suppression",
   );
 
   // Group by workspace
@@ -301,19 +315,24 @@ async function processComplaints(
 
         logger.info(
           { workspaceId, count: result.count },
-          "Created suppression entries for complaints"
+          "Created suppression entries for complaints",
         );
       } catch (error) {
         logger.error(
           { error, workspaceId },
-          "Failed to create suppression entries for complaints"
+          "Failed to create suppression entries for complaints",
         );
       }
     }
   };
 
   if (traceContext) {
-    await withSuppressionSpan(traceContext.span, "complained", complaints.length, createSuppressions);
+    await withSuppressionSpan(
+      traceContext.span,
+      "complained",
+      complaints.length,
+      createSuppressions,
+    );
   } else {
     await createSuppressions();
   }
@@ -342,7 +361,7 @@ async function processDeliveries(deliveries: EmailEvent[]): Promise<void> {
   for (const [broadcastId, count] of deliveriesByBroadcast) {
     logger.debug(
       { broadcastId, count },
-      "Processed delivery events for broadcast"
+      "Processed delivery events for broadcast",
     );
   }
 }

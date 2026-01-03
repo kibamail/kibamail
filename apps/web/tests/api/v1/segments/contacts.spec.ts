@@ -6,21 +6,21 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { GET } from "@/app/(main)/api/v1/segments/[segmentId]/contacts/route";
 import { POST as CREATE_SEGMENT } from "@/app/(main)/api/v1/segments/route";
-import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   get,
   post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -73,15 +73,15 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             value: "SUBSCRIBED",
           },
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const segment = await segmentResponse.json();
 
     // Get contacts in segment
     const request = get(
       `/segments/${segment.id}/contacts`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request, {
       params: Promise.resolve({ segmentId: segment.id }),
@@ -107,8 +107,8 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
       post(
         "/contact-properties",
         { name: `Age_${timestamp}`, type: "NUMBER" },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const ageData = await ageProperty.json();
     const ageRecord = await prisma.contactProperty.findUnique({
@@ -153,15 +153,15 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             value: 30,
           },
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const segment = await segmentResponse.json();
 
     // Get contacts in segment
     const request = get(
       `/segments/${segment.id}/contacts`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request, {
       params: Promise.resolve({ segmentId: segment.id }),
@@ -202,15 +202,15 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             value: "SUBSCRIBED",
           },
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const segment = await segmentResponse.json();
 
     // Get first page
     const firstRequest = get(
       `/segments/${segment.id}/contacts?limit=10`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const firstResponse = await GET(firstRequest, {
       params: Promise.resolve({ segmentId: segment.id }),
@@ -225,7 +225,7 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
     const lastIdFromFirstPage = firstData.data[firstData.data.length - 1].id;
     const secondRequest = get(
       `/segments/${segment.id}/contacts?limit=10&after=${lastIdFromFirstPage}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const secondResponse = await GET(secondRequest, {
       params: Promise.resolve({ segmentId: segment.id }),
@@ -268,15 +268,15 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             value: "BOUNCED",
           },
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const segment = await segmentResponse.json();
 
     // Get contacts in segment
     const request = get(
       `/segments/${segment.id}/contacts`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request, {
       params: Promise.resolve({ segmentId: segment.id }),
@@ -293,7 +293,7 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
   test("should return 404 for non-existent segment", async () => {
     const request = get(
       "/segments/nonexistent-segment-id/contacts",
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request, {
       params: Promise.resolve({ segmentId: "nonexistent-segment-id" }),
@@ -336,8 +336,8 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             value: "SUBSCRIBED",
           },
         },
-        apiKey1.key
-      )
+        apiKey1.key,
+      ),
     );
     const segment1 = await segment1Response.json();
 
@@ -377,8 +377,8 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             value: "SUBSCRIBED",
           },
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const segment = await segmentResponse.json();
 
@@ -462,15 +462,15 @@ describe("GET /api/v1/segments/[segmentId]/contacts", () => {
             ],
           },
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const segment = await segmentResponse.json();
 
     // Get contacts in segment
     const request = get(
       `/segments/${segment.id}/contacts`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET(request, {
       params: Promise.resolve({ segmentId: segment.id }),

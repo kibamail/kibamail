@@ -9,8 +9,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { createContactProperty, listContactProperties } from "./handler";
 import { withApiSession, withErrorHandling } from "@/lib/api/requests";
+import { createContactProperty, listContactProperties } from "./handler";
 
 /**
  * GET /api/v1/contact-properties
@@ -23,8 +23,8 @@ export async function GET(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => listContactProperties(apiKey.workspaceId, request),
-      ["read:contact-properties"]
-    )
+      ["read:contact-properties"],
+    ),
   );
 }
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => createContactProperty(apiKey.workspaceId, request),
-      ["write:contact-properties"]
-    )
+      ["write:contact-properties"],
+    ),
   );
 }

@@ -5,8 +5,8 @@
  * Renders children without the workspace dashboard chrome.
  */
 
-import { QueryProvider } from "@/lib/providers/query-provider";
 import type { PropsWithChildren } from "react";
+import { QueryProvider } from "@/lib/providers/query-provider";
 
 export const dynamic = "force-dynamic";
 

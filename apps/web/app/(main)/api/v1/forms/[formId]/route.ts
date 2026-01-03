@@ -10,8 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getForm, updateForm, deleteForm } from "@/app/(main)/api/v1/forms/handler";
+import {
+  deleteForm,
+  getForm,
+  updateForm,
+} from "@/app/(main)/api/v1/forms/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/forms/[formId]
@@ -21,16 +25,14 @@ import { getForm, updateForm, deleteForm } from "@/app/(main)/api/v1/forms/handl
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
   return withErrorHandling(request, () =>
-    withApiSession(
-      request,
-      (apiKey) => getForm(apiKey.workspaceId, formId),
-      ["read:forms"]
-    )
+    withApiSession(request, (apiKey) => getForm(apiKey.workspaceId, formId), [
+      "read:forms",
+    ]),
   );
 }
 
@@ -43,7 +45,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -51,8 +53,8 @@ export async function PUT(
     withApiSession(
       request,
       (apiKey, request) => updateForm(apiKey.workspaceId, formId, request),
-      ["update:forms"]
-    )
+      ["update:forms"],
+    ),
   );
 }
 
@@ -64,7 +66,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -72,7 +74,7 @@ export async function DELETE(
     withApiSession(
       request,
       (apiKey) => deleteForm(apiKey.workspaceId, formId),
-      ["delete:forms"]
-    )
+      ["delete:forms"],
+    ),
   );
 }

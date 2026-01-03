@@ -1,11 +1,11 @@
+import { conditionSchema } from "@/app/(main)/api/v1/segments/schema";
 import {
-  AUTOMATION_TRIGGERS,
   AUTOMATION_ACTIONS,
   AUTOMATION_RULES,
-  isTriggerNode,
+  AUTOMATION_TRIGGERS,
   getNodeConfig,
+  isTriggerNode,
 } from "./config";
-import { conditionSchema } from "@/app/(main)/api/v1/segments/schema";
 
 export interface ValidationError {
   nodeId: string;
@@ -101,13 +101,20 @@ function validateTriggerNode(node: FlowNode): ValidationError[] {
       break;
 
     case AUTOMATION_TRIGGERS.EMAIL_ENGAGEMENT.id:
-      if (!data.emailEngagementType || typeof data.emailEngagementType !== "string") {
+      if (
+        !data.emailEngagementType ||
+        typeof data.emailEngagementType !== "string"
+      ) {
         errors.push({
           nodeId: node.id,
           field: "emailEngagementType",
           message: "Engagement type (open, click, bounce, spam) is required",
         });
-      } else if (!["open", "click", "bounce", "spam"].includes(data.emailEngagementType as string)) {
+      } else if (
+        !["open", "click", "bounce", "spam"].includes(
+          data.emailEngagementType as string,
+        )
+      ) {
         errors.push({
           nodeId: node.id,
           field: "emailEngagementType",
@@ -210,7 +217,11 @@ function validateActionNode(node: FlowNode): ValidationError[] {
 
     case AUTOMATION_ACTIONS.ADD_TO_TOPIC.id:
     case AUTOMATION_ACTIONS.REMOVE_FROM_TOPIC.id:
-      if (!data.topicIds || !Array.isArray(data.topicIds) || data.topicIds.length === 0) {
+      if (
+        !data.topicIds ||
+        !Array.isArray(data.topicIds) ||
+        data.topicIds.length === 0
+      ) {
         errors.push({
           nodeId: node.id,
           field: "topicIds",
@@ -305,7 +316,7 @@ function validateRuleNode(node: FlowNode): ValidationError[] {
 
         const total = splits.reduce(
           (sum, split) => sum + (split.percentage || 0),
-          0
+          0,
         );
         if (total !== 100) {
           errors.push({
@@ -356,7 +367,7 @@ function validateRuleNode(node: FlowNode): ValidationError[] {
 
 function validateFlowStructure(
   nodes: FlowNode[],
-  edges: FlowEdge[]
+  edges: FlowEdge[],
 ): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -423,7 +434,7 @@ function validateFlowStructure(
 
 export function validateAutomationForPublish(
   nodes: unknown[],
-  edges: unknown[]
+  edges: unknown[],
 ): ValidationResult {
   const errors: ValidationError[] = [];
 
@@ -437,9 +448,13 @@ export function validateAutomationForPublish(
   for (const node of flowNodes) {
     if (isTriggerNode(node.type)) {
       errors.push(...validateTriggerNode(node));
-    } else if (Object.values(AUTOMATION_ACTIONS).some((a) => a.id === node.type)) {
+    } else if (
+      Object.values(AUTOMATION_ACTIONS).some((a) => a.id === node.type)
+    ) {
       errors.push(...validateActionNode(node));
-    } else if (Object.values(AUTOMATION_RULES).some((r) => r.id === node.type)) {
+    } else if (
+      Object.values(AUTOMATION_RULES).some((r) => r.id === node.type)
+    ) {
       errors.push(...validateRuleNode(node));
     } else {
       errors.push({

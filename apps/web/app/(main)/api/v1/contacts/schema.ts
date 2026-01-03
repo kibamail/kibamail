@@ -10,7 +10,7 @@ import { conditionSchema } from "@/app/(main)/api/v1/segments/schema";
 /**
  * Contact Status Enum
  */
-export const ContactStatusEnum = z.enum([
+const ContactStatusEnum = z.enum([
   "SUBSCRIBED",
   "UNSUBSCRIBED",
   "BOUNCED",
@@ -137,7 +137,7 @@ export const contactResponseSchema = z.object({
 /**
  * Contact List Response Schema
  */
-export const contactListResponseSchema = z.object({
+const contactListResponseSchema = z.object({
   object: z.literal("contact_list"),
   hasMore: z.boolean(),
   data: z.array(contactResponseSchema.omit({ object: true })),
@@ -165,6 +165,6 @@ export const searchContactsSchema = z.object({
 export type CreateContactRequest = z.infer<typeof createContactSchema>;
 export type UpdateContactRequest = z.infer<typeof updateContactSchema>;
 export type ContactResponse = z.infer<typeof contactResponseSchema>;
-export type ContactListResponse = z.infer<typeof contactListResponseSchema>;
+type ContactListResponse = z.infer<typeof contactListResponseSchema>;
 export type ContactDeleteResponse = z.infer<typeof contactDeleteResponseSchema>;
-export type SearchContactsRequest = z.infer<typeof searchContactsSchema>;
+type SearchContactsRequest = z.infer<typeof searchContactsSchema>;

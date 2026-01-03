@@ -6,18 +6,18 @@
  * used in forms (double opt-in), automations, and notifications.
  */
 
+import type { EmailType } from "@prisma/client";
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { validateRequestBody } from "@/lib/api/validation";
-import { responseCreated, responseOk } from "@/lib/api/responses";
-import { NotFoundError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
-import { createEmailSchema, updateEmailSchema } from "./schema";
+import { NotFoundError } from "@/lib/api/errors";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
-import type { EmailType } from "@prisma/client";
+import { responseCreated, responseOk } from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
+import { prisma } from "@/lib/db";
+import { createEmailSchema, updateEmailSchema } from "./schema";
 
 /**
  * POST /api/internal/v1/emails
@@ -47,7 +47,7 @@ export async function createEmail(workspaceId: string, request: NextRequest) {
     {
       id: email.id,
     },
-    "email"
+    "email",
   );
 }
 
@@ -107,7 +107,7 @@ export async function listEmails(workspaceId: string, request: NextRequest) {
   }));
 
   return responseOk(
-    createCursorPaginatedResponse(formattedEmails, hasMore, "email_list")
+    createCursorPaginatedResponse(formattedEmails, hasMore, "email_list"),
   );
 }
 
@@ -144,7 +144,7 @@ export async function getEmail(workspaceId: string, emailId: string) {
       createdAt: email.createdAt.toISOString(),
       updatedAt: email.updatedAt.toISOString(),
     },
-    "email"
+    "email",
   );
 }
 
@@ -156,7 +156,7 @@ export async function getEmail(workspaceId: string, emailId: string) {
 export async function updateEmail(
   workspaceId: string,
   emailId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateEmailSchema, request);
 
@@ -181,8 +181,12 @@ export async function updateEmail(
       ...(data.previewText !== undefined && { previewText: data.previewText }),
       ...(data.content !== undefined && { content: data.content }),
       ...(data.styles !== undefined && { styles: data.styles }),
-      ...(data.senderIdentityId !== undefined && { senderIdentityId: data.senderIdentityId }),
-      ...(data.replyToIdentityId !== undefined && { replyToIdentityId: data.replyToIdentityId }),
+      ...(data.senderIdentityId !== undefined && {
+        senderIdentityId: data.senderIdentityId,
+      }),
+      ...(data.replyToIdentityId !== undefined && {
+        replyToIdentityId: data.replyToIdentityId,
+      }),
       ...(data.trackClicks !== undefined && { trackClicks: data.trackClicks }),
       ...(data.trackOpens !== undefined && { trackOpens: data.trackOpens }),
       ...(data.type !== undefined && { type: data.type as EmailType }),
@@ -193,7 +197,7 @@ export async function updateEmail(
     {
       id: updatedEmail.id,
     },
-    "email"
+    "email",
   );
 }
 
@@ -225,7 +229,7 @@ export async function deleteEmail(workspaceId: string, emailId: string) {
   if (email.formsAsDoubleOptIn.length > 0) {
     throw new NotFoundError(
       `Cannot delete email. It is used by form: ${email.formsAsDoubleOptIn[0].name}`,
-      ErrorCode.RESOURCE_CONFLICT
+      ErrorCode.RESOURCE_CONFLICT,
     );
   }
 
@@ -239,6 +243,6 @@ export async function deleteEmail(workspaceId: string, emailId: string) {
     {
       id: emailId,
     },
-    "email"
+    "email",
   );
 }

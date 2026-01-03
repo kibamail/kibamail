@@ -45,7 +45,7 @@ export const sendBroadcast: JobProcessor<
   if (broadcast.status !== "QUEUED_FOR_SENDING") {
     logger.warn(
       { jobId, broadcastId, status: broadcast.status },
-      "Broadcast is not in QUEUED_FOR_SENDING status, skipping"
+      "Broadcast is not in QUEUED_FOR_SENDING status, skipping",
     );
     return;
   }
@@ -53,7 +53,10 @@ export const sendBroadcast: JobProcessor<
   // Get sending domain limits
   const sendingDomain = broadcast.senderIdentity?.sendingDomain;
   if (!sendingDomain) {
-    logger.error({ jobId, broadcastId }, "No sending domain found for broadcast");
+    logger.error(
+      { jobId, broadcastId },
+      "No sending domain found for broadcast",
+    );
     throw new Error(`Broadcast ${broadcastId} has no sending domain`);
   }
 
@@ -64,7 +67,7 @@ export const sendBroadcast: JobProcessor<
 
   logger.info(
     { jobId, broadcastId, limits },
-    "Retrieved sending domain limits"
+    "Retrieved sending domain limits",
   );
 
   // Update status to SENDING
@@ -76,7 +79,7 @@ export const sendBroadcast: JobProcessor<
   // Snapshot recipient contact IDs
   const contactIds = await fetchBroadcastRecipientIds(
     broadcast.workspaceId,
-    broadcast
+    broadcast,
   );
 
   if (contactIds.length === 0) {
@@ -90,7 +93,7 @@ export const sendBroadcast: JobProcessor<
 
   logger.info(
     { jobId, broadcastId, recipientCount: contactIds.length },
-    "Snapshotted recipient contact IDs"
+    "Snapshotted recipient contact IDs",
   );
 
   // Schedule batches based on warmup limits
@@ -105,7 +108,7 @@ export const sendBroadcast: JobProcessor<
       totalDays: schedule.totalDays,
       estimatedCompletion: schedule.estimatedCompletion,
     },
-    "Generated broadcast schedule"
+    "Generated broadcast schedule",
   );
 
   // Dispatch batch jobs
@@ -126,6 +129,6 @@ export const sendBroadcast: JobProcessor<
 
   logger.info(
     { jobId, broadcastId, batchCount: batchJobs.length },
-    "Dispatched all batch jobs"
+    "Dispatched all batch jobs",
   );
 };

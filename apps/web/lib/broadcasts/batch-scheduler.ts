@@ -129,7 +129,7 @@ const DEFAULT_CONFIG: Required<BatchSchedulerConfig> = {
 function calculateDelayMs(
   dayOffset: number,
   hour: number,
-  referenceDate: Date
+  referenceDate: Date,
 ): number {
   const targetDate = new Date(referenceDate);
   targetDate.setDate(targetDate.getDate() + dayOffset);
@@ -164,7 +164,7 @@ function calculateDelayMs(
 export function scheduleBroadcast(
   contactIds: string[],
   limits: SendingLimits,
-  config?: BatchSchedulerConfig
+  config?: BatchSchedulerConfig,
 ): ScheduleResult {
   const cfg: Required<BatchSchedulerConfig> = {
     ...DEFAULT_CONFIG,
@@ -196,7 +196,7 @@ export function scheduleBroadcast(
   // Effective hourly limit respects both the domain limit and batch constraints
   const maxPerHour = Math.min(
     limits.maxSendPerHour,
-    effectiveBatchesPerHour * cfg.maxBatchSize
+    effectiveBatchesPerHour * cfg.maxBatchSize,
   );
 
   while (currentIndex < contactIds.length) {
@@ -226,7 +226,7 @@ export function scheduleBroadcast(
         const batchSize = Math.min(cfg.maxBatchSize, toSendThisHour - hourSent);
         const batchContactIds = contactIds.slice(
           currentIndex,
-          currentIndex + batchSize
+          currentIndex + batchSize,
         );
 
         batches.push({
@@ -256,7 +256,7 @@ export function scheduleBroadcast(
   const estimatedCompletion = new Date(cfg.referenceDate);
   if (lastBatch) {
     estimatedCompletion.setDate(
-      estimatedCompletion.getDate() + lastBatch.dayOffset
+      estimatedCompletion.getDate() + lastBatch.dayOffset,
     );
     estimatedCompletion.setHours(lastBatch.hour + 1, 0, 0, 0);
   }
@@ -276,7 +276,7 @@ export function scheduleBroadcast(
  * Useful for displaying schedule to users
  */
 export function getBatchesByDay(
-  batches: ScheduledBatch[]
+  batches: ScheduledBatch[],
 ): Map<number, ScheduledBatch[]> {
   const byDay = new Map<number, ScheduledBatch[]>();
 
@@ -293,7 +293,7 @@ export function getBatchesByDay(
  * Get count of emails per day
  */
 export function getEmailsPerDay(
-  batches: ScheduledBatch[]
+  batches: ScheduledBatch[],
 ): Map<number, number> {
   const byDay = getBatchesByDay(batches);
   const countByDay = new Map<number, number>();

@@ -5,8 +5,8 @@
  */
 
 import { BadRequestError } from "@/lib/api/errors";
-import { prisma } from "@/lib/db";
 import { responseOk } from "@/lib/api/responses";
+import { prisma } from "@/lib/db";
 
 /**
  * Delete an API key from the workspace
@@ -22,7 +22,7 @@ import { responseOk } from "@/lib/api/responses";
 export async function deleteApiKeyHandler(
   workspaceId: string,
   currentApiKeyId: string,
-  params: { keyId: string }
+  params: { keyId: string },
 ) {
   const keyId = params.keyId;
 
@@ -36,7 +36,7 @@ export async function deleteApiKeyHandler(
 
   if (keyToDelete.id === currentApiKeyId) {
     throw new BadRequestError(
-      "Cannot delete the API key currently being used for authentication"
+      "Cannot delete the API key currently being used for authentication",
     );
   }
 

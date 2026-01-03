@@ -23,14 +23,14 @@ import {
   Text as TextIcon,
 } from "iconoir-react";
 import { useRef, useState } from "react";
-import { internalApi } from "@/lib/api/client";
-import { useToggleState } from "@/hooks/utils/useToggleState";
 import { CreateContactPropertyModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/create-contact-property-modal";
 import {
-  useImportContactsStore,
   type ContactProperties,
   type PropertyType,
+  useImportContactsStore,
 } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/store/import-contacts-store";
+import { useToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
 
 type SelectFieldPropertyState = Record<
   string,

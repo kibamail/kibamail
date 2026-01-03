@@ -1,7 +1,7 @@
 import type { ContactImport, ContactProperty } from "@prisma/client";
+import { type ParsedRow, parseCsv } from "@/lib/csv";
 import { prisma } from "@/lib/db";
 import { downloadPrivateFile } from "@/lib/storage";
-import { parseCsv, type ParsedRow } from "@/lib/csv";
 import { BatchProcessor } from "./batch-processor";
 import type {
   BatchContext,
@@ -24,7 +24,7 @@ export class ContactImportProcessor {
 
   async process(
     contactImport: ContactImport,
-    csvContent: string | null = null
+    csvContent: string | null = null,
   ): Promise<ImportProcessResult> {
     const result = this.createEmptyResult();
 
@@ -41,7 +41,8 @@ export class ContactImportProcessor {
       this.checkForTotalFailure(result);
     } catch (error) {
       result.success = false;
-      result.errorMessage = error instanceof Error ? error.message : "Unknown error";
+      result.errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
     }
 
     return result;
@@ -62,7 +63,7 @@ export class ContactImportProcessor {
 
   private async getContent(
     contactImport: ContactImport,
-    csvContent: string | null
+    csvContent: string | null,
   ): Promise<string> {
     if (csvContent !== null) return csvContent;
 
@@ -77,16 +78,20 @@ export class ContactImportProcessor {
   }): void {
     if (parsed.errors.length > 0 && parsed.rows.length === 0) {
       throw new Error(
-        `Failed to parse CSV: ${parsed.errors[0]?.message || "Unknown error"}`
+        `Failed to parse CSV: ${parsed.errors[0]?.message || "Unknown error"}`,
       );
     }
   }
 
-  private async buildContext(contactImport: ContactImport): Promise<BatchContext> {
+  private async buildContext(
+    contactImport: ContactImport,
+  ): Promise<BatchContext> {
     const columnMapping = this.validateColumnMapping(
-      contactImport.columnMapping as ColumnMapping
+      contactImport.columnMapping as ColumnMapping,
     );
-    const contactProperties = await this.fetchContactProperties(contactImport.workspaceId);
+    const contactProperties = await this.fetchContactProperties(
+      contactImport.workspaceId,
+    );
     const topicIds = await this.validateTopics(contactImport);
 
     return {
@@ -113,13 +118,17 @@ export class ContactImportProcessor {
     return mapping;
   }
 
-  private async fetchContactProperties(workspaceId: string): Promise<ContactProperty[]> {
+  private async fetchContactProperties(
+    workspaceId: string,
+  ): Promise<ContactProperty[]> {
     return prisma.contactProperty.findMany({
       where: { workspaceId, deletedAt: null },
     });
   }
 
-  private async validateTopics(contactImport: ContactImport): Promise<string[]> {
+  private async validateTopics(
+    contactImport: ContactImport,
+  ): Promise<string[]> {
     const topicIds = (contactImport.topicIds as string[]) || [];
     if (topicIds.length === 0) return [];
 
@@ -145,7 +154,7 @@ export class ContactImportProcessor {
   private async processBatches(
     rows: ParsedRow[],
     context: BatchContext,
-    result: ImportProcessResult
+    result: ImportProcessResult,
   ): Promise<void> {
     const batchProcessor = new BatchProcessor(context);
 
@@ -162,7 +171,7 @@ export class ContactImportProcessor {
 
   private aggregateResults(
     batchResults: RowProcessResult[],
-    result: ImportProcessResult
+    result: ImportProcessResult,
   ): boolean {
     for (const rowResult of batchResults) {
       result.processedRows++;
@@ -189,7 +198,7 @@ export class ContactImportProcessor {
 
   private countSuccessfulResult(
     rowResult: RowProcessResult,
-    result: ImportProcessResult
+    result: ImportProcessResult,
   ): void {
     switch (rowResult.action) {
       case "created":

@@ -3,8 +3,8 @@
 import * as Select from "@kibamail/owly/select-field";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { internalApi } from "@/lib/api/client";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import { internalApi } from "@/lib/api/client";
 
 export function FormFilledConfig() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
@@ -27,12 +27,12 @@ export function FormFilledConfig() {
               ...node,
               data: { ...node.data, formId },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   const forms = formsResponse?.data ?? [];

@@ -126,7 +126,7 @@ export async function getSession(): Promise<UserSession> {
 
     if (currentOrganization) {
       const currentOrgData = userData.organizations.find(
-        (org) => org.id === currentOrganization.id
+        (org) => org.id === currentOrganization.id,
       );
 
       if (currentOrgData && currentOrgData.roleNames.length > 0) {
@@ -178,7 +178,7 @@ export async function getSession(): Promise<UserSession> {
  * }
  * ```
  */
-export async function isAuthenticated(): Promise<boolean> {
+async function isAuthenticated(): Promise<boolean> {
   const ctx = await getLogtoContext(logtoConfig);
   return ctx.isAuthenticated;
 }

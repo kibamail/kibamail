@@ -5,8 +5,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import { getSegmentContacts } from "@/app/(main)/api/v1/segments/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/segments/[segmentId]/contacts
@@ -16,15 +16,16 @@ import { getSegmentContacts } from "@/app/(main)/api/v1/segments/handler";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => getSegmentContacts(apiKey.workspaceId, segmentId, request),
-      ["read:contacts"]
-    )
+      (apiKey, request) =>
+        getSegmentContacts(apiKey.workspaceId, segmentId, request),
+      ["read:contacts"],
+    ),
   );
 }

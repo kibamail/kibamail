@@ -6,20 +6,20 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import { POST as SEARCH } from "@/app/(main)/api/v1/contacts/search/route";
-import { POST as CREATE_CONTACT } from "@/app/(main)/api/v1/contacts/route";
-import { POST as CREATE_TOPIC } from "@/app/(main)/api/v1/topics/route";
 import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
+import { POST as CREATE_CONTACT } from "@/app/(main)/api/v1/contacts/route";
+import { POST as SEARCH } from "@/app/(main)/api/v1/contacts/search/route";
+import { POST as CREATE_TOPIC } from "@/app/(main)/api/v1/topics/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
-  createFullAccessApiKey,
+  type CreatedApiKey,
   cleanupWorkspace,
+  createFullAccessApiKey,
+  createTestWorkspace,
   post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -35,12 +35,12 @@ beforeAll(async () => {
 
   // Create topics
   const newsletterTopicResponse = await CREATE_TOPIC(
-    post("/topics", { name: "Newsletter" }, fullAccessApiKey.key)
+    post("/topics", { name: "Newsletter" }, fullAccessApiKey.key),
   );
   newsletterTopicId = (await newsletterTopicResponse.json()).id;
 
   const marketingTopicResponse = await CREATE_TOPIC(
-    post("/topics", { name: "Marketing" }, fullAccessApiKey.key)
+    post("/topics", { name: "Marketing" }, fullAccessApiKey.key),
   );
   marketingTopicId = (await marketingTopicResponse.json()).id;
 
@@ -52,18 +52,18 @@ beforeAll(async () => {
       i < 70
         ? "SUBSCRIBED"
         : i < 85
-        ? "UNSUBSCRIBED"
-        : i < 95
-        ? "BOUNCED"
-        : "COMPLAINED";
+          ? "UNSUBSCRIBED"
+          : i < 95
+            ? "BOUNCED"
+            : "COMPLAINED";
     const country = i < 50 ? "US" : i < 75 ? "CA" : i < 90 ? "UK" : "FR";
 
     const contactResponse = await CREATE_CONTACT(
       post(
         "/contacts",
         { email, status, country, firstName: `User${i}` },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const contactId = (await contactResponse.json()).id;
     contactIds.push(contactId);
@@ -110,7 +110,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: "SUBSCRIBED",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -138,7 +138,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: "US",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -164,7 +164,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: ["US", "CA"],
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -187,7 +187,7 @@ describe("POST /api/v1/contacts/search", () => {
           subscribedToTopic: [newsletterTopicId],
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -205,7 +205,7 @@ describe("POST /api/v1/contacts/search", () => {
           notSubscribedToTopic: [newsletterTopicId],
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -234,7 +234,7 @@ describe("POST /api/v1/contacts/search", () => {
           ],
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -268,7 +268,7 @@ describe("POST /api/v1/contacts/search", () => {
           ],
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -312,7 +312,7 @@ describe("POST /api/v1/contacts/search", () => {
           ],
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -339,7 +339,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: "SUBSCRIBED",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const firstResponse = await SEARCH(firstRequest);
@@ -359,7 +359,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: "SUBSCRIBED",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const secondResponse = await SEARCH(secondRequest);
@@ -382,7 +382,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: "test1",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -419,7 +419,7 @@ describe("POST /api/v1/contacts/search", () => {
           invalid: "structure",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -443,7 +443,7 @@ describe("POST /api/v1/contacts/search", () => {
           value: "SUBSCRIBED",
         },
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -464,8 +464,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
       post(
         "/contact-properties",
         { name: `Age_${timestamp}`, type: "NUMBER" },
-        apiKey.key
-      )
+        apiKey.key,
+      ),
     );
     const ageData = await ageProperty.json();
     const ageRecord = await prisma.contactProperty.findUnique({
@@ -509,7 +509,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
           value: 35,
         },
       },
-      apiKey.key
+      apiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -534,8 +534,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
       post(
         "/contact-properties",
         { name: `Department_${timestamp}`, type: "STRING" },
-        apiKey.key
-      )
+        apiKey.key,
+      ),
     );
     const deptData = await deptProperty.json();
     const deptRecord = await prisma.contactProperty.findUnique({
@@ -578,7 +578,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
           value: "Engineering",
         },
       },
-      apiKey.key
+      apiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -603,8 +603,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
       post(
         "/contact-properties",
         { name: `Age_${timestamp}`, type: "NUMBER" },
-        apiKey.key
-      )
+        apiKey.key,
+      ),
     );
     const ageData = await ageProperty.json();
     const ageRecord = await prisma.contactProperty.findUnique({
@@ -616,8 +616,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
       post(
         "/contact-properties",
         { name: `Dept_${timestamp}`, type: "STRING" },
-        apiKey.key
-      )
+        apiKey.key,
+      ),
     );
     const deptData = await deptProperty.json();
     const deptRecord = await prisma.contactProperty.findUnique({
@@ -681,7 +681,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
           ],
         },
       },
-      apiKey.key
+      apiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -711,7 +711,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
           value: "test",
         },
       },
-      apiKey.key
+      apiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -719,10 +719,10 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
 
     expect(response.status).toBe(400);
     expect(responseData.error.message).toContain(
-      "Invalid field(s) in conditions"
+      "Invalid field(s) in conditions",
     );
     expect(responseData.error.message).toContain(
-      `NonExistentProperty_${timestamp}`
+      `NonExistentProperty_${timestamp}`,
     );
 
     await cleanupWorkspace(workspace.id);
@@ -738,8 +738,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
       post(
         "/contact-properties",
         { name: `Age_${timestamp}`, type: "NUMBER" },
-        apiKey.key
-      )
+        apiKey.key,
+      ),
     );
     const ageData = await ageProperty.json();
     const ageRecord = await prisma.contactProperty.findUnique({
@@ -752,8 +752,8 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
       post(
         "/contact-properties",
         { name: `EmptyProp_${timestamp}`, type: "STRING" },
-        apiKey.key
-      )
+        apiKey.key,
+      ),
     );
 
     // Create contact with only age set
@@ -777,7 +777,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
           value: `withprops_${timestamp}@example.com`,
         },
       },
-      apiKey.key
+      apiKey.key,
     );
 
     const response = await SEARCH(request);
@@ -791,7 +791,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     expect(responseData.data[0].properties[`Age_${timestamp}`]).toBe(42);
     // Should NOT include unset property
     expect(
-      responseData.data[0].properties[`EmptyProp_${timestamp}`]
+      responseData.data[0].properties[`EmptyProp_${timestamp}`],
     ).toBeUndefined();
 
     await cleanupWorkspace(workspace.id);

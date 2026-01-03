@@ -7,16 +7,16 @@
  * Also tests the server-side view tracking utility used by the form page.
  */
 
-import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/views/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/views/route";
+import { ErrorCode } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
   cleanupWorkspace,
+  createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils";
 import { validFormFields } from "@/tests/utils/form-fixtures";
-import { prisma } from "@/lib/db";
-import { ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let publishedFormId: string;
@@ -30,7 +30,7 @@ function viewRequest(
     userAgent?: string;
     ip?: string;
     referer?: string;
-  } = {}
+  } = {},
 ): Request {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",

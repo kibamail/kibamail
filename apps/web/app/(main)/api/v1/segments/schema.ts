@@ -3,7 +3,7 @@ import * as z from "zod/v4";
 /**
  * MongoDB-style Query Operators
  */
-export const ComparisonOperators = z.enum([
+const ComparisonOperators = z.enum([
   "eq", // equals
   "ne", // not equals
   "gt", // greater than
@@ -22,7 +22,7 @@ export const ComparisonOperators = z.enum([
  * Field Condition Schema
  * Represents a single condition on a field
  */
-export const fieldConditionSchema = z
+const fieldConditionSchema = z
   .object({
     field: z.string().min(1, "Field name is required"),
     operator: ComparisonOperators,
@@ -46,14 +46,14 @@ export const fieldConditionSchema = z
       message:
         'Null values can only be used with the "exists" operator. Use {"operator": "exists", "value": false} to check for null/empty fields.',
       path: ["value"],
-    }
+    },
   );
 
 /**
  * Topic Condition Schema
  * Check if contact is subscribed or not subscribed to specific topics
  */
-export const topicConditionSchema = z
+const topicConditionSchema = z
   .object({
     subscribedToTopic: z.array(z.string()).min(1).optional(),
     notSubscribedToTopic: z.array(z.string()).min(1).optional(),
@@ -90,7 +90,7 @@ export const conditionSchema: z.ZodType<ConditionInput> = z.lazy(() =>
       .refine((data) => !!(data.$and || data.$or || data.$not), {
         message: "At least one logical operator ($and, $or, $not) is required",
       }),
-  ])
+  ]),
 );
 
 /**
@@ -153,7 +153,7 @@ export const segmentListResponseSchema = z.object({
 /**
  * Segment Delete Response Schema
  */
-export const segmentDeleteResponseSchema = z.object({
+const segmentDeleteResponseSchema = z.object({
   object: z.literal("segment"),
   id: z.string().describe("ID of the deleted segment"),
 });
@@ -162,9 +162,9 @@ export const segmentDeleteResponseSchema = z.object({
  * Type exports
  */
 export type CreateSegmentRequest = z.infer<typeof createSegmentSchema>;
-export type UpdateSegmentRequest = z.infer<typeof updateSegmentSchema>;
+type UpdateSegmentRequest = z.infer<typeof updateSegmentSchema>;
 export type SegmentResponse = z.infer<typeof segmentResponseSchema>;
 export type SegmentListResponse = z.infer<typeof segmentListResponseSchema>;
-export type SegmentDeleteResponse = z.infer<typeof segmentDeleteResponseSchema>;
-export type FieldCondition = z.infer<typeof fieldConditionSchema>;
-export type TopicCondition = z.infer<typeof topicConditionSchema>;
+type SegmentDeleteResponse = z.infer<typeof segmentDeleteResponseSchema>;
+type FieldCondition = z.infer<typeof fieldConditionSchema>;
+type TopicCondition = z.infer<typeof topicConditionSchema>;

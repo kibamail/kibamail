@@ -7,11 +7,11 @@
 
 import { describe, expect, test } from "vitest";
 import {
-  scheduleBroadcast,
-  getEmailsPerDay,
-  getBatchesByDay,
-  type SendingLimits,
   type BatchSchedulerConfig,
+  getBatchesByDay,
+  getEmailsPerDay,
+  type SendingLimits,
+  scheduleBroadcast,
 } from "@/lib/broadcasts/batch-scheduler";
 
 /**
@@ -44,7 +44,7 @@ describe("scheduleBroadcast", () => {
       // Verify all contacts are scheduled
       const scheduledContactCount = result.batches.reduce(
         (sum, b) => sum + b.count,
-        0
+        0,
       );
       expect(scheduledContactCount).toBe(5400);
     });
@@ -287,9 +287,7 @@ describe("scheduleBroadcast", () => {
       });
 
       for (const batch of result.batches) {
-        expect(batch.batchId).toMatch(
-          /^batch_day\d+_hour\d+_\d+$/
-        );
+        expect(batch.batchId).toMatch(/^batch_day\d+_hour\d+_\d+$/);
         expect(batch.batchId).toContain(`day${batch.dayOffset}`);
         expect(batch.batchId).toContain(`hour${batch.hour}`);
       }

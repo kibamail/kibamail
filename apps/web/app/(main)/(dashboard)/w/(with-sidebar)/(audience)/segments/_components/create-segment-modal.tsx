@@ -12,15 +12,15 @@ import { Filter } from "iconoir-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
-import { useMutation } from "@/hooks/use-mutation";
-import type { ToggleState } from "@/hooks/utils/useToggleState";
-import { internalApi } from "@/lib/api/client";
 import { useSegmentFieldDefinitions } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/segments/_hooks/use-segment-field-definitions";
 import {
   convertConditionsToFilters,
   convertFiltersToConditions,
 } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/segments/_utils/filter-to-condition-converter";
+import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
+import { useMutation } from "@/hooks/use-mutation";
+import type { ToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
 
 interface CreateSegmentFormData {
   name: string;
@@ -188,7 +188,10 @@ export function CreateSegmentModal({
                       maxFilters={10}
                       className="align-left"
                     >
-                      <FilterBuilder.Trigger asChild className="flex justify-start mb-2">
+                      <FilterBuilder.Trigger
+                        asChild
+                        className="flex justify-start mb-2"
+                      >
                         <Button variant="secondary" size="xs" type="button">
                           <Filter />
                           Add filter

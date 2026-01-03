@@ -13,9 +13,9 @@
  *   npx tsx scripts/contact-seed.ts
  */
 
-import * as readline from "readline";
 import { faker } from "@faker-js/faker";
 import type { ContactStatus, TopicSubscriptionStatus } from "@prisma/client";
+import * as readline from "readline";
 import { prisma } from "@/lib/db";
 import { getRedisClient } from "@/lib/storage/redis-client";
 import { getSegmentContactsKey } from "@/lib/storage/redis-keys";

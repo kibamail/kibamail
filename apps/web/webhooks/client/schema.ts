@@ -530,7 +530,7 @@ export interface paths {
     trace?: never;
   };
 }
-export type webhooks = Record<string, never>;
+type webhooks = Record<string, never>;
 export interface components {
   schemas: {
     Tenant: {
@@ -2210,7 +2210,7 @@ export interface components {
   headers: never;
   pathItems: never;
 }
-export type $defs = Record<string, never>;
+type $defs = Record<string, never>;
 export interface operations {
   healthCheck: {
     parameters: {

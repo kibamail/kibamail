@@ -6,20 +6,23 @@
  * - Focus on authentication and authorization
  */
 
-import { POST } from "@/app/(main)/api/v1/forms/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/v1/forms/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   post,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { validFormFields, multiFieldFormSchema } from "@/tests/utils/form-fixtures";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
+import {
+  multiFieldFormSchema,
+  validFormFields,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -53,7 +56,7 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();

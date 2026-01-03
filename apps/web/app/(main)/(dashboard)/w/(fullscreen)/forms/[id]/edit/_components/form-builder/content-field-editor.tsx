@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef } from "react";
-import type { JSONContent } from "@tiptap/react";
 import {
   EmailEditor,
-  FORM_BUILDER_PRESET,
   type EmailEditorRef,
+  FORM_BUILDER_PRESET,
 } from "@repo/broadcast-editor";
+import type { JSONContent } from "@tiptap/react";
+import { useRef } from "react";
 import "@repo/broadcast-editor/styles";
 
 interface ContentFieldEditorProps {

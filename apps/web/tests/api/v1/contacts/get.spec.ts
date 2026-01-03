@@ -5,21 +5,21 @@
  * - GET /api/v1/contacts/[contactId] - Get specific contact
  */
 
-import { GET } from "@/app/(main)/api/v1/contacts/[contactId]/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type { Contact } from "@prisma/client";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET } from "@/app/(main)/api/v1/contacts/[contactId]/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createReadOnlyApiKey,
-  cleanupWorkspace,
   createTestContacts,
+  createTestWorkspace,
   fakeContact,
   get,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -35,7 +35,9 @@ beforeAll(async () => {
   readOnlyApiKey = await createReadOnlyApiKey(testWorkspace.id);
 
   const contactData = fakeContact();
-  const [createdContact] = await createTestContacts(testWorkspace.id, [contactData]);
+  const [createdContact] = await createTestContacts(testWorkspace.id, [
+    contactData,
+  ]);
   testContactId = createdContact.id;
 });
 
@@ -50,7 +52,9 @@ describe("GET /api/v1/contacts/[contactId]", () => {
   test("should get a specific contact", async () => {
     const request = get(`/contacts/${testContactId}`, fullAccessApiKey.key);
 
-    const response = await GET(request, { params: Promise.resolve({ contactId: testContactId }) });
+    const response = await GET(request, {
+      params: Promise.resolve({ contactId: testContactId }),
+    });
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
@@ -66,7 +70,9 @@ describe("GET /api/v1/contacts/[contactId]", () => {
   test("should work with read-only API key", async () => {
     const request = get(`/contacts/${testContactId}`, readOnlyApiKey.key);
 
-    const response = await GET(request, { params: Promise.resolve({ contactId: testContactId }) });
+    const response = await GET(request, {
+      params: Promise.resolve({ contactId: testContactId }),
+    });
     const responseData = await response.json();
 
     expect(response.status).toBe(200);
@@ -80,7 +86,9 @@ describe("GET /api/v1/contacts/[contactId]", () => {
     const fakeId = "non-existent-id";
     const request = get(`/contacts/${fakeId}`, fullAccessApiKey.key);
 
-    const response = await GET(request, { params: Promise.resolve({ contactId: fakeId }) });
+    const response = await GET(request, {
+      params: Promise.resolve({ contactId: fakeId }),
+    });
     const responseData = await response.json();
 
     expect(response.status).toBe(404);
@@ -93,12 +101,16 @@ describe("GET /api/v1/contacts/[contactId]", () => {
   test("should reject request with missing Authorization header", async () => {
     const request = get(`/contacts/${testContactId}`);
 
-    const response = await GET(request, { params: Promise.resolve({ contactId: testContactId }) });
+    const response = await GET(request, {
+      params: Promise.resolve({ contactId: testContactId }),
+    });
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });

@@ -8,8 +8,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import { archiveAutomation } from "@/app/(main)/api/v1/automations/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * POST /api/v1/automations/[automationId]/archive
@@ -19,14 +19,14 @@ import { archiveAutomation } from "@/app/(main)/api/v1/automations/handler";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { automationId } = await params;
     return withApiSession(
       request,
       (apiKey) => archiveAutomation(apiKey.workspaceId, automationId),
-      ["write:automations"]
+      ["write:automations"],
     );
   });
 }

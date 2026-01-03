@@ -7,16 +7,16 @@
  * - Rewriting image URLs for proxying
  */
 
-import { load as cheerioLoad } from "cheerio";
-import type { Element } from "domhandler";
 import {
-  signData as signDataWithKey,
-  encodeTrackingPayload as encodeTrackingPayloadWithKey,
+  decodeImageUrl as decodeImageUrlWithKey,
   decodeTrackingPayload as decodeTrackingPayloadWithKey,
   encodeImageUrl as encodeImageUrlWithKey,
-  decodeImageUrl as decodeImageUrlWithKey,
+  encodeTrackingPayload as encodeTrackingPayloadWithKey,
+  signData as signDataWithKey,
   type TrackingPayload,
 } from "@repo/tracking-utils";
+import { load as cheerioLoad } from "cheerio";
+import type { Element } from "domhandler";
 import { env } from "@/env/schema";
 
 // Re-export types
@@ -34,7 +34,7 @@ export function signData(data: string): string {
  */
 export function encodeTrackingPayload(
   emailSendId: string,
-  originalUrl?: string
+  originalUrl?: string,
 ): string {
   return encodeTrackingPayloadWithKey(emailSendId, originalUrl, env.APP_KEY);
 }
@@ -42,9 +42,7 @@ export function encodeTrackingPayload(
 /**
  * Decode and verify a tracking payload with the app's secret key
  */
-export function decodeTrackingPayload(
-  encoded: string
-): TrackingPayload | null {
+export function decodeTrackingPayload(encoded: string): TrackingPayload | null {
   return decodeTrackingPayloadWithKey(encoded, env.APP_KEY);
 }
 
@@ -79,7 +77,7 @@ interface RewriteImagesResult {
  */
 export function rewriteImageUrls(
   html: string,
-  trackingDomain: string
+  trackingDomain: string,
 ): RewriteImagesResult {
   const $ = cheerioLoad(html);
   const images: Array<{ original: string; proxied: string }> = [];
@@ -128,7 +126,7 @@ interface RewriteLinksResult {
 export function rewriteLinks(
   html: string,
   trackingDomain: string,
-  emailSendId: string
+  emailSendId: string,
 ): RewriteLinksResult {
   const $ = cheerioLoad(html);
   const links: Array<{ original: string; tracking: string }> = [];
@@ -180,7 +178,7 @@ interface InjectPixelResult {
 export function injectTrackingPixel(
   html: string,
   trackingDomain: string,
-  emailSendId: string
+  emailSendId: string,
 ): InjectPixelResult {
   const encodedPayload = encodeTrackingPayload(emailSendId);
   const pixelUrl = `https://${trackingDomain}/o/${encodedPayload}`;
@@ -203,14 +201,14 @@ export function injectTrackingPixel(
  * Apply tracking and image proxying to HTML
  *
  * Applies:
- * - Image proxying (rewrites img src to tracking domain)
- * - Click tracking (rewrites links)
- * - Open tracking (injects pixel)
+ * - Image proxying (always enabled - rewrites img src to tracking domain)
+ * - Click tracking (optional - rewrites links)
+ * - Open tracking (optional - injects pixel)
  *
  * @param html - The HTML content
  * @param trackingDomain - Domain for tracking URLs
  * @param emailSendId - Unique ID for this email send
- * @param options - Which features to enable
+ * @param options - Which tracking features to enable (image proxying is always on)
  * @returns Tracked HTML and metadata
  */
 export function applyTracking(
@@ -220,8 +218,7 @@ export function applyTracking(
   options: {
     clickTracking?: boolean;
     openTracking?: boolean;
-    imageProxy?: boolean;
-  } = {}
+  } = {},
 ): {
   html: string;
   links: Array<{ original: string; tracking: string }>;
@@ -230,15 +227,12 @@ export function applyTracking(
 } {
   let trackedHtml = html;
   let links: Array<{ original: string; tracking: string }> = [];
-  let images: Array<{ original: string; proxied: string }> = [];
   let pixelUrl: string | undefined;
 
-  // Proxy images first (before adding tracking pixel)
-  if (options.imageProxy !== false) {
-    const imageResult = rewriteImageUrls(trackedHtml, trackingDomain);
-    trackedHtml = imageResult.html;
-    images = imageResult.images;
-  }
+  // Always proxy images (before adding tracking pixel)
+  const imageResult = rewriteImageUrls(trackedHtml, trackingDomain);
+  trackedHtml = imageResult.html;
+  const images = imageResult.images;
 
   if (options.clickTracking !== false) {
     const linkResult = rewriteLinks(trackedHtml, trackingDomain, emailSendId);
@@ -250,7 +244,7 @@ export function applyTracking(
     const pixelResult = injectTrackingPixel(
       trackedHtml,
       trackingDomain,
-      emailSendId
+      emailSendId,
     );
     trackedHtml = pixelResult.html;
     pixelUrl = pixelResult.pixelUrl;

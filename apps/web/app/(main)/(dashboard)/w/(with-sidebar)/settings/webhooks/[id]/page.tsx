@@ -1,16 +1,16 @@
-import { getSession } from "@/lib/auth/get-session";
-import { outpost } from "@/webhooks/client/client";
-import { WebhookActionsDropdown } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/webhooks/_components/webhook-actions-dropdown";
 import {
+  DashboardLayoutStickyContentHeaderContainer,
   DashboardLayoutStickyDetailHeader,
   DashboardLayoutStickyDetailHeaderDescription,
   DashboardLayoutStickyDetailHeaderIcon,
   DashboardLayoutStickyDetailHeaderTitle,
-  DashboardLayoutStickyContentHeaderContainer,
 } from "@kibamail/owly/dashboard-layout";
 import { DataTransferBoth } from "iconoir-react";
 import { notFound } from "next/navigation";
+import { WebhookActionsDropdown } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/webhooks/_components/webhook-actions-dropdown";
 import { WebhookDetailClient } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/webhooks/_components/webhook-detail-client";
+import { getSession } from "@/lib/auth/get-session";
+import { outpost } from "@/webhooks/client/client";
 
 interface WebhookDetailPageProps {
   params: Promise<{

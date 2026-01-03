@@ -21,3 +21,11 @@ metadata:
 spec:
   hostnames:
     - api.staging.kibamail.com
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: kibamail-tracking
+spec:
+  hostnames:
+    - staging.e.kbmta.net

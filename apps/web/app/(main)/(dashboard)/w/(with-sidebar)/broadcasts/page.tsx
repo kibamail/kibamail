@@ -1,12 +1,12 @@
 import {
-  DashboardLayoutStickyContentHeaderContainer,
-  DashboardLayoutContentHeader,
   DashboardLayoutContentActions,
+  DashboardLayoutContentHeader,
+  DashboardLayoutStickyContentHeaderContainer,
 } from "@kibamail/owly/dashboard-layout";
+import { getSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
 import { BroadcastsTable } from "./_components/broadcasts-table";
 import { CreateBroadcastButton } from "./_components/create-broadcast-button";
-import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth/get-session";
 
 async function getBroadcasts(workspaceId: string) {
   return prisma.broadcast.findMany({

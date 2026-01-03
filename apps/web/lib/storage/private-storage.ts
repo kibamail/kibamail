@@ -11,13 +11,13 @@
  */
 
 import {
-  S3Client,
-  PutObjectCommand,
-  GetObjectCommand,
   DeleteObjectCommand,
-  ListObjectsV2Command,
+  GetObjectCommand,
   HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
   type PutObjectCommandInput,
+  S3Client,
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/env/schema";
@@ -95,7 +95,7 @@ export async function uploadPrivateFile(
  * const url = await getPrivateFileSignedUrl("exports/report.csv", 3600);
  * ```
  */
-export async function getPrivateFileSignedUrl(
+async function getPrivateFileSignedUrl(
   key: string,
   expiresIn: number = DEFAULT_SIGNED_URL_EXPIRY,
 ): Promise<string> {
@@ -125,7 +125,7 @@ export async function getPrivateFileSignedUrl(
  * // Client can PUT directly to this URL
  * ```
  */
-export async function getPrivateUploadSignedUrl(
+async function getPrivateUploadSignedUrl(
   key: string,
   contentType?: string,
   expiresIn: number = DEFAULT_SIGNED_URL_EXPIRY,
@@ -174,7 +174,7 @@ export async function downloadPrivateFile(key: string) {
  * @param key - The object key (path) in the bucket
  * @returns Deletion confirmation
  */
-export async function deletePrivateFile(key: string) {
+async function deletePrivateFile(key: string) {
   const command = new DeleteObjectCommand({
     Bucket: env.S3_PRIVATE_BUCKET,
     Key: key,
@@ -195,7 +195,7 @@ export async function deletePrivateFile(key: string) {
  * @param key - The object key (path) in the bucket
  * @returns True if file exists, false otherwise
  */
-export async function privateFileExists(key: string): Promise<boolean> {
+async function privateFileExists(key: string): Promise<boolean> {
   try {
     const command = new HeadObjectCommand({
       Bucket: env.S3_PRIVATE_BUCKET,
@@ -205,8 +205,14 @@ export async function privateFileExists(key: string): Promise<boolean> {
     await privateS3Client.send(command);
     return true;
   } catch (error) {
-    const s3Error = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-    if (s3Error.name === "NotFound" || s3Error.$metadata?.httpStatusCode === 404) {
+    const s3Error = error as {
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    if (
+      s3Error.name === "NotFound" ||
+      s3Error.$metadata?.httpStatusCode === 404
+    ) {
       return false;
     }
     throw error;
@@ -220,10 +226,7 @@ export async function privateFileExists(key: string): Promise<boolean> {
  * @param maxKeys - Maximum number of keys to return (default: 1000)
  * @returns List of objects with metadata
  */
-export async function listPrivateFiles(
-  prefix?: string,
-  maxKeys: number = 1000,
-) {
+async function listPrivateFiles(prefix?: string, maxKeys: number = 1000) {
   const command = new ListObjectsV2Command({
     Bucket: env.S3_PRIVATE_BUCKET,
     Prefix: prefix,
@@ -246,7 +249,7 @@ export async function listPrivateFiles(
  * @param key - The object key (path) in the bucket
  * @returns File metadata
  */
-export async function getPrivateFileMetadata(key: string) {
+async function getPrivateFileMetadata(key: string) {
   const command = new HeadObjectCommand({
     Bucket: env.S3_PRIVATE_BUCKET,
     Key: key,
@@ -262,5 +265,3 @@ export async function getPrivateFileMetadata(key: string) {
     metadata: response.Metadata,
   };
 }
-
-export { privateS3Client };

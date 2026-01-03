@@ -10,12 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import {
+  deleteSendingDomain,
   getSendingDomain,
   updateSendingDomain,
-  deleteSendingDomain,
 } from "@/app/(main)/api/v1/domains/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/domains/[domainId]
@@ -25,7 +25,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ domainId: string }> }
+  { params }: { params: Promise<{ domainId: string }> },
 ) {
   const { domainId } = await params;
 
@@ -33,8 +33,8 @@ export async function GET(
     withApiSession(
       request,
       (apiKey) => getSendingDomain(apiKey.workspaceId, domainId),
-      ["read:domains"]
-    )
+      ["read:domains"],
+    ),
   );
 }
 
@@ -46,7 +46,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ domainId: string }> }
+  { params }: { params: Promise<{ domainId: string }> },
 ) {
   const { domainId } = await params;
 
@@ -55,8 +55,8 @@ export async function PUT(
       request,
       (apiKey, request) =>
         updateSendingDomain(apiKey.workspaceId, domainId, request),
-      ["update:domains"]
-    )
+      ["update:domains"],
+    ),
   );
 }
 
@@ -68,7 +68,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ domainId: string }> }
+  { params }: { params: Promise<{ domainId: string }> },
 ) {
   const { domainId } = await params;
 
@@ -76,7 +76,7 @@ export async function DELETE(
     withApiSession(
       request,
       (apiKey) => deleteSendingDomain(apiKey.workspaceId, domainId),
-      ["delete:domains"]
-    )
+      ["delete:domains"],
+    ),
   );
 }

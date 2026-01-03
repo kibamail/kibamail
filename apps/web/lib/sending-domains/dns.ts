@@ -6,10 +6,7 @@
  */
 
 import dns from "node:dns/promises";
-import { buildDmarcPolicy, generateDmarcReportingCode } from "./dmarc";
-
-// Re-export client-safe functions for convenience
-export { buildDmarcPolicy, generateDmarcReportingCode };
+import { buildDmarcPolicy } from "./dmarc";
 
 /**
  * DNS configuration for sending domains
@@ -37,10 +34,10 @@ function cleanupPublicKey(publicKey: string): string {
 /**
  * Get DKIM DNS record configuration
  */
-export function getDkimRecord(
+function getDkimRecord(
   domain: string,
   dkimSubdomain: string,
-  publicKey: string
+  publicKey: string,
 ) {
   const cleanedKey = publicKey.includes("-----BEGIN")
     ? cleanupPublicKey(publicKey)
@@ -56,7 +53,7 @@ export function getDkimRecord(
 /**
  * Get Return Path (bounce) DNS record configuration
  */
-export function getReturnPathRecord(domain: string, subdomain: string) {
+function getReturnPathRecord(domain: string, subdomain: string) {
   return {
     type: "CNAME" as const,
     hostname: `${subdomain}.${domain}`,
@@ -67,7 +64,7 @@ export function getReturnPathRecord(domain: string, subdomain: string) {
 /**
  * Get Tracking DNS record configuration
  */
-export function getTrackingRecord(domain: string, subdomain: string) {
+function getTrackingRecord(domain: string, subdomain: string) {
   return {
     type: "CNAME" as const,
     hostname: `${subdomain}.${domain}`,
@@ -78,7 +75,7 @@ export function getTrackingRecord(domain: string, subdomain: string) {
 /**
  * Get DMARC DNS record configuration
  */
-export function getDmarcRecord(domain: string, reportingCode: string) {
+function getDmarcRecord(domain: string, reportingCode: string) {
   return {
     type: "TXT" as const,
     hostname: `${DNS_CONFIG.dmarcSubdomain}.${domain}`,
@@ -124,7 +121,7 @@ async function resolveTxt(hostname: string): Promise<string[]> {
     const records = await dns.resolveTxt(hostname);
     // TXT records may be arrays of strings that need to be joined
     return records.map((record) =>
-      Array.isArray(record) ? record.join("") : record
+      Array.isArray(record) ? record.join("") : record,
     );
   } catch {
     return [];

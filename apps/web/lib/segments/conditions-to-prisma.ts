@@ -29,7 +29,7 @@ export const BUILT_IN_CONTACT_FIELDS = [
  */
 export function validateConditionFields(
   conditions: ConditionInput,
-  contactProperties: ContactPropertyDefinition[]
+  contactProperties: ContactPropertyDefinition[],
 ): { isValid: boolean; invalidFields: string[] } {
   const invalidFields: string[] = [];
   const propertyNames = new Set(contactProperties.map((p) => p.name));
@@ -82,7 +82,7 @@ export function validateConditionFields(
  */
 export function conditionsToPrismaWhere(
   conditions: ConditionInput,
-  contactProperties: ContactPropertyDefinition[] = []
+  contactProperties: ContactPropertyDefinition[] = [],
 ): Prisma.ContactWhereInput {
   if (
     "field" in conditions &&
@@ -116,7 +116,7 @@ function convertFieldCondition(
     operator: string;
     value: string | number | boolean | null | (string | number)[];
   },
-  contactProperties: ContactPropertyDefinition[]
+  contactProperties: ContactPropertyDefinition[],
 ): Prisma.ContactWhereInput {
   const { field, operator, value } = condition;
 
@@ -218,12 +218,12 @@ function convertLogicalOperator(
     $or?: ConditionInput[];
     $not?: ConditionInput;
   },
-  contactProperties: ContactPropertyDefinition[]
+  contactProperties: ContactPropertyDefinition[],
 ): Prisma.ContactWhereInput {
   if (condition.$and) {
     return {
       AND: condition.$and.map((c) =>
-        conditionsToPrismaWhere(c, contactProperties)
+        conditionsToPrismaWhere(c, contactProperties),
       ),
     };
   }
@@ -231,7 +231,7 @@ function convertLogicalOperator(
   if (condition.$or) {
     return {
       OR: condition.$or.map((c) =>
-        conditionsToPrismaWhere(c, contactProperties)
+        conditionsToPrismaWhere(c, contactProperties),
       ),
     };
   }

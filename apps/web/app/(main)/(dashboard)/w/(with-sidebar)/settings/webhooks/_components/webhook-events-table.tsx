@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import * as EmptyCard from "@kibamail/owly/empty-card";
@@ -8,6 +7,7 @@ import { Skeleton } from "@kibamail/owly/skeleton";
 import * as Table from "@kibamail/owly/table";
 import dayjs from "dayjs";
 import { NavArrowLeft, NavArrowRight } from "iconoir-react";
+import { useState } from "react";
 import type { WebhookEvent } from "@/webhooks/client/types";
 import { EventDetailsModal } from "./event-details-modal";
 

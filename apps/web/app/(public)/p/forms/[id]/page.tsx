@@ -3,8 +3,8 @@ import "@/app/forms.css";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import type { FormBuilderSchema } from "@/lib/form-builder";
-import { FormPageClient } from "./_components/form-page-client";
 import { trackUniqueFormView } from "@/lib/forms/view-tracking";
+import { FormPageClient } from "./_components/form-page-client";
 
 interface PublishedFormData {
   fields: unknown;
@@ -12,7 +12,9 @@ interface PublishedFormData {
   workspaceId: string;
 }
 
-async function getPublishedForm(formId: string): Promise<PublishedFormData | null> {
+async function getPublishedForm(
+  formId: string,
+): Promise<PublishedFormData | null> {
   // First, get the root form
   const rootForm = await prisma.form.findFirst({
     where: {
@@ -83,5 +85,7 @@ export default async function PublicFormPage({
   // Track unique page view (server-side creates record, client sets cookie)
   const { tracked } = await trackUniqueFormView(id, form.workspaceId);
 
-  return <FormPageClient formId={id} schema={schema} shouldSetViewCookie={tracked} />;
+  return (
+    <FormPageClient formId={id} schema={schema} shouldSetViewCookie={tracked} />
+  );
 }

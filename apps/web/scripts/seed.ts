@@ -38,8 +38,8 @@
  */
 
 import { createManagementApi } from "@logto/api/management";
-import { env } from "@/env/schema";
 import { logto } from "@/auth/logto";
+import { env } from "@/env/schema";
 import { outpost } from "@/webhooks/client/client";
 
 // ============================================================================

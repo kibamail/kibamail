@@ -10,8 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  deleteEmail,
+  getEmail,
+  updateEmail,
+} from "@/app/(main)/api/internal/v1/emails/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { getEmail, updateEmail, deleteEmail } from "@/app/(main)/api/internal/v1/emails/handler";
 
 interface RouteParams {
   params: Promise<{ emailId: string }>;
@@ -33,8 +37,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         }
         return getEmail(session.currentOrganization.id, emailId);
       },
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }
 
@@ -54,8 +58,8 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
         }
         return updateEmail(session.currentOrganization.id, emailId, request);
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }
 
@@ -75,7 +79,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         }
         return deleteEmail(session.currentOrganization.id, emailId);
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }

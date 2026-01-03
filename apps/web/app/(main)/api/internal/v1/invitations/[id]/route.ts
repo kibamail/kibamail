@@ -5,8 +5,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { getSession } from "@/lib/auth/get-session";
 import { responseUnauthorized } from "@/lib/api/responses";
+import { getSession } from "@/lib/auth/get-session";
 import { cancelInvitation } from "./handler";
 
 export async function DELETE(

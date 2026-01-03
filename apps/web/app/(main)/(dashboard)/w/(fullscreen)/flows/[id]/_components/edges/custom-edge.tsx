@@ -2,8 +2,8 @@
 
 import { BaseEdge, type EdgeProps, getSmoothStepPath } from "@xyflow/react";
 import { Plus } from "iconoir-react";
-import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 
 export function CustomEdge({
   id,

@@ -1,32 +1,29 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
-import { Xmark, Settings, StatUp } from "iconoir-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Settings, StatUp, Xmark } from "iconoir-react";
 import Link from "next/link";
-
-import {
-  ContentEditor,
-  type ContentEditorRef,
-} from "./content-editor";
-import { EmailPreview } from "./email-preview";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getEmailFromSenderSelect } from "@/components/sender-select";
+import { ContentEditor, type ContentEditorRef } from "./content-editor";
 import { EmailDetailsTab } from "./email-details-tab";
+import { EmailPreview } from "./email-preview";
 import { PublishButton } from "./publish-button";
+import { SendTestEmailModal } from "./send-test-email-modal";
 import {
-  type EmailEditorMode,
-  type EmailEditorProps,
+  type CreatedDomain,
   type EditorDetails,
   type EditorTab,
-  type SenderSelectState,
-  type SenderSelectActions,
-  type CreatedDomain,
-  getTabsForMode,
+  type EmailEditorMode,
+  type EmailEditorProps,
   getDefaultLabels,
+  getTabsForMode,
+  type SenderSelectActions,
+  type SenderSelectState,
 } from "./types";
-import { getEmailFromSenderSelect } from "@/components/sender-select";
 
 interface EmailEditorClientProps<T extends EmailEditorMode>
   extends EmailEditorProps<T> {
@@ -59,7 +56,8 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   const queryClient = useQueryClient();
   const { success: toast } = useToast();
 
-  const defaultTab: EditorTab = isReadonly && mode === "broadcast" ? "analytics" : "content";
+  const defaultTab: EditorTab =
+    isReadonly && mode === "broadcast" ? "analytics" : "content";
   const tabParam = searchParams.get("tab");
   const activeTab: EditorTab = validTabs.includes(tabParam as EditorTab)
     ? (tabParam as EditorTab)
@@ -81,10 +79,11 @@ export function EmailEditorClient<T extends EmailEditorMode>({
 
   const [details, setDetails] = useState<EditorDetails<T>>(initialDetails);
   const [addedDomains, setAddedDomains] = useState<CreatedDomain[]>([]);
+  const [testEmailModalOpen, setTestEmailModalOpen] = useState(false);
   const [senderLocalPart, setSenderLocalPart] = useState("");
   const [senderDomainId, setSenderDomainId] = useState(domains[0]?.id || "");
   const [isAddingNewSender, setIsAddingNewSender] = useState(
-    !initialDetails.senderIdentityId && senderIdentities.length === 0
+    !initialDetails.senderIdentityId && senderIdentities.length === 0,
   );
 
   const allDomains = [...domains, ...addedDomains];
@@ -100,10 +99,10 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           updates.senderIdentityId !== prev.senderIdentityId
         ) {
           const prevSender = senderIdentities.find(
-            (s) => s.id === prev.senderIdentityId
+            (s) => s.id === prev.senderIdentityId,
           );
           const nextSender = senderIdentities.find(
-            (s) => s.id === updates.senderIdentityId
+            (s) => s.id === updates.senderIdentityId,
           );
 
           if (prevSender?.domainId !== nextSender?.domainId) {
@@ -114,7 +113,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
         return next;
       });
     },
-    [senderIdentities]
+    [senderIdentities],
   );
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {
@@ -207,9 +206,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
         <div className="flex items-center gap-3 absolute left-[50%] translate-x-[-50%]">
           {tabs.map((tab, index) => (
             <div key={tab.id} className="flex items-center gap-3">
-              {index > 0 && (
-                <div className="w-12 h-px bg-kb-border-tertiary" />
-              )}
+              {index > 0 && <div className="w-12 h-px bg-kb-border-tertiary" />}
               <Button
                 className="rounded-full!"
                 variant={activeTab === tab.id ? "secondary" : "tertiary"}
@@ -241,6 +238,14 @@ export function EmailEditorClient<T extends EmailEditorMode>({
                 ? labels.saveDraftPending
                 : labels.saveDraft}
             </Button>
+            {mode === "broadcast" && (
+              <Button
+                variant="secondary"
+                onClick={() => setTestEmailModalOpen(true)}
+              >
+                Send test email
+              </Button>
+            )}
             {mutations.onPublish && (
               <PublishButton
                 mode={mode}
@@ -333,6 +338,16 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           </div>
         )}
       </div>
+
+      {/* Send Test Email Modal (broadcast only) */}
+      {mode === "broadcast" && (
+        <SendTestEmailModal
+          open={testEmailModalOpen}
+          onOpenChange={setTestEmailModalOpen}
+          broadcastId={entityId}
+          onSaveDraft={onSaveDraftAsync}
+        />
+      )}
     </div>
   );
 }

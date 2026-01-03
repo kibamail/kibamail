@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Computer, SmartphoneDevice, Laptop, Refresh } from "iconoir-react";
-import { useFormBuilder } from "./form-builder-context";
+import { Computer, Laptop, Refresh, SmartphoneDevice } from "iconoir-react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useFormBuilder } from "./form-builder-context";
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
 
@@ -46,7 +46,7 @@ export function FormLivePreview({ isActive }: FormLivePreviewProps) {
                 "p-2 rounded-md transition-colors",
                 deviceMode === "desktop"
                   ? "bg-kb-primary text-white"
-                  : "text-kb-content-tertiary hover:text-kb-content-primary hover:bg-kb-surface-tertiary"
+                  : "text-kb-content-tertiary hover:text-kb-content-primary hover:bg-kb-surface-tertiary",
               )}
               title="Desktop"
             >
@@ -59,7 +59,7 @@ export function FormLivePreview({ isActive }: FormLivePreviewProps) {
                 "p-2 rounded-md transition-colors",
                 deviceMode === "tablet"
                   ? "bg-kb-primary text-white"
-                  : "text-kb-content-tertiary hover:text-kb-content-primary hover:bg-kb-surface-tertiary"
+                  : "text-kb-content-tertiary hover:text-kb-content-primary hover:bg-kb-surface-tertiary",
               )}
               title="Tablet"
             >
@@ -72,7 +72,7 @@ export function FormLivePreview({ isActive }: FormLivePreviewProps) {
                 "p-2 rounded-md transition-colors",
                 deviceMode === "mobile"
                   ? "bg-kb-primary text-white"
-                  : "text-kb-content-tertiary hover:text-kb-content-primary hover:bg-kb-surface-tertiary"
+                  : "text-kb-content-tertiary hover:text-kb-content-primary hover:bg-kb-surface-tertiary",
               )}
               title="Mobile"
             >
@@ -96,7 +96,7 @@ export function FormLivePreview({ isActive }: FormLivePreviewProps) {
         <div
           className={cn(
             "overflow-hidden transition-all duration-300",
-            deviceMode !== "desktop" && "border border-kb-border-secondary"
+            deviceMode !== "desktop" && "border border-kb-border-secondary",
           )}
           style={{
             width: DEVICE_SIZES[deviceMode].width,

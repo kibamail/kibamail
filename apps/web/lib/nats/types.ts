@@ -74,12 +74,20 @@ export interface PublishAck {
 
 /**
  * NATS connection options
+ *
+ * Supports two authentication methods:
+ * 1. NKey authentication (preferred for production): Provide nkeySeed
+ * 2. Password authentication (for development): Provide user and password
  */
 export interface NatsConnectionOptions {
   url: string;
-  user: string;
-  password: string;
   tlsCa: string;
+  /** NKey seed for authentication (starts with 'SU' for user seed) */
+  nkeySeed?: string;
+  /** Username for password-based authentication */
+  user?: string;
+  /** Password for password-based authentication */
+  password?: string;
   maxReconnectAttempts?: number;
   reconnectTimeWait?: number;
 }

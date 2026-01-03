@@ -7,7 +7,7 @@
 import { BadRequestError } from "@/lib/api/errors";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
-import { Cookies, CookieKey } from "@/lib/cookies";
+import { CookieKey, Cookies } from "@/lib/cookies";
 
 /**
  * POST /api/internal/v1/workspaces/:id/activate

@@ -5,15 +5,15 @@
  * that a broadcast has all required configuration before sending.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import type {
   Broadcast,
   EmailContent,
-  SendingDomain,
   SenderIdentity,
+  SendingDomain,
 } from "@prisma/client";
-import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
+import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
 import {
   checkBroadcastReadiness,
   getReadinessErrors,
@@ -55,7 +55,7 @@ async function createBroadcastViaApi(
       text?: string;
       html?: string;
     };
-  }
+  },
 ): Promise<BroadcastWithRelations> {
   const request = post("/broadcasts", data, apiKey.key);
   const response = await CreateBroadcast(request);
@@ -79,7 +79,7 @@ async function createBroadcastViaApi(
  */
 async function createVerifiedDomainViaApi(
   apiKey: CreatedApiKey,
-  name: string
+  name: string,
 ): Promise<SendingDomain> {
   const request = post("/domains", { name }, apiKey.key);
   const response = await CreateDomain(request);
@@ -102,7 +102,7 @@ async function createVerifiedDomainViaApi(
  */
 async function createUnverifiedDomainViaApi(
   apiKey: CreatedApiKey,
-  name: string
+  name: string,
 ): Promise<SendingDomain> {
   const request = post("/domains", { name }, apiKey.key);
   const response = await CreateDomain(request);
@@ -130,7 +130,7 @@ async function createMinimalBroadcast(
       contentHtml?: string | null;
       contentJson?: Record<string, unknown> | null;
     } | null;
-  } = {}
+  } = {},
 ): Promise<BroadcastWithRelations> {
   let emailContentId: string | undefined;
 
@@ -202,7 +202,7 @@ describe("BroadcastReadinessChecker", () => {
 
       expect(result.ready).toBe(false);
       const fromEmailCheck = result.checklist.find(
-        (item) => item.id === "from_email"
+        (item) => item.id === "from_email",
       );
       expect(fromEmailCheck?.completed).toBe(false);
       expect(fromEmailCheck?.reason).toContain("No sender email configured");
@@ -212,7 +212,7 @@ describe("BroadcastReadinessChecker", () => {
       // Create unverified domain via API
       const unverifiedDomain = await createUnverifiedDomainViaApi(
         fullAccessApiKey,
-        "unverified-readiness.example.com"
+        "unverified-readiness.example.com",
       );
 
       // Create sender identity manually
@@ -249,12 +249,12 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         testWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
 
       expect(result.ready).toBe(false);
       const fromEmailCheck = result.checklist.find(
-        (item) => item.id === "from_email"
+        (item) => item.id === "from_email",
       );
       expect(fromEmailCheck?.completed).toBe(false);
       expect(fromEmailCheck?.reason).toContain("not fully verified");
@@ -263,7 +263,7 @@ describe("BroadcastReadinessChecker", () => {
     test("should return not ready when subject is missing", async () => {
       await createVerifiedDomainViaApi(
         fullAccessApiKey,
-        "subject-test.example.com"
+        "subject-test.example.com",
       );
 
       // Create broadcast via API without subject
@@ -290,12 +290,12 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         testWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
 
       expect(result.ready).toBe(false);
       const subjectCheck = result.checklist.find(
-        (item) => item.id === "subject"
+        (item) => item.id === "subject",
       );
       expect(subjectCheck?.completed).toBe(false);
       expect(subjectCheck?.reason).toContain("No subject line set");
@@ -304,7 +304,7 @@ describe("BroadcastReadinessChecker", () => {
     test("should return not ready when unsubscribe link is missing", async () => {
       await createVerifiedDomainViaApi(
         fullAccessApiKey,
-        "unsub-test.example.com"
+        "unsub-test.example.com",
       );
 
       // Create contacts
@@ -339,12 +339,12 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         testWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
 
       expect(result.ready).toBe(false);
       const unsubCheck = result.checklist.find(
-        (item) => item.id === "unsubscribe_url"
+        (item) => item.id === "unsubscribe_url",
       );
       expect(unsubCheck?.completed).toBe(false);
       expect(unsubCheck?.reason).toContain("No unsubscribe link");
@@ -353,7 +353,7 @@ describe("BroadcastReadinessChecker", () => {
     test("should return not ready when sendAt is missing", async () => {
       await createVerifiedDomainViaApi(
         fullAccessApiKey,
-        "sendat-test.example.com"
+        "sendat-test.example.com",
       );
 
       const broadcast = await createBroadcastViaApi(fullAccessApiKey, {
@@ -369,7 +369,7 @@ describe("BroadcastReadinessChecker", () => {
 
       expect(result.ready).toBe(false);
       const sendTimeCheck = result.checklist.find(
-        (item) => item.id === "send_time"
+        (item) => item.id === "send_time",
       );
       expect(sendTimeCheck?.completed).toBe(false);
       expect(sendTimeCheck?.reason).toContain("No send time scheduled");
@@ -382,7 +382,7 @@ describe("BroadcastReadinessChecker", () => {
 
       await createVerifiedDomainViaApi(
         freshApiKey,
-        "recipients-test.example.com"
+        "recipients-test.example.com",
       );
 
       const broadcast = await createBroadcastViaApi(freshApiKey, {
@@ -411,12 +411,12 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         freshWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
 
       expect(result.ready).toBe(false);
       const recipientsCheck = result.checklist.find(
-        (item) => item.id === "recipients"
+        (item) => item.id === "recipients",
       );
       expect(recipientsCheck?.completed).toBe(false);
       expect(recipientsCheck?.reason).toContain("No recipients");
@@ -463,7 +463,7 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         freshWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
 
       expect(result.ready).toBe(true);
@@ -510,27 +510,27 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         freshWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
 
       // Check from email label
       const fromEmailCheck = result.checklist.find(
-        (item) => item.id === "from_email"
+        (item) => item.id === "from_email",
       );
       expect(fromEmailCheck?.label).toContain("Send from");
       expect(fromEmailCheck?.label).toContain(
-        "newsletter@label-test.example.com"
+        "newsletter@label-test.example.com",
       );
 
       // Check send time label
       const sendTimeCheck = result.checklist.find(
-        (item) => item.id === "send_time"
+        (item) => item.id === "send_time",
       );
       expect(sendTimeCheck?.label).toContain("Send on");
 
       // Check recipients label
       const recipientsCheck = result.checklist.find(
-        (item) => item.id === "recipients"
+        (item) => item.id === "recipients",
       );
       expect(recipientsCheck?.label).toContain("Send to");
       expect(recipientsCheck?.label).toContain("1");
@@ -591,7 +591,7 @@ describe("BroadcastReadinessChecker", () => {
 
       const result = await checkBroadcastReadiness(
         freshWorkspace.id,
-        broadcastWithRelations!
+        broadcastWithRelations!,
       );
       const errors = getReadinessErrors(result);
 
@@ -763,7 +763,7 @@ describe("BroadcastReadinessChecker", () => {
       expect(result.linksValidation.invalidCount).toBe(1);
 
       const invalidLink = result.linksValidation.links.find(
-        (l) => l.status === "invalid"
+        (l) => l.status === "invalid",
       );
       expect(invalidLink?.url).toBe("{{invalid_variable}}");
       expect(invalidLink?.reason).toContain("Unknown link variable");
@@ -806,10 +806,12 @@ describe("BroadcastReadinessChecker", () => {
       expect(result.linksValidation.allValid).toBe(false);
 
       const invalidLink = result.linksValidation.links.find(
-        (l) => l.status === "invalid"
+        (l) => l.status === "invalid",
       );
       expect(invalidLink?.url).toBe("not-a-valid-url");
-      expect(invalidLink?.reason).toBe("Url seems to be not responsive. Please check again.");
+      expect(invalidLink?.reason).toBe(
+        "Url seems to be not responsive. Please check again.",
+      );
     });
 
     test("should process URL links", async () => {

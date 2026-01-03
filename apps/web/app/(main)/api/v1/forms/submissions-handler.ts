@@ -8,16 +8,16 @@
  */
 
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { NotFoundError, BadRequestError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { BadRequestError, NotFoundError } from "@/lib/api/errors";
+import { prisma } from "@/lib/db";
+import type { FormSettings } from "@/lib/form-builder/schema";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import {
+  type DoubleOptInConfig,
   handleSignUpSubmission,
   handleSurveySubmission,
-  type DoubleOptInConfig,
 } from "@/lib/forms/submission-handlers";
-import type { FormSettings } from "@/lib/form-builder/schema";
 
 /**
  * POST /api/v1/forms/[formId]/submissions
@@ -33,7 +33,7 @@ import type { FormSettings } from "@/lib/form-builder/schema";
 export async function createFormSubmission(
   workspaceId: string,
   formId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const form = await prisma.form.findFirst({
     where: {
@@ -55,7 +55,7 @@ export async function createFormSubmission(
   if (!publishedForm) {
     throw new BadRequestError(
       "Form is not published. Only published forms can accept submissions.",
-      ErrorCode.FORM_NOT_EDITABLE
+      ErrorCode.FORM_NOT_EDITABLE,
     );
   }
 
@@ -64,7 +64,7 @@ export async function createFormSubmission(
   if (!fieldMapping || Object.keys(fieldMapping).length === 0) {
     throw new BadRequestError(
       "Form has no field mapping. This form may not have been published correctly.",
-      ErrorCode.FORM_NO_FIELDS
+      ErrorCode.FORM_NO_FIELDS,
     );
   }
 
@@ -94,7 +94,7 @@ export async function createFormSubmission(
         userAgent,
         referrerUrl,
       },
-      doubleOptIn
+      doubleOptIn,
     );
   }
 

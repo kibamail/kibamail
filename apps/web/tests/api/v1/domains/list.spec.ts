@@ -5,20 +5,20 @@
  * - GET /api/v1/domains - List sending domains with pagination
  */
 
-import { POST, GET } from "@/app/(main)/api/v1/domains/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET, POST } from "@/app/(main)/api/v1/domains/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
-  post,
+  createTestWorkspace,
   get,
-  apiRequest,
+  post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -103,7 +103,10 @@ describe("GET /api/v1/domains", () => {
 
     // Get second page using cursor
     const afterCursor = firstData.data[0].id;
-    const secondRequest = get(`/domains?limit=1&after=${afterCursor}`, fullAccessApiKey.key);
+    const secondRequest = get(
+      `/domains?limit=1&after=${afterCursor}`,
+      fullAccessApiKey.key,
+    );
     const secondResponse = await GET(secondRequest);
     const secondData = await secondResponse.json();
 
@@ -156,7 +159,9 @@ describe("GET /api/v1/domains", () => {
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
+    );
   });
 
   test("should include all required fields in each domain", async () => {

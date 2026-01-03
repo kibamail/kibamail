@@ -9,8 +9,11 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { listAutomationVersions, createAutomationVersion } from "@/app/(main)/api/v1/automations/handler";
+import {
+  createAutomationVersion,
+  listAutomationVersions,
+} from "@/app/(main)/api/v1/automations/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/automations/[automationId]/versions
@@ -20,14 +23,14 @@ import { listAutomationVersions, createAutomationVersion } from "@/app/(main)/ap
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { automationId } = await params;
     return withApiSession(
       request,
       (apiKey) => listAutomationVersions(apiKey.workspaceId, automationId),
-      ["read:automations"]
+      ["read:automations"],
     );
   });
 }
@@ -40,7 +43,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { automationId } = await params;
@@ -48,7 +51,7 @@ export async function POST(
       request,
       (apiKey, request) =>
         createAutomationVersion(apiKey.workspaceId, automationId, request),
-      ["write:automations"]
+      ["write:automations"],
     );
   });
 }

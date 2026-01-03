@@ -26,7 +26,10 @@ interface ContentBlockRendererProps {
 }
 
 // Render text with marks (bold, italic, etc.)
-function renderTextWithMarks(text: string, marks?: TipTapMark[]): React.ReactNode {
+function renderTextWithMarks(
+  text: string,
+  marks?: TipTapMark[],
+): React.ReactNode {
   if (!marks || marks.length === 0) {
     return text;
   }
@@ -180,14 +183,15 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
         />
       );
 
-      const content = showCaption && title ? (
-        <figure>
-          {img}
-          <figcaption>{title}</figcaption>
-        </figure>
-      ) : (
-        img
-      );
+      const content =
+        showCaption && title ? (
+          <figure>
+            {img}
+            <figcaption>{title}</figcaption>
+          </figure>
+        ) : (
+          img
+        );
 
       return (
         <div key={index} className={alignmentClass}>

@@ -5,19 +5,19 @@
  * - POST /api/v1/segments - Create new segment
  */
 
-import { POST } from "@/app/(main)/api/v1/segments/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/v1/segments/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   post,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -277,14 +277,19 @@ describe("POST /api/v1/segments", () => {
         value: "SUBSCRIBED",
       },
     };
-    const request = apiRequest("/segments").method("POST").body(segmentData).build();
+    const request = apiRequest("/segments")
+      .method("POST")
+      .body(segmentData)
+      .build();
 
     const response = await POST(request);
     const responseData = await response.json();
 
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.MISSING_AUTHORIZATION_HEADER);
+    expect(responseData.error.code).toBe(
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
+    );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
   });

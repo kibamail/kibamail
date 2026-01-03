@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibamail-tracking
+  namespace: kibamail-tracking
+  labels:
+    app.kubernetes.io/name: kibamail-tracking
+    app.kubernetes.io/component: tracking
+    app.kubernetes.io/part-of: kibamail
+  annotations:
+    secrets.infisical.com/auto-reload: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kibamail-tracking
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kibamail-tracking
+        app.kubernetes.io/component: tracking
+        app.kubernetes.io/part-of: kibamail
+        service.name: kibamail-tracking
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/name: kibamail-tracking
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: tracking
+          image: ghcr.io/kibamail/kibamail-tracking:prod
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 3100
+              protocol: TCP
+          env:
+            # Port configuration
+            - name: PORT
+              value: "3100"
+            # App secret key (must match apps/web)
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: APP_KEY
+            # Redis/Valkey configuration
+            - name: REDIS_HOST
+              value: "kibamail-valkey.kibamail-valkey.svc.cluster.local"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-valkey
+                  key: password
+            - name: REDIS_DATABASE
+              value: "0"
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3

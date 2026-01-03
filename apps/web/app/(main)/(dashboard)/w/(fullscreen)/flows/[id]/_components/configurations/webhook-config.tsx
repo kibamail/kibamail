@@ -8,8 +8,7 @@ export function WebhookConfig() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
 
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
-  const currentUrl =
-    (selectedNode?.data as { url?: string })?.url ?? "";
+  const currentUrl = (selectedNode?.data as { url?: string })?.url ?? "";
 
   const onUrlChange = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,12 +20,12 @@ export function WebhookConfig() {
               ...node,
               data: { ...node.data, url: event.target.value },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   return (

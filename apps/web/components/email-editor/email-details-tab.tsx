@@ -4,22 +4,22 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 import {
-  SectionDivider,
   EmailSubjectSection,
-  SenderDetailsSection,
-  TrackingSection,
   RecipientsSection,
+  SectionDivider,
+  SenderDetailsSection,
   SendTimeSection,
+  TrackingSection,
 } from "./details-sections";
 import type {
-  EmailEditorMode,
+  BroadcastDetails,
+  Domain,
   EditorDetails,
   EmailDetails,
-  Domain,
-  TransformedSenderIdentity,
-  SenderSelectState,
+  EmailEditorMode,
   SenderSelectActions,
-  BroadcastDetails,
+  SenderSelectState,
+  TransformedSenderIdentity,
 } from "./types";
 
 dayjs.extend(relativeTime);
@@ -53,7 +53,9 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
   const broadcastDetails = details as BroadcastDetails;
 
   const onBaseChange = onChange as (updates: Partial<EmailDetails>) => void;
-  const onBroadcastChange = onChange as (updates: Partial<BroadcastDetails>) => void;
+  const onBroadcastChange = onChange as (
+    updates: Partial<BroadcastDetails>,
+  ) => void;
 
   return (
     <div className="h-full overflow-auto bg-kb-surface-primary">

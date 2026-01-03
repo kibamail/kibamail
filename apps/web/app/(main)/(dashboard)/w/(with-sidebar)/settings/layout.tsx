@@ -1,5 +1,5 @@
-import type { PropsWithChildren } from "react";
 import { headers } from "next/headers";
+import type { PropsWithChildren } from "react";
 import { getSession } from "@/lib/auth/get-session";
 import { outpost } from "@/webhooks/client/client";
 import type { WebhookDestinationType } from "@/webhooks/client/types";

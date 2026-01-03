@@ -18,6 +18,9 @@ const connection = {
 // Tracking events queue
 const trackingQueue = new Queue("tracking", { connection });
 
+// Forms queue (shared with apps/web worker)
+const formsQueue = new Queue("forms", { connection });
+
 export interface OpenEvent {
   emailSendId: string;
   timestamp: number;
@@ -31,6 +34,11 @@ export interface ClickEvent {
   timestamp: number;
   userAgent?: string;
   ip?: string;
+}
+
+export interface ConfirmationEvent {
+  formId: string;
+  confirmationToken: string;
 }
 
 /**
@@ -54,8 +62,22 @@ export async function recordClick(event: ClickEvent): Promise<void> {
 }
 
 /**
- * Close the queue connection (for graceful shutdown)
+ * Dispatch a double opt-in confirmation job
+ *
+ * This pushes to the forms queue which is processed by apps/web worker.
+ */
+export async function dispatchConfirmation(
+  event: ConfirmationEvent
+): Promise<void> {
+  await formsQueue.add("confirm-double-opt-in", event, {
+    removeOnComplete: 1000,
+    removeOnFail: 5000,
+  });
+}
+
+/**
+ * Close all queue connections (for graceful shutdown)
  */
 export async function closeQueue(): Promise<void> {
-  await trackingQueue.close();
+  await Promise.all([trackingQueue.close(), formsQueue.close()]);
 }

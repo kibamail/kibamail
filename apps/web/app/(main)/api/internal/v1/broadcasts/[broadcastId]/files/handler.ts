@@ -76,7 +76,11 @@ export async function uploadBroadcastFiles(
       continue;
     }
 
-    if (!ALLOWED_FILE_TYPES.includes(file.type as (typeof ALLOWED_FILE_TYPES)[number])) {
+    if (
+      !ALLOWED_FILE_TYPES.includes(
+        file.type as (typeof ALLOWED_FILE_TYPES)[number],
+      )
+    ) {
       throw new BadRequestError(
         `Invalid file type "${file.type}" for file "${file.name}". Allowed types: ${ALLOWED_FILE_TYPES.join(", ")}`,
       );

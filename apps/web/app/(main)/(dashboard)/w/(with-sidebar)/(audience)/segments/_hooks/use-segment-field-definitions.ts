@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { FilterFieldDefinition } from "@kibamail/owly/filter-builder";
+import { useQuery } from "@tanstack/react-query";
 import { internalApi } from "@/lib/api/client";
 import { BUILT_IN_CONTACT_FIELDS } from "@/lib/segments/conditions-to-prisma";
 
@@ -202,7 +202,7 @@ export function useSegmentFieldDefinitions() {
         operators: baseOperators,
         defaultOperator: baseOperators[0]?.id || "equals",
       };
-    }
+    },
   );
 
   const topicFields: FilterFieldDefinition[] = (topics || []).map((topic) => ({

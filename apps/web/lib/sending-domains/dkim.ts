@@ -26,7 +26,7 @@ function cleanupKey(key: string): string {
 /**
  * Encrypt a string using AES-256-GCM
  */
-export function encrypt(plaintext: string, appKey: string): string {
+function encrypt(plaintext: string, appKey: string): string {
   const key = Buffer.from(appKey.slice(0, 32).padEnd(32, "0"));
   const iv = randomBytes(16);
   const cipher = createCipheriv("aes-256-gcm", key, iv);

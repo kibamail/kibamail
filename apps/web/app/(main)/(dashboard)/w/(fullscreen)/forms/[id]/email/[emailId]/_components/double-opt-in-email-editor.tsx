@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useImperativeHandle, forwardRef } from "react";
-import type { JSONContent } from "@tiptap/react";
 import {
+  type EditorStylesConfig,
   EmailEditor,
   type EmailEditorRef,
-  type EditorStylesConfig,
 } from "@repo/broadcast-editor";
+import type { JSONContent } from "@tiptap/react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import "@repo/broadcast-editor/styles";
 
 export interface DoubleOptInEmailEditorRef {
@@ -123,11 +123,11 @@ export const DoubleOptInEmailEditor = forwardRef<
   DoubleOptInEmailEditorProps
 >(function DoubleOptInEmailEditor(
   { emailId, stylesOpen, onStylesOpenChange, initialContent, initialStyles },
-  ref
+  ref,
 ) {
   const emailEditorRef = useRef<EmailEditorRef>(null);
   const stylesRef = useRef<EditorStylesConfig>(
-    (initialStyles as EditorStylesConfig) ?? defaultStyles
+    (initialStyles as EditorStylesConfig) ?? defaultStyles,
   );
 
   function onStylesChange(styles: EditorStylesConfig) {
@@ -145,7 +145,7 @@ export const DoubleOptInEmailEditor = forwardRef<
       },
       getStyles: () => stylesRef.current,
     }),
-    []
+    [],
   );
 
   function onChange(_content: JSONContent) {}

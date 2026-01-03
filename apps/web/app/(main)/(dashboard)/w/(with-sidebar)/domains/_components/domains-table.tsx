@@ -10,12 +10,10 @@ import { useToast } from "@kibamail/owly/toast";
 import { Check, MoreHoriz, Refresh, Trash, Xmark } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-
+import type { DomainListItem } from "@/app/(main)/(dashboard)/w/(with-sidebar)/domains/page";
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
-
-import type { DomainListItem } from "@/app/(main)/(dashboard)/w/(with-sidebar)/domains/page";
 
 function VerificationBadge({ verified }: { verified: boolean }) {
   return (
@@ -43,8 +41,9 @@ function DomainActionsDropdown({ domain }: { domain: DomainListItem }) {
           data.verification.dkim.configured,
           data.verification.returnPath.configured,
           data.verification.tracking.configured,
+          data.verification.dmarc.configured,
         ].filter(Boolean).length;
-        toast(`${verified}/3 DNS records verified`);
+        toast(`${verified}/4 DNS records verified`);
       }
       router.refresh();
     },
@@ -127,7 +126,9 @@ function OverallStatus({ domain }: { domain: DomainListItem }) {
   const dkimVerified = domain.dkimVerifiedAt !== null;
   const returnPathVerified = domain.returnPathDomainVerifiedAt !== null;
   const trackingVerified = domain.trackingDomainVerifiedAt !== null;
-  const allVerified = dkimVerified && returnPathVerified && trackingVerified;
+  const dmarcVerified = domain.dmarcVerifiedAt !== null;
+  const allVerified =
+    dkimVerified && returnPathVerified && trackingVerified && dmarcVerified;
 
   if (allVerified) {
     return (
@@ -141,11 +142,12 @@ function OverallStatus({ domain }: { domain: DomainListItem }) {
     dkimVerified,
     returnPathVerified,
     trackingVerified,
+    dmarcVerified,
   ].filter(Boolean).length;
 
   return (
     <Badge variant="warning" size="sm">
-      {verifiedCount}/3 verified
+      {verifiedCount}/4 verified
     </Badge>
   );
 }
@@ -172,6 +174,7 @@ export function DomainsTable({ domains }: { domains: DomainListItem[] }) {
             <Table.Head className="w-[120px]">DKIM</Table.Head>
             <Table.Head className="w-[120px]">Return Path</Table.Head>
             <Table.Head className="w-[120px]">Tracking</Table.Head>
+            <Table.Head className="w-[120px]">DMARC</Table.Head>
             <Table.Head className="w-[80px]">Actions</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -201,6 +204,9 @@ export function DomainsTable({ domains }: { domains: DomainListItem[] }) {
                 <VerificationBadge
                   verified={domain.trackingDomainVerifiedAt !== null}
                 />
+              </Table.Cell>
+              <Table.Cell>
+                <VerificationBadge verified={domain.dmarcVerifiedAt !== null} />
               </Table.Cell>
               <Table.Cell>
                 <DomainActionsDropdown domain={domain} />

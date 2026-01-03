@@ -7,14 +7,14 @@
  * - DELETE /api/v1/api-keys/[keyId] - Delete API key
  */
 
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { randomUUID } from "node:crypto";
 import { NextRequest } from "next/server";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { DELETE } from "@/app/(main)/api/v1/api-keys/[keyId]/route";
 import { GET, POST } from "@/app/(main)/api/v1/api-keys/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
 import { prisma } from "@/lib/db";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 // Test data
 let testWorkspaceId: string;
@@ -30,7 +30,7 @@ function createRequest(
     method: string;
     headers?: Record<string, string>;
     body?: unknown;
-  }
+  },
 ): NextRequest {
   const headers = new Headers(options.headers || {});
 
@@ -121,7 +121,7 @@ describe("POST /api/v1/api-keys", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
@@ -276,7 +276,7 @@ describe("GET /api/v1/api-keys", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await GET(request);
@@ -301,7 +301,7 @@ describe("GET /api/v1/api-keys", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
@@ -333,7 +333,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -358,7 +358,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -382,7 +382,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -416,7 +416,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
         headers: {
           Authorization: `Bearer ${testApiKey}`,
         },
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -438,7 +438,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
       `http://localhost:3000/api/v1/api-keys/${keyToDelete}`,
       {
         method: "DELETE",
-      }
+      },
     );
 
     const response = await DELETE(request, {
@@ -449,7 +449,7 @@ describe("DELETE /api/v1/api-keys/[keyId]", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();

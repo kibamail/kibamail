@@ -13,17 +13,16 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { BadRequestError, NotFoundError } from "@/lib/api/errors";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { validateRequestBody } from "@/lib/api/validation";
-import { prisma } from "@/lib/db";
-import { queue } from "@/lib/queue";
 import {
   checkBroadcastReadiness,
   getReadinessErrors,
 } from "@/lib/broadcasts/readiness";
+import { prisma } from "@/lib/db";
+import { queue } from "@/lib/queue";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;
@@ -59,7 +58,9 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       const { emails } = await validateRequestBody(sendTestSchema, request);
 
       // Trim and deduplicate emails
-      const testEmails = [...new Set(emails.map((e) => e.trim().toLowerCase()))];
+      const testEmails = [
+        ...new Set(emails.map((e) => e.trim().toLowerCase())),
+      ];
 
       // Fetch broadcast with required relations
       const broadcast = await prisma.broadcast.findFirst({
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (!broadcast) {
         throw new NotFoundError(
           "Broadcast not found",
-          ErrorCode.BROADCAST_NOT_FOUND
+          ErrorCode.BROADCAST_NOT_FOUND,
         );
       }
 
@@ -92,14 +93,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         {
           skipRecipients: true,
           skipSendTime: true,
-        }
+        },
       );
 
       if (!readinessResult.ready) {
         const errors = getReadinessErrors(readinessResult);
         throw new BadRequestError(
           errors.length > 0 ? errors[0] : "Broadcast is not ready to send",
-          ErrorCode.MISSING_REQUIRED_FIELD
+          ErrorCode.MISSING_REQUIRED_FIELD,
         );
       }
 
@@ -115,8 +116,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
           message: `Test email${testEmails.length > 1 ? "s" : ""} queued for sending`,
           emailCount: testEmails.length,
         },
-        { status: 200 }
+        { status: 200 },
       );
-    })
+    }),
   );
 }

@@ -1,5 +1,5 @@
-import { prisma } from "@/lib/db";
 import { processContactImport } from "@/lib/contact-imports";
+import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
 
@@ -25,7 +25,7 @@ export const processImport: JobProcessor<
   if (contactImport.status !== "PENDING") {
     logger.warn(
       { jobId, contactImportId, status: contactImport.status },
-      "Contact import is not in PENDING status, skipping"
+      "Contact import is not in PENDING status, skipping",
     );
     return;
   }
@@ -52,7 +52,7 @@ export const processImport: JobProcessor<
           });
           logger.debug(
             { jobId, contactImportId, processed, total },
-            "Progress update"
+            "Progress update",
           );
         }
       },
@@ -83,7 +83,7 @@ export const processImport: JobProcessor<
           skippedCount: result.skippedCount,
           failedCount: result.failedCount,
         },
-        "Contact import processing completed"
+        "Contact import processing completed",
       );
     } else {
       await prisma.contactImport.update({
@@ -108,7 +108,7 @@ export const processImport: JobProcessor<
           errorMessage: result.errorMessage,
           failedCount: result.failedCount,
         },
-        "Contact import processing failed"
+        "Contact import processing failed",
       );
 
       throw new Error(result.errorMessage || "Import processing failed");
@@ -128,7 +128,7 @@ export const processImport: JobProcessor<
 
     logger.error(
       { jobId, contactImportId, error: errorMessage },
-      "Contact import processing failed with unexpected error"
+      "Contact import processing failed with unexpected error",
     );
 
     throw error;

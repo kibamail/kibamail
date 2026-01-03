@@ -65,7 +65,7 @@ export function hashApiKey(key: string): string {
  * validateApiKeyFormat("pk_abc123") // false (wrong prefix)
  * ```
  */
-export function validateApiKeyFormat(key: string): boolean {
+function validateApiKeyFormat(key: string): boolean {
   // Check if key starts with the correct prefix
   if (!key.startsWith(`${API_KEY_CONFIG.PREFIX}_`)) {
     return false;
@@ -99,7 +99,7 @@ export function validateApiKeyFormat(key: string): boolean {
  * maskApiKey("kb_abc123def456ghi789") // "kb_abc123de..."
  * ```
  */
-export function maskApiKey(key: string, visibleChars: number = 8): string {
+function maskApiKey(key: string, visibleChars: number = 8): string {
   const prefix = `${API_KEY_CONFIG.PREFIX}_`;
   if (!key.startsWith(prefix)) {
     return key; // Return as-is if format is unexpected

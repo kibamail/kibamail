@@ -4,9 +4,9 @@
  * Helper functions for creating and managing API keys in tests.
  */
 
+import { faker } from "@faker-js/faker";
 import { generateApiKey, hashApiKey } from "@/lib/api-keys";
 import { prisma } from "@/lib/db";
-import { faker } from "@faker-js/faker";
 
 /**
  * API Key creation options
@@ -46,7 +46,7 @@ export interface CreatedApiKey {
  * ```
  */
 export async function createTestApiKey(
-  options: CreateApiKeyOptions
+  options: CreateApiKeyOptions,
 ): Promise<CreatedApiKey> {
   const { key, preview } = generateApiKey();
   const keyHash = hashApiKey(key);
@@ -77,7 +77,7 @@ export async function createTestApiKey(
  * @returns Created API key with all scopes
  */
 export async function createFullAccessApiKey(
-  workspaceId: string
+  workspaceId: string,
 ): Promise<CreatedApiKey> {
   return createTestApiKey({
     workspaceId,
@@ -137,7 +137,7 @@ export async function createFullAccessApiKey(
  * @returns Created API key with read-only scopes
  */
 export async function createReadOnlyApiKey(
-  workspaceId: string
+  workspaceId: string,
 ): Promise<CreatedApiKey> {
   return createTestApiKey({
     workspaceId,
@@ -158,7 +158,7 @@ export async function createReadOnlyApiKey(
  *
  * @param workspaceId - Workspace ID to clean up
  */
-export async function cleanupApiKeys(workspaceId: string): Promise<void> {
+async function cleanupApiKeys(workspaceId: string): Promise<void> {
   await prisma.apiKey.deleteMany({
     where: { workspaceId },
   });
@@ -169,7 +169,7 @@ export async function cleanupApiKeys(workspaceId: string): Promise<void> {
  *
  * @param apiKeyId - API key ID to delete
  */
-export async function deleteApiKey(apiKeyId: string): Promise<void> {
+async function deleteApiKey(apiKeyId: string): Promise<void> {
   await prisma.apiKey.delete({
     where: { id: apiKeyId },
   });

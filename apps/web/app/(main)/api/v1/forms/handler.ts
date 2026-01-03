@@ -6,27 +6,30 @@
  */
 
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { validateRequestBody } from "@/lib/api/validation";
-import { responseCreated, responseOk } from "@/lib/api/responses";
+import { ErrorCode } from "@/lib/api/error-codes";
 import {
-  NotFoundError,
   BadRequestError,
   ConflictError,
+  NotFoundError,
 } from "@/lib/api/errors";
-import { ErrorCode } from "@/lib/api/error-codes";
-import { createFormSchema, updateFormSchema } from "./schema";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
+import { responseCreated, responseOk } from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
+import { prisma } from "@/lib/db";
+import {
+  createEmptyForm,
+  DEFAULT_FORM_SETTINGS,
+} from "@/lib/form-builder/schema";
 import {
   extractFieldsFromSchema,
   extractFieldsWithContactProperty,
-  generateFieldMapping,
   type FormFieldMapping,
+  generateFieldMapping,
 } from "@/lib/forms/field-mapping";
-import { createEmptyForm, DEFAULT_FORM_SETTINGS } from "@/lib/form-builder/schema";
+import { createFormSchema, updateFormSchema } from "./schema";
 
 /**
  * POST /api/v1/forms
@@ -63,7 +66,7 @@ export async function createForm(workspaceId: string, request: NextRequest) {
     {
       id: form.id,
     },
-    "form"
+    "form",
   );
 }
 
@@ -123,7 +126,7 @@ export async function listForms(workspaceId: string, request: NextRequest) {
   }));
 
   return responseOk(
-    createCursorPaginatedResponse(formattedForms, hasMore, "form_list")
+    createCursorPaginatedResponse(formattedForms, hasMore, "form_list"),
   );
 }
 
@@ -161,7 +164,7 @@ export async function getForm(workspaceId: string, formId: string) {
       createdAt: form.createdAt.toISOString(),
       updatedAt: form.updatedAt.toISOString(),
     },
-    "form"
+    "form",
   );
 }
 
@@ -185,7 +188,7 @@ export async function listFormVersions(workspaceId: string, formId: string) {
   if (!rootForm) {
     throw new NotFoundError(
       "Form not found or is not a root form",
-      ErrorCode.FORM_NOT_FOUND
+      ErrorCode.FORM_NOT_FOUND,
     );
   }
 
@@ -210,12 +213,10 @@ export async function listFormVersions(workspaceId: string, formId: string) {
     version: version.version,
   }));
 
-  return responseOk(
-    {
-      object: "form_version_list",
-      data: formattedVersions,
-    }
-  );
+  return responseOk({
+    object: "form_version_list",
+    data: formattedVersions,
+  });
 }
 
 /**
@@ -229,7 +230,7 @@ export async function listFormVersions(workspaceId: string, formId: string) {
 export async function updateForm(
   workspaceId: string,
   formId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   // Check if form exists and is in DRAFT status
   const existingForm = await prisma.form.findFirst({
@@ -246,7 +247,7 @@ export async function updateForm(
   if (existingForm.status !== "DRAFT") {
     throw new BadRequestError(
       "Only forms in DRAFT status can be edited. Published or archived forms cannot be modified.",
-      ErrorCode.FORM_NOT_EDITABLE
+      ErrorCode.FORM_NOT_EDITABLE,
     );
   }
 
@@ -268,7 +269,7 @@ export async function updateForm(
     {
       id: updatedForm.id,
     },
-    "form"
+    "form",
   );
 }
 
@@ -301,7 +302,7 @@ export async function deleteForm(workspaceId: string, formId: string) {
   if (form.status !== "DRAFT") {
     throw new BadRequestError(
       "Only forms in DRAFT status can be deleted. Published or archived forms cannot be deleted.",
-      ErrorCode.FORM_NOT_DELETABLE
+      ErrorCode.FORM_NOT_DELETABLE,
     );
   }
 
@@ -340,7 +341,7 @@ export async function deleteForm(workspaceId: string, formId: string) {
     {
       id: deletedForm.id,
     },
-    "form"
+    "form",
   );
 }
 
@@ -356,7 +357,7 @@ export async function deleteForm(workspaceId: string, formId: string) {
 export async function createFormVersion(
   workspaceId: string,
   formId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   // Find the source form
   const sourceForm = await prisma.form.findFirst({
@@ -389,7 +390,7 @@ export async function createFormVersion(
   if (existingDraft) {
     throw new ConflictError(
       "A DRAFT version already exists for this form. Please publish or delete it before creating a new version.",
-      ErrorCode.FORM_HAS_DRAFT_VERSION
+      ErrorCode.FORM_HAS_DRAFT_VERSION,
     );
   }
 
@@ -427,7 +428,7 @@ export async function createFormVersion(
     {
       id: newVersion.id,
     },
-    "form"
+    "form",
   );
 }
 
@@ -457,7 +458,7 @@ export async function publishForm(workspaceId: string, formId: string) {
   if (form.status === "PUBLISHED") {
     throw new BadRequestError(
       "Form is already published",
-      ErrorCode.FORM_ALREADY_PUBLISHED
+      ErrorCode.FORM_ALREADY_PUBLISHED,
     );
   }
 
@@ -466,7 +467,7 @@ export async function publishForm(workspaceId: string, formId: string) {
   if (fields.length === 0) {
     throw new BadRequestError(
       "Cannot publish a form with no fields. Add at least one field before publishing.",
-      ErrorCode.FORM_NO_FIELDS
+      ErrorCode.FORM_NO_FIELDS,
     );
   }
 
@@ -474,23 +475,27 @@ export async function publishForm(workspaceId: string, formId: string) {
   const fieldsWithMappings = extractFieldsWithContactProperty(form.fields);
 
   // Check for unmapped fields (all input fields must have a contact property mapping)
-  const unmappedFields = fieldsWithMappings.filter((field) => !field.contactProperty);
+  const unmappedFields = fieldsWithMappings.filter(
+    (field) => !field.contactProperty,
+  );
   if (unmappedFields.length > 0) {
-    const unmappedNames = unmappedFields.map((f) => f.label || f.name).join(", ");
+    const unmappedNames = unmappedFields
+      .map((f) => f.label || f.name)
+      .join(", ");
     throw new BadRequestError(
       `Cannot publish form with unmapped fields. The following fields need to be mapped to a contact property: ${unmappedNames}`,
-      ErrorCode.FORM_UNMAPPED_FIELDS
+      ErrorCode.FORM_UNMAPPED_FIELDS,
     );
   }
 
   // Check for required email field - must have a field mapped to the "email" contact property
   const emailMappedField = fieldsWithMappings.find(
-    (field) => field.contactProperty?.id === "email"
+    (field) => field.contactProperty?.id === "email",
   );
   if (!emailMappedField) {
     throw new BadRequestError(
       "Form must have a field mapped to the 'Email address' contact property to be published.",
-      ErrorCode.FORM_MISSING_EMAIL_FIELD
+      ErrorCode.FORM_MISSING_EMAIL_FIELD,
     );
   }
 
@@ -517,7 +522,7 @@ export async function publishForm(workspaceId: string, formId: string) {
       {
         id: updatedForm.id,
       },
-      "form"
+      "form",
     );
   }
 
@@ -603,6 +608,6 @@ export async function publishForm(workspaceId: string, formId: string) {
     {
       id: formId,
     },
-    "form"
+    "form",
   );
 }

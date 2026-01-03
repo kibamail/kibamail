@@ -4,11 +4,11 @@
  * Business logic for PATCH /api/internal/v1/workspaces/:id endpoint
  */
 
+import { logto } from "@/auth/logto";
 import { BadRequestError } from "@/lib/api/errors";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
 import { invalidateOrganizationCache } from "@/lib/auth/user-cache";
-import { logto } from "@/auth/logto";
 import { updateWorkspaceSchema } from "./schema";
 
 /**

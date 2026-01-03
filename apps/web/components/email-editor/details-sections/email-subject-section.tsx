@@ -1,7 +1,7 @@
 "use client";
 
-import { useId } from "react";
 import * as TextField from "@kibamail/owly/text-field";
+import { useId } from "react";
 import { SectionHeader } from "@/components/email-editor/details-sections/shared";
 import type { EmailDetails } from "@/components/email-editor/types";
 

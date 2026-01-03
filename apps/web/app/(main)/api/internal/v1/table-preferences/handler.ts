@@ -53,7 +53,7 @@ export async function getTablePreferences(userId: string, tableName: string) {
  */
 export async function updateTablePreferences(
   userId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateTablePreferencesSchema, request);
 

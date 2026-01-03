@@ -1,6 +1,6 @@
-import { prisma } from "@/lib/db";
-import { getSession } from "@/lib/auth/get-session";
 import { BroadcastEditorAdapter } from "@/components/email-editor";
+import { getSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
 
 async function getSenderIdentities(workspaceId: string) {
   const identities = await prisma.senderIdentity.findMany({

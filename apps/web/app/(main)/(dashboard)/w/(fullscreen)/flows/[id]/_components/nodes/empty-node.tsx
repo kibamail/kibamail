@@ -1,6 +1,6 @@
 "use client";
 
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { Plus } from "iconoir-react";
 
 export function EmptyNode({ selected = false }: NodeProps) {
@@ -11,7 +11,9 @@ export function EmptyNode({ selected = false }: NodeProps) {
   return (
     <div
       className={`w-[300px] h-[92px] rounded-xl border bg-kb-bg-primary bg-kb-background-primary flex items-center justify-center ${
-        selected ? "border-kb-border-focus" : "border-kb-border-tertiary border-dashed"
+        selected
+          ? "border-kb-border-focus"
+          : "border-kb-border-tertiary border-dashed"
       }`}
     >
       <Handle

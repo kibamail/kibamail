@@ -1,13 +1,14 @@
 // Initialize OpenTelemetry instrumentation first (before any other imports)
-import { shutdownOtel } from "./instrumentation";
 
 import express from "express";
 import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
-
 import { sendBroadcast } from "./broadcasts/send-broadcast";
 import { sendBroadcastBatch } from "./broadcasts/send-broadcast-batch";
 import { sendTestBroadcast } from "./broadcasts/send-test-broadcast";
 import { processImport } from "./contact-imports/process-import";
+import { confirmDoubleOptIn } from "./forms/confirm-double-opt-in";
+import { sendDoubleOptIn } from "./forms/send-double-opt-in";
+import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkVerification } from "./sending-domains/check-verification";
 
@@ -48,6 +49,14 @@ configureWorker("broadcasts", {
   concurrency: 5,
 });
 
+configureWorker("forms", {
+  processors: {
+    "send-double-opt-in": sendDoubleOptIn,
+    "confirm-double-opt-in": confirmDoubleOptIn,
+  },
+  concurrency: 5,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -57,6 +66,7 @@ const queues = [
   "contact-imports",
   "sending-domains",
   "broadcasts",
+  "forms",
 ] as const;
 
 for (const queueName of queues) {
@@ -67,17 +77,26 @@ logger.info(
   {
     queues: queues.map((q) => q),
     workers: [
-      { queue: "segments", jobs: ["compute-contacts-count"], concurrency: 100 },
-      { queue: "contact-imports", jobs: ["process-import"], concurrency: 25 },
+      { queue: "segments", jobs: ["compute-contacts-count"], concurrency: 3 },
+      { queue: "contact-imports", jobs: ["process-import"], concurrency: 1 },
       {
         queue: "sending-domains",
         jobs: ["check-verification"],
-        concurrency: 100,
+        concurrency: 3,
       },
-      { queue: "broadcasts", jobs: ["send-broadcast"], concurrency: 50 },
+      {
+        queue: "broadcasts",
+        jobs: ["send-broadcast", "send-broadcast-batch", "send-test-broadcast"],
+        concurrency: 5,
+      },
+      {
+        queue: "forms",
+        jobs: ["send-double-opt-in", "confirm-double-opt-in"],
+        concurrency: 5,
+      },
     ],
   },
-  "All workers started"
+  "All workers started",
 );
 
 // ============================================================
@@ -89,7 +108,7 @@ const app = express();
 app.get("/metrics", async (_req, res) => {
   try {
     const metricsPromises = queues.map((queueName) =>
-      queue(queueName).getQueue().getQueue().exportPrometheusMetrics()
+      queue(queueName).getQueue().getQueue().exportPrometheusMetrics(),
     );
 
     const allMetrics = await Promise.all(metricsPromises);
@@ -132,7 +151,7 @@ process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("uncaughtException", (error) => {
   logger.error(
     { error: error.message, stack: error.stack },
-    "Uncaught exception"
+    "Uncaught exception",
   );
   shutdown("uncaughtException");
 });

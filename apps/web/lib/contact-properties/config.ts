@@ -8,7 +8,7 @@
 /**
  * Maximum number of property slots per type
  */
-export const PROPERTY_SLOT_LIMITS = {
+const PROPERTY_SLOT_LIMITS = {
   FLOAT: 35, // Used for NUMBER and DATE types
   STRING: 50,
 } as const;
@@ -17,7 +17,7 @@ export const PROPERTY_SLOT_LIMITS = {
  * Number of indexed property slots per type
  * These are the first N slots that have database indexes for faster queries
  */
-export const INDEXED_PROPERTY_SLOTS = {
+const INDEXED_PROPERTY_SLOTS = {
   FLOAT: 10,
   STRING: 10,
 } as const;
@@ -25,7 +25,7 @@ export const INDEXED_PROPERTY_SLOTS = {
 /**
  * Property slot prefixes used in database
  */
-export const PROPERTY_SLOT_PREFIXES = {
+const PROPERTY_SLOT_PREFIXES = {
   FLOAT: "propertyFloat",
   STRING: "propertyString",
 } as const;

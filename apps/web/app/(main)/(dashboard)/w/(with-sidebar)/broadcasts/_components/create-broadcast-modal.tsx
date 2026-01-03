@@ -8,15 +8,15 @@ import type { SendingDomain } from "@prisma/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
 import { useForm } from "react-hook-form";
+import {
+  type CreatedDomain,
+  getEmailFromSenderSelect,
+  SenderSelect,
+  type TransformedSenderIdentity,
+} from "@/components/sender-select";
 import { useMutation } from "@/hooks/use-mutation";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
-import {
-  SenderSelect,
-  getEmailFromSenderSelect,
-  type TransformedSenderIdentity,
-  type CreatedDomain,
-} from "@/components/sender-select";
 
 interface BroadcastFormData {
   name: string;

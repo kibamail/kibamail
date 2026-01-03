@@ -141,7 +141,7 @@ export interface RBACConfig {
  * permissions as your application grows (e.g., project management,
  * analytics, API keys, etc.).
  */
-export const PERMISSIONS: PermissionDefinition[] = [
+const PERMISSIONS: PermissionDefinition[] = [
   // ============================================================================
   // WORKSPACE MANAGEMENT
   // ============================================================================
@@ -258,7 +258,8 @@ export const PERMISSIONS: PermissionDefinition[] = [
   },
   {
     name: "manage:suppression-list",
-    description: "Full suppression list management (add, update, remove entries)",
+    description:
+      "Full suppression list management (add, update, remove entries)",
   },
 
   // ============================================================================
@@ -270,7 +271,8 @@ export const PERMISSIONS: PermissionDefinition[] = [
   },
   {
     name: "manage:forms",
-    description: "Full form management (create, update, delete forms and versions)",
+    description:
+      "Full form management (create, update, delete forms and versions)",
   },
 
   // ============================================================================
@@ -442,7 +444,7 @@ export const RBAC_CONFIG: RBACConfig = {
  * When a user accepts an invitation without a specific role assignment,
  * they are assigned this default role.
  */
-export const DEFAULT_MEMBER_ROLE = "member";
+const DEFAULT_MEMBER_ROLE = "member";
 
 /**
  * Helper: Get owner role name
@@ -456,7 +458,7 @@ export const OWNER_ROLE = "owner";
  *
  * Useful for validation and autocomplete.
  */
-export const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
+const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
 
 /**
  * Helper: Get all role names
@@ -477,7 +479,7 @@ export const ROLE_NAMES = ROLES.map((r) => r.name);
  * }
  * ```
  */
-export type PermissionName = (typeof PERMISSION_NAMES)[number];
+type PermissionName = (typeof PERMISSION_NAMES)[number];
 
 /**
  * Type: Union of all available permissions
@@ -537,4 +539,4 @@ export type Permission =
  * }
  * ```
  */
-export type RoleName = (typeof ROLE_NAMES)[number];
+type RoleName = (typeof ROLE_NAMES)[number];

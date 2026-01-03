@@ -11,8 +11,11 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  createContactProperty,
+  listContactProperties,
+} from "@/app/(main)/api/v1/contact-properties/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { createContactProperty, listContactProperties } from "@/app/(main)/api/v1/contact-properties/handler";
 
 /**
  * POST /api/internal/v1/contact-properties
@@ -24,15 +27,15 @@ import { createContactProperty, listContactProperties } from "@/app/(main)/api/v
 export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
     withSession(
-      request, 
+      request,
       (session, request) => {
         if (!session.currentOrganization) {
           throw new Error("No active workspace found");
         }
         return createContactProperty(session.currentOrganization.id, request);
       },
-      ["manage:contacts"]
-    )
+      ["manage:contacts"],
+    ),
   );
 }
 
@@ -53,7 +56,7 @@ export async function GET(request: NextRequest) {
         }
         return listContactProperties(session.currentOrganization.id, request);
       },
-      ["read:contacts"]
-    )
+      ["read:contacts"],
+    ),
   );
 }

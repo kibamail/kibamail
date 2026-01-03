@@ -1,80 +1,75 @@
 /**
- * Send Double Opt-In Job
+ * Send Double Opt-In Email Job
  *
- * Sends a double opt-in confirmation email to a contact.
- * This job is queued when a form submission creates/updates
- * a contact with double opt-in enabled.
+ * Sends a confirmation email to a contact who signed up via a form with
+ * double opt-in enabled.
  *
- * The job:
- * 1. Fetches the contact, form, and email template
- * 2. Builds the confirmation URL using the contact's token
+ * For each job:
+ * 1. Validates the contact is still UNCONFIRMED
+ * 2. Fetches the email template configured for the form
  * 3. Renders the email with personalization and confirmation URL
- * 4. Applies tracking if enabled
- * 5. Injects the email into the MTA
+ * 4. Uploads content to S3
+ * 5. Publishes email message to NATS for MTA injection
  */
 
+import {
+  type BroadcastDocument,
+  renderBroadcastToHtml,
+} from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
+import { generateMessageIdForDomain } from "@/lib/email/message-id";
+import { type EmailMessage, getNatsOptions, publishEmail } from "@/lib/nats";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
-import {
-  renderBroadcastToHtml,
-  type BroadcastDocument,
-  type BroadcastStyles,
-} from "@/lib/broadcast-renderer";
-import { applyTracking } from "@/lib/email/tracking";
-import { generateMessageIdForDomain } from "@/lib/email/message-id";
+import { uploadPrivateFile } from "@/lib/storage/private-storage";
 
 const logger = queueLogger.child({ job: "send-double-opt-in" });
 
 /**
- * Build personalization variables for double opt-in email
+ * Build the confirmation URL for a contact
+ *
+ * Uses the tracking domain pattern: https://{trackingDomain}/confirm/{formId}/{token}
  */
-function buildDoubleOptInVariables(
+function buildConfirmationUrl(
+  trackingDomain: string,
+  formId: string,
+  confirmationToken: string,
+): string {
+  return `https://${trackingDomain}/confirm/${formId}/${confirmationToken}`;
+}
+
+/**
+ * Build personalization variables for the confirmation email
+ */
+function buildVariables(
   contact: {
     email: string;
     firstName?: string | null;
     lastName?: string | null;
-    confirmationToken: string;
   },
-  trackingDomain: string
+  confirmationUrl: string,
 ): Record<string, string> {
   return {
-    // Contact variables
-    "contact.email": contact.email,
-    "contact.first_name": contact.firstName || "",
-    "contact.last_name": contact.lastName || "",
     email: contact.email,
+    "contact.email": contact.email,
     firstName: contact.firstName || "",
     first_name: contact.firstName || "",
+    "contact.first_name": contact.firstName || "",
     lastName: contact.lastName || "",
     last_name: contact.lastName || "",
-    // Confirmation URL - the key variable for double opt-in
-    confirmation_url: `https://${trackingDomain}/c/${contact.confirmationToken}`,
+    "contact.last_name": contact.lastName || "",
+    confirmation_url: confirmationUrl,
   };
 }
 
 /**
- * Build the "from" address string
- */
-function buildFromAddress(
-  senderName: string,
-  senderEmail: string,
-  domainName: string
-): string {
-  const email = `${senderEmail}@${domainName}`;
-  if (senderName) {
-    return `${senderName} <${email}>`;
-  }
-  return email;
-}
-
-/**
  * Substitute variables in text
+ *
  * Replaces {{variable_name}} patterns with actual values.
  */
 function substituteVariables(
   text: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): string {
   return text.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (match, varName) => {
     return variables[varName] ?? match;
@@ -89,15 +84,12 @@ export const sendDoubleOptIn: JobProcessor<
 
   logger.info(
     { jobId, contactId, formId, emailId, workspaceId },
-    "Processing double opt-in email job"
+    "Processing double opt-in email",
   );
 
-  // Fetch the contact with their confirmation token
-  const contact = await prisma.contact.findFirst({
-    where: {
-      id: contactId,
-      workspaceId,
-    },
+  // Fetch the contact
+  const contact = await prisma.contact.findUnique({
+    where: { id: contactId },
     select: {
       id: true,
       email: true,
@@ -109,175 +101,201 @@ export const sendDoubleOptIn: JobProcessor<
   });
 
   if (!contact) {
-    logger.error({ jobId, contactId }, "Contact not found");
-    throw new Error(`Contact ${contactId} not found`);
+    logger.warn({ jobId, contactId }, "Contact not found, skipping");
+    return;
   }
 
-  // Check if contact is still unconfirmed
+  // Validate contact is still UNCONFIRMED
   if (contact.status !== "UNCONFIRMED") {
     logger.info(
       { jobId, contactId, status: contact.status },
-      "Contact is no longer unconfirmed, skipping email"
+      "Contact is not UNCONFIRMED, skipping",
     );
     return;
   }
 
-  // Check if token exists
+  // Validate confirmation token exists
   if (!contact.confirmationToken) {
-    logger.error({ jobId, contactId }, "Contact has no confirmation token");
-    throw new Error(`Contact ${contactId} has no confirmation token`);
+    logger.error(
+      { jobId, contactId },
+      "Contact has no confirmation token, skipping",
+    );
+    return;
   }
 
   // Fetch the email template with sender identity
-  const email = await prisma.email.findFirst({
-    where: {
-      id: emailId,
-      workspaceId,
-    },
-    select: {
-      id: true,
-      subject: true,
-      previewText: true,
-      content: true,
-      styles: true,
-      senderIdentityId: true,
-      replyToIdentityId: true,
-      trackClicks: true,
-      trackOpens: true,
+  const email = await prisma.email.findUnique({
+    where: { id: emailId },
+    include: {
+      formsAsDoubleOptIn: {
+        where: { id: formId },
+        select: { id: true },
+      },
     },
   });
 
   if (!email) {
     logger.error({ jobId, emailId }, "Email template not found");
-    throw new Error(`Email ${emailId} not found`);
+    throw new Error(`Email template ${emailId} not found`);
   }
 
+  // Validate email has required content
   if (!email.subject) {
-    logger.error({ jobId, emailId }, "Email has no subject");
-    throw new Error(`Email ${emailId} has no subject`);
+    throw new Error(`Email template ${emailId} has no subject`);
   }
 
   if (!email.content) {
-    logger.error({ jobId, emailId }, "Email has no content");
-    throw new Error(`Email ${emailId} has no content`);
+    throw new Error(`Email template ${emailId} has no content`);
   }
 
-  if (!email.senderIdentityId) {
-    logger.error({ jobId, emailId }, "Email has no sender identity");
-    throw new Error(`Email ${emailId} has no sender identity configured`);
+  // Get the sender identity - use the one configured on the email, or fall back to workspace default
+  let senderIdentityId = email.senderIdentityId;
+
+  if (!senderIdentityId) {
+    // Find the first available sender identity in the workspace
+    const defaultSender = await prisma.senderIdentity.findFirst({
+      where: { workspaceId },
+      select: { id: true },
+    });
+
+    if (!defaultSender) {
+      throw new Error(
+        `No sender identity available for workspace ${workspaceId}`,
+      );
+    }
+
+    senderIdentityId = defaultSender.id;
   }
 
   // Fetch sender identity with sending domain
   const senderIdentity = await prisma.senderIdentity.findUnique({
-    where: { id: email.senderIdentityId },
-    include: { sendingDomain: true },
+    where: { id: senderIdentityId },
+    include: {
+      sendingDomain: true,
+    },
   });
 
   if (!senderIdentity || !senderIdentity.sendingDomain) {
-    logger.error(
-      { jobId, senderIdentityId: email.senderIdentityId },
-      "Sender identity or sending domain not found"
-    );
     throw new Error(
-      `Sender identity ${email.senderIdentityId} or its sending domain not found`
+      `Sender identity ${senderIdentityId} or its sending domain not found`,
     );
   }
 
   const sendingDomain = senderIdentity.sendingDomain;
-  const domainName = sendingDomain.name;
-  const trackingDomain = `${sendingDomain.trackingSubDomain}.${domainName}`;
+  const domain = sendingDomain.name;
+  const trackingDomain = `${sendingDomain.trackingSubDomain}.${domain}`;
 
-  // Build personalization variables including confirmation URL
-  const variables = buildDoubleOptInVariables(
-    {
-      email: contact.email,
-      firstName: contact.firstName,
-      lastName: contact.lastName,
-      confirmationToken: contact.confirmationToken,
-    },
-    trackingDomain
+  // Build confirmation URL
+  const confirmationUrl = buildConfirmationUrl(
+    trackingDomain,
+    formId,
+    contact.confirmationToken,
   );
 
-  // Generate message ID
-  const { id: emailSendId, messageId } = generateMessageIdForDomain(domainName);
+  // Build variables for personalization
+  const variables = buildVariables(contact, confirmationUrl);
 
-  // Render the email content
+  // Generate message ID
+  const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);
+
+  // Render HTML content
   let htmlBody: string;
   try {
     htmlBody = await renderBroadcastToHtml(
       email.content as unknown as BroadcastDocument,
-      { variables },
-      email.styles as BroadcastStyles | undefined
+      {
+        variables,
+      },
     );
-  } catch (renderError) {
-    logger.error(
-      { jobId, emailId, error: renderError },
-      "Failed to render email content"
-    );
-    throw renderError;
+  } catch (error) {
+    logger.error({ jobId, emailId, error }, "Failed to render email content");
+    throw error;
   }
 
-  // Apply tracking if enabled
-  const trackingResult = applyTracking(htmlBody, trackingDomain, emailSendId, {
-    clickTracking: email.trackClicks,
-    openTracking: email.trackOpens,
-  });
+  // Substitute variables in subject and preview text
+  const subject = substituteVariables(email.subject, variables);
+  const previewText = email.previewText
+    ? substituteVariables(email.previewText, variables)
+    : "";
 
-  // Build from address
-  const from = buildFromAddress(
-    senderIdentity.name,
-    senderIdentity.email,
-    domainName
-  );
+  // Upload HTML content to S3
+  const contentKey = `emails/${workspaceId}/double-opt-in/${formId}/${emailSendId}`;
+  const htmlKey = `${contentKey}/content.html`;
+
+  await uploadPrivateFile(htmlKey, htmlBody, "text/html");
 
   // Build envelope sender for bounce handling
-  const envelopeSender = `bounces+${emailSendId}@${sendingDomain.returnPathSubDomain}.${domainName}`;
+  const envelopeSender = `bounces+${emailSendId}@${sendingDomain.returnPathSubDomain}.${domain}`;
 
-  // Substitute variables in subject
-  const subject = substituteVariables(email.subject, variables);
+  // Build reply-to email
+  let replyToEmail: string;
+  if (email.replyToIdentityId) {
+    const replyToIdentity = await prisma.senderIdentity.findUnique({
+      where: { id: email.replyToIdentityId },
+      include: { sendingDomain: true },
+    });
+    if (replyToIdentity?.sendingDomain) {
+      replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain.name}`;
+    } else {
+      replyToEmail = `${senderIdentity.email}@${domain}`;
+    }
+  } else {
+    replyToEmail = `${senderIdentity.email}@${domain}`;
+  }
 
-  // Prepare the email data for MTA injection
-  const preparedEmail = {
-    emailSendId,
-    messageId,
-    recipientEmail: contact.email,
-    contactId: contact.id,
+  // Build recipient name
+  const recipientName = [contact.firstName, contact.lastName]
+    .filter(Boolean)
+    .join(" ");
+
+  // Build NATS message
+  const natsMessage: EmailMessage = {
+    id: emailSendId,
+    tenant_id: workspaceId,
+    broadcast_id: `doi-${formId}`, // Use "doi-" prefix to distinguish from broadcasts
+    contact_id: contact.id,
+    recipient: {
+      email: contact.email,
+      name: recipientName,
+    },
+    sender: {
+      email: senderIdentity.email,
+      name: senderIdentity.name,
+      domain,
+    },
+    reply_to: {
+      email: replyToEmail,
+      name: "",
+    },
     subject,
-    htmlBody: trackingResult.html,
-    from,
-    envelopeSender,
-    links: trackingResult.links,
-    // Additional metadata for tracking
-    type: "double-opt-in" as const,
-    formId,
-    emailId,
+    preview_text: previewText,
+    content_key: contentKey,
+    attachments: [],
+    metadata: {
+      message_id: messageId,
+      envelope_sender: envelopeSender,
+      email_type: "double-opt-in",
+      form_id: formId,
+    },
+    track_opens: email.trackOpens,
+    track_clicks: email.trackClicks,
   };
 
-  logger.info(
-    {
-      jobId,
-      emailSendId,
-      recipientEmail: contact.email,
-      subject,
-      linksCount: trackingResult.links.length,
-    },
-    "Prepared double opt-in email"
-  );
-
-  // TODO: Inject email into MTA
-  // For now, log the prepared email (actual MTA injection to be implemented)
-  // In production, this would:
-  // 1. Call the MTA injector HTTP API
-  // 2. Store an Event record for tracking
-  // 3. Handle retries for failed injections
+  // Publish to NATS
+  const natsOptions = getNatsOptions();
+  const ack = await publishEmail(natsOptions, natsMessage);
 
   logger.info(
     {
       jobId,
+      contactId,
+      formId,
+      emailId,
       emailSendId,
-      contactId: contact.id,
-      contactEmail: contact.email,
+      stream: ack.stream,
+      seq: ack.seq,
+      duplicate: ack.duplicate,
     },
-    "Double opt-in email job completed"
+    "Double opt-in email published to NATS",
   );
 };

@@ -1,16 +1,17 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import type { FilterFieldDefinition } from "@kibamail/owly/filter-builder";
+import { useQuery } from "@tanstack/react-query";
 import { internalApi } from "@/lib/api/client";
 
 export function useIfElseFieldDefinitions() {
-  const { data: contactPropertiesResponse, isLoading: propertiesLoading } = useQuery({
-    queryKey: ["contact-properties"],
-    queryFn: async () => {
-      return await internalApi.contactProperties().list();
-    },
-  });
+  const { data: contactPropertiesResponse, isLoading: propertiesLoading } =
+    useQuery({
+      queryKey: ["contact-properties"],
+      queryFn: async () => {
+        return await internalApi.contactProperties().list();
+      },
+    });
 
   const { data: topicsResponse, isLoading: topicsLoading } = useQuery({
     queryKey: ["topics"],
@@ -189,7 +190,7 @@ export function useIfElseFieldDefinitions() {
         operators: baseOperators,
         defaultOperator: baseOperators[0]?.id || "equals",
       };
-    }
+    },
   );
 
   const topicFields: FilterFieldDefinition[] = topics.map((topic) => ({

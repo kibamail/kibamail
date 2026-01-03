@@ -4,10 +4,10 @@ import { Button } from "@kibamail/owly/button";
 import { Heading } from "@kibamail/owly/heading";
 import { Text } from "@kibamail/owly/text";
 import { useMutation } from "@tanstack/react-query";
-import { useState, useRef, type FormEvent } from "react";
-import { internalApi } from "@/lib/api/client";
+import { type FormEvent, useRef, useState } from "react";
 import { FileUploadDropbox } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/components/file-upload-dropbox";
 import { useImportContactsStore } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/store/import-contacts-store";
+import { internalApi } from "@/lib/api/client";
 
 interface StepOneUploadCsvProps {
   onClose: () => void;
@@ -20,7 +20,13 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
   const { nextStep, updateFormState } = useImportContactsStore();
 
   const createImportMutation = useMutation({
-    mutationFn: async ({ file, onProgress }: { file: File; onProgress: (progress: number) => void }) => {
+    mutationFn: async ({
+      file,
+      onProgress,
+    }: {
+      file: File;
+      onProgress: (progress: number) => void;
+    }) => {
       return internalApi.contactImports().create(file, onProgress);
     },
   });
@@ -285,7 +291,8 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
     setUploadProgress(0);
 
     try {
-      const { headers, headerCounts, headerSamples, totalRows } = await parseCsvFile(file);
+      const { headers, headerCounts, headerSamples, totalRows } =
+        await parseCsvFile(file);
       const propertiesMap = guessPropertiesMap(headers);
 
       const result = await createImportMutation.mutateAsync({
@@ -325,7 +332,10 @@ export function StepOneUploadCsv({ onClose }: StepOneUploadCsvProps) {
         imported contacts.
       </Text>
 
-      <form ref={formRef} onSubmit={(event: FormEvent) => event.preventDefault()}>
+      <form
+        ref={formRef}
+        onSubmit={(event: FormEvent) => event.preventDefault()}
+      >
         <div className="mt-6">
           <FileUploadDropbox
             isFileUploadingToServer={createImportMutation.isPending}

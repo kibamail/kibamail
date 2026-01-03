@@ -58,7 +58,7 @@ const VALID_LOGTO_ERROR_CODES: LogtoErrorCode[] = [
  * @param error - Unknown error object
  * @returns True if error has a code property matching LogtoErrorCode
  */
-export function isLogtoError(error: unknown): error is LogtoError {
+function isLogtoError(error: unknown): error is LogtoError {
   if (typeof error !== "object" || error === null) {
     return false;
   }

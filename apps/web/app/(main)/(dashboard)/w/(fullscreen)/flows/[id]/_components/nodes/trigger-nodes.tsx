@@ -1,9 +1,9 @@
 "use client";
 
-import { Activity, Server, User, WebWindow } from "iconoir-react";
 import type { NodeProps } from "@xyflow/react";
-import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
+import { Activity, Server, User, WebWindow } from "iconoir-react";
 import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
 
 export function FormFilledNode(props: NodeProps) {
   const { getNodeErrors } = useFlowEditor();

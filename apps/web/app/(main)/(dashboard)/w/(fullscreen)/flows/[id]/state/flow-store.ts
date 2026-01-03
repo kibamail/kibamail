@@ -1,10 +1,13 @@
 import type { Edge, Node } from "@xyflow/react";
 import { create } from "zustand";
-import { SpecialNodeType, TriggerNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 import {
   getLayoutedElements,
   type LayoutDirection,
 } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_utils/dagre-layout";
+import {
+  SpecialNodeType,
+  TriggerNodeType,
+} from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 
 export type SidebarScreen = "node-selector" | "node-configuration";
 
@@ -67,7 +70,7 @@ export const useFlowStore = create<FlowState>((set) => ({
   updateNode: (id, data) =>
     set((state) => ({
       nodes: state.nodes.map((node) =>
-        node.id === id ? { ...node, ...data } : node
+        node.id === id ? { ...node, ...data } : node,
       ),
     })),
 
@@ -75,7 +78,7 @@ export const useFlowStore = create<FlowState>((set) => ({
     set((state) => ({
       nodes: state.nodes.filter((node) => node.id !== id),
       edges: state.edges.filter(
-        (edge) => edge.source !== id && edge.target !== id
+        (edge) => edge.source !== id && edge.target !== id,
       ),
     })),
 
@@ -165,11 +168,8 @@ export const useFlowStore = create<FlowState>((set) => ({
 
   autoLayout: (direction = "TB") =>
     set((state) => {
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-        state.nodes,
-        state.edges,
-        direction
-      );
+      const { nodes: layoutedNodes, edges: layoutedEdges } =
+        getLayoutedElements(state.nodes, state.edges, direction);
       return {
         nodes: layoutedNodes,
         edges: layoutedEdges,
@@ -193,16 +193,17 @@ export const useFlowStore = create<FlowState>((set) => ({
     }),
 
   initializeFromAutomation: (nodes, edges) => {
-    const triggerNode = nodes.find((n) =>
-      n.type?.includes("subscribed") ||
-      n.type?.includes("updated") ||
-      n.type?.includes("filled") ||
-      n.type?.includes("trigger") ||
-      n.type?.includes("entry") ||
-      n.type?.includes("exit") ||
-      n.type?.includes("engagement") ||
-      n.type?.includes("event") ||
-      n.type?.includes("webhook")
+    const triggerNode = nodes.find(
+      (n) =>
+        n.type?.includes("subscribed") ||
+        n.type?.includes("updated") ||
+        n.type?.includes("filled") ||
+        n.type?.includes("trigger") ||
+        n.type?.includes("entry") ||
+        n.type?.includes("exit") ||
+        n.type?.includes("engagement") ||
+        n.type?.includes("event") ||
+        n.type?.includes("webhook"),
     );
 
     set({

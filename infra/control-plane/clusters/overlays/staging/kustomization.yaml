@@ -6,7 +6,9 @@ resources:
 
 patches:
   - path: certificate-patch.yaml
+  - path: tracking-certificate-patch.yaml
   - path: rabbitmq-patch.yaml
+  - path: gateway-patch.yaml
   - path: kibamail-routes-patch.yaml
   - path: kibamail-env-patch.yaml
   - path: otel-disable-patch.yaml

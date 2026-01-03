@@ -1,9 +1,12 @@
 "use client";
 
-import * as Select from "@kibamail/owly/select-field";
 import * as DateField from "@kibamail/owly/date-field";
+import * as Select from "@kibamail/owly/select-field";
 import { Text } from "@kibamail/owly/text";
-import { SectionHeader, SectionSaveButton } from "@/components/email-editor/details-sections/shared";
+import {
+  SectionHeader,
+  SectionSaveButton,
+} from "@/components/email-editor/details-sections/shared";
 import { useSendTime } from "@/components/email-editor/details-sections/use-send-time";
 import type { BroadcastDetails } from "@/components/email-editor/types";
 
@@ -52,7 +55,11 @@ export function SendTimeSection({
           />
         </div>
         <div className="flex-1 max-w-36">
-          <Select.Root value={selectedTime} onValueChange={onTimeChange} disabled={readonly}>
+          <Select.Root
+            value={selectedTime}
+            onValueChange={onTimeChange}
+            disabled={readonly}
+          >
             <Select.Label>Time</Select.Label>
             <Select.Trigger placeholder="Select time" />
             <Select.Content className="z-50 max-h-60">

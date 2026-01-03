@@ -4,17 +4,17 @@
  * Business logic for /api/internal/v1/contact-imports/:id endpoint
  */
 
+import {
+  type ContactImportResponse,
+  type UpdateContactImportResponse,
+  updateContactImportSchema,
+} from "@/app/(main)/api/internal/v1/contact-imports/schema";
 import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import { responseOk } from "@/lib/api/responses";
 import type { UserSession } from "@/lib/auth/get-session";
 import { checkImportReadiness } from "@/lib/contact-imports";
 import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
-import {
-  updateContactImportSchema,
-  type UpdateContactImportResponse,
-  type ContactImportResponse,
-} from "@/app/(main)/api/internal/v1/contact-imports/schema";
 
 /**
  * GET /api/internal/v1/contact-imports/:id
@@ -23,7 +23,7 @@ import {
  */
 export async function getContactImport(
   session: UserSession,
-  contactImportId: string
+  contactImportId: string,
 ) {
   const workspaceId = session.currentOrganization.id;
 
@@ -73,7 +73,7 @@ export async function getContactImport(
 export async function updateContactImport(
   session: UserSession,
   contactImportId: string,
-  request: Request
+  request: Request,
 ) {
   const workspaceId = session.currentOrganization.id;
 
@@ -90,7 +90,7 @@ export async function updateContactImport(
 
   if (existingImport.status !== "PENDING") {
     throw new BadRequestError(
-      `Cannot update contact import with status "${existingImport.status}". Only PENDING imports can be updated.`
+      `Cannot update contact import with status "${existingImport.status}". Only PENDING imports can be updated.`,
     );
   }
 

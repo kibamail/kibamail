@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import { ConfirmDialog } from "@kibamail/owly/dialog";
@@ -11,6 +10,7 @@ import { useToast } from "@kibamail/owly/toast";
 import { formatDistanceToNow } from "date-fns";
 import { Trash } from "iconoir-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { useMutation } from "@/hooks/use-mutation";
 import { internalApi } from "@/lib/api/client";
 import { CreateApiKeyButton } from "./create-api-key-button";

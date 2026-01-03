@@ -1,12 +1,12 @@
 import {
+  DEFAULT_FIELD_APPEARANCE,
   DEFAULT_FORM_SETTINGS,
   DEFAULT_FORM_STYLING,
-  DEFAULT_FIELD_APPEARANCE,
   type FormBuilderSchema,
 } from "@/lib/form-builder/schema";
 
 // Re-export defaults for test convenience
-export { DEFAULT_FORM_SETTINGS, DEFAULT_FORM_STYLING, DEFAULT_FIELD_APPEARANCE };
+export { DEFAULT_FORM_SETTINGS, DEFAULT_FIELD_APPEARANCE };
 
 /**
  * Valid form builder schema configuration for testing.
@@ -532,7 +532,7 @@ export const surveyFormFields: FormBuilderSchema = {
 /**
  * Form schema with content block (presentation field).
  */
-export const formWithContentBlock: FormBuilderSchema = {
+const formWithContentBlock: FormBuilderSchema = {
   id: "content_form",
   version: 1,
   title: "Form With Content",

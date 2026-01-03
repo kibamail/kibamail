@@ -17,7 +17,10 @@
         "content": "250 2.0.0 OK",
         "command": "."
       },
-      "peer_address": { "name": "gmail-smtp-in.l.google.com", "addr": "142.250.115.27:25" },
+      "peer_address": {
+        "name": "gmail-smtp-in.l.google.com",
+        "addr": "142.250.115.27:25"
+      },
       "timestamp": 1704067200,
       "event_time": "2024-01-01T00:00:00Z",
       "created": 1704067195,
@@ -28,7 +31,11 @@
       "egress_source": "10.0.2.100",
       "source_address": { "address": "10.0.2.100:45678" },
       "feedback_report": null,
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_001" },
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_001"
+      },
       "headers": { "Message-ID": "<batch-001@acme.com>" },
       "delivery_protocol": "ESMTP",
       "reception_protocol": "ESMTP",
@@ -51,7 +58,10 @@
         "content": "250 OK",
         "command": "."
       },
-      "peer_address": { "name": "mta5.am0.yahoodns.net", "addr": "67.195.228.110:25" },
+      "peer_address": {
+        "name": "mta5.am0.yahoodns.net",
+        "addr": "67.195.228.110:25"
+      },
       "timestamp": 1704067201,
       "event_time": "2024-01-01T00:00:01Z",
       "created": 1704067195,
@@ -62,7 +72,11 @@
       "egress_source": "10.0.2.100",
       "source_address": { "address": "10.0.2.100:45679" },
       "feedback_report": null,
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_002" },
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_002"
+      },
       "headers": { "Message-ID": "<batch-002@acme.com>" },
       "delivery_protocol": "ESMTP",
       "reception_protocol": "ESMTP",
@@ -85,7 +99,10 @@
         "content": "550 5.1.1 User unknown",
         "command": "RCPT TO"
       },
-      "peer_address": { "name": "mail.example.com", "addr": "93.184.216.34:25" },
+      "peer_address": {
+        "name": "mail.example.com",
+        "addr": "93.184.216.34:25"
+      },
       "timestamp": 1704067202,
       "event_time": "2024-01-01T00:00:02Z",
       "created": 1704067195,
@@ -96,7 +113,11 @@
       "egress_source": "10.0.2.100",
       "source_address": { "address": "10.0.2.100:45680" },
       "feedback_report": null,
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_003" },
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_003"
+      },
       "headers": { "Message-ID": "<batch-003@acme.com>" },
       "delivery_protocol": "ESMTP",
       "reception_protocol": "ESMTP",
@@ -117,7 +138,10 @@
         "content": "451 4.7.0 Try again later",
         "command": "DATA"
       },
-      "peer_address": { "name": "outlook-com.olc.protection.outlook.com", "addr": "52.101.73.24:25" },
+      "peer_address": {
+        "name": "outlook-com.olc.protection.outlook.com",
+        "addr": "52.101.73.24:25"
+      },
       "timestamp": 1704067203,
       "event_time": "2024-01-01T00:00:03Z",
       "created": 1704067195,
@@ -128,7 +152,11 @@
       "egress_source": "10.0.2.100",
       "source_address": { "address": "10.0.2.100:45681" },
       "feedback_report": null,
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_004" },
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_004"
+      },
       "headers": { "Message-ID": "<batch-004@acme.com>" },
       "delivery_protocol": "ESMTP",
       "reception_protocol": "ESMTP",
@@ -149,7 +177,10 @@
         "content": "250 2.0.0 OK",
         "command": "."
       },
-      "peer_address": { "name": "mx1.mail.icloud.com", "addr": "17.57.152.25:25" },
+      "peer_address": {
+        "name": "mx1.mail.icloud.com",
+        "addr": "17.57.152.25:25"
+      },
       "timestamp": 1704067204,
       "event_time": "2024-01-01T00:00:04Z",
       "created": 1704067195,
@@ -160,7 +191,11 @@
       "egress_source": "10.0.2.100",
       "source_address": { "address": "10.0.2.100:45682" },
       "feedback_report": null,
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_005" },
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_005"
+      },
       "headers": { "Message-ID": "<batch-005@acme.com>" },
       "delivery_protocol": "ESMTP",
       "reception_protocol": "ESMTP",

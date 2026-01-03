@@ -67,9 +67,9 @@ export interface PaginatedResponse<T> {
 /**
  * Default pagination values
  */
-export const DEFAULT_PAGE = 1;
-export const DEFAULT_LIMIT = 20;
-export const MAX_LIMIT = 100;
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 100;
 
 /**
  * Cursor-based pagination parameters
@@ -120,7 +120,7 @@ export function parsePaginationParams(request: NextRequest): PaginationParams {
   const limitParam = searchParams.get("limit");
   const limit = Math.min(
     MAX_LIMIT,
-    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT)))
+    Math.max(1, Number.parseInt(limitParam ?? String(DEFAULT_LIMIT))),
   );
 
   const skip = (page - 1) * limit;
@@ -145,7 +145,7 @@ export function parsePaginationParams(request: NextRequest): PaginationParams {
  * ```
  */
 export function parseCursorPaginationParams(
-  request: NextRequest
+  request: NextRequest,
 ): CursorPaginationParams {
   const searchParams = request.nextUrl.searchParams;
 
@@ -186,7 +186,7 @@ export function parseCursorPaginationParams(
 export function createPaginationMeta(
   total: number,
   page: number,
-  limit: number
+  limit: number,
 ): PaginationMeta {
   const totalPages = Math.ceil(total / limit);
 
@@ -224,11 +224,11 @@ export function createPaginationMeta(
  * );
  * ```
  */
-export function createPaginatedResponse<T>(
+function createPaginatedResponse<T>(
   data: T[],
   total: number,
   page: number,
-  limit: number
+  limit: number,
 ): PaginatedResponse<T> {
   return {
     data,
@@ -265,7 +265,7 @@ export function createPaginatedResponse<T>(
 export function createCursorPaginatedResponse<T>(
   data: T[],
   hasMore: boolean,
-  object: ApiObjectType
+  object: ApiObjectType,
 ): CursorPaginatedResponse<T> {
   return {
     object,

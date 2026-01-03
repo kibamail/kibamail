@@ -10,7 +10,7 @@ import { z } from "zod";
 /**
  * Contact Property Type Enum
  */
-export const ContactPropertyTypeEnum = z.enum(["DATE", "NUMBER", "STRING"]);
+const ContactPropertyTypeEnum = z.enum(["DATE", "NUMBER", "STRING"]);
 
 /**
  * Default value validation per type
@@ -43,7 +43,7 @@ export const createContactPropertySchema = z
       .max(100, "Name must be 100 characters or less")
       .regex(
         /^[a-zA-Z0-9_\s-]+$/,
-        "Name can only contain letters, numbers, spaces, hyphens, and underscores"
+        "Name can only contain letters, numbers, spaces, hyphens, and underscores",
       )
       .trim(),
     type: ContactPropertyTypeEnum,
@@ -75,7 +75,7 @@ export const createContactPropertySchema = z
       message:
         "Default value validation failed: DATE must be Unix timestamp, NUMBER must be decimal, STRING must be 1-255 chars",
       path: ["defaultValue"],
-    }
+    },
   );
 
 /**
@@ -89,7 +89,7 @@ export const updateContactPropertySchema = z
       .max(100, "Name must be 100 characters or less")
       .regex(
         /^[a-zA-Z0-9_\s-]+$/,
-        "Name can only contain letters, numbers, spaces, hyphens, and underscores"
+        "Name can only contain letters, numbers, spaces, hyphens, and underscores",
       )
       .trim()
       .optional(),
@@ -107,7 +107,7 @@ export const updateContactPropertySchema = z
     },
     {
       message: "Invalid update data",
-    }
+    },
   );
 
 /**
@@ -133,7 +133,7 @@ export const contactPropertyListResponseSchema = z.object({
 /**
  * Contact Property Delete Response Schema
  */
-export const contactPropertyDeleteResponseSchema = z.object({
+const contactPropertyDeleteResponseSchema = z.object({
   object: z.literal("contact_property"),
   id: z.string().describe("ID of the deleted contact property"),
 });
@@ -144,15 +144,13 @@ export const contactPropertyDeleteResponseSchema = z.object({
 export type CreateContactPropertyRequest = z.infer<
   typeof createContactPropertySchema
 >;
-export type UpdateContactPropertyRequest = z.infer<
-  typeof updateContactPropertySchema
->;
+type UpdateContactPropertyRequest = z.infer<typeof updateContactPropertySchema>;
 export type ContactPropertyResponse = z.infer<
   typeof contactPropertyResponseSchema
 >;
 export type ContactPropertyListResponse = z.infer<
   typeof contactPropertyListResponseSchema
 >;
-export type ContactPropertyDeleteResponse = z.infer<
+type ContactPropertyDeleteResponse = z.infer<
   typeof contactPropertyDeleteResponseSchema
 >;

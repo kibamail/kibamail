@@ -8,10 +8,8 @@
  */
 
 import type { NextRequest } from "next/server";
-
-import { withApiSession, withErrorHandling } from "@/lib/api/requests";
-
 import { verifySendingDomain } from "@/app/(main)/api/v1/domains/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * POST /api/v1/domains/[domainId]/verify

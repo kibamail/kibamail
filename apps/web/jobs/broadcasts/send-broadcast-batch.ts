@@ -12,10 +12,14 @@
  */
 
 import { prisma } from "@/lib/db";
+import {
+  convertToNatsMessages,
+  type EmailBroadcast,
+  prepareEmailBatch,
+} from "@/lib/email";
+import { getNatsOptions, publishEmailBatch } from "@/lib/nats";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
-import { prepareEmailBatch, convertToNatsMessages, type EmailBroadcast } from "@/lib/email";
-import { publishEmailBatch, getNatsOptions } from "@/lib/nats";
 
 const logger = queueLogger.child({ job: "send-broadcast-batch" });
 
@@ -27,7 +31,7 @@ export const sendBroadcastBatch: JobProcessor<
 
   logger.info(
     { jobId, broadcastId, batchId, contactCount: contactIds.length },
-    "Processing broadcast batch"
+    "Processing broadcast batch",
   );
 
   // Fetch the broadcast with all required relations
@@ -55,10 +59,13 @@ export const sendBroadcastBatch: JobProcessor<
   }
 
   // Check if broadcast was archived (cancelled)
-  if (broadcast.status === "DRAFT_ARCHIVED" || broadcast.status === "ARCHIVED") {
+  if (
+    broadcast.status === "DRAFT_ARCHIVED" ||
+    broadcast.status === "ARCHIVED"
+  ) {
     logger.warn(
       { jobId, broadcastId, batchId },
-      "Broadcast was archived/cancelled, skipping batch"
+      "Broadcast was archived/cancelled, skipping batch",
     );
     return;
   }
@@ -73,7 +80,9 @@ export const sendBroadcastBatch: JobProcessor<
   }
 
   if (!broadcast.senderIdentity || !broadcast.sendingDomain) {
-    throw new Error(`Broadcast ${broadcastId} missing sender identity or sending domain`);
+    throw new Error(
+      `Broadcast ${broadcastId} missing sender identity or sending domain`,
+    );
   }
 
   // Fetch contact details for this batch
@@ -95,14 +104,14 @@ export const sendBroadcastBatch: JobProcessor<
   if (skippedCount > 0) {
     logger.info(
       { jobId, broadcastId, batchId, skippedCount },
-      "Some contacts were skipped (unsubscribed or deleted)"
+      "Some contacts were skipped (unsubscribed or deleted)",
     );
   }
 
   if (contacts.length === 0) {
     logger.info(
       { jobId, broadcastId, batchId },
-      "No eligible contacts remaining in batch"
+      "No eligible contacts remaining in batch",
     );
     return;
   }
@@ -142,7 +151,7 @@ export const sendBroadcastBatch: JobProcessor<
       batchId,
       preparedCount: preparedEmails.length,
     },
-    "Prepared emails for batch"
+    "Prepared emails for batch",
   );
 
   // Upload email content to S3 and convert to NATS message format
@@ -165,6 +174,6 @@ export const sendBroadcastBatch: JobProcessor<
       duplicates,
       skippedCount,
     },
-    "Batch processing complete - emails published to NATS"
+    "Batch processing complete - emails published to NATS",
   );
 };

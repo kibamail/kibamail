@@ -1,8 +1,6 @@
 import createClient, { type Middleware } from "openapi-fetch";
-
-import type { paths } from "./schema";
-
 import { env } from "@/env/schema";
+import type { paths } from "./schema";
 
 const client = createClient<paths>({
   baseUrl: `${env.OUTPOST_API_URL}/api/v1`,

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
-  normalizeTimezone,
   isValidTimezone,
+  normalizeTimezone,
 } from "@/lib/contact-imports/normalizers/timezone";
 
 describe("normalizeTimezone", () => {

@@ -4,7 +4,7 @@ import { z } from "zod";
 // FIELD TYPES
 // =============================================================================
 
-export const FIELD_TYPES = {
+const FIELD_TYPES = {
   TEXT: "text",
   EMAIL: "email",
   NUMBER: "number",
@@ -28,7 +28,7 @@ export const FIELD_TYPES = {
   CONTENT: "content",
 } as const;
 
-export const fieldTypeSchema = z.enum([
+const fieldTypeSchema = z.enum([
   "text",
   "email",
   "number",
@@ -58,44 +58,44 @@ export type FieldType = z.infer<typeof fieldTypeSchema>;
 // VALIDATION RULES
 // =============================================================================
 
-export const textValidationSchema = z.object({
+const textValidationSchema = z.object({
   minLength: z.number().int().min(0).optional(),
   maxLength: z.number().int().min(1).optional(),
   pattern: z.string().optional(),
   patternMessage: z.string().optional(),
 });
 
-export const numberValidationSchema = z.object({
+const numberValidationSchema = z.object({
   min: z.number().optional(),
   max: z.number().optional(),
   step: z.number().optional(),
   integer: z.boolean().optional(),
 });
 
-export const dateValidationSchema = z.object({
+const dateValidationSchema = z.object({
   minDate: z.string().optional(),
   maxDate: z.string().optional(),
   disablePastDates: z.boolean().optional(),
   disableFutureDates: z.boolean().optional(),
 });
 
-export const fileValidationSchema = z.object({
+const fileValidationSchema = z.object({
   maxSize: z.number().int().min(1).optional(), // in bytes
   maxFiles: z.number().int().min(1).optional(),
   allowedTypes: z.array(z.string()).optional(), // MIME types
 });
 
-export const ratingValidationSchema = z.object({
+const ratingValidationSchema = z.object({
   maxRating: z.number().int().min(2).max(10).optional(),
 });
 
-export const sliderValidationSchema = z.object({
+const sliderValidationSchema = z.object({
   min: z.number().optional(),
   max: z.number().optional(),
   step: z.number().optional(),
 });
 
-export const validationSchema = z.object({
+const validationSchema = z.object({
   required: z.boolean().optional(),
   requiredMessage: z.string().optional(),
   text: textValidationSchema.optional(),
@@ -112,7 +112,7 @@ export type ValidationRules = z.infer<typeof validationSchema>;
 // FIELD OPTIONS (for select, radio, checkbox_group)
 // =============================================================================
 
-export const fieldOptionSchema = z.object({
+const fieldOptionSchema = z.object({
   id: z.string().min(1),
   label: z.string().min(1),
   value: z.string().min(1),
@@ -125,7 +125,7 @@ export type FieldOption = z.infer<typeof fieldOptionSchema>;
 // CONDITIONAL LOGIC
 // =============================================================================
 
-export const COMPARISON_OPERATORS = {
+const COMPARISON_OPERATORS = {
   EQUALS: "equals",
   NOT_EQUALS: "not_equals",
   CONTAINS: "contains",
@@ -140,7 +140,7 @@ export const COMPARISON_OPERATORS = {
   ENDS_WITH: "ends_with",
 } as const;
 
-export const comparisonOperatorSchema = z.enum([
+const comparisonOperatorSchema = z.enum([
   "equals",
   "not_equals",
   "contains",
@@ -155,18 +155,18 @@ export const comparisonOperatorSchema = z.enum([
   "ends_with",
 ]);
 
-export type ComparisonOperator = z.infer<typeof comparisonOperatorSchema>;
+type ComparisonOperator = z.infer<typeof comparisonOperatorSchema>;
 
-export const LOGICAL_OPERATORS = {
+const LOGICAL_OPERATORS = {
   AND: "and",
   OR: "or",
 } as const;
 
-export const logicalOperatorSchema = z.enum(["and", "or"]);
+const logicalOperatorSchema = z.enum(["and", "or"]);
 
-export type LogicalOperator = z.infer<typeof logicalOperatorSchema>;
+type LogicalOperator = z.infer<typeof logicalOperatorSchema>;
 
-export const conditionSchema = z.object({
+const conditionSchema = z.object({
   fieldId: z.string().min(1),
   operator: comparisonOperatorSchema,
   value: z
@@ -174,9 +174,9 @@ export const conditionSchema = z.object({
     .optional(),
 });
 
-export type Condition = z.infer<typeof conditionSchema>;
+type Condition = z.infer<typeof conditionSchema>;
 
-export const conditionalLogicSchema = z.object({
+const conditionalLogicSchema = z.object({
   enabled: z.boolean(),
   action: z.enum(["show", "hide"]),
   logicalOperator: logicalOperatorSchema,
@@ -189,11 +189,11 @@ export type ConditionalLogic = z.infer<typeof conditionalLogicSchema>;
 // FIELD APPEARANCE
 // =============================================================================
 
-export const fieldWidthSchema = z.enum(["full", "half", "third", "quarter"]);
-export const labelPositionSchema = z.enum(["top", "left", "hidden"]);
-export const fieldSizeSchema = z.enum(["sm", "default", "lg"]);
+const fieldWidthSchema = z.enum(["full", "half", "third", "quarter"]);
+const labelPositionSchema = z.enum(["top", "left", "hidden"]);
+const fieldSizeSchema = z.enum(["sm", "default", "lg"]);
 
-export const fieldAppearanceSchema = z.object({
+const fieldAppearanceSchema = z.object({
   width: fieldWidthSchema,
   labelPosition: labelPositionSchema,
   size: fieldSizeSchema,
@@ -201,7 +201,7 @@ export const fieldAppearanceSchema = z.object({
 
 export type FieldWidth = z.infer<typeof fieldWidthSchema>;
 export type LabelPosition = z.infer<typeof labelPositionSchema>;
-export type FieldSize = z.infer<typeof fieldSizeSchema>;
+type FieldSize = z.infer<typeof fieldSizeSchema>;
 export type FieldAppearance = z.infer<typeof fieldAppearanceSchema>;
 
 // =============================================================================
@@ -221,24 +221,26 @@ export const STANDARD_CONTACT_PROPERTIES = [
   "city",
 ] as const;
 
-export type StandardContactProperty = typeof STANDARD_CONTACT_PROPERTIES[number];
+type StandardContactProperty = (typeof STANDARD_CONTACT_PROPERTIES)[number];
 
 /**
  * Maps a form field to a contact property (either standard or custom)
  */
-export const contactPropertyMappingSchema = z.object({
+const contactPropertyMappingSchema = z.object({
   type: z.enum(["standard", "custom"]),
   id: z.string().min(1), // e.g., "email", "firstName", or a custom property ID
   name: z.string().min(1), // Display name for the property
 });
 
-export type ContactPropertyMapping = z.infer<typeof contactPropertyMappingSchema>;
+export type ContactPropertyMapping = z.infer<
+  typeof contactPropertyMappingSchema
+>;
 
 // =============================================================================
 // FORM FIELD
 // =============================================================================
 
-export const formFieldSchema = z.object({
+const formFieldSchema = z.object({
   id: z.string().min(1),
   type: fieldTypeSchema,
   name: z
@@ -270,7 +272,7 @@ export type FormField = z.infer<typeof formFieldSchema>;
 // FORM SECTION
 // =============================================================================
 
-export const formSectionSchema = z.object({
+const formSectionSchema = z.object({
   id: z.string().min(1),
   title: z.string().optional(),
   description: z.string().optional(),
@@ -286,7 +288,7 @@ export type FormSection = z.infer<typeof formSectionSchema>;
 // FORM PAGE (for multi-page forms)
 // =============================================================================
 
-export const formPageSchema = z.object({
+const formPageSchema = z.object({
   id: z.string().min(1),
   title: z.string().optional(),
   description: z.string().optional(),
@@ -300,16 +302,16 @@ export type FormPage = z.infer<typeof formPageSchema>;
 // FORM SETTINGS
 // =============================================================================
 
-export const buttonVariantSchema = z.enum([
+const buttonVariantSchema = z.enum([
   "default",
   "secondary",
   "outline",
   "ghost",
 ]);
-export const buttonSizeSchema = z.enum(["sm", "default", "lg"]);
-export const buttonPositionSchema = z.enum(["left", "center", "right"]);
+const buttonSizeSchema = z.enum(["sm", "default", "lg"]);
+const buttonPositionSchema = z.enum(["left", "center", "right"]);
 
-export const formSubmitButtonSchema = z.object({
+const formSubmitButtonSchema = z.object({
   text: z.string(),
   loadingText: z.string(),
   variant: buttonVariantSchema,
@@ -323,7 +325,7 @@ export type ButtonSize = z.infer<typeof buttonSizeSchema>;
 export type ButtonPosition = z.infer<typeof buttonPositionSchema>;
 export type FormSubmitButton = z.infer<typeof formSubmitButtonSchema>;
 
-export const formSuccessMessageSchema = z.object({
+const formSuccessMessageSchema = z.object({
   type: z.literal("message"),
   // Plain text message (deprecated, kept for backwards compatibility)
   message: z.string().optional(),
@@ -331,13 +333,13 @@ export const formSuccessMessageSchema = z.object({
   richContent: z.record(z.string(), z.unknown()).optional(),
 });
 
-export const formSuccessRedirectSchema = z.object({
+const formSuccessRedirectSchema = z.object({
   type: z.literal("redirect"),
   url: z.string().url(),
   openInNewTab: z.boolean(),
 });
 
-export const formSuccessActionSchema = z.discriminatedUnion("type", [
+const formSuccessActionSchema = z.discriminatedUnion("type", [
   formSuccessMessageSchema,
   formSuccessRedirectSchema,
 ]);
@@ -345,13 +347,13 @@ export const formSuccessActionSchema = z.discriminatedUnion("type", [
 export type FormSuccessAction = z.infer<typeof formSuccessActionSchema>;
 
 // Double opt-in configuration
-export const doubleOptInSchema = z.object({
+const doubleOptInSchema = z.object({
   enabled: z.boolean(),
 });
 
 export type DoubleOptIn = z.infer<typeof doubleOptInSchema>;
 
-export const formSettingsSchema = z.object({
+const formSettingsSchema = z.object({
   submitButton: formSubmitButtonSchema,
   successAction: formSuccessActionSchema,
   doubleOptIn: doubleOptInSchema,
@@ -367,7 +369,7 @@ export type FormSettings = z.infer<typeof formSettingsSchema>;
 // FORM THEME (shadcn-compatible)
 // =============================================================================
 
-export const formThemeColorsSchema = z.object({
+const formThemeColorsSchema = z.object({
   background: z.string(),
   foreground: z.string(),
   card: z.string(),
@@ -388,24 +390,24 @@ export const formThemeColorsSchema = z.object({
   ring: z.string(),
 });
 
-export type FormThemeColors = z.infer<typeof formThemeColorsSchema>;
+type FormThemeColors = z.infer<typeof formThemeColorsSchema>;
 
-export const formThemeFontSchema = z.object({
+const formThemeFontSchema = z.object({
   family: z.string(),
   url: z.string().url(),
 });
 
-export type FormThemeFont = z.infer<typeof formThemeFontSchema>;
+type FormThemeFont = z.infer<typeof formThemeFontSchema>;
 
 // CSS properties schema - allows any valid CSS property/value pairs
-export const cssPropertiesSchema = z.record(
+const cssPropertiesSchema = z.record(
   z.string(),
-  z.union([z.string(), z.number()])
+  z.union([z.string(), z.number()]),
 );
 
-export type CSSPropertiesRecord = z.infer<typeof cssPropertiesSchema>;
+type CSSPropertiesRecord = z.infer<typeof cssPropertiesSchema>;
 
-export const formThemeSchema = z.object({
+const formThemeSchema = z.object({
   mode: z.enum(["light", "dark"]),
   radius: z.string(),
   colors: formThemeColorsSchema,
@@ -464,7 +466,7 @@ export const DEFAULT_LIGHT_THEME: FormTheme = {
 };
 
 // Default dark theme (shadcn zinc)
-export const DEFAULT_DARK_THEME: FormTheme = {
+const DEFAULT_DARK_THEME: FormTheme = {
   mode: "dark",
   radius: "0.625rem",
   font: {
@@ -514,7 +516,7 @@ export const DEFAULT_DARK_THEME: FormTheme = {
 };
 
 // Brutalist theme - Raw, bold, high contrast
-export const BRUTALIST_THEME: FormTheme = {
+const BRUTALIST_THEME: FormTheme = {
   mode: "light",
   radius: "0",
   font: {
@@ -559,7 +561,7 @@ export const BRUTALIST_THEME: FormTheme = {
 };
 
 // Playful theme - Rounded, colorful, fun
-export const PLAYFUL_THEME: FormTheme = {
+const PLAYFUL_THEME: FormTheme = {
   mode: "light",
   radius: "1.5rem",
   font: {
@@ -571,7 +573,8 @@ export const PLAYFUL_THEME: FormTheme = {
     minHeight: "100vh",
     padding: "1rem",
     boxSizing: "border-box",
-    background: "linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #ddd6fe 100%)",
+    background:
+      "linear-gradient(135deg, #fef3c7 0%, #fce7f3 50%, #ddd6fe 100%)",
   },
   container: {
     width: "100%",
@@ -605,7 +608,7 @@ export const PLAYFUL_THEME: FormTheme = {
 };
 
 // Elegant theme - Refined, sophisticated, serif
-export const ELEGANT_THEME: FormTheme = {
+const ELEGANT_THEME: FormTheme = {
   mode: "light",
   radius: "0.25rem",
   font: {
@@ -652,7 +655,7 @@ export const ELEGANT_THEME: FormTheme = {
 };
 
 // Export all themes for easy access
-export const FORM_THEMES = {
+const FORM_THEMES = {
   light: DEFAULT_LIGHT_THEME,
   dark: DEFAULT_DARK_THEME,
   brutalist: BRUTALIST_THEME,
@@ -660,28 +663,28 @@ export const FORM_THEMES = {
   elegant: ELEGANT_THEME,
 } as const;
 
-export type FormThemeKey = keyof typeof FORM_THEMES;
+type FormThemeKey = keyof typeof FORM_THEMES;
 
 // =============================================================================
 // FORM STYLING
 // =============================================================================
 
-export const formLayoutSchema = z.enum(["stacked", "inline"]);
-export const labelStyleSchema = z.enum(["default", "floating"]);
-export const borderRadiusSchema = z.enum(["none", "sm", "md", "lg", "full"]);
-export const spacingSchema = z.enum(["compact", "default", "relaxed"]);
+const formLayoutSchema = z.enum(["stacked", "inline"]);
+const labelStyleSchema = z.enum(["default", "floating"]);
+const borderRadiusSchema = z.enum(["none", "sm", "md", "lg", "full"]);
+const spacingSchema = z.enum(["compact", "default", "relaxed"]);
 
-export const formStylingSchema = z.object({
+const formStylingSchema = z.object({
   layout: formLayoutSchema,
   labelStyle: labelStyleSchema,
   borderRadius: borderRadiusSchema,
   spacing: spacingSchema,
 });
 
-export type FormLayout = z.infer<typeof formLayoutSchema>;
-export type LabelStyle = z.infer<typeof labelStyleSchema>;
-export type BorderRadius = z.infer<typeof borderRadiusSchema>;
-export type Spacing = z.infer<typeof spacingSchema>;
+type FormLayout = z.infer<typeof formLayoutSchema>;
+type LabelStyle = z.infer<typeof labelStyleSchema>;
+type BorderRadius = z.infer<typeof borderRadiusSchema>;
+type Spacing = z.infer<typeof spacingSchema>;
 export type FormStyling = z.infer<typeof formStylingSchema>;
 
 // =============================================================================
@@ -704,9 +707,9 @@ export type FormBuilderSchema = z.infer<typeof formBuilderSchema>;
 // FORM SUBMISSION DATA
 // =============================================================================
 
-export const formSubmissionDataSchema = z.record(
+const formSubmissionDataSchema = z.record(
   z.string(),
-  z.union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()])
+  z.union([z.string(), z.number(), z.boolean(), z.array(z.string()), z.null()]),
 );
 
 export type FormSubmissionData = z.infer<typeof formSubmissionDataSchema>;
@@ -878,7 +881,7 @@ export const DEFAULT_FIELD_APPEARANCE: FieldAppearance = {
   size: "default",
 };
 
-export const DEFAULT_SUBMIT_BUTTON: FormSubmitButton = {
+const DEFAULT_SUBMIT_BUTTON: FormSubmitButton = {
   text: "Submit",
   loadingText: "Submitting...",
   variant: "default",
@@ -887,7 +890,7 @@ export const DEFAULT_SUBMIT_BUTTON: FormSubmitButton = {
   position: "left",
 };
 
-export const DEFAULT_SUCCESS_ACTION: FormSuccessAction = {
+const DEFAULT_SUCCESS_ACTION: FormSuccessAction = {
   type: "message",
   richContent: {
     type: "doc",
@@ -910,7 +913,7 @@ export const DEFAULT_SUCCESS_ACTION: FormSuccessAction = {
   },
 };
 
-export const DEFAULT_DOUBLE_OPT_IN: DoubleOptIn = {
+const DEFAULT_DOUBLE_OPT_IN: DoubleOptIn = {
   enabled: true,
 };
 
@@ -931,7 +934,7 @@ export const DEFAULT_FORM_STYLING: FormStyling = {
   spacing: "default",
 };
 
-export const DEFAULT_CONDITIONAL_LOGIC: ConditionalLogic = {
+const DEFAULT_CONDITIONAL_LOGIC: ConditionalLogic = {
   enabled: false,
   action: "show",
   logicalOperator: "and",
@@ -955,7 +958,7 @@ export function createEmptyField(type: FieldType, id: string): FormField {
   };
 }
 
-export function createEmptySection(id: string): FormSection {
+function createEmptySection(id: string): FormSection {
   return {
     id,
     fields: [],
@@ -964,7 +967,7 @@ export function createEmptySection(id: string): FormSection {
   } as unknown as FormSection; // fields will be populated
 }
 
-export function createEmptyPage(id: string): FormPage {
+function createEmptyPage(id: string): FormPage {
   const sectionId = `section_${id}_1`;
   return {
     id,

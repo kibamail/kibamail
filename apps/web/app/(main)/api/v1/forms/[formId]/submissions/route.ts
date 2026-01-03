@@ -8,8 +8,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import { createFormSubmission } from "@/app/(main)/api/v1/forms/submissions-handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * POST /api/v1/forms/[formId]/submissions
@@ -22,7 +22,7 @@ import { createFormSubmission } from "@/app/(main)/api/v1/forms/submissions-hand
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -31,7 +31,7 @@ export async function POST(
       request,
       (apiKey, request) =>
         createFormSubmission(apiKey.workspaceId, formId, request),
-      ["write:forms"]
-    )
+      ["write:forms"],
+    ),
   );
 }

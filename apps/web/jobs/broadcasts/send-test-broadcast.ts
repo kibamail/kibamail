@@ -14,15 +14,15 @@
  */
 
 import { prisma } from "@/lib/db";
-import type { JobProcessor } from "@/lib/queue";
-import { queueLogger } from "@/lib/queue";
 import {
-  prepareEmailBatch,
   convertToNatsMessages,
   type EmailBroadcast,
   type EmailContact,
+  prepareEmailBatch,
 } from "@/lib/email";
-import { publishEmailBatch, getNatsOptions } from "@/lib/nats";
+import { getNatsOptions, publishEmailBatch } from "@/lib/nats";
+import type { JobProcessor } from "@/lib/queue";
+import { queueLogger } from "@/lib/queue";
 
 const logger = queueLogger.child({ job: "send-test-broadcast" });
 
@@ -34,7 +34,7 @@ export const sendTestBroadcast: JobProcessor<
 
   logger.info(
     { jobId, broadcastId, testEmailCount: testEmails.length },
-    "Sending test broadcast"
+    "Sending test broadcast",
   );
 
   // Fetch the broadcast with all required relations
@@ -72,7 +72,7 @@ export const sendTestBroadcast: JobProcessor<
 
   if (!broadcast.senderIdentity || !broadcast.sendingDomain) {
     throw new Error(
-      `Broadcast ${broadcastId} missing sender identity or sending domain`
+      `Broadcast ${broadcastId} missing sender identity or sending domain`,
     );
   }
 
@@ -120,7 +120,7 @@ export const sendTestBroadcast: JobProcessor<
       broadcastId,
       preparedCount: preparedEmails.length,
     },
-    "Prepared test emails"
+    "Prepared test emails",
   );
 
   // Upload email content to S3 and convert to NATS message format
@@ -141,6 +141,6 @@ export const sendTestBroadcast: JobProcessor<
       publishedCount: acks.length,
       duplicates,
     },
-    "Test broadcast sent - emails published to NATS"
+    "Test broadcast sent - emails published to NATS",
   );
 };

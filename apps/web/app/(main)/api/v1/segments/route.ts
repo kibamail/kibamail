@@ -9,7 +9,7 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 import { createSegment, listSegments } from "./handler";
 
 /**
@@ -23,8 +23,8 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => createSegment(apiKey.workspaceId, request),
-      ["write:segments"]
-    )
+      ["write:segments"],
+    ),
   );
 }
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => listSegments(apiKey.workspaceId, request),
-      ["read:segments"]
-    )
+      ["read:segments"],
+    ),
   );
 }

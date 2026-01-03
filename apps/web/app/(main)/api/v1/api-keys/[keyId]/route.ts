@@ -8,8 +8,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import { deleteApiKeyHandler } from "@/app/(main)/api/v1/api-keys/handlers/delete-api-key";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * DELETE /api/v1/api-keys/[keyId]

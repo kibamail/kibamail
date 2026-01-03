@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
 import { internalApi } from "@/lib/api/client";
 
 interface DoubleOptInPreviewProps {

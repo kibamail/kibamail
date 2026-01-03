@@ -1,8 +1,13 @@
-import { describe, it, expect } from "vitest";
 import type { ContactImport } from "@prisma/client";
-import { checkImportReadiness, ImportReadinessChecker } from "@/lib/contact-imports";
+import { describe, expect, it } from "vitest";
+import {
+  checkImportReadiness,
+  ImportReadinessChecker,
+} from "@/lib/contact-imports";
 
-function createMockImport(overrides: Partial<ContactImport> = {}): ContactImport {
+function createMockImport(
+  overrides: Partial<ContactImport> = {},
+): ContactImport {
   return {
     id: "test-import-id",
     workspaceId: "test-workspace-id",

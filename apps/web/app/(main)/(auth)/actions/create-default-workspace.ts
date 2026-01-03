@@ -13,10 +13,9 @@
 
 "use server";
 
-import { redirect } from "next/navigation";
-
-import { createWorkspaceViaLogto } from "@/app/(main)/api/internal/v1/workspaces/handler";
 import { getLogtoContext } from "@logto/next/server-actions";
+import { redirect } from "next/navigation";
+import { createWorkspaceViaLogto } from "@/app/(main)/api/internal/v1/workspaces/handler";
 import { logtoConfig } from "@/config/logto";
 
 export async function createDefaultWorkspaceAction() {

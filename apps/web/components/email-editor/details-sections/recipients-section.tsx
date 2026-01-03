@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import * as Select from "@kibamail/owly/select-field";
 import * as Tabs from "@kibamail/owly/tabs";
 import { Text } from "@kibamail/owly/text";
-import { Group, Filter, User } from "iconoir-react";
-import { useTopics } from "@/hooks/use-topics";
-import { useSegments } from "@/hooks/use-segments";
+import { Filter, Group, User } from "iconoir-react";
+import { useEffect, useState } from "react";
 import { SectionHeader } from "@/components/email-editor/details-sections/shared";
 import type { BroadcastDetails } from "@/components/email-editor/types";
+import { useSegments } from "@/hooks/use-segments";
+import { useTopics } from "@/hooks/use-topics";
 
 type RecipientType = "all" | "topic" | "segment";
 
@@ -38,7 +38,7 @@ export function RecipientsSection({
   }
 
   const [recipientType, setRecipientType] = useState<RecipientType>(
-    getCurrentRecipientType
+    getCurrentRecipientType,
   );
 
   useEffect(() => {
@@ -104,7 +104,11 @@ export function RecipientsSection({
 
         <Tabs.Content value="topic">
           <div className="py-4">
-            <Select.Root value={topicId || ""} onValueChange={onTopicChange} disabled={readonly}>
+            <Select.Root
+              value={topicId || ""}
+              onValueChange={onTopicChange}
+              disabled={readonly}
+            >
               <Select.Label>Select topic</Select.Label>
               <Select.Trigger
                 placeholder={

@@ -5,21 +5,21 @@
  * and that values are properly mapped from slot columns to property names.
  */
 
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
 import { GET as GET_CONTACT } from "@/app/(main)/api/v1/contacts/[contactId]/route";
 import { GET as LIST_CONTACTS } from "@/app/(main)/api/v1/contacts/route";
-import { POST as CREATE_PROPERTY } from "@/app/(main)/api/v1/contact-properties/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import {
-  createTestWorkspace,
-  createFullAccessApiKey,
-  cleanupWorkspace,
-  post,
-  get,
-  type TestWorkspace,
-  type CreatedApiKey,
-} from "@/tests/utils";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
+import {
+  type CreatedApiKey,
+  cleanupWorkspace,
+  createFullAccessApiKey,
+  createTestWorkspace,
+  get,
+  post,
+  type TestWorkspace,
+} from "@/tests/utils";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -67,7 +67,7 @@ describe("Contact Properties in Contact Responses", () => {
         type: "NUMBER",
         defaultValue: "25",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const propertyResponse = await CREATE_PROPERTY(propertyRequest);
     const property = await propertyResponse.json();
@@ -109,7 +109,7 @@ describe("Contact Properties in Contact Responses", () => {
         type: "DATE",
         defaultValue: timestamp.toString(),
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const propertyResponse = await CREATE_PROPERTY(propertyRequest);
     const property = await propertyResponse.json();
@@ -151,7 +151,7 @@ describe("Contact Properties in Contact Responses", () => {
         type: "STRING",
         defaultValue: "Engineering",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const propertyResponse = await CREATE_PROPERTY(propertyRequest);
     const property = await propertyResponse.json();
@@ -189,8 +189,8 @@ describe("Contact Properties in Contact Responses", () => {
       post(
         "/contact-properties",
         { name: "Years Experience", type: "NUMBER", defaultValue: "5" },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const agePropertyData = await ageProperty.json();
 
@@ -198,8 +198,8 @@ describe("Contact Properties in Contact Responses", () => {
       post(
         "/contact-properties",
         { name: "Job Title", type: "STRING", defaultValue: "Engineer" },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const titlePropertyData = await titleProperty.json();
 
@@ -234,7 +234,7 @@ describe("Contact Properties in Contact Responses", () => {
     expect(responseData.properties["Years Experience"]).toBe(7);
     expect(responseData.properties["Job Title"]).toBe("Senior Engineer");
     expect(Object.keys(responseData.properties).length).toBeGreaterThanOrEqual(
-      2
+      2,
     );
   });
 
@@ -246,7 +246,7 @@ describe("Contact Properties in Contact Responses", () => {
         name: "Middle Name",
         type: "STRING",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const propertyResponse = await CREATE_PROPERTY(propertyRequest);
     const property = await propertyResponse.json();
@@ -282,7 +282,7 @@ describe("Contact Properties in Contact Responses", () => {
         type: "NUMBER",
         defaultValue: "100",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const propertyResponse = await CREATE_PROPERTY(propertyRequest);
     const property = await propertyResponse.json();
@@ -312,7 +312,7 @@ describe("Contact Properties in Contact Responses", () => {
 
     // Find our test contact
     const foundContact = responseData.data.find(
-      (c: any) => c.id === contact.id
+      (c: any) => c.id === contact.id,
     );
     expect(foundContact).toBeDefined();
     expect(foundContact.properties).toBeDefined();
@@ -331,7 +331,7 @@ describe("Contact Properties in Contact Responses", () => {
         type: "STRING",
         defaultValue: "test",
       },
-      otherApiKey.key
+      otherApiKey.key,
     );
     await CREATE_PROPERTY(otherPropertyRequest);
 

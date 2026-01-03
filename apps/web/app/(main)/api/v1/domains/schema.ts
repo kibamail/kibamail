@@ -36,7 +36,7 @@ export const updateSendingDomainSchema = z.object({
 /**
  * DNS Record Response Schema
  */
-export const dnsRecordSchema = z.object({
+const dnsRecordSchema = z.object({
   type: z.enum(["TXT", "CNAME"]),
   hostname: z.string(),
   value: z.string(),
@@ -45,7 +45,7 @@ export const dnsRecordSchema = z.object({
 /**
  * DNS Records Response Schema
  */
-export const dnsRecordsSchema = z.object({
+const dnsRecordsSchema = z.object({
   dkim: dnsRecordSchema,
   returnPath: dnsRecordSchema,
   tracking: dnsRecordSchema,
@@ -54,7 +54,7 @@ export const dnsRecordsSchema = z.object({
 /**
  * Record Verification Status Schema
  */
-export const recordVerificationSchema = z.object({
+const recordVerificationSchema = z.object({
   configured: z.boolean(),
   expected: z.string(),
   found: z.array(z.string()),
@@ -63,10 +63,11 @@ export const recordVerificationSchema = z.object({
 /**
  * DNS Verification Response Schema
  */
-export const dnsVerificationSchema = z.object({
+const dnsVerificationSchema = z.object({
   dkim: recordVerificationSchema,
   returnPath: recordVerificationSchema,
   tracking: recordVerificationSchema,
+  dmarc: recordVerificationSchema,
   allVerified: z.boolean(),
 });
 
@@ -122,9 +123,9 @@ export type CreateSendingDomainRequest = z.infer<
 export type UpdateSendingDomainRequest = z.infer<
   typeof updateSendingDomainSchema
 >;
-export type DnsRecord = z.infer<typeof dnsRecordSchema>;
-export type DnsRecords = z.infer<typeof dnsRecordsSchema>;
-export type DnsVerification = z.infer<typeof dnsVerificationSchema>;
+type DnsRecord = z.infer<typeof dnsRecordSchema>;
+type DnsRecords = z.infer<typeof dnsRecordsSchema>;
+type DnsVerification = z.infer<typeof dnsVerificationSchema>;
 export type SendingDomainResponse = z.infer<typeof sendingDomainResponseSchema>;
 export type SendingDomainListResponse = z.infer<
   typeof sendingDomainListResponseSchema

@@ -32,8 +32,9 @@ export function VerifyDomainButton({
           data.verification.dkim.configured,
           data.verification.returnPath.configured,
           data.verification.tracking.configured,
+          data.verification.dmarc.configured,
         ].filter(Boolean).length;
-        toast(`${verified}/3 DNS records verified`);
+        toast(`${verified}/4 DNS records verified`);
       }
       router.refresh();
     },

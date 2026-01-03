@@ -1,9 +1,9 @@
 import { describe, expect, test } from "vitest";
 import {
   extractLinksFromContent,
-  validateLinks,
-  validateContentLinks,
   VALID_LINK_VARIABLES,
+  validateContentLinks,
+  validateLinks,
 } from "@/lib/broadcasts/links-validator";
 
 describe("links-validator", () => {
@@ -251,7 +251,9 @@ describe("links-validator", () => {
       for (const link of result.links) {
         expect(link.type).toBe("url");
         expect(link.status).toBe("invalid");
-        expect(link.reason).toBe("Url seems to be not responsive. Please check again.");
+        expect(link.reason).toBe(
+          "Url seems to be not responsive. Please check again.",
+        );
       }
     });
 

@@ -9,7 +9,7 @@ import { z } from "zod";
 /**
  * Workspace Entity Schema
  */
-export const workspaceSchema = z.object({
+const workspaceSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
@@ -38,7 +38,7 @@ export const createWorkspaceResponseSchema = z.object({
 });
 
 // Type exports
-export type Workspace = z.infer<typeof workspaceSchema>;
+type Workspace = z.infer<typeof workspaceSchema>;
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceSchema>;
 export type CreateWorkspaceResponse = z.infer<
   typeof createWorkspaceResponseSchema

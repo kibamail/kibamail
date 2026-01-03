@@ -7,27 +7,27 @@
  * - DELETE /api/v1/automations/[automationId] - Delete specific automation
  */
 
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
 import {
+  DELETE,
   GET,
   PUT,
-  DELETE,
 } from "@/app/(main)/api/v1/automations/[automationId]/route";
 import { POST } from "@/app/(main)/api/v1/automations/route";
-import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
-  post,
-  get,
-  put,
+  createTestWorkspace,
   del,
+  get,
+  post,
+  put,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -35,10 +35,7 @@ let fullAccessApiKey: CreatedApiKey;
 /**
  * Helper to create a test automation
  */
-async function createTestAutomation(
-  apiKey: CreatedApiKey,
-  name: string
-) {
+async function createTestAutomation(apiKey: CreatedApiKey, name: string) {
   const automationData = {
     name,
     trigger: {
@@ -64,7 +61,10 @@ async function createTestAutomation(
 /**
  * Helper to publish an automation
  */
-async function publishTestAutomation(apiKey: CreatedApiKey, automationId: string) {
+async function publishTestAutomation(
+  apiKey: CreatedApiKey,
+  automationId: string,
+) {
   const request = post(`/automations/${automationId}/publish`, {}, apiKey.key);
   const params = Promise.resolve({ automationId });
   const response = await PUBLISH_POST(request, { params });
@@ -90,11 +90,11 @@ describe("GET /api/v1/automations/[automationId]", () => {
   test("should retrieve an automation by ID", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Retrieve Test"
+      "Retrieve Test",
     );
     const request = get(
       `/automations/${createdAutomation.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -128,7 +128,7 @@ describe("GET /api/v1/automations/[automationId]", () => {
   test("should not retrieve automation from different workspace", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Workspace Test"
+      "Workspace Test",
     );
 
     // Create different workspace
@@ -137,7 +137,7 @@ describe("GET /api/v1/automations/[automationId]", () => {
 
     const request = get(
       `/automations/${createdAutomation.id}`,
-      otherApiKey.key
+      otherApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -153,7 +153,7 @@ describe("GET /api/v1/automations/[automationId]", () => {
   test("should reject request without read:automations scope", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Scope Test"
+      "Scope Test",
     );
     const writeOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
@@ -162,7 +162,7 @@ describe("GET /api/v1/automations/[automationId]", () => {
 
     const request = get(
       `/automations/${createdAutomation.id}`,
-      writeOnlyApiKey.key
+      writeOnlyApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -181,13 +181,13 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should update automation name", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Original Name"
+      "Original Name",
     );
     const updateData = { name: "Updated Name" };
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -202,7 +202,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should update automation nodes", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Update Nodes Test"
+      "Update Nodes Test",
     );
     const updateData = {
       nodes: [
@@ -232,7 +232,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -246,13 +246,13 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should update automation description", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Description Test"
+      "Description Test",
     );
     const updateData = { description: "New description" };
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -266,7 +266,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should update multiple fields at once", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Multi Update Test"
+      "Multi Update Test",
     );
     const updateData = {
       name: "Updated Multi",
@@ -292,7 +292,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -306,7 +306,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should reject update without write:automations scope", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Scope Update Test"
+      "Scope Update Test",
     );
     const readOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
@@ -317,7 +317,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      readOnlyApiKey.key
+      readOnlyApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -336,7 +336,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       "/automations/non_existent_id",
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: "non_existent_id" });
 
@@ -353,7 +353,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should allow updating name on PUBLISHED automation", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Published Name Test"
+      "Published Name Test",
     );
     await publishTestAutomation(fullAccessApiKey, createdAutomation.id);
 
@@ -361,7 +361,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -375,7 +375,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
   test("should reject updating nodes on PUBLISHED automation", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Published Nodes Test"
+      "Published Nodes Test",
     );
     await publishTestAutomation(fullAccessApiKey, createdAutomation.id);
 
@@ -392,7 +392,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -400,13 +400,15 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error.message).toContain("Only DRAFT automations can be updated");
+    expect(responseData.error.message).toContain(
+      "Only DRAFT automations can be updated",
+    );
   });
 
   test("should reject updating description on PUBLISHED automation", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Published Description Test"
+      "Published Description Test",
     );
     await publishTestAutomation(fullAccessApiKey, createdAutomation.id);
 
@@ -414,7 +416,7 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const request = put(
       `/automations/${createdAutomation.id}`,
       updateData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -422,7 +424,9 @@ describe("PUT /api/v1/automations/[automationId]", () => {
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error.message).toContain("Only DRAFT automations can be updated");
+    expect(responseData.error.message).toContain(
+      "Only DRAFT automations can be updated",
+    );
   });
 });
 
@@ -430,11 +434,11 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
   test("should delete a DRAFT automation", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Automation to Delete"
+      "Automation to Delete",
     );
     const request = del(
       `/automations/${createdAutomation.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -448,7 +452,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
     // Verify automation is soft-deleted
     const getRequest = get(
       `/automations/${createdAutomation.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const getParams = Promise.resolve({ automationId: createdAutomation.id });
     const getResponse = await GET(getRequest, { params: getParams });
@@ -473,7 +477,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
   test("should reject delete without delete:automations scope", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Scope Delete Test"
+      "Scope Delete Test",
     );
     const readOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
@@ -482,7 +486,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
 
     const request = del(
       `/automations/${createdAutomation.id}`,
-      readOnlyApiKey.key
+      readOnlyApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -499,7 +503,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
   test("should not delete automation from different workspace", async () => {
     const createdAutomation = await createTestAutomation(
       fullAccessApiKey,
-      "Workspace Delete Test"
+      "Workspace Delete Test",
     );
 
     // Create different workspace
@@ -508,7 +512,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
 
     const request = del(
       `/automations/${createdAutomation.id}`,
-      otherApiKey.key
+      otherApiKey.key,
     );
     const params = Promise.resolve({ automationId: createdAutomation.id });
 
@@ -521,7 +525,7 @@ describe("DELETE /api/v1/automations/[automationId]", () => {
     // Verify original automation still exists
     const getRequest = get(
       `/automations/${createdAutomation.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const getParams = Promise.resolve({ automationId: createdAutomation.id });
     const getResponse = await GET(getRequest, { params: getParams });

@@ -1,12 +1,12 @@
 "use client";
 
+import * as DateField from "@kibamail/owly/date-field";
 import * as Select from "@kibamail/owly/select-field";
 import * as TextField from "@kibamail/owly/text-field";
-import * as DateField from "@kibamail/owly/date-field";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
-import { internalApi } from "@/lib/api/client";
 import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import { internalApi } from "@/lib/api/client";
 
 type FieldType = "STRING" | "NUMBER" | "DATE";
 
@@ -62,12 +62,12 @@ export function UpdateContactConfig() {
               ...node,
               data: { ...node.data, fieldId, fieldValue: "" },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   const onValueChange = useCallback(
@@ -80,12 +80,12 @@ export function UpdateContactConfig() {
               ...node,
               data: { ...node.data, fieldValue: value },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   const renderValueInput = () => {

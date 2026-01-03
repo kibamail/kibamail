@@ -6,9 +6,9 @@
  */
 
 import { StringCodec } from "nats";
+import { queueLogger } from "@/lib/queue";
 import { getJetStream } from "./client";
 import type { EmailMessage, NatsConnectionOptions, PublishAck } from "./types";
-import { queueLogger } from "@/lib/queue";
 
 const logger = queueLogger.child({ module: "nats-publisher" });
 const sc = StringCodec();
@@ -32,7 +32,7 @@ function buildEmailSubject(tenantId: string, broadcastId: string): string {
  */
 export async function publishEmail(
   options: NatsConnectionOptions,
-  message: EmailMessage
+  message: EmailMessage,
 ): Promise<PublishAck> {
   const js = await getJetStream(options);
   const subject = buildEmailSubject(message.tenant_id, message.broadcast_id);
@@ -51,7 +51,7 @@ export async function publishEmail(
       seq: ack.seq,
       duplicate: ack.duplicate,
     },
-    "Email published to NATS"
+    "Email published to NATS",
   );
 
   return {
@@ -72,7 +72,7 @@ export async function publishEmail(
  */
 export async function publishEmailBatch(
   options: NatsConnectionOptions,
-  messages: EmailMessage[]
+  messages: EmailMessage[],
 ): Promise<PublishAck[]> {
   if (messages.length === 0) {
     return [];
@@ -81,10 +81,7 @@ export async function publishEmailBatch(
   const js = await getJetStream(options);
   const acks: PublishAck[] = [];
 
-  logger.info(
-    { count: messages.length },
-    "Publishing email batch to NATS"
-  );
+  logger.info({ count: messages.length }, "Publishing email batch to NATS");
 
   // Publish all messages concurrently
   const publishPromises = messages.map(async (message) => {
@@ -102,10 +99,7 @@ export async function publishEmailBatch(
         duplicate: ack.duplicate,
       };
     } catch (error) {
-      logger.error(
-        { messageId: message.id, error },
-        "Failed to publish email"
-      );
+      logger.error({ messageId: message.id, error }, "Failed to publish email");
       throw error;
     }
   });
@@ -118,7 +112,7 @@ export async function publishEmailBatch(
       count: messages.length,
       duplicates: acks.filter((a) => a.duplicate).length,
     },
-    "Email batch published to NATS"
+    "Email batch published to NATS",
   );
 
   return acks;
@@ -131,7 +125,7 @@ export async function publishEmailBatch(
  * @returns True if the stream exists and is ready
  */
 export async function isStreamReady(
-  options: NatsConnectionOptions
+  options: NatsConnectionOptions,
 ): Promise<boolean> {
   try {
     const js = await getJetStream(options);

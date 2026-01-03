@@ -12,7 +12,7 @@ export function ContactsSearch() {
   const [value, setValue] = useState(searchParams.get("search") || "");
 
   const debouncedSearch = useDebouncedCallback(function debouncedSearch(
-    searchValue: string
+    searchValue: string,
   ) {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -27,8 +27,7 @@ export function ContactsSearch() {
 
     router.replace(`?${params.toString()}`);
     router.refresh();
-  },
-  500);
+  }, 500);
 
   function onChange(event: React.ChangeEvent<HTMLInputElement>) {
     const newValue = event.target.value;

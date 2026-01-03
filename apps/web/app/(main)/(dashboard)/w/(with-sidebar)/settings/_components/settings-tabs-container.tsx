@@ -8,9 +8,9 @@ import {
 import * as Tabs from "@kibamail/owly/tabs";
 import { usePathname } from "next/navigation";
 import type { PropsWithChildren } from "react";
+import { SettingsTabs } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/_components/settings-tabs";
 import { CreateApiKeyButton } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/api-keys/_components/create-api-key-button";
 import { CreateWebhookButtonWrapper } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/webhooks/_components/create-webhook-button-wrapper";
-import { SettingsTabs } from "@/app/(main)/(dashboard)/w/(with-sidebar)/settings/_components/settings-tabs";
 
 export function SettingsTabsContainer({ children }: PropsWithChildren) {
   const pathname = usePathname();

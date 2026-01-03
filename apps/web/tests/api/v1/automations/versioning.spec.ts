@@ -1,24 +1,24 @@
-import { POST as CreateAutomation } from "@/app/(main)/api/v1/automations/route";
-import { GET as GetAutomation } from "@/app/(main)/api/v1/automations/[automationId]/route";
-import { POST as PublishAutomation } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
-import { POST as ArchiveAutomation } from "@/app/(main)/api/v1/automations/[automationId]/archive/route";
-import {
-  GET as ListVersions,
-  POST as CreateVersion,
-} from "@/app/(main)/api/v1/automations/[automationId]/versions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST as ArchiveAutomation } from "@/app/(main)/api/v1/automations/[automationId]/archive/route";
+import { POST as PublishAutomation } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
+import { GET as GetAutomation } from "@/app/(main)/api/v1/automations/[automationId]/route";
 import {
-  createTestWorkspace,
+  POST as CreateVersion,
+  GET as ListVersions,
+} from "@/app/(main)/api/v1/automations/[automationId]/versions/route";
+import { POST as CreateAutomation } from "@/app/(main)/api/v1/automations/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import {
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
-  post,
+  createTestWorkspace,
   get,
-  apiRequest,
+  post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -59,7 +59,7 @@ describe("POST /api/v1/automations/[automationId]/publish", () => {
   test("should publish a DRAFT automation", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Publish Test"
+      "Publish Test",
     );
     expect(automation.status).toBe("DRAFT");
 
@@ -81,7 +81,7 @@ describe("POST /api/v1/automations/[automationId]/publish", () => {
   test("should reject publishing an already PUBLISHED automation", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Already Published Test"
+      "Already Published Test",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -121,7 +121,7 @@ describe("POST /api/v1/automations/[automationId]/publish", () => {
   test("should reject publishing without write:automations scope", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Scope Publish Test"
+      "Scope Publish Test",
     );
     const readOnlyKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
@@ -146,7 +146,7 @@ describe("POST /api/v1/automations/[automationId]/archive", () => {
   test("should archive a PUBLISHED automation", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Archive Test"
+      "Archive Test",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -175,7 +175,7 @@ describe("POST /api/v1/automations/[automationId]/archive", () => {
   test("should reject archiving a DRAFT automation", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Archive Draft Test"
+      "Archive Draft Test",
     );
 
     const request = apiRequest(`/automations/${automation.id}/archive`)
@@ -197,7 +197,7 @@ describe("GET /api/v1/automations/[automationId]/versions", () => {
   test("should list all versions of an automation", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Versions Test"
+      "Versions Test",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -209,7 +209,7 @@ describe("GET /api/v1/automations/[automationId]/versions", () => {
     });
 
     const createVersionRequest = apiRequest(
-      `/automations/${automation.id}/versions`
+      `/automations/${automation.id}/versions`,
     )
       .method("POST")
       .auth(fullAccessApiKey.key)
@@ -220,7 +220,7 @@ describe("GET /api/v1/automations/[automationId]/versions", () => {
 
     const listRequest = get(
       `/automations/${automation.id}/versions`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: automation.id });
 
@@ -237,7 +237,7 @@ describe("GET /api/v1/automations/[automationId]/versions", () => {
   test("should return 404 for non-existent automation", async () => {
     const request = get(
       "/automations/non_existent_id/versions",
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ automationId: "non_existent_id" });
 
@@ -253,7 +253,7 @@ describe("POST /api/v1/automations/[automationId]/versions", () => {
   test("should create a new version from PUBLISHED automation", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "New Version Test"
+      "New Version Test",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -314,7 +314,7 @@ describe("POST /api/v1/automations/[automationId]/versions", () => {
     const createRequest = post(
       "/automations",
       automationData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CreateAutomation(createRequest);
     const automation = await createResponse.json();
@@ -345,7 +345,7 @@ describe("POST /api/v1/automations/[automationId]/versions", () => {
   test("should reject creating version when DRAFT already exists", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Draft Exists Test"
+      "Draft Exists Test",
     );
 
     const request = apiRequest(`/automations/${automation.id}/versions`)
@@ -365,7 +365,7 @@ describe("POST /api/v1/automations/[automationId]/versions", () => {
   test("should allow name override when creating version", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Original Name"
+      "Original Name",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -393,7 +393,7 @@ describe("POST /api/v1/automations/[automationId]/versions", () => {
   test("should reject creating version without write:automations scope", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Scope Version Test"
+      "Scope Version Test",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -428,7 +428,7 @@ describe("Editing Published Automation - Version Creation", () => {
     // Create and publish automation
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Find Draft Test"
+      "Find Draft Test",
     );
 
     const publishRequest = apiRequest(`/automations/${automation.id}/publish`)
@@ -456,7 +456,7 @@ describe("Editing Published Automation - Version Creation", () => {
     // List versions should show both
     const listRequest = get(
       `/automations/${automation.id}/versions`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const listResponse = await ListVersions(listRequest, {
       params: Promise.resolve({ automationId: automation.id }),
@@ -464,10 +464,10 @@ describe("Editing Published Automation - Version Creation", () => {
     const versions = await listResponse.json();
 
     const draftExists = versions.data.some(
-      (v: any) => v.status === "DRAFT" && v.version === 2
+      (v: any) => v.status === "DRAFT" && v.version === 2,
     );
     const publishedExists = versions.data.some(
-      (v: any) => v.status === "PUBLISHED" && v.version === 1
+      (v: any) => v.status === "PUBLISHED" && v.version === 1,
     );
 
     expect(draftExists).toBe(true);
@@ -478,7 +478,7 @@ describe("Editing Published Automation - Version Creation", () => {
     // Create v1 and publish
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Child Version Test"
+      "Child Version Test",
     );
 
     const publishV1 = apiRequest(`/automations/${automation.id}/publish`)
@@ -565,7 +565,7 @@ describe("Editing Published Automation - Version Creation", () => {
     const createRequest = post(
       "/automations",
       automationData,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CreateAutomation(createRequest);
     const automation = await createResponse.json();
@@ -593,9 +593,7 @@ describe("Editing Published Automation - Version Creation", () => {
     expect(newVersion.nodes.length).toBe(3);
     expect(newVersion.edges.length).toBe(2);
 
-    const triggerNode = newVersion.nodes.find(
-      (n: any) => n.id === "trigger-1"
-    );
+    const triggerNode = newVersion.nodes.find((n: any) => n.id === "trigger-1");
     expect(triggerNode.data.conditions).toEqual({
       field: "email",
       operator: "contains",
@@ -616,7 +614,7 @@ describe("Full Versioning Workflow", () => {
   test("should complete full publish-version-publish cycle", async () => {
     const automation = await createTestAutomation(
       fullAccessApiKey,
-      "Full Workflow Test"
+      "Full Workflow Test",
     );
     expect(automation.version).toBe(1);
     expect(automation.status).toBe("DRAFT");
@@ -631,9 +629,7 @@ describe("Full Versioning Workflow", () => {
     const published1 = await publish1Response.json();
     expect(published1.status).toBe("PUBLISHED");
 
-    const version2Request = apiRequest(
-      `/automations/${automation.id}/versions`
-    )
+    const version2Request = apiRequest(`/automations/${automation.id}/versions`)
       .method("POST")
       .auth(fullAccessApiKey.key)
       .build();
@@ -656,7 +652,7 @@ describe("Full Versioning Workflow", () => {
 
     const getV1Request = get(
       `/automations/${automation.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const getV1Response = await GetAutomation(getV1Request, {
       params: Promise.resolve({ automationId: automation.id }),
@@ -666,7 +662,7 @@ describe("Full Versioning Workflow", () => {
 
     const listRequest = get(
       `/automations/${automation.id}/versions`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const listResponse = await ListVersions(listRequest, {
       params: Promise.resolve({ automationId: automation.id }),

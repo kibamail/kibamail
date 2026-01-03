@@ -4,19 +4,19 @@
  * Tests the handleSignUpSubmission function with double opt-in configuration.
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
+import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import {
-  handleSignUpSubmission,
   type DoubleOptInConfig,
+  handleSignUpSubmission,
 } from "@/lib/forms/submission-handlers";
-import { type FormFieldMapping } from "@/lib/forms/field-mapping";
+import { DEFAULT_FORM_SETTINGS } from "@/tests/utils/form-fixtures";
 import {
-  createTestWorkspace,
   cleanupWorkspace,
+  createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils/workspace";
-import { DEFAULT_FORM_SETTINGS } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 
@@ -60,7 +60,7 @@ async function createTestEmail(workspaceId: string) {
 // Helper to create a test form with double opt-in settings
 async function createTestForm(
   workspaceId: string,
-  doubleOptInEmailId?: string | null
+  doubleOptInEmailId?: string | null,
 ) {
   const settings = {
     ...DEFAULT_FORM_SETTINGS,
@@ -130,7 +130,7 @@ describe("handleSignUpSubmission with double opt-in", () => {
         userAgent: "Test Agent",
         referrerUrl: null,
       },
-      doubleOptIn
+      doubleOptIn,
     );
 
     // Verify contact was created with SUBSCRIBED status (default)
@@ -170,7 +170,7 @@ describe("handleSignUpSubmission with double opt-in", () => {
         userAgent: "Test Agent",
         referrerUrl: null,
       },
-      doubleOptIn
+      doubleOptIn,
     );
 
     // Verify contact was created with UNCONFIRMED status
@@ -223,7 +223,7 @@ describe("handleSignUpSubmission with double opt-in", () => {
         userAgent: "Test Agent",
         referrerUrl: null,
       },
-      doubleOptIn
+      doubleOptIn,
     );
 
     // Verify contact was updated but status remains SUBSCRIBED
@@ -278,7 +278,7 @@ describe("handleSignUpSubmission with double opt-in", () => {
         userAgent: "Test Agent",
         referrerUrl: null,
       },
-      doubleOptIn
+      doubleOptIn,
     );
 
     // Verify token was regenerated
@@ -320,7 +320,7 @@ describe("handleSignUpSubmission with double opt-in", () => {
         userAgent: "Test Browser",
         referrerUrl: "https://example.com",
       },
-      doubleOptIn
+      doubleOptIn,
     );
 
     // Verify response
@@ -367,7 +367,7 @@ describe("handleSignUpSubmission with double opt-in", () => {
         userAgent: "Test Agent",
         referrerUrl: null,
       },
-      doubleOptIn
+      doubleOptIn,
     );
 
     // Should create contact without double opt-in since emailId is null
@@ -404,7 +404,7 @@ describe("handleSignUpSubmission without double opt-in parameter", () => {
         ipAddress: "127.0.0.1",
         userAgent: "Test Agent",
         referrerUrl: null,
-      }
+      },
     );
 
     const contact = await prisma.contact.findFirst({

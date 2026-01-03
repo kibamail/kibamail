@@ -1,132 +1,32 @@
-// Re-export all types from the comprehensive schema
+// Re-export only the types/values actually used by internal form-builder components
 export {
-  // Field types
-  FIELD_TYPES,
-  fieldTypeSchema,
-  type FieldType,
-
-  // Validation
-  textValidationSchema,
-  numberValidationSchema,
-  dateValidationSchema,
-  fileValidationSchema,
-  ratingValidationSchema,
-  sliderValidationSchema,
-  validationSchema,
-  type ValidationRules,
-
-  // Field options
-  fieldOptionSchema,
-  type FieldOption,
-
-  // Conditional logic
-  COMPARISON_OPERATORS,
-  comparisonOperatorSchema,
-  type ComparisonOperator,
-  LOGICAL_OPERATORS,
-  logicalOperatorSchema,
-  type LogicalOperator,
-  conditionSchema,
-  type Condition,
-  conditionalLogicSchema,
-  type ConditionalLogic,
-
-  // Field appearance
-  fieldWidthSchema,
-  labelPositionSchema,
-  fieldSizeSchema,
-  fieldAppearanceSchema,
-  type FieldWidth,
-  type LabelPosition,
-  type FieldSize,
-  type FieldAppearance,
-
-  // Contact property mapping
-  STANDARD_CONTACT_PROPERTIES,
-  contactPropertyMappingSchema,
-  type StandardContactProperty,
-  type ContactPropertyMapping,
-
-  // Form field
-  formFieldSchema,
-  type FormField,
-
-  // Form section
-  formSectionSchema,
-  type FormSection,
-
-  // Form page
-  formPageSchema,
-  type FormPage,
-
-  // Form settings
-  buttonVariantSchema,
-  buttonSizeSchema,
-  buttonPositionSchema,
-  formSubmitButtonSchema,
-  type ButtonVariant,
-  type ButtonSize,
   type ButtonPosition,
-  type FormSubmitButton,
-  formSuccessMessageSchema,
-  formSuccessRedirectSchema,
-  formSuccessActionSchema,
-  type FormSuccessAction,
-  doubleOptInSchema,
-  type DoubleOptIn,
-  formSettingsSchema,
-  type FormSettings,
-
-  // Form theme
-  formThemeColorsSchema,
-  type FormThemeColors,
-  formThemeFontSchema,
-  type FormThemeFont,
-  cssPropertiesSchema,
-  type CSSPropertiesRecord,
-  formThemeSchema,
-  type FormTheme,
-  DEFAULT_LIGHT_THEME,
-  DEFAULT_DARK_THEME,
-
-  // Form styling
-  formLayoutSchema,
-  labelStyleSchema,
-  borderRadiusSchema,
-  spacingSchema,
-  formStylingSchema,
-  type FormLayout,
-  type LabelStyle,
-  type BorderRadius,
-  type Spacing,
-  type FormStyling,
-
-  // Form builder schema
-  formBuilderSchema,
-  type FormBuilderSchema,
-
-  // Form submission data
-  formSubmissionDataSchema,
-  type FormSubmissionData,
-
-  // Helper types
-  type FieldTypeConfig,
-  FIELD_TYPE_CONFIGS,
-
-  // Default values
-  DEFAULT_FIELD_APPEARANCE,
-  DEFAULT_SUBMIT_BUTTON,
-  DEFAULT_SUCCESS_ACTION,
-  DEFAULT_DOUBLE_OPT_IN,
-  DEFAULT_FORM_SETTINGS,
-  DEFAULT_FORM_STYLING,
-  DEFAULT_CONDITIONAL_LOGIC,
-
+  type ButtonSize,
+  type ButtonVariant,
+  type ContactPropertyMapping,
   // Factory functions
   createEmptyField,
-  createEmptySection,
-  createEmptyPage,
-  createEmptyForm,
+  DEFAULT_FIELD_APPEARANCE,
+  DEFAULT_FORM_SETTINGS,
+  DEFAULT_FORM_STYLING,
+  DEFAULT_LIGHT_THEME,
+  FIELD_TYPE_CONFIGS,
+  type FieldOption,
+  // Types
+  type FieldType,
+  type FieldTypeConfig,
+  type FieldWidth,
+  type FormBuilderSchema,
+  type FormField,
+  type FormPage,
+  type FormSection,
+  type FormSettings,
+  type FormStyling,
+  type FormSuccessAction,
+  type FormTheme,
+  type LabelPosition,
+  // Constants
+  STANDARD_CONTACT_PROPERTIES,
 } from "@/lib/form-builder/schema";
 
 // =============================================================================

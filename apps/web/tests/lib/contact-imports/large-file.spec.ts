@@ -4,16 +4,16 @@
  * Tests for processing large CSV files (10,000+ rows)
  */
 
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import type { ContactImport } from "@prisma/client";
-import { prisma } from "@/lib/db";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { processContactImport } from "@/lib/contact-imports";
 import { parseCsv } from "@/lib/csv";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
   cleanupWorkspace,
+  createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils/workspace";
 
@@ -27,7 +27,7 @@ function loadLargeCsv(): string {
 async function createTestContactImport(
   workspaceId: string,
   columnMapping: Record<string, string>,
-  totalRows: number
+  totalRows: number,
 ): Promise<ContactImport> {
   return prisma.contactImport.create({
     data: {
@@ -81,41 +81,47 @@ describe("Large CSV File Processing", () => {
     expect(duration).toBeLessThan(5000);
   });
 
-  it("should process 500 contacts from large file", { timeout: 7000 }, async () => {
-    const parsed = parseCsv(csvContent);
-    const subset = parsed.rows.slice(0, 500);
+  it(
+    "should process 500 contacts from large file",
+    { timeout: 7000 },
+    async () => {
+      const parsed = parseCsv(csvContent);
+      const subset = parsed.rows.slice(0, 500);
 
-    const headers = parsed.headers.join(",");
-    const rows = subset.map((row) => row.values.join(","));
-    const subsetContent = [headers, ...rows].join("\n");
+      const headers = parsed.headers.join(",");
+      const rows = subset.map((row) => row.values.join(","));
+      const subsetContent = [headers, ...rows].join("\n");
 
-    const columnMapping = {
-      "Email 1": "email",
-      "First Name": "firstName",
-      "Last Name": "lastName",
-      "Company": "phone",
-    };
+      const columnMapping = {
+        "Email 1": "email",
+        "First Name": "firstName",
+        "Last Name": "lastName",
+        Company: "phone",
+      };
 
-    const contactImport = await createTestContactImport(
-      testWorkspace.id,
-      columnMapping,
-      500
-    );
+      const contactImport = await createTestContactImport(
+        testWorkspace.id,
+        columnMapping,
+        500,
+      );
 
-    const result = await processContactImport(contactImport, subsetContent, {
-      batchSize: 100,
-    });
+      const result = await processContactImport(contactImport, subsetContent, {
+        batchSize: 100,
+      });
 
-    expect(result.success).toBe(true);
-    expect(result.totalRows).toBe(500);
-    expect(result.createdCount + result.skippedCount + result.failedCount).toBe(500);
-    expect(result.createdCount).toBeGreaterThan(250);
+      expect(result.success).toBe(true);
+      expect(result.totalRows).toBe(500);
+      expect(
+        result.createdCount + result.skippedCount + result.failedCount,
+      ).toBe(500);
+      expect(result.createdCount).toBeGreaterThan(250);
 
-    const contactCount = await prisma.contact.count({
-      where: { workspaceId: testWorkspace.id },
-    });
-    expect(contactCount).toBeGreaterThan(250);
-  });
+      const contactCount = await prisma.contact.count({
+        where: { workspaceId: testWorkspace.id },
+      });
+      expect(contactCount).toBeGreaterThan(250);
+    },
+  );
 
   it("should track progress during import", async () => {
     const parsed = parseCsv(csvContent);
@@ -133,7 +139,7 @@ describe("Large CSV File Processing", () => {
     const contactImport = await createTestContactImport(
       testWorkspace.id,
       columnMapping,
-      250
+      250,
     );
 
     const progressUpdates: Array<{ processed: number; total: number }> = [];
@@ -149,7 +155,7 @@ describe("Large CSV File Processing", () => {
 
     for (let i = 1; i < progressUpdates.length; i++) {
       expect(progressUpdates[i].processed).toBeGreaterThanOrEqual(
-        progressUpdates[i - 1].processed
+        progressUpdates[i - 1].processed,
       );
     }
   });

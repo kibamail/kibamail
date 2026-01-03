@@ -13,14 +13,14 @@ import {
   UnsubscribeContactNode,
   UpdateContactNode,
 } from "./action-nodes";
+import { EmptyNode } from "./empty-node";
 import { IfElseNode, PercentageSplitNode, TimeDelayNode } from "./rule-nodes";
 import {
   ContactPropertyUpdatedNode,
   ContactSubscribedNode,
-  FormFilledNode,
   EventTriggeredNode,
+  FormFilledNode,
 } from "./trigger-nodes";
-import { EmptyNode } from "./empty-node";
 
 export const nodeTypes: NodeTypes = {
   // Trigger nodes
@@ -44,22 +44,4 @@ export const nodeTypes: NodeTypes = {
 
   // Special nodes
   [SpecialNodeType.EMPTY]: EmptyNode,
-};
-
-// Export individual components for direct use if needed
-export {
-  AddToTopicNode,
-  ContactPropertyUpdatedNode,
-  ContactSubscribedNode,
-  EmptyNode,
-  EventTriggeredNode,
-  FormFilledNode,
-  IfElseNode,
-  PercentageSplitNode,
-  RemoveFromTopicNode,
-  SendEmailNode,
-  SendWebhookNode,
-  TimeDelayNode,
-  UnsubscribeContactNode,
-  UpdateContactNode,
 };

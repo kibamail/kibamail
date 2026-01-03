@@ -10,12 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import {
+  deleteContact as externalDeleteContact,
   getContact as externalGetContact,
   updateContact as externalUpdateContact,
-  deleteContact as externalDeleteContact,
 } from "@/app/(main)/api/v1/contacts/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * GET /api/internal/v1/contacts/:id
@@ -25,7 +25,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { id } = await params;
@@ -49,7 +49,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { id } = await params;
@@ -73,7 +73,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { id } = await params;

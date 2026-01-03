@@ -6,13 +6,13 @@
 
 import type { NextRequest } from "next/server";
 import { logto } from "@/auth/logto";
-import type { UserSession } from "@/lib/auth/get-session";
-import { responseOk, responseBadRequest } from "@/lib/api/responses";
-import { validateRequestBody } from "@/lib/api/validation";
-import { updateInvitationStatusSchema } from "./schema";
-import { prisma } from "@/lib/db";
 import { NotFoundError } from "@/lib/api/errors";
+import { responseBadRequest, responseOk } from "@/lib/api/responses";
+import { validateRequestBody } from "@/lib/api/validation";
+import type { UserSession } from "@/lib/auth/get-session";
+import { prisma } from "@/lib/db";
 import { toLogtoError } from "@/lib/logto/errors";
+import { updateInvitationStatusSchema } from "./schema";
 
 /**
  * PUT /api/internal/v1/invitations/[id]/status

@@ -2,6 +2,7 @@
 
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
+import { LetterAvatar } from "@kibamail/owly/letter-avatar";
 import * as SettingsCard from "@kibamail/owly/settings-card";
 import * as Table from "@kibamail/owly/table";
 import { Plus } from "iconoir-react";
@@ -12,7 +13,6 @@ import type {
 import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { InvitationActionsDropdown } from "./invitation-actions-dropdown";
 import { MemberActionsDropdown } from "./member-actions-dropdown";
-import { LetterAvatar } from "@kibamail/owly/letter-avatar";
 
 type TableRow =
   | { type: "member"; data: LogtoOrganizationMember }

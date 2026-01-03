@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
         }
         return createEmail(session.currentOrganization.id, request);
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }
 
@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         }
         return listEmails(session.currentOrganization.id, request);
       },
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }

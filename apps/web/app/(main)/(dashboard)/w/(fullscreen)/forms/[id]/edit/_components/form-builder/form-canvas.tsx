@@ -1,18 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { Plus } from "iconoir-react";
-import type { JSONContent } from "@tiptap/react";
 import {
-  DndContext,
   closestCenter,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
-  DragOverlay,
-  type DragStartEvent,
-  type DragEndEvent,
 } from "@dnd-kit/core";
 import {
   SortableContext,
@@ -21,11 +18,14 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useFormBuilder, SUBMIT_BUTTON_ID } from "./form-builder-context";
-import { type FormField, DEFAULT_LIGHT_THEME } from "./types";
-import { CanvasFieldRenderer } from "./canvas-field-renderer";
+import type { JSONContent } from "@tiptap/react";
+import { Plus } from "iconoir-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { CanvasFieldRenderer } from "./canvas-field-renderer";
+import { SUBMIT_BUTTON_ID, useFormBuilder } from "./form-builder-context";
+import { DEFAULT_LIGHT_THEME, type FormField } from "./types";
 
 function SortableField({
   field,
@@ -100,7 +100,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const section = currentPage?.sections[0];
@@ -113,8 +113,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
     (theme.container?.backgroundColor as string) ?? "#ffffff";
   const containerBorderRadius =
     (theme.container?.borderRadius as string) ?? "12px";
-  const containerMaxWidth =
-    (theme.container?.maxWidth as string) ?? "672px";
+  const containerMaxWidth = (theme.container?.maxWidth as string) ?? "672px";
   const fontFamily = theme.font?.family ?? "Inter";
   const fontUrl = theme.font?.url;
 
@@ -144,7 +143,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
 
   function parsePadding(
     obj: Record<string, unknown> | undefined,
-    defaultValue: string
+    defaultValue: string,
   ): { top: string; right: string; bottom: string; left: string } {
     if (!obj) {
       return {
@@ -213,7 +212,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
         oldIndex,
         selectedPageIndex,
         section.id,
-        newIndex
+        newIndex,
       );
     }
   }
@@ -271,7 +270,9 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
               <input
                 type="text"
                 value={schema.title}
-                onChange={(event) => updateFormMeta({ title: event.target.value })}
+                onChange={(event) =>
+                  updateFormMeta({ title: event.target.value })
+                }
                 placeholder="Form Title"
                 className="w-full text-2xl font-bold bg-transparent border-none focus:outline-none focus:ring-0"
                 style={{ color: "inherit" }}
@@ -281,7 +282,9 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                 type="text"
                 value={schema.description ?? ""}
                 onChange={(event) =>
-                  updateFormMeta({ description: event.target.value || undefined })
+                  updateFormMeta({
+                    description: event.target.value || undefined,
+                  })
                 }
                 placeholder="Add a description..."
                 className="w-full text-sm bg-transparent border-none focus:outline-none focus:ring-0 opacity-70 mt-1"
@@ -326,13 +329,12 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                             duplicateField(
                               selectedPageIndex,
                               section.id,
-                              field.id
+                              field.id,
                             )
                           }
                           onContentChange={
                             field.type === "content"
-                              ? (content) =>
-                                  onContentChange(field.id, content)
+                              ? (content) => onContentChange(field.id, content)
                               : undefined
                           }
                         />
@@ -384,15 +386,17 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                     ? "justify-start"
                     : schema.settings.submitButton.position === "center"
                       ? "justify-center"
-                      : "justify-end"
+                      : "justify-end",
               )}
             >
               <div
-                onClick={readOnly ? undefined : () => selectField(SUBMIT_BUTTON_ID)}
+                onClick={
+                  readOnly ? undefined : () => selectField(SUBMIT_BUTTON_ID)
+                }
                 className={cn(
                   "group relative transition-all",
                   !readOnly && "cursor-pointer",
-                  schema.settings.submitButton.fullWidth && "w-full"
+                  schema.settings.submitButton.fullWidth && "w-full",
                 )}
               >
                 {/* Selection indicator - left bar */}
@@ -402,7 +406,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                       "absolute -left-3 top-0 bottom-0 w-0.5 rounded-full transition-colors",
                       selectedFieldId === SUBMIT_BUTTON_ID
                         ? "bg-kb-border-info"
-                        : "bg-transparent group-hover:bg-kb-border-info"
+                        : "bg-transparent group-hover:bg-kb-border-info",
                     )}
                   />
                 )}
@@ -411,7 +415,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                   variant={schema.settings.submitButton.variant}
                   size={schema.settings.submitButton.size}
                   className={cn(
-                    schema.settings.submitButton.fullWidth && "w-full"
+                    schema.settings.submitButton.fullWidth && "w-full",
                   )}
                 >
                   {schema.settings.submitButton.text}

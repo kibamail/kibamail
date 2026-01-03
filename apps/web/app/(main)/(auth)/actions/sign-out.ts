@@ -14,10 +14,10 @@
 
 "use server";
 
-import { signOut, getLogtoContext } from "@logto/next/server-actions";
+import { getLogtoContext, signOut } from "@logto/next/server-actions";
 import { logtoConfig } from "@/config/logto";
 import { invalidateUserCache } from "@/lib/auth/user-cache";
-import { Cookies, CookieKey } from "@/lib/cookies";
+import { CookieKey, Cookies } from "@/lib/cookies";
 
 export async function signOutAction() {
   const context = await getLogtoContext(logtoConfig);

@@ -1,17 +1,17 @@
 "use client";
 
+import type { BroadcastStatus, SendingDomain } from "@prisma/client";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
-import type { SendingDomain, BroadcastStatus } from "@prisma/client";
 
 import { EmailEditorClient } from "@/components/email-editor/email-editor-client";
-import { internalApi } from "@/lib/api/client";
 import type {
   BroadcastDetails,
   EmailEditorMutations,
   SaveDraftPayload,
   TransformedSenderIdentity,
 } from "@/components/email-editor/types";
+import { internalApi } from "@/lib/api/client";
 
 dayjs.extend(utc);
 

@@ -3,11 +3,21 @@
  *
  * Manages NATS connection and JetStream context for the control plane.
  * Handles TLS, authentication, and connection lifecycle.
+ *
+ * Supports two authentication methods:
+ * - NKey authentication (preferred for production)
+ * - Password authentication (for development)
  */
 
-import { connect, NatsConnection, JetStreamClient, JetStreamManager } from "nats";
-import type { NatsConnectionOptions } from "./types";
+import {
+  connect,
+  type JetStreamClient,
+  type JetStreamManager,
+  type NatsConnection,
+  nkeyAuthenticator,
+} from "nats";
 import { queueLogger } from "@/lib/queue";
+import type { NatsConnectionOptions } from "./types";
 
 const logger = queueLogger.child({ module: "nats-client" });
 
@@ -19,7 +29,7 @@ let jetStreamManager: JetStreamManager | null = null;
  * Get or create the NATS connection
  */
 export async function getNatsConnection(
-  options: NatsConnectionOptions
+  options: NatsConnectionOptions,
 ): Promise<NatsConnection> {
   if (connection && !connection.isClosed()) {
     return connection;
@@ -38,14 +48,30 @@ export async function getNatsConnection(
     ca: Buffer.from(options.tlsCa, "base64").toString("utf-8"),
   };
 
-  connection = await connect({
+  // Build connection options based on authentication method
+  const connectionOptions: Parameters<typeof connect>[0] = {
     servers,
-    user: options.user,
-    pass: options.password,
     tls,
     maxReconnectAttempts: options.maxReconnectAttempts ?? -1,
     reconnectTimeWait: options.reconnectTimeWait ?? 2000,
-  });
+  };
+
+  // Use NKey authentication if seed is provided, otherwise fall back to password
+  if (options.nkeySeed) {
+    logger.info("Using NKey authentication");
+    const seed = new TextEncoder().encode(options.nkeySeed);
+    connectionOptions.authenticator = nkeyAuthenticator(seed);
+  } else if (options.user && options.password) {
+    logger.info("Using password authentication");
+    connectionOptions.user = options.user;
+    connectionOptions.pass = options.password;
+  } else {
+    throw new Error(
+      "NATS authentication required: provide either nkeySeed or user/password",
+    );
+  }
+
+  connection = await connect(connectionOptions);
 
   // Set up connection event handlers
   (async () => {
@@ -77,7 +103,7 @@ export async function getNatsConnection(
  * Get or create the JetStream client
  */
 export async function getJetStream(
-  options: NatsConnectionOptions
+  options: NatsConnectionOptions,
 ): Promise<JetStreamClient> {
   if (jetStream) {
     return jetStream;
@@ -94,7 +120,7 @@ export async function getJetStream(
  * Get or create the JetStream manager (for stream/consumer management)
  */
 export async function getJetStreamManager(
-  options: NatsConnectionOptions
+  options: NatsConnectionOptions,
 ): Promise<JetStreamManager> {
   if (jetStreamManager) {
     return jetStreamManager;
@@ -124,6 +150,6 @@ export async function closeNatsConnection(): Promise<void> {
 /**
  * Check if NATS is connected
  */
-export function isNatsConnected(): boolean {
+function isNatsConnected(): boolean {
   return connection !== null && !connection.isClosed();
 }

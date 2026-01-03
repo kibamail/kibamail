@@ -10,8 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getSegment, updateSegment, deleteSegment } from "@/app/(main)/api/v1/segments/handler";
+import {
+  deleteSegment,
+  getSegment,
+  updateSegment,
+} from "@/app/(main)/api/v1/segments/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/segments/[segmentId]
@@ -21,7 +25,7 @@ import { getSegment, updateSegment, deleteSegment } from "@/app/(main)/api/v1/se
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
@@ -29,8 +33,8 @@ export async function GET(
     withApiSession(
       request,
       (apiKey) => getSegment(apiKey.workspaceId, segmentId),
-      ["read:segments"]
-    )
+      ["read:segments"],
+    ),
   );
 }
 
@@ -42,16 +46,17 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => updateSegment(apiKey.workspaceId, segmentId, request),
-      ["update:segments"]
-    )
+      (apiKey, request) =>
+        updateSegment(apiKey.workspaceId, segmentId, request),
+      ["update:segments"],
+    ),
   );
 }
 
@@ -63,7 +68,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
@@ -71,7 +76,7 @@ export async function DELETE(
     withApiSession(
       request,
       (apiKey) => deleteSegment(apiKey.workspaceId, segmentId),
-      ["delete:segments"]
-    )
+      ["delete:segments"],
+    ),
   );
 }

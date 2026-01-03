@@ -68,7 +68,7 @@ export function WorkspaceProfileCard() {
     ];
     if (!allowedTypes.includes(file.type)) {
       toast.error(
-        "Invalid file type. Please upload a JPEG, PNG, GIF, WebP, or SVG image."
+        "Invalid file type. Please upload a JPEG, PNG, GIF, WebP, or SVG image.",
       );
       return;
     }
@@ -92,7 +92,7 @@ export function WorkspaceProfileCard() {
       toast.error(
         error instanceof Error
           ? error.message
-          : "Failed to upload logo. Please try again."
+          : "Failed to upload logo. Please try again.",
       );
     } finally {
       setIsUploading(false);

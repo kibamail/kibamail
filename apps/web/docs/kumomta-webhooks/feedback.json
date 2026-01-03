@@ -48,13 +48,8 @@
       "comcast.net; dkim=pass header.d=newsletter.acme.com",
       "comcast.net; dmarc=pass header.from=newsletter.acme.com"
     ],
-    "original_rcpto_to": [
-      "<angry.user@comcast.net>"
-    ],
-    "reported_domain": [
-      "newsletter.acme.com",
-      "bounce.newsletter.acme.com"
-    ],
+    "original_rcpto_to": ["<angry.user@comcast.net>"],
+    "reported_domain": ["newsletter.acme.com", "bounce.newsletter.acme.com"],
     "reported_uri": [
       "https://newsletter.acme.com/click/abc123",
       "https://newsletter.acme.com/unsubscribe/jkl012"

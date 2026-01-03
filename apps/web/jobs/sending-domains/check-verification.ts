@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
-import { queue, queueLogger } from "@/lib/queue";
 import type { JobProcessor } from "@/lib/queue";
+import { queue, queueLogger } from "@/lib/queue";
 import { verifyDnsRecords } from "@/lib/sending-domains/dns";
 
 const logger = queueLogger.child({ job: "check-verification" });

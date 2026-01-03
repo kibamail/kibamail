@@ -18,7 +18,11 @@
       },
       "num_attempts": 2,
       "bounce_classification": "TransientFailure",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_001" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_001"
+      }
     },
     {
       "_scenario": "Mailbox temporarily unavailable",
@@ -37,7 +41,11 @@
       },
       "num_attempts": 1,
       "bounce_classification": "TransientFailure",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_002" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_002"
+      }
     },
     {
       "_scenario": "Temporary quota exceeded",
@@ -56,7 +64,11 @@
       },
       "num_attempts": 4,
       "bounce_classification": "QuotaIssues",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_003" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_003"
+      }
     },
     {
       "_scenario": "Greylisting - first attempt rejected",
@@ -75,7 +87,11 @@
       },
       "num_attempts": 1,
       "bounce_classification": "TransientFailure",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_004" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_004"
+      }
     },
     {
       "_scenario": "DNS temporary failure",
@@ -94,7 +110,11 @@
       },
       "num_attempts": 2,
       "bounce_classification": "DNSFailure",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_005" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_005"
+      }
     },
     {
       "_scenario": "Connection timeout",
@@ -113,7 +133,11 @@
       },
       "num_attempts": 3,
       "bounce_classification": "BadConnection",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_006" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_006"
+      }
     },
     {
       "_scenario": "System congestion",
@@ -132,7 +156,11 @@
       },
       "num_attempts": 5,
       "bounce_classification": "TransientFailure",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_007" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_007"
+      }
     }
   ]
 }

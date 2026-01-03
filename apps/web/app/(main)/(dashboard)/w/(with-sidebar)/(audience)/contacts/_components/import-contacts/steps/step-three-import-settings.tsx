@@ -6,13 +6,13 @@ import * as MultiSelect from "@kibamail/owly/multi-select";
 import { Text } from "@kibamail/owly/text";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { NavArrowLeft, Plus } from "iconoir-react";
-import { useRef, useState, type FormEvent } from "react";
-import { useToggleState } from "@/hooks/utils/useToggleState";
-import { internalApi } from "@/lib/api/client";
-import type { UpdateContactImportRequest } from "@/app/(main)/api/internal/v1/contact-imports/schema";
+import { type FormEvent, useRef, useState } from "react";
 import * as CheckboxField from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/components/checkbox-field";
 import { useImportContactsStore } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/store/import-contacts-store";
 import { CreateTopicModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/topics/_components/create-topic-modal";
+import type { UpdateContactImportRequest } from "@/app/(main)/api/internal/v1/contact-imports/schema";
+import { useToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
 
 export function StepThreeImportSettings() {
   const selectedTopicsRef = useRef<string[]>([]);
@@ -73,7 +73,7 @@ export function StepThreeImportSettings() {
 
     if (contactProperties.customProperties) {
       for (const [columnName, property] of Object.entries(
-        contactProperties.customProperties
+        contactProperties.customProperties,
       )) {
         columnMapping[columnName] = property.id;
       }

@@ -9,7 +9,7 @@
 
 import type { NextRequest } from "next/server";
 import { searchContacts } from "@/app/(main)/api/v1/contacts/handler";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * POST /api/v1/contacts/search
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => searchContacts(apiKey.workspaceId, request),
-      ["read:contacts"]
-    )
+      ["read:contacts"],
+    ),
   );
 }

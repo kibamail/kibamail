@@ -5,11 +5,11 @@
  * Users can create, view, and delete API keys with granular scopes.
  */
 
+import { SearchInput } from "@/app/(main)/(dashboard)/w/(with-sidebar)/_components/search-input";
 import { getSession } from "@/lib/auth/get-session";
 import { hasPermission } from "@/lib/auth/permissions";
 import { prisma } from "@/lib/db";
 import { ApiKeysTable } from "./_components/api-keys-table";
-import { SearchInput } from "@/app/(main)/(dashboard)/w/(with-sidebar)/_components/search-input";
 
 interface ApiKeysPageProps {
   searchParams: Promise<{ search?: string }>;

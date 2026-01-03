@@ -1,7 +1,7 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Text } from "@kibamail/owly/text";
+import { useQuery } from "@tanstack/react-query";
 
 interface EmailPreviewProps {
   entityId: string;
@@ -29,9 +29,7 @@ export function EmailPreview({
   if (!onGetPreview) {
     return (
       <div className="h-full w-full bg-kb-surface-primary flex items-center justify-center">
-        <Text className="text-kb-content-secondary">
-          Preview not available
-        </Text>
+        <Text className="text-kb-content-secondary">Preview not available</Text>
       </div>
     );
   }

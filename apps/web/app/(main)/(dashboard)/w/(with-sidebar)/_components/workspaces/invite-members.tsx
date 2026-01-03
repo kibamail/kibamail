@@ -1,16 +1,16 @@
 "use client";
 
-import * as Dialog from "@kibamail/owly/dialog";
 import { Button } from "@kibamail/owly/button";
-import * as TextField from "@kibamail/owly/text-field";
+import * as Dialog from "@kibamail/owly/dialog";
 import * as Select from "@kibamail/owly/select-field";
+import * as TextField from "@kibamail/owly/text-field";
+import { useToast } from "@kibamail/owly/toast";
 import { Mail } from "iconoir-react";
-import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { ROLES } from "@/config/rbac";
+import { useMutation } from "@/hooks/use-mutation";
+import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 import { useOrganization } from "@/lib/contexts/user-context";
-import { useMutation } from "@/hooks/use-mutation";
-import { useToast } from "@kibamail/owly/toast";
 
 interface InviteMembersProps extends ToggleState {
   mode?: "invite" | "change-role";
@@ -48,7 +48,7 @@ export function InviteMembers({
       onOpenChange?.(false);
 
       toast(
-        `${variables.email} has been invited to join as ${roleDisplayName}.`
+        `${variables.email} has been invited to join as ${roleDisplayName}.`,
       );
     },
   });

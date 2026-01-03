@@ -9,8 +9,12 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  deleteSegment,
+  getSegment,
+  updateSegment,
+} from "@/app/(main)/api/v1/segments/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { getSegment, updateSegment, deleteSegment } from "@/app/(main)/api/v1/segments/handler";
 
 /**
  * GET /api/internal/v1/segments/[segmentId]
@@ -21,7 +25,7 @@ import { getSegment, updateSegment, deleteSegment } from "@/app/(main)/api/v1/se
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
@@ -34,8 +38,8 @@ export async function GET(
         }
         return getSegment(session.currentOrganization.id, segmentId);
       },
-      ["read:segments"]
-    )
+      ["read:segments"],
+    ),
   );
 }
 
@@ -48,7 +52,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
@@ -59,10 +63,14 @@ export async function PUT(
         if (!session.currentOrganization) {
           throw new Error("No active workspace found");
         }
-        return updateSegment(session.currentOrganization.id, segmentId, request);
+        return updateSegment(
+          session.currentOrganization.id,
+          segmentId,
+          request,
+        );
       },
-      ["manage:segments"]
-    )
+      ["manage:segments"],
+    ),
   );
 }
 
@@ -75,7 +83,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ segmentId: string }> }
+  { params }: { params: Promise<{ segmentId: string }> },
 ) {
   const { segmentId } = await params;
 
@@ -88,7 +96,7 @@ export async function DELETE(
         }
         return deleteSegment(session.currentOrganization.id, segmentId);
       },
-      ["manage:segments"]
-    )
+      ["manage:segments"],
+    ),
   );
 }

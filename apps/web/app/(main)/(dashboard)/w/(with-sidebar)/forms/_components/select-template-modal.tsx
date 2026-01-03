@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "@kibamail/owly/button";
 import * as Dialog from "@kibamail/owly/dialog";
-import { Text } from "@kibamail/owly/text";
 import { Heading } from "@kibamail/owly/heading";
+import { Text } from "@kibamail/owly/text";
 import { useToast } from "@kibamail/owly/toast";
 import { Plus } from "iconoir-react";
-import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   FORM_TEMPLATES,
-  TEMPLATE_CATEGORIES,
   type FormTemplate,
   type FormTemplateCategory,
+  TEMPLATE_CATEGORIES,
 } from "@/form-templates";
+import { useMutation } from "@/hooks/use-mutation";
+import { internalApi } from "@/lib/api/client";
 import {
   DEFAULT_FORM_SETTINGS,
   DEFAULT_FORM_STYLING,
@@ -30,7 +30,7 @@ interface SelectTemplateModalProps {
 }
 
 function getTemplateCategories(
-  formType: "SIGN_UP" | "SURVEY"
+  formType: "SIGN_UP" | "SURVEY",
 ): FormTemplateCategory[] {
   if (formType === "SIGN_UP") {
     return ["signup", "event", "contact", "feedback"];
@@ -79,12 +79,12 @@ export function SelectTemplateModal({
   const router = useRouter();
   const { success: toast, error: toastError } = useToast();
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    null
+    null,
   );
 
   const categories = getTemplateCategories(formType);
   const filteredTemplates = FORM_TEMPLATES.filter((t) =>
-    categories.includes(t.category)
+    categories.includes(t.category),
   );
 
   const mutation = useMutation({
@@ -119,10 +119,13 @@ export function SelectTemplateModal({
     }
   }
 
-  const templatesByCategory = categories.reduce((acc, category) => {
-    acc[category] = filteredTemplates.filter((t) => t.category === category);
-    return acc;
-  }, {} as Record<FormTemplateCategory, FormTemplate[]>);
+  const templatesByCategory = categories.reduce(
+    (acc, category) => {
+      acc[category] = filteredTemplates.filter((t) => t.category === category);
+      return acc;
+    },
+    {} as Record<FormTemplateCategory, FormTemplate[]>,
+  );
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>

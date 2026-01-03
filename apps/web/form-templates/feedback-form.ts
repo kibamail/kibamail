@@ -1,5 +1,5 @@
-import type { FormTemplate } from "./types";
 import { DEFAULT_FIELD_APPEARANCE } from "@/lib/form-builder/schema";
+import type { FormTemplate } from "./types";
 
 export const feedbackFormTemplate: FormTemplate = {
   id: "feedback-form",

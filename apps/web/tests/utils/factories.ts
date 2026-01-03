@@ -5,19 +5,23 @@
  * Provides consistent, realistic test data across all tests.
  */
 
-import { faker } from "@faker-js/faker";
 import { randomUUID } from "node:crypto";
-import type { ContactStatus, TopicVisibility, SegmentType } from "@prisma/client";
+import { faker } from "@faker-js/faker";
+import type {
+  ContactStatus,
+  SegmentType,
+  TopicVisibility,
+} from "@prisma/client";
 
 /**
  * Contact status options
  */
-export const CONTACT_STATUSES: ContactStatus[] = [
+const CONTACT_STATUSES: ContactStatus[] = [
   "SUBSCRIBED",
   "UNSUBSCRIBED",
   "BOUNCED",
   "COMPLAINED",
-  "ARCHIVED"
+  "ARCHIVED",
 ];
 
 /**
@@ -29,22 +33,24 @@ export const CONTACT_STATUSES: ContactStatus[] = [
  * @example
  * ```ts
  * const contact = fakeContact();
- * const specificContact = fakeContact({ 
+ * const specificContact = fakeContact({
  *   email: 'test@example.com',
- *   status: 'SUBSCRIBED' 
+ *   status: 'SUBSCRIBED'
  * });
  * ```
  */
-export function fakeContact(overrides: Partial<{
-  email: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  country: string;
-  timezone: string;
-  city: string;
-  status: ContactStatus;
-}> = {}) {
+export function fakeContact(
+  overrides: Partial<{
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    country: string;
+    timezone: string;
+    city: string;
+    status: ContactStatus;
+  }> = {},
+) {
   return {
     email: overrides.email || faker.internet.email(),
     firstName: overrides.firstName || faker.person.firstName(),
@@ -63,9 +69,11 @@ export function fakeContact(overrides: Partial<{
  * @param overrides - Optional field overrides
  * @returns Minimal contact data
  */
-export function fakeMinimalContact(overrides: Partial<{
-  email: string;
-}> = {}) {
+export function fakeMinimalContact(
+  overrides: Partial<{
+    email: string;
+  }> = {},
+) {
   return {
     email: overrides.email || faker.internet.email(),
   };
@@ -77,10 +85,12 @@ export function fakeMinimalContact(overrides: Partial<{
  * @param overrides - Optional field overrides
  * @returns Fake tag data
  */
-export function fakeTag(overrides: Partial<{
-  name: string;
-  color: string;
-}> = {}) {
+function fakeTag(
+  overrides: Partial<{
+    name: string;
+    color: string;
+  }> = {},
+) {
   return {
     name: overrides.name || faker.word.adjective() + " " + faker.word.noun(),
     color: overrides.color || faker.color.rgb(),
@@ -93,16 +103,20 @@ export function fakeTag(overrides: Partial<{
  * @param overrides - Optional field overrides
  * @returns Fake topic data
  */
-export function fakeTopic(overrides: Partial<{
-  name: string;
-  description: string;
-  visibility: TopicVisibility;
-}> = {}) {
+function fakeTopic(
+  overrides: Partial<{
+    name: string;
+    description: string;
+    visibility: TopicVisibility;
+  }> = {},
+) {
   const name = overrides.name || faker.word.words(2);
   return {
     name,
     description: overrides.description || faker.lorem.sentence(),
-    visibility: overrides.visibility || faker.helpers.arrayElement(["PUBLIC", "PRIVATE"] as TopicVisibility[]),
+    visibility:
+      overrides.visibility ||
+      faker.helpers.arrayElement(["PUBLIC", "PRIVATE"] as TopicVisibility[]),
   };
 }
 
@@ -112,24 +126,28 @@ export function fakeTopic(overrides: Partial<{
  * @param overrides - Optional field overrides
  * @returns Fake segment data
  */
-export function fakeSegment(overrides: Partial<{
-  name: string;
-  description: string;
-  type: SegmentType;
-  conditions: object;
-}> = {}) {
+function fakeSegment(
+  overrides: Partial<{
+    name: string;
+    description: string;
+    type: SegmentType;
+    conditions: object;
+  }> = {},
+) {
   return {
     name: overrides.name || faker.word.words(2) + " Segment",
     description: overrides.description || faker.lorem.sentence(),
-    type: overrides.type || faker.helpers.arrayElement(["DYNAMIC", "STATIC"] as SegmentType[]),
+    type:
+      overrides.type ||
+      faker.helpers.arrayElement(["DYNAMIC", "STATIC"] as SegmentType[]),
     conditions: overrides.conditions || {
       and: [
         {
           field: "status",
           operator: "equals",
-          value: "SUBSCRIBED"
-        }
-      ]
+          value: "SUBSCRIBED",
+        },
+      ],
     },
   };
 }
@@ -140,10 +158,12 @@ export function fakeSegment(overrides: Partial<{
  * @param overrides - Optional field overrides
  * @returns Fake API key data
  */
-export function fakeApiKey(overrides: Partial<{
-  name: string;
-  scopes: string[];
-}> = {}) {
+function fakeApiKey(
+  overrides: Partial<{
+    name: string;
+    scopes: string[];
+  }> = {},
+) {
   return {
     name: overrides.name || faker.company.name() + " API Key",
     scopes: overrides.scopes || ["read:contacts", "write:contacts"],
@@ -166,6 +186,9 @@ export function fakeWorkspaceId(): string {
  * @param overrides - Optional field overrides applied to all contacts
  * @returns Array of fake contacts
  */
-export function fakeContacts(count: number, overrides: Parameters<typeof fakeContact>[0] = {}) {
+export function fakeContacts(
+  count: number,
+  overrides: Parameters<typeof fakeContact>[0] = {},
+) {
   return Array.from({ length: count }, () => fakeContact(overrides));
 }

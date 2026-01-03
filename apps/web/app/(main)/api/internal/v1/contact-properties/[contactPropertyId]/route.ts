@@ -9,12 +9,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import {
+  deleteContactProperty,
   getContactProperty,
   updateContactProperty,
-  deleteContactProperty,
 } from "@/app/(main)/api/v1/contact-properties/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * GET /api/internal/v1/contact-properties/[contactPropertyId]
@@ -25,7 +25,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ contactPropertyId: string }> }
+  { params }: { params: Promise<{ contactPropertyId: string }> },
 ) {
   const { contactPropertyId } = await params;
 
@@ -38,11 +38,11 @@ export async function GET(
         }
         return getContactProperty(
           session.currentOrganization.id,
-          contactPropertyId
+          contactPropertyId,
         );
       },
-      ["read:contacts"]
-    )
+      ["read:contacts"],
+    ),
   );
 }
 
@@ -55,7 +55,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ contactPropertyId: string }> }
+  { params }: { params: Promise<{ contactPropertyId: string }> },
 ) {
   const { contactPropertyId } = await params;
 
@@ -69,11 +69,11 @@ export async function PUT(
         return updateContactProperty(
           session.currentOrganization.id,
           contactPropertyId,
-          request
+          request,
         );
       },
-      ["manage:contacts"]
-    )
+      ["manage:contacts"],
+    ),
   );
 }
 
@@ -86,7 +86,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ contactPropertyId: string }> }
+  { params }: { params: Promise<{ contactPropertyId: string }> },
 ) {
   const { contactPropertyId } = await params;
 
@@ -99,10 +99,10 @@ export async function DELETE(
         }
         return deleteContactProperty(
           session.currentOrganization.id,
-          contactPropertyId
+          contactPropertyId,
         );
       },
-      ["manage:contacts"]
-    )
+      ["manage:contacts"],
+    ),
   );
 }

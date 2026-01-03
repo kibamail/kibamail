@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import * as Dialog from "@kibamail/owly/dialog";
-import * as TextField from "@kibamail/owly/text-field";
 import { Button } from "@kibamail/owly/button";
+import * as Dialog from "@kibamail/owly/dialog";
 import { Spinner } from "@kibamail/owly/spinner";
+import * as TextField from "@kibamail/owly/text-field";
 import { useToast } from "@kibamail/owly/toast";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useMutation } from "@/hooks/use-mutation";
 import { internalApi } from "@/lib/api/client";
-import { useRouter } from "next/navigation";
 
 interface RenameAutomationModalProps {
   open: boolean;

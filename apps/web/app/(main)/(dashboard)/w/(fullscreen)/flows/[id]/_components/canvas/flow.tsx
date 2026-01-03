@@ -1,22 +1,22 @@
 "use client";
 
+import type { OnConnect, OnEdgesChange, OnNodesChange } from "@xyflow/react";
 import {
-  Background,
-  Controls,
-  ReactFlow,
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
+  Background,
+  Controls,
+  ReactFlow,
 } from "@xyflow/react";
-import type { OnConnect, OnEdgesChange, OnNodesChange } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback } from "react";
-import { RuleNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
-import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
-import { edgeTypes } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/edges";
-import { nodeTypes } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes";
 import { FlowToolbar } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/canvas/flow-toolbar";
+import { edgeTypes } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/edges";
+import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { nodeTypes } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import { RuleNodeType } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
 import "./flow.css";
 
 export function FlowCanvas() {
@@ -33,14 +33,14 @@ export function FlowCanvas() {
         : changes;
       setNodes(applyNodeChanges(filteredChanges, nodes));
     },
-    [nodes, setNodes, isReadOnly]
+    [nodes, setNodes, isReadOnly],
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes) => {
       setEdges(applyEdgeChanges(changes, edges));
     },
-    [edges, setEdges]
+    [edges, setEdges],
   );
 
   const onConnect: OnConnect = useCallback(
@@ -61,7 +61,9 @@ export function FlowCanvas() {
             ? "percentage-split-a-edge"
             : "percentage-split-b-edge";
 
-        const nodeData = sourceNode.data as { splits?: { id: string; name: string; percentage: number }[] };
+        const nodeData = sourceNode.data as {
+          splits?: { id: string; name: string; percentage: number }[];
+        };
         const splits = nodeData?.splits || [];
         const split = splits.find((s) => s.id === connection.sourceHandle);
         if (split) {
@@ -77,14 +79,14 @@ export function FlowCanvas() {
 
       setEdges(addEdge(newEdge, edges));
     },
-    [edges, setEdges, nodes]
+    [edges, setEdges, nodes],
   );
 
   const onNodeClick = useCallback(
     (_event: React.MouseEvent, node: { id: string }) => {
       openNodeConfiguration(node.id);
     },
-    [openNodeConfiguration]
+    [openNodeConfiguration],
   );
 
   return (

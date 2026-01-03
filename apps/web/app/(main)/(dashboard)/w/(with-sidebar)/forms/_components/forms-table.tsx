@@ -7,10 +7,10 @@ import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
 import { useToast } from "@kibamail/owly/toast";
-import { MoreHoriz, Trash, Eye, Copy } from "iconoir-react";
+import type { FormStatus } from "@prisma/client";
+import { Copy, Eye, MoreHoriz, Trash } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { FormStatus } from "@prisma/client";
 
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";

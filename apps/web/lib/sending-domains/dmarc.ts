@@ -1,4 +1,4 @@
-export const DMARC_CONFIG = {
+const DMARC_CONFIG = {
   reportingDomain: "dmarc.kbmta.net",
 };
 

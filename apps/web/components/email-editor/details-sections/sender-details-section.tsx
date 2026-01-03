@@ -1,16 +1,16 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { SenderSelect } from "@/components/sender-select";
-import { ReplyToSelect } from "@/components/reply-to-select";
 import { SectionHeader } from "@/components/email-editor/details-sections/shared";
 import type {
-  EmailDetails,
   Domain,
-  TransformedSenderIdentity,
-  SenderSelectState,
+  EmailDetails,
   SenderSelectActions,
+  SenderSelectState,
+  TransformedSenderIdentity,
 } from "@/components/email-editor/types";
+import { ReplyToSelect } from "@/components/reply-to-select";
+import { SenderSelect } from "@/components/sender-select";
 
 interface SenderDetailsSectionProps {
   senderIdentityId?: string;
@@ -37,14 +37,14 @@ export function SenderDetailsSection({
     (id: string | undefined) => {
       onChange({ senderIdentityId: id });
     },
-    [onChange]
+    [onChange],
   );
 
   const onReplyToChange = useCallback(
     (id: string | undefined) => {
       onChange({ replyToIdentityId: id });
     },
-    [onChange]
+    [onChange],
   );
 
   const selectedSender = useMemo(() => {
@@ -53,7 +53,9 @@ export function SenderDetailsSection({
 
   const replyToIdentities = useMemo(() => {
     if (!selectedSender) return [];
-    return senderIdentities.filter((s) => s.domainId === selectedSender.domainId);
+    return senderIdentities.filter(
+      (s) => s.domainId === selectedSender.domainId,
+    );
   }, [senderIdentities, selectedSender]);
 
   return (

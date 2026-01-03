@@ -4,7 +4,16 @@ import {
   DashboardLayoutSidebarGroup,
   DashboardLayoutSidebarItem,
 } from "@kibamail/owly/dashboard-layout";
-import { HomeAltSlimHoriz, Settings, NetworkReverse, User, Component, SendDiagonal, Globe, Mail } from "iconoir-react";
+import {
+  Component,
+  Globe,
+  HomeAltSlimHoriz,
+  Mail,
+  NetworkReverse,
+  SendDiagonal,
+  Settings,
+  User,
+} from "iconoir-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -22,10 +31,22 @@ export function SidebarNavigation() {
   const isFormsActive = pathname.startsWith("/w/forms");
   const isBroadcastsActive = pathname.startsWith("/w/broadcasts");
   const isDomainsActive = pathname.startsWith("/w/domains");
-  const isAudienceActive = pathname.startsWith("/w/contacts") || pathname.startsWith("/w/segments") || pathname.startsWith("/w/topics") || pathname.startsWith("/w/properties");
+  const isAudienceActive =
+    pathname.startsWith("/w/contacts") ||
+    pathname.startsWith("/w/segments") ||
+    pathname.startsWith("/w/topics") ||
+    pathname.startsWith("/w/properties");
   const isTemplatesActive = pathname.startsWith("/w/templates");
   const isEmailsActive = pathname.startsWith("/w/emails");
-  const isDashboardActive = !isSettingsActive && !isAutomationsActive && !isAudienceActive && !isFormsActive && !isBroadcastsActive && !isDomainsActive && !isTemplatesActive && !isEmailsActive;
+  const isDashboardActive =
+    !isSettingsActive &&
+    !isAutomationsActive &&
+    !isAudienceActive &&
+    !isFormsActive &&
+    !isBroadcastsActive &&
+    !isDomainsActive &&
+    !isTemplatesActive &&
+    !isEmailsActive;
 
   return (
     <>

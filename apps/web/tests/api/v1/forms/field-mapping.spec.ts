@@ -1,30 +1,30 @@
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { POST as PUBLISH_FORM } from "@/app/(main)/api/v1/forms/[formId]/publish/route";
 import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { POST as CREATE_FORM } from "@/app/(main)/api/v1/forms/route";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
-import {
-  createTestWorkspace,
-  createFullAccessApiKey,
-  cleanupWorkspace,
-  post,
-  type TestWorkspace,
-  type CreatedApiKey,
-} from "@/tests/utils";
-import {
-  validFormFields,
-  multiFieldFormSchema,
-  formWithoutEmailField,
-  emptyFormSchema,
-  allFieldTypesFormSchema,
-  DEFAULT_FIELD_APPEARANCE,
-} from "@/tests/utils/form-fixtures";
 import { prisma } from "@/lib/db";
 import {
   extractFieldsFromSchema,
   generateFieldMapping,
-  getStorageType,
   getSlotCounts,
+  getStorageType,
 } from "@/lib/forms/field-mapping";
+import {
+  type CreatedApiKey,
+  cleanupWorkspace,
+  createFullAccessApiKey,
+  createTestWorkspace,
+  post,
+  type TestWorkspace,
+} from "@/tests/utils";
+import {
+  allFieldTypesFormSchema,
+  DEFAULT_FIELD_APPEARANCE,
+  emptyFormSchema,
+  formWithoutEmailField,
+  multiFieldFormSchema,
+  validFormFields,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -59,9 +59,7 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
           sections: [
             {
               id: "section_2",
-              fields: [
-                { type: "email", name: "email", label: "Email" },
-              ],
+              fields: [{ type: "email", name: "email", label: "Email" }],
             },
           ],
         },
@@ -71,8 +69,16 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
     const fields = extractFieldsFromSchema(schema);
 
     expect(fields).toHaveLength(3);
-    expect(fields[0]).toEqual({ name: "firstName", type: "text", label: "First Name" });
-    expect(fields[1]).toEqual({ name: "lastName", type: "text", label: "Last Name" });
+    expect(fields[0]).toEqual({
+      name: "firstName",
+      type: "text",
+      label: "First Name",
+    });
+    expect(fields[1]).toEqual({
+      name: "lastName",
+      type: "text",
+      label: "Last Name",
+    });
     expect(fields[2]).toEqual({ name: "email", type: "email", label: "Email" });
   });
 
@@ -84,15 +90,11 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
           sections: [
             {
               id: "section_1",
-              fields: [
-                { type: "text", name: "name", label: "Name" },
-              ],
+              fields: [{ type: "text", name: "name", label: "Name" }],
             },
             {
               id: "section_2",
-              fields: [
-                { type: "select", name: "country", label: "Country" },
-              ],
+              fields: [{ type: "select", name: "country", label: "Country" }],
             },
           ],
         },
@@ -190,9 +192,18 @@ describe("extractFieldsFromSchema - Unit Tests", () => {
     const fields = extractFieldsFromSchema(schema);
 
     expect(fields).toHaveLength(11);
-    expect(fields.map(f => f.type)).toEqual([
-      "text", "email", "number", "phone", "url",
-      "textarea", "select", "rating", "slider", "date", "checkbox",
+    expect(fields.map((f) => f.type)).toEqual([
+      "text",
+      "email",
+      "number",
+      "phone",
+      "url",
+      "textarea",
+      "select",
+      "rating",
+      "slider",
+      "date",
+      "checkbox",
     ]);
   });
 });
@@ -261,8 +272,16 @@ describe("generateFieldMapping - Unit Tests", () => {
 
   test("should preserve existing slot assignments from parent mapping", () => {
     const existingMapping = {
-      email: { slot: "fieldString5", type: "string" as const, fieldType: "email" },
-      rating: { slot: "fieldNum3", type: "number" as const, fieldType: "rating" },
+      email: {
+        slot: "fieldString5",
+        type: "string" as const,
+        fieldType: "email",
+      },
+      rating: {
+        slot: "fieldNum3",
+        type: "number" as const,
+        fieldType: "rating",
+      },
     };
 
     const schema = {
@@ -326,7 +345,12 @@ describe("generateFieldMapping - Unit Tests", () => {
 
   test("should update label for existing fields if changed", () => {
     const existingMapping = {
-      email: { slot: "fieldString0", type: "string" as const, fieldType: "email", label: "Old Label" },
+      email: {
+        slot: "fieldString0",
+        type: "string" as const,
+        fieldType: "email",
+        label: "Old Label",
+      },
     };
 
     const schema = {
@@ -336,9 +360,7 @@ describe("generateFieldMapping - Unit Tests", () => {
           sections: [
             {
               id: "section_1",
-              fields: [
-                { type: "email", name: "email", label: "New Label" },
-              ],
+              fields: [{ type: "email", name: "email", label: "New Label" }],
             },
           ],
         },
@@ -353,8 +375,16 @@ describe("generateFieldMapping - Unit Tests", () => {
 
   test("should keep removed fields in mapping for historical data", () => {
     const existingMapping = {
-      email: { slot: "fieldString0", type: "string" as const, fieldType: "email" },
-      removedField: { slot: "fieldString1", type: "string" as const, fieldType: "text" },
+      email: {
+        slot: "fieldString0",
+        type: "string" as const,
+        fieldType: "email",
+      },
+      removedField: {
+        slot: "fieldString1",
+        type: "string" as const,
+        fieldType: "text",
+      },
     };
 
     const schema = {
@@ -385,9 +415,21 @@ describe("generateFieldMapping - Unit Tests", () => {
 describe("getSlotCounts - Unit Tests", () => {
   test("should count string and number slots correctly", () => {
     const mapping = {
-      field1: { slot: "fieldString0", type: "string" as const, fieldType: "text" },
-      field2: { slot: "fieldString1", type: "string" as const, fieldType: "text" },
-      field3: { slot: "fieldNum0", type: "number" as const, fieldType: "rating" },
+      field1: {
+        slot: "fieldString0",
+        type: "string" as const,
+        fieldType: "text",
+      },
+      field2: {
+        slot: "fieldString1",
+        type: "string" as const,
+        fieldType: "text",
+      },
+      field3: {
+        slot: "fieldNum0",
+        type: "number" as const,
+        fieldType: "rating",
+      },
     };
 
     const counts = getSlotCounts(mapping);
@@ -405,7 +447,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Contact Form", fields: multiFieldFormSchema },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const createdForm = await createResponse.json();
@@ -414,7 +456,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     await PUBLISH_FORM(publishRequest, {
       params: Promise.resolve({ formId: createdForm.id }),
@@ -460,14 +502,14 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Form V1", fields: validFormFields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
 
     // Get v1 mapping
@@ -524,7 +566,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const versionRequest = post(
       `/forms/${rootForm.id}/versions`,
       { fields: v2Fields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const versionResponse = await CREATE_VERSION(versionRequest, {
       params: Promise.resolve({ formId: rootForm.id }),
@@ -534,7 +576,7 @@ describe("Field Mapping Integration - Publishing", () => {
     // Publish v2
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // Get v2 mapping
@@ -549,8 +591,13 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(v2Mapping.phone.slot).toBe("fieldString2");
 
     // Root form should also have updated mapping
-    const updatedRoot = await prisma.form.findUnique({ where: { id: rootForm.id } });
-    const rootMapping = updatedRoot?.fieldMapping as Record<string, { slot: string }>;
+    const updatedRoot = await prisma.form.findUnique({
+      where: { id: rootForm.id },
+    });
+    const rootMapping = updatedRoot?.fieldMapping as Record<
+      string,
+      { slot: string }
+    >;
 
     expect(rootMapping.email.slot).toBe("fieldString0");
     expect(rootMapping.name.slot).toBe("fieldString1");
@@ -595,18 +642,21 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Rating Form", fields: v1Fields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
 
     const v1Form = await prisma.form.findUnique({ where: { id: rootForm.id } });
-    const v1Mapping = v1Form?.fieldMapping as Record<string, { slot: string; type: string }>;
+    const v1Mapping = v1Form?.fieldMapping as Record<
+      string,
+      { slot: string; type: string }
+    >;
 
     expect(v1Mapping.email.slot).toBe("fieldString0");
     expect(v1Mapping.email.type).toBe("string");
@@ -649,7 +699,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const versionRequest = post(
       `/forms/${rootForm.id}/versions`,
       { fields: v2Fields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const versionResponse = await CREATE_VERSION(versionRequest, {
       params: Promise.resolve({ formId: rootForm.id }),
@@ -658,11 +708,14 @@ describe("Field Mapping Integration - Publishing", () => {
 
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     const v2Form = await prisma.form.findUnique({ where: { id: version2.id } });
-    const v2Mapping = v2Form?.fieldMapping as Record<string, { slot: string; type: string }>;
+    const v2Mapping = v2Form?.fieldMapping as Record<
+      string,
+      { slot: string; type: string }
+    >;
 
     expect(v2Mapping.rating1.slot).toBe("fieldNum0");
     expect(v2Mapping.rating2.slot).toBe("fieldNum1");
@@ -748,18 +801,23 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Multi-Section Form", fields: formFields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
 
     await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: form.id }) }
+      { params: Promise.resolve({ formId: form.id }) },
     );
 
-    const publishedForm = await prisma.form.findUnique({ where: { id: form.id } });
-    const mapping = publishedForm?.fieldMapping as Record<string, { slot: string }>;
+    const publishedForm = await prisma.form.findUnique({
+      where: { id: form.id },
+    });
+    const mapping = publishedForm?.fieldMapping as Record<
+      string,
+      { slot: string }
+    >;
 
     // All fields from all sections should be extracted and mapped
     expect(mapping.firstName.slot).toBe("fieldString0");
@@ -773,7 +831,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Empty Form", fields: emptyFormSchema },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
@@ -787,14 +845,14 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "No Email Form", fields: formWithoutEmailField },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
 
     const publishResponse = await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: form.id }) }
+      { params: Promise.resolve({ formId: form.id }) },
     );
 
     expect(publishResponse.status).toBe(400);
@@ -804,7 +862,9 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(error.error.message).toContain("Email address");
 
     // Verify form was not published
-    const unpublishedForm = await prisma.form.findUnique({ where: { id: form.id } });
+    const unpublishedForm = await prisma.form.findUnique({
+      where: { id: form.id },
+    });
     expect(unpublishedForm?.status).toBe("DRAFT");
     expect(unpublishedForm?.fieldMapping).toBeNull();
   });
@@ -857,14 +917,14 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Wrong Email Name Form", fields: wrongEmailNameSchema },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
 
     const publishResponse = await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: form.id }) }
+      { params: Promise.resolve({ formId: form.id }) },
     );
 
     expect(publishResponse.status).toBe(400);
@@ -873,7 +933,9 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(error.error.code).toBe("FORM_MISSING_EMAIL_FIELD");
 
     // Verify form was not published
-    const unpublishedForm = await prisma.form.findUnique({ where: { id: form.id } });
+    const unpublishedForm = await prisma.form.findUnique({
+      where: { id: form.id },
+    });
     expect(unpublishedForm?.status).toBe("DRAFT");
   });
 
@@ -881,20 +943,22 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Valid Email Form", fields: validFormFields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
 
     const publishResponse = await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: form.id }) }
+      { params: Promise.resolve({ formId: form.id }) },
     );
 
     expect(publishResponse.status).toBe(200);
 
     // Verify form was published
-    const publishedForm = await prisma.form.findUnique({ where: { id: form.id } });
+    const publishedForm = await prisma.form.findUnique({
+      where: { id: form.id },
+    });
     expect(publishedForm?.status).toBe("PUBLISHED");
     expect(publishedForm?.fieldMapping).not.toBeNull();
   });
@@ -903,18 +967,23 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "All Types Form", fields: allFieldTypesFormSchema },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
 
     await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: form.id }) }
+      { params: Promise.resolve({ formId: form.id }) },
     );
 
-    const publishedForm = await prisma.form.findUnique({ where: { id: form.id } });
-    const mapping = publishedForm?.fieldMapping as Record<string, { slot: string; type: string; fieldType: string }>;
+    const publishedForm = await prisma.form.findUnique({
+      where: { id: form.id },
+    });
+    const mapping = publishedForm?.fieldMapping as Record<
+      string,
+      { slot: string; type: string; fieldType: string }
+    >;
 
     // String types
     expect(mapping.text_field.type).toBe("string");
@@ -973,14 +1042,14 @@ describe("Field Mapping Integration - Publishing", () => {
     const createRequest = post(
       "/forms",
       { name: "Rollback Test", fields: v1Fields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
 
     // Create and publish v2 with new field
@@ -1019,7 +1088,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const v2Request = post(
       `/forms/${rootForm.id}/versions`,
       { fields: v2Fields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const v2Response = await CREATE_VERSION(v2Request, {
       params: Promise.resolve({ formId: rootForm.id }),
@@ -1028,7 +1097,7 @@ describe("Field Mapping Integration - Publishing", () => {
 
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // Create and publish v3 with another field
@@ -1067,7 +1136,7 @@ describe("Field Mapping Integration - Publishing", () => {
     const v3Request = post(
       `/forms/${rootForm.id}/versions`,
       { fields: v3Fields },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const v3Response = await CREATE_VERSION(v3Request, {
       params: Promise.resolve({ formId: rootForm.id }),
@@ -1076,36 +1145,51 @@ describe("Field Mapping Integration - Publishing", () => {
 
     await PUBLISH_FORM(
       post(`/forms/${version3.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version3.id }) }
+      { params: Promise.resolve({ formId: version3.id }) },
     );
 
     // Rollback to v2
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // Get mapping after rollback
-    const afterRollback = await prisma.form.findUnique({ where: { id: version2.id } });
-    const rollbackMapping = afterRollback?.fieldMapping as Record<string, { slot: string }>;
+    const afterRollback = await prisma.form.findUnique({
+      where: { id: version2.id },
+    });
+    const rollbackMapping = afterRollback?.fieldMapping as Record<
+      string,
+      { slot: string }
+    >;
 
     // Slots should be consistent (email is at index 0)
     expect(rollbackMapping.email.slot).toBe("fieldString0");
     expect(rollbackMapping.field1.slot).toBe("fieldString1");
     expect(rollbackMapping.field2.slot).toBe("fieldString2");
     // field3 should still be in root mapping even though v2 doesn't have it
-    const rootAfterRollback = await prisma.form.findUnique({ where: { id: rootForm.id } });
-    const rootMapping = rootAfterRollback?.fieldMapping as Record<string, { slot: string }>;
+    const rootAfterRollback = await prisma.form.findUnique({
+      where: { id: rootForm.id },
+    });
+    const rootMapping = rootAfterRollback?.fieldMapping as Record<
+      string,
+      { slot: string }
+    >;
     expect(rootMapping.field3.slot).toBe("fieldString3");
 
     // Roll-forward to v3
     await PUBLISH_FORM(
       post(`/forms/${version3.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version3.id }) }
+      { params: Promise.resolve({ formId: version3.id }) },
     );
 
-    const afterRollForward = await prisma.form.findUnique({ where: { id: version3.id } });
-    const rollForwardMapping = afterRollForward?.fieldMapping as Record<string, { slot: string }>;
+    const afterRollForward = await prisma.form.findUnique({
+      where: { id: version3.id },
+    });
+    const rollForwardMapping = afterRollForward?.fieldMapping as Record<
+      string,
+      { slot: string }
+    >;
 
     // All slots should remain consistent
     expect(rollForwardMapping.email.slot).toBe("fieldString0");

@@ -16,17 +16,15 @@ import { prisma } from "@/lib/db";
 /**
  * Format sender identity for API response
  */
-function formatSenderIdentity(
-  senderIdentity: {
-    id: string;
-    name: string;
-    email: string;
-    replyToEmail: string | null;
-    emailVerifiedAt: Date | null;
-    createdAt: Date;
-    sendingDomain: { id: string; name: string };
-  },
-) {
+function formatSenderIdentity(senderIdentity: {
+  id: string;
+  name: string;
+  email: string;
+  replyToEmail: string | null;
+  emailVerifiedAt: Date | null;
+  createdAt: Date;
+  sendingDomain: { id: string; name: string };
+}) {
   return {
     id: senderIdentity.id,
     name: senderIdentity.name,

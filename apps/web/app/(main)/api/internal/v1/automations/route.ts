@@ -11,8 +11,11 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  createAutomation,
+  listAutomations,
+} from "@/app/(main)/api/v1/automations/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { createAutomation, listAutomations } from "@/app/(main)/api/v1/automations/handler";
 
 /**
  * GET /api/internal/v1/automations
@@ -31,8 +34,8 @@ export async function GET(request: NextRequest) {
         }
         return listAutomations(session.currentOrganization.id, request);
       },
-      ["read:automations"]
-    )
+      ["read:automations"],
+    ),
   );
 }
 
@@ -53,7 +56,7 @@ export async function POST(request: NextRequest) {
         }
         return createAutomation(session.currentOrganization.id, request);
       },
-      ["manage:automations"]
-    )
+      ["manage:automations"],
+    ),
   );
 }

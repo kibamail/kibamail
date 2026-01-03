@@ -1,11 +1,11 @@
 import type { EdgeTypes } from "@xyflow/react";
-import { CustomEdge } from "./custom-edge";
 import {
-  IfElseTrueEdge,
   IfElseFalseEdge,
+  IfElseTrueEdge,
   PercentageSplitAEdge,
   PercentageSplitBEdge,
 } from "./conditional-edges";
+import { CustomEdge } from "./custom-edge";
 
 export const edgeTypes: EdgeTypes = {
   default: CustomEdge,
@@ -15,5 +15,3 @@ export const edgeTypes: EdgeTypes = {
   "percentage-split-a-edge": PercentageSplitAEdge,
   "percentage-split-b-edge": PercentageSplitBEdge,
 };
-
-export { CustomEdge };

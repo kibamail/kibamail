@@ -3,17 +3,17 @@
 import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import { ConfirmDialog } from "@kibamail/owly/dialog";
-import * as EmptyCard from "@kibamail/owly/empty-card";
-import * as Table from "@kibamail/owly/table";
-import * as Switch from "@kibamail/owly/switch";
-import { MoreHoriz, EditPencil, Trash, Lock, Globe } from "iconoir-react";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
+import * as EmptyCard from "@kibamail/owly/empty-card";
+import * as Switch from "@kibamail/owly/switch";
+import * as Table from "@kibamail/owly/table";
 import { useToast } from "@kibamail/owly/toast";
+import type { Topic } from "@prisma/client";
+import { EditPencil, Globe, Lock, MoreHoriz, Trash } from "iconoir-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
 import { useToggleState } from "@/hooks/utils/useToggleState";
-import type { Topic } from "@prisma/client";
+import { internalApi } from "@/lib/api/client";
 import { CreateTopicModal } from "./create-topic-modal";
 
 interface TopicsTableProps {
@@ -119,11 +119,7 @@ function TopicActionsDropdown({
         </DropdownMenu.Content>
       </DropdownMenu.Root>
 
-      <CreateTopicModal
-        {...editModalState}
-        topic={topic}
-        mode="edit"
-      />
+      <CreateTopicModal {...editModalState} topic={topic} mode="edit" />
 
       <ConfirmDialog
         {...deleteDialogState}

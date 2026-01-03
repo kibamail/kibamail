@@ -17,7 +17,7 @@ import { randomBytes } from "crypto";
  *
  * @returns Unique email send ID
  */
-export function generateEmailSendId(): string {
+function generateEmailSendId(): string {
   const timestamp = Date.now().toString(36);
   const random = randomBytes(12).toString("hex");
   return `es_${timestamp}_${random}`;

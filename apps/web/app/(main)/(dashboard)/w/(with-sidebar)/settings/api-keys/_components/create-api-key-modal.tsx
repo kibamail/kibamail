@@ -8,18 +8,18 @@ import * as Select from "@kibamail/owly/select-field";
 import * as TextField from "@kibamail/owly/text-field";
 import { useToast } from "@kibamail/owly/toast";
 import { WarningCircle } from "iconoir-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
 import {
-  API_SCOPES_BY_CATEGORY,
   API_KEY_PRESETS,
   API_SCOPES,
+  API_SCOPES_BY_CATEGORY,
 } from "@/config/api";
-import { ApiKeyCreatedModal } from "./api-key-created-modal";
+import { useMutation } from "@/hooks/use-mutation";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
+import { ApiKeyCreatedModal } from "./api-key-created-modal";
 
 interface CreateApiKeyFormData {
   name: string;
@@ -79,7 +79,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
     if (currentScopes.includes(scope)) {
       setValue(
         "scopes",
-        currentScopes.filter((s) => s !== scope)
+        currentScopes.filter((s) => s !== scope),
       );
     } else {
       setValue("scopes", [...currentScopes, scope]);
@@ -181,7 +181,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
                         ))}
                       </div>
                     </div>
-                  )
+                  ),
                 )}
               </div>
               {errors.scopes && (

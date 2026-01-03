@@ -83,7 +83,9 @@ export const webhookDestinationResponseSchema = z.object({
   type: z.string(),
   topics: z.array(z.string()).optional(),
   config: z.record(z.string(), z.union([z.string(), z.boolean()])).optional(),
-  credentials: z.record(z.string(), z.union([z.string(), z.boolean()])).optional(),
+  credentials: z
+    .record(z.string(), z.union([z.string(), z.boolean()]))
+    .optional(),
   enabled: z.boolean().optional(),
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
@@ -93,14 +95,18 @@ export const webhookDestinationResponseSchema = z.object({
  * Webhook Event Deliveries Response Schema
  */
 export const webhookEventDeliveriesResponseSchema = z.object({
-  deliveries: z.array(z.object({
-    id: z.string(),
-    status: z.string(),
-    response_data: z.object({
-      body: z.union([z.object({}).passthrough(), z.string()]),
-      status: z.number(),
-    }).optional(),
-  })),
+  deliveries: z.array(
+    z.object({
+      id: z.string(),
+      status: z.string(),
+      response_data: z
+        .object({
+          body: z.union([z.object({}).passthrough(), z.string()]),
+          status: z.number(),
+        })
+        .optional(),
+    }),
+  ),
 });
 
 /**
@@ -109,7 +115,11 @@ export const webhookEventDeliveriesResponseSchema = z.object({
 export const emptyResponseSchema = z.object({});
 
 // Type exports
-export type ListEventsQuery = z.infer<typeof listEventsQuerySchema>;
+type ListEventsQuery = z.infer<typeof listEventsQuerySchema>;
 export type ListEventsResponse = z.infer<typeof listEventsResponseSchema>;
-export type WebhookDestinationResponse = z.infer<typeof webhookDestinationResponseSchema>;
-export type WebhookEventDeliveriesResponse = z.infer<typeof webhookEventDeliveriesResponseSchema>;
+export type WebhookDestinationResponse = z.infer<
+  typeof webhookDestinationResponseSchema
+>;
+export type WebhookEventDeliveriesResponse = z.infer<
+  typeof webhookEventDeliveriesResponseSchema
+>;

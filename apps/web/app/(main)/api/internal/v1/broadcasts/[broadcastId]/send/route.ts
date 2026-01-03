@@ -33,10 +33,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (!session.currentOrganization) {
         throw new Error("No active workspace found");
       }
-      return sendBroadcast(
-        session.currentOrganization.id,
-        broadcastId,
-      );
+      return sendBroadcast(session.currentOrganization.id, broadcastId);
     }),
   );
 }

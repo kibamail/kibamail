@@ -3,11 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "dotenvx run -f .env.local -- tsx watch src/server.ts",
-    "build": "tsc",
+    "build": "tsc && cp -r src/templates/*.html dist/templates/",
     "start": "node dist/server.js",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.51.1",
@@ -19,7 +24,9 @@
   },
   "devDependencies": {
     "@types/node": "^20",
+    "esbuild": "^0.25.0",
     "tsx": "^4.19.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

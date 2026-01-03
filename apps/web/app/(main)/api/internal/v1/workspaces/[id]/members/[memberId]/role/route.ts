@@ -8,9 +8,8 @@
  */
 
 import type { NextRequest } from "next/server";
-
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { changeMemberRole } from "@/app/(main)/api/internal/v1/workspaces/[id]/members/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * PATCH /api/internal/v1/workspaces/[id]/members/[memberId]/role

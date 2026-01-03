@@ -16,6 +16,4 @@ export const updateTablePreferencesSchema = z.object({
   }),
 });
 
-export type UpdateTablePreferencesInput = z.infer<
-  typeof updateTablePreferencesSchema
->;
+type UpdateTablePreferencesInput = z.infer<typeof updateTablePreferencesSchema>;

@@ -1,13 +1,16 @@
-import { NodeSDK } from "@opentelemetry/sdk-node";
-import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
-import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
-import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
-import { BatchLogRecordProcessor, LoggerProvider } from "@opentelemetry/sdk-logs";
-import { resourceFromAttributes } from "@opentelemetry/resources";
-import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { logs } from "@opentelemetry/api-logs";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPLogExporter } from "@opentelemetry/exporter-logs-otlp-http";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { resourceFromAttributes } from "@opentelemetry/resources";
+import {
+  BatchLogRecordProcessor,
+  LoggerProvider,
+} from "@opentelemetry/sdk-logs";
+import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 
 // Get OTLP endpoint from environment (set by Kubernetes)
 const otlpEndpoint =
@@ -55,7 +58,7 @@ loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(logExporter));
 logs.setGlobalLoggerProvider(loggerProvider);
 
 // Initialize the OpenTelemetry SDK
-export const otelSdk = new NodeSDK({
+const otelSdk = new NodeSDK({
   resource,
   traceExporter,
   metricReader: new PeriodicExportingMetricReader({
@@ -83,5 +86,7 @@ export function shutdownOtel(): Promise<void> {
   return otelSdk
     .shutdown()
     .then(() => console.log("OpenTelemetry SDK shut down successfully"))
-    .catch((error) => console.error("Error shutting down OpenTelemetry SDK", error));
+    .catch((error) =>
+      console.error("Error shutting down OpenTelemetry SDK", error),
+    );
 }

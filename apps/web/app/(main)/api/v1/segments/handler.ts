@@ -8,19 +8,13 @@
 import type { Prisma } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { ErrorCode } from "@/lib/api/error-codes";
+import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
-import {
-  responseCreated,
-  responseOk,
-} from "@/lib/api/responses";
-import {
-  NotFoundError,
-  BadRequestError,
-} from "@/lib/api/errors";
-import { ErrorCode } from "@/lib/api/error-codes";
+import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import {
@@ -57,7 +51,7 @@ export async function createSegment(workspaceId: string, request: NextRequest) {
     throw new BadRequestError(
       `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
         `Fields must be built-in contact fields or defined custom properties.`,
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -198,7 +192,7 @@ export async function updateSegment(
       throw new BadRequestError(
         `Invalid field(s) in conditions: ${validation.invalidFields.join(", ")}. ` +
           `Fields must be built-in contact fields or defined custom properties.`,
-        ErrorCode.INVALID_PARAMETER
+        ErrorCode.INVALID_PARAMETER,
       );
     }
   }

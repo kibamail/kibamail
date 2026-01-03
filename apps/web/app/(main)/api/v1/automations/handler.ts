@@ -5,26 +5,26 @@
  * Workspace is automatically determined from the API key.
  */
 
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
 import type {
   Automation,
   AutomationStatus,
   AutomationTrigger,
   Prisma,
 } from "@prisma/client";
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+import { ErrorCode } from "@/lib/api/error-codes";
+import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
 } from "@/lib/api/pagination";
 import { responseCreated, responseOk } from "@/lib/api/responses";
-import { NotFoundError, BadRequestError } from "@/lib/api/errors";
-import { ErrorCode } from "@/lib/api/error-codes";
 import { validateRequestBody } from "@/lib/api/validation";
-import { prisma } from "@/lib/db";
-import { createAutomationSchema, updateAutomationSchema } from "./schema";
 import { AUTOMATION_TRIGGERS } from "@/lib/automations/config";
 import { validateAutomationForPublish } from "@/lib/automations/validation";
+import { prisma } from "@/lib/db";
+import { createAutomationSchema, updateAutomationSchema } from "./schema";
 
 /**
  * Format automation for API response
@@ -59,7 +59,7 @@ function formatAutomationResponse(automation: Automation) {
  */
 export async function createAutomation(
   workspaceId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(createAutomationSchema, request);
 
@@ -109,7 +109,7 @@ export async function createAutomation(
  */
 export async function listAutomations(
   workspaceId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const { limit, after, before } = parseCursorPaginationParams(request);
 
@@ -134,12 +134,12 @@ export async function listAutomations(
         skip: 1,
       })
     : before
-    ? await prisma.automation.findMany({
-        ...baseQuery,
-        cursor: { id: before },
-        skip: 1,
-      })
-    : await prisma.automation.findMany(baseQuery);
+      ? await prisma.automation.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.automation.findMany(baseQuery);
 
   const hasMore = automations.length > limit;
   const items = hasMore ? automations.slice(0, -1) : automations;
@@ -153,7 +153,7 @@ export async function listAutomations(
   const paginatedResponse = createCursorPaginatedResponse(
     formattedAutomations,
     hasMore,
-    "automation_list"
+    "automation_list",
   );
   return NextResponse.json(paginatedResponse, { status: 200 });
 }
@@ -177,7 +177,7 @@ export async function getAutomation(workspaceId: string, automationId: string) {
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
@@ -195,7 +195,7 @@ export async function getAutomation(workspaceId: string, automationId: string) {
 export async function updateAutomation(
   workspaceId: string,
   automationId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const data = await validateRequestBody(updateAutomationSchema, request);
 
@@ -210,7 +210,7 @@ export async function updateAutomation(
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
@@ -224,7 +224,7 @@ export async function updateAutomation(
   if (!isDraft && hasNonNameUpdates) {
     throw new BadRequestError(
       "Only DRAFT automations can be updated. Create a new version to modify a PUBLISHED automation.",
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -274,7 +274,7 @@ export async function updateAutomation(
  */
 export async function deleteAutomation(
   workspaceId: string,
-  automationId: string
+  automationId: string,
 ) {
   const automation = await prisma.automation.findFirst({
     where: {
@@ -287,14 +287,14 @@ export async function deleteAutomation(
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
   if (automation.status === "PUBLISHED") {
     throw new BadRequestError(
       "Cannot delete a PUBLISHED automation. Archive it first or create a new version.",
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -321,7 +321,7 @@ export async function deleteAutomation(
  */
 export async function publishAutomation(
   workspaceId: string,
-  automationId: string
+  automationId: string,
 ) {
   const automation = await prisma.automation.findFirst({
     where: {
@@ -334,14 +334,14 @@ export async function publishAutomation(
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
   if (automation.status !== "DRAFT") {
     throw new BadRequestError(
       "Only DRAFT automations can be published",
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -353,7 +353,7 @@ export async function publishAutomation(
     throw new BadRequestError(
       "Automation validation failed. Please fix the errors before publishing.",
       ErrorCode.AUTOMATION_VALIDATION_FAILED,
-      { errors: validation.errors }
+      { errors: validation.errors },
     );
   }
 
@@ -384,7 +384,7 @@ export async function publishAutomation(
 
   return responseOk(
     formatAutomationResponse(publishedAutomation),
-    "automation"
+    "automation",
   );
 }
 
@@ -396,7 +396,7 @@ export async function publishAutomation(
  */
 export async function archiveAutomation(
   workspaceId: string,
-  automationId: string
+  automationId: string,
 ) {
   const automation = await prisma.automation.findFirst({
     where: {
@@ -409,14 +409,14 @@ export async function archiveAutomation(
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
   if (automation.status !== "PUBLISHED") {
     throw new BadRequestError(
       "Only PUBLISHED automations can be archived",
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -441,7 +441,7 @@ export async function archiveAutomation(
  */
 export async function listAutomationVersions(
   workspaceId: string,
-  automationId: string
+  automationId: string,
 ) {
   const automation = await prisma.automation.findFirst({
     where: {
@@ -454,7 +454,7 @@ export async function listAutomationVersions(
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
@@ -477,7 +477,7 @@ export async function listAutomationVersions(
       hasMore: false,
       data: formattedVersions,
     },
-    { status: 200 }
+    { status: 200 },
   );
 }
 
@@ -491,7 +491,7 @@ export async function listAutomationVersions(
  */
 export async function rollbackAutomation(
   workspaceId: string,
-  automationId: string
+  automationId: string,
 ) {
   const automation = await prisma.automation.findFirst({
     where: {
@@ -504,14 +504,14 @@ export async function rollbackAutomation(
   if (!automation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
   if (automation.status !== "ARCHIVED") {
     throw new BadRequestError(
       `Only ARCHIVED automations can be rolled back. This version is currently ${automation.status}.`,
-      ErrorCode.INVALID_PARAMETER
+      ErrorCode.INVALID_PARAMETER,
     );
   }
 
@@ -531,7 +531,7 @@ export async function rollbackAutomation(
   if (existingDraft) {
     throw new BadRequestError(
       "Cannot rollback while a DRAFT version exists. Please publish or delete the draft first.",
-      ErrorCode.RESOURCE_CONFLICT
+      ErrorCode.RESOURCE_CONFLICT,
     );
   }
 
@@ -560,7 +560,7 @@ export async function rollbackAutomation(
 
   return responseOk(
     formatAutomationResponse(rolledBackAutomation),
-    "automation"
+    "automation",
   );
 }
 
@@ -575,7 +575,7 @@ export async function rollbackAutomation(
 export async function createAutomationVersion(
   workspaceId: string,
   automationId: string,
-  request: NextRequest
+  request: NextRequest,
 ) {
   const sourceAutomation = await prisma.automation.findFirst({
     where: {
@@ -588,7 +588,7 @@ export async function createAutomationVersion(
   if (!sourceAutomation) {
     throw new NotFoundError(
       "Automation not found",
-      ErrorCode.RESOURCE_NOT_FOUND
+      ErrorCode.RESOURCE_NOT_FOUND,
     );
   }
 
@@ -608,7 +608,7 @@ export async function createAutomationVersion(
   if (existingDraft) {
     throw new BadRequestError(
       "A DRAFT version already exists. Publish or delete it before creating a new version.",
-      ErrorCode.RESOURCE_CONFLICT
+      ErrorCode.RESOURCE_CONFLICT,
     );
   }
 

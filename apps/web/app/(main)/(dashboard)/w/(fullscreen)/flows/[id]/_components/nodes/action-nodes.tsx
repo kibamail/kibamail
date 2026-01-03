@@ -1,5 +1,7 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import type { NodeProps } from "@xyflow/react";
 import {
   DataTransferBoth,
   Mail,
@@ -8,10 +10,8 @@ import {
   User,
   UserXmark,
 } from "iconoir-react";
-import type { NodeProps } from "@xyflow/react";
-import { useQuery } from "@tanstack/react-query";
-import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
 import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
 import { internalApi } from "@/lib/api/client";
 
 function useTopicNames(topicIds: string[] | undefined) {
@@ -46,7 +46,9 @@ export function SendEmailNode(props: NodeProps) {
           {subject}
         </span>
       ) : (
-        <span className="text-xs text-kb-content-quaternary">No subject set</span>
+        <span className="text-xs text-kb-content-quaternary">
+          No subject set
+        </span>
       )}
     </BaseFlowNode>
   );
@@ -93,7 +95,9 @@ export function UpdateContactNode(props: NodeProps) {
           Set {fieldId} to "{fieldValue}"
         </span>
       ) : (
-        <span className="text-xs text-kb-content-quaternary">Not configured</span>
+        <span className="text-xs text-kb-content-quaternary">
+          Not configured
+        </span>
       )}
     </BaseFlowNode>
   );
@@ -134,7 +138,9 @@ export function AddToTopicNode(props: NodeProps) {
           {topicNames.join(", ")}
         </span>
       ) : (
-        <span className="text-xs text-kb-content-quaternary">No topics selected</span>
+        <span className="text-xs text-kb-content-quaternary">
+          No topics selected
+        </span>
       )}
     </BaseFlowNode>
   );
@@ -158,7 +164,9 @@ export function RemoveFromTopicNode(props: NodeProps) {
           {topicNames.join(", ")}
         </span>
       ) : (
-        <span className="text-xs text-kb-content-quaternary">No topics selected</span>
+        <span className="text-xs text-kb-content-quaternary">
+          No topics selected
+        </span>
       )}
     </BaseFlowNode>
   );

@@ -6,15 +6,15 @@
 
 import { describe, expect, test } from "vitest";
 import {
-  signData,
-  encodeTrackingPayload,
+  applyTracking,
+  decodeImageUrl,
   decodeTrackingPayload,
   encodeImageUrl,
-  decodeImageUrl,
-  rewriteLinks,
-  rewriteImageUrls,
+  encodeTrackingPayload,
   injectTrackingPixel,
-  applyTracking,
+  rewriteImageUrls,
+  rewriteLinks,
+  signData,
 } from "@/lib/email/tracking";
 
 describe("signData", () => {
@@ -87,7 +87,8 @@ describe("encodeImageUrl / decodeImageUrl", () => {
   });
 
   test("should handle URLs with query parameters", () => {
-    const imageUrl = "https://cdn.example.com/image.png?w=800&h=600&format=webp";
+    const imageUrl =
+      "https://cdn.example.com/image.png?w=800&h=600&format=webp";
     const encoded = encodeImageUrl(imageUrl);
     const decoded = decodeImageUrl(encoded);
 
@@ -95,7 +96,8 @@ describe("encodeImageUrl / decodeImageUrl", () => {
   });
 
   test("should handle long S3 URLs", () => {
-    const imageUrl = "https://kibamail-assets.s3.us-east-1.amazonaws.com/workspaces/ws_abc123/broadcasts/br_def456/images/hero-banner.png";
+    const imageUrl =
+      "https://kibamail-assets.s3.us-east-1.amazonaws.com/workspaces/ws_abc123/broadcasts/br_def456/images/hero-banner.png";
     const encoded = encodeImageUrl(imageUrl);
     const decoded = decodeImageUrl(encoded);
 
@@ -139,7 +141,8 @@ describe("rewriteImageUrls", () => {
   });
 
   test("should skip data: URLs", () => {
-    const html = '<img src="data:image/png;base64,iVBORw0KGgo..." alt="Inline">';
+    const html =
+      '<img src="data:image/png;base64,iVBORw0KGgo..." alt="Inline">';
     const result = rewriteImageUrls(html, "e.track.com");
 
     expect(result.html).toContain("data:image/png;base64");
@@ -155,7 +158,8 @@ describe("rewriteImageUrls", () => {
   });
 
   test("should skip tracking pixels", () => {
-    const html = '<img src="https://e.track.com/o/abc123.xyz" width="1" height="1">';
+    const html =
+      '<img src="https://e.track.com/o/abc123.xyz" width="1" height="1">';
     const result = rewriteImageUrls(html, "e.track.com");
 
     expect(result.html).toContain("https://e.track.com/o/abc123.xyz");
@@ -171,9 +175,15 @@ describe("rewriteImageUrls", () => {
     const result = rewriteImageUrls(html, "e.track.com");
 
     expect(result.images.length).toBe(3);
-    expect(result.images.map((i) => i.original)).toContain("https://cdn.example.com/one.png");
-    expect(result.images.map((i) => i.original)).toContain("https://cdn.example.com/two.png");
-    expect(result.images.map((i) => i.original)).toContain("https://cdn.example.com/three.png");
+    expect(result.images.map((i) => i.original)).toContain(
+      "https://cdn.example.com/one.png",
+    );
+    expect(result.images.map((i) => i.original)).toContain(
+      "https://cdn.example.com/two.png",
+    );
+    expect(result.images.map((i) => i.original)).toContain(
+      "https://cdn.example.com/three.png",
+    );
   });
 
   test("should handle images without src", () => {
@@ -184,7 +194,8 @@ describe("rewriteImageUrls", () => {
   });
 
   test("should preserve other image attributes", () => {
-    const html = '<img src="https://cdn.example.com/hero.png" alt="Hero" width="800" height="600" class="hero-image">';
+    const html =
+      '<img src="https://cdn.example.com/hero.png" alt="Hero" width="800" height="600" class="hero-image">';
     const result = rewriteImageUrls(html, "e.track.com");
 
     expect(result.html).toContain('alt="Hero"');
@@ -230,7 +241,8 @@ describe("rewriteLinks", () => {
   });
 
   test("should respect disable-tracking attribute", () => {
-    const html = '<a href="https://example.com" disable-tracking="true">Link</a>';
+    const html =
+      '<a href="https://example.com" disable-tracking="true">Link</a>';
     const result = rewriteLinks(html, "e.track.com", "es_test");
 
     expect(result.html).toContain("https://example.com");
@@ -268,7 +280,9 @@ describe("injectTrackingPixel", () => {
     expect(result.html).toContain('src="https://e.track.com/o/');
     expect(result.html).toContain('width="1"');
     expect(result.html).toContain('height="1"');
-    expect(result.html.indexOf("<img")).toBeLessThan(result.html.indexOf("</body>"));
+    expect(result.html.indexOf("<img")).toBeLessThan(
+      result.html.indexOf("</body>"),
+    );
   });
 
   test("should append pixel when no </body> tag", () => {
@@ -283,13 +297,16 @@ describe("injectTrackingPixel", () => {
     const html = "<p>Test</p>";
     const result = injectTrackingPixel(html, "e.track.com", "es_test");
 
-    expect(result.pixelUrl).toMatch(/^https:\/\/e\.track\.com\/o\/[A-Za-z0-9_=-]+\.[A-Za-z0-9_-]+$/);
+    expect(result.pixelUrl).toMatch(
+      /^https:\/\/e\.track\.com\/o\/[A-Za-z0-9_=-]+\.[A-Za-z0-9_-]+$/,
+    );
   });
 });
 
 describe("applyTracking", () => {
   test("should apply image proxy, click tracking, and open tracking by default", () => {
-    const html = '<body><img src="https://cdn.example.com/hero.png"><a href="https://example.com">Link</a></body>';
+    const html =
+      '<body><img src="https://cdn.example.com/hero.png"><a href="https://example.com">Link</a></body>';
     const result = applyTracking(html, "e.track.com", "es_test");
 
     // Image proxy
@@ -305,15 +322,17 @@ describe("applyTracking", () => {
     expect(result.pixelUrl).toBeDefined();
   });
 
-  test("should skip image proxy when disabled", () => {
+  test("should always proxy images even when other tracking is disabled", () => {
     const html = '<img src="https://cdn.example.com/hero.png">';
     const result = applyTracking(html, "e.track.com", "es_test", {
-      imageProxy: false,
+      clickTracking: false,
+      openTracking: false,
     });
 
-    expect(result.html).toContain("https://cdn.example.com/hero.png");
-    expect(result.html).not.toContain("https://e.track.com/i/");
-    expect(result.images.length).toBe(0);
+    // Images are always proxied
+    expect(result.html).toContain("https://e.track.com/i/");
+    expect(result.html).not.toContain("https://cdn.example.com/hero.png");
+    expect(result.images.length).toBe(1);
   });
 
   test("should skip click tracking when disabled", () => {
@@ -343,19 +362,25 @@ describe("applyTracking", () => {
     expect(result.html).not.toContain("https://e.track.com/o/");
   });
 
-  test("should skip all tracking when disabled", () => {
-    const html = '<img src="https://cdn.example.com/hero.png"><a href="https://example.com">Link</a>';
+  test("should skip click and open tracking when disabled but still proxy images", () => {
+    const html =
+      '<img src="https://cdn.example.com/hero.png"><a href="https://example.com">Link</a>';
     const result = applyTracking(html, "e.track.com", "es_test", {
-      imageProxy: false,
       clickTracking: false,
       openTracking: false,
     });
 
-    expect(result.html).toContain("https://cdn.example.com/hero.png");
+    // Images are always proxied
+    expect(result.html).not.toContain("https://cdn.example.com/hero.png");
+    expect(result.html).toContain("https://e.track.com/i/");
+    expect(result.images.length).toBe(1);
+
+    // Links not tracked
     expect(result.html).toContain("https://example.com");
-    expect(result.html).not.toContain("e.track.com");
-    expect(result.images.length).toBe(0);
+    expect(result.html).not.toContain("https://e.track.com/c/");
     expect(result.links.length).toBe(0);
+
+    // No pixel
     expect(result.pixelUrl).toBeUndefined();
   });
 

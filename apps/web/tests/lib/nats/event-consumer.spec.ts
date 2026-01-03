@@ -10,19 +10,26 @@
  * - Database running and migrated
  */
 
-import { describe, expect, test, beforeAll, afterAll, beforeEach } from "vitest";
 import { StringCodec } from "nats";
 import {
-  getNatsConnection,
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from "vitest";
+import { prisma } from "@/lib/db";
+import {
+  closeNatsConnection,
+  ensureEventsStream,
   getJetStream,
   getJetStreamManager,
-  closeNatsConnection,
-  startEventConsumer,
-  ensureEventsStream,
+  getNatsConnection,
   type NatsConnectionOptions,
+  startEventConsumer,
 } from "@/lib/nats";
 import type { EmailEvent } from "@/lib/nats/event-types";
-import { prisma } from "@/lib/db";
 
 const sc = StringCodec();
 
@@ -37,7 +44,7 @@ function getTestNatsOptions(): NatsConnectionOptions {
 
   if (!url || !user || !password || !tlsCa) {
     throw new Error(
-      "NATS_URL, NATS_USER, NATS_PASSWORD, and NATS_TLS_CA must be set for integration tests"
+      "NATS_URL, NATS_USER, NATS_PASSWORD, and NATS_TLS_CA must be set for integration tests",
     );
   }
 
@@ -75,7 +82,7 @@ function createTestEvent(overrides: Partial<EmailEvent> = {}): EmailEvent {
  */
 async function publishTestEvents(
   options: NatsConnectionOptions,
-  events: EmailEvent[]
+  events: EmailEvent[],
 ): Promise<void> {
   const js = await getJetStream(options);
 
@@ -140,14 +147,17 @@ describe("NATS Event Consumer Integration Tests", () => {
           batchTimeoutMs: 500,
           concurrency: 1,
           consumerName: testConsumerName,
-        }
+        },
       );
 
       expect(consumer.isRunning()).toBe(true);
 
       const testEvents = [
         createTestEvent({ type: "Delivery" }),
-        createTestEvent({ type: "Bounce", bounce_classification: "InvalidRecipient" }),
+        createTestEvent({
+          type: "Bounce",
+          bounce_classification: "InvalidRecipient",
+        }),
         createTestEvent({ type: "TransientFailure" }),
       ];
 
@@ -159,7 +169,9 @@ describe("NATS Event Consumer Integration Tests", () => {
 
       expect(processedEvents.length).toBeGreaterThanOrEqual(testEvents.length);
 
-      const deliveryEvents = processedEvents.filter((e) => e.type === "Delivery");
+      const deliveryEvents = processedEvents.filter(
+        (e) => e.type === "Delivery",
+      );
       const bounceEvents = processedEvents.filter((e) => e.type === "Bounce");
 
       expect(deliveryEvents.length).toBeGreaterThanOrEqual(1);
@@ -181,11 +193,11 @@ describe("NATS Event Consumer Integration Tests", () => {
           batchTimeoutMs: 500,
           concurrency: 1,
           consumerName: `${testConsumerName}-batch`,
-        }
+        },
       );
 
       const events = Array.from({ length: 10 }, (_, i) =>
-        createTestEvent({ sending_id: `batch-test-${Date.now()}-${i}` })
+        createTestEvent({ sending_id: `batch-test-${Date.now()}-${i}` }),
       );
 
       await publishTestEvents(natsOptions, events);
@@ -214,14 +226,16 @@ describe("NATS Event Consumer Integration Tests", () => {
       const consumer = await startEventConsumer(
         natsOptions,
         async (events) => {
-          receivedEvent = events.find((e) => e.sending_id === deliveryEvent.sending_id) || null;
+          receivedEvent =
+            events.find((e) => e.sending_id === deliveryEvent.sending_id) ||
+            null;
         },
         {
           batchSize: 1,
           batchTimeoutMs: 100,
           concurrency: 1,
           consumerName: `${testConsumerName}-delivery`,
-        }
+        },
       );
 
       await publishTestEvents(natsOptions, [deliveryEvent]);
@@ -250,14 +264,15 @@ describe("NATS Event Consumer Integration Tests", () => {
       const consumer = await startEventConsumer(
         natsOptions,
         async (events) => {
-          receivedEvent = events.find((e) => e.sending_id === bounceEvent.sending_id) || null;
+          receivedEvent =
+            events.find((e) => e.sending_id === bounceEvent.sending_id) || null;
         },
         {
           batchSize: 1,
           batchTimeoutMs: 100,
           concurrency: 1,
           consumerName: `${testConsumerName}-bounce`,
-        }
+        },
       );
 
       await publishTestEvents(natsOptions, [bounceEvent]);
@@ -283,14 +298,16 @@ describe("NATS Event Consumer Integration Tests", () => {
       const consumer = await startEventConsumer(
         natsOptions,
         async (events) => {
-          receivedEvent = events.find((e) => e.sending_id === feedbackEvent.sending_id) || null;
+          receivedEvent =
+            events.find((e) => e.sending_id === feedbackEvent.sending_id) ||
+            null;
         },
         {
           batchSize: 1,
           batchTimeoutMs: 100,
           concurrency: 1,
           consumerName: `${testConsumerName}-feedback`,
-        }
+        },
       );
 
       await publishTestEvents(natsOptions, [feedbackEvent]);

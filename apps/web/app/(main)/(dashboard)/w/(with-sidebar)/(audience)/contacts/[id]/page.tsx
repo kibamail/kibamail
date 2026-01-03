@@ -11,8 +11,8 @@ import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 import { ContactActionsDropdown } from "./_components/contact-actions-dropdown";
-import { CopyableId } from "./_components/copyable-id";
 import { ContactActivityFeed } from "./_components/contact-activity-feed";
+import { CopyableId } from "./_components/copyable-id";
 
 interface ContactDetailPageProps {
   params: Promise<{
@@ -22,7 +22,7 @@ interface ContactDetailPageProps {
 
 function buildContactProperties(
   contact: any,
-  properties: Array<{ name: string; slot: string }>
+  properties: Array<{ name: string; slot: string }>,
 ): Record<string, any> {
   const result: Record<string, any> = {};
 
@@ -104,7 +104,11 @@ export default async function ContactDetailPage({
             </DashboardLayoutStickyDetailHeaderTitle>
           </div>
 
-          <ContactActionsDropdown variant="default" contactId={contact.id} contactEmail={contact.email} />
+          <ContactActionsDropdown
+            variant="default"
+            contactId={contact.id}
+            contactEmail={contact.email}
+          />
         </div>
       </DashboardLayoutStickyDetailHeader>
 
@@ -112,7 +116,9 @@ export default async function ContactDetailPage({
         <div className="grid grid-cols-4 gap-6">
           <div>
             <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
-              {contact.status === "SUBSCRIBED" ? "Subscribed At" : "Unsubscribed At"}
+              {contact.status === "SUBSCRIBED"
+                ? "Subscribed At"
+                : "Unsubscribed At"}
             </div>
             <div className="text-sm text-kb-content-primary">
               {contact.status === "SUBSCRIBED"
@@ -120,8 +126,8 @@ export default async function ContactDetailPage({
                   ? dayjs(contact.subscribedAt).format("MMM D, YYYY h:mm A")
                   : "-"
                 : contact.unsubscribedAt
-                ? dayjs(contact.unsubscribedAt).format("MMM D, YYYY h:mm A")
-                : "-"}
+                  ? dayjs(contact.unsubscribedAt).format("MMM D, YYYY h:mm A")
+                  : "-"}
             </div>
           </div>
 

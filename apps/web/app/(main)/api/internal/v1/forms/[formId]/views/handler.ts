@@ -7,10 +7,10 @@
 
 import type { NextRequest } from "next/server";
 import { UAParser } from "ua-parser-js";
-import { prisma } from "@/lib/db";
-import { NotFoundError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { NotFoundError } from "@/lib/api/errors";
 import { responseCreated } from "@/lib/api/responses";
+import { prisma } from "@/lib/db";
 
 /**
  * Parse user agent string to extract device, OS, and browser info
@@ -50,10 +50,7 @@ function parseUserAgent(userAgent: string | null): {
  * @param formId - Form ID from URL parameter
  * @param request - Next.js request object
  */
-export async function createFormPageView(
-  formId: string,
-  request: NextRequest
-) {
+export async function createFormPageView(formId: string, request: NextRequest) {
   // Fetch the form to get workspaceId
   const form = await prisma.form.findFirst({
     where: {

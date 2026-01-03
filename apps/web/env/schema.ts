@@ -184,7 +184,7 @@ export const env = createEnv({
       .url("DATABASE_URL must be a valid URL")
       .refine(
         (url) => url.startsWith("postgresql://"),
-        "DATABASE_URL must be a PostgreSQL connection string"
+        "DATABASE_URL must be a PostgreSQL connection string",
       ),
 
     // ============================================================================
@@ -342,7 +342,7 @@ export const env = createEnv({
       .preprocess(
         (val) =>
           val ?? (process.env.NODE_ENV === "production" ? "true" : "false"),
-        z.string().transform((val) => val === "true")
+        z.string().transform((val) => val === "true"),
       )
       .describe("Whether to only send cookies over HTTPS"),
 
@@ -777,21 +777,43 @@ export const env = createEnv({
       .describe("NATS server URL"),
 
     /**
+     * NATS NKey Seed (for NKey authentication)
+     *
+     * The NKey seed for authenticating with NATS. This is the preferred
+     * authentication method for production. The seed starts with 'SU' for
+     * user seeds.
+     *
+     * If provided, this takes precedence over user/password authentication.
+     *
+     * ⚠️ SECURITY:
+     * - Keep this secret and never commit to version control
+     * - Use different keys for each environment
+     *
+     * @example "SUAB2CC65X6Z3W4EYCW3BPHIPO4GG3DIHKRVGOWUSNJBSK47LLSQJUAKTM"
+     */
+    NATS_NKEY_SEED: z
+      .string()
+      .optional()
+      .describe("NKey seed for NATS authentication (preferred for production)"),
+
+    /**
      * NATS User
      *
-     * Username for NATS authentication.
+     * Username for NATS password-based authentication.
+     * Only used if NATS_NKEY_SEED is not provided.
      *
      * @example "control_plane"
      */
     NATS_USER: z
       .string()
-      .min(1, "NATS_USER is required")
-      .describe("NATS authentication username"),
+      .optional()
+      .describe("NATS authentication username (for password auth)"),
 
     /**
      * NATS Password
      *
      * Password for NATS authentication.
+     * Only used if NATS_NKEY_SEED is not provided.
      *
      * ⚠️ SECURITY:
      * - Use a strong password in production
@@ -801,8 +823,8 @@ export const env = createEnv({
      */
     NATS_PASSWORD: z
       .string()
-      .min(1, "NATS_PASSWORD is required")
-      .describe("NATS authentication password"),
+      .optional()
+      .describe("NATS authentication password (for password auth)"),
 
     /**
      * NATS TLS CA Certificate (Base64 encoded)
@@ -890,6 +912,7 @@ export const env = createEnv({
     INTERNAL_SERVICE_KEY: process.env.INTERNAL_SERVICE_KEY,
     OTEL_INGESTION_API_KEY: process.env.OTEL_INGESTION_API_KEY,
     NATS_URL: process.env.NATS_URL,
+    NATS_NKEY_SEED: process.env.NATS_NKEY_SEED,
     NATS_USER: process.env.NATS_USER,
     NATS_PASSWORD: process.env.NATS_PASSWORD,
     NATS_TLS_CA: process.env.NATS_TLS_CA,
@@ -939,4 +962,4 @@ export const env = createEnv({
  * type LogtoConfig = Pick<Env, 'LOGTO_ENDPOINT' | 'LOGTO_APP_ID' | 'LOGTO_APP_SECRET'>
  * ```
  */
-export type Env = typeof env;
+type Env = typeof env;

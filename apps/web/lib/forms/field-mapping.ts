@@ -13,10 +13,10 @@
  */
 
 import type {
+  ContactPropertyMapping,
+  FieldType,
   FormBuilderSchema,
   FormField,
-  FieldType,
-  ContactPropertyMapping,
 } from "@/lib/form-builder/schema";
 
 // Field types that should map to numeric slots
@@ -122,7 +122,9 @@ export function extractFieldsFromSchema(schema: unknown): ExtractedField[] {
  * @param schema - The form builder schema (can be null/undefined/empty)
  * @returns Array of extracted fields with name, type, label, and contactProperty
  */
-export function extractFieldsWithContactProperty(schema: unknown): ExtractedFieldWithMapping[] {
+export function extractFieldsWithContactProperty(
+  schema: unknown,
+): ExtractedFieldWithMapping[] {
   if (!schema || typeof schema !== "object") {
     return [];
   }
@@ -173,7 +175,7 @@ export function extractFieldsWithContactProperty(schema: unknown): ExtractedFiel
  * @param schema - The form builder schema
  * @returns Array of all form fields
  */
-export function extractAllFieldsFromSchema(schema: unknown): FormField[] {
+function extractAllFieldsFromSchema(schema: unknown): FormField[] {
   if (!schema || typeof schema !== "object") {
     return [];
   }
@@ -219,7 +221,7 @@ export function getStorageType(fieldType: FieldType): "string" | "number" {
  */
 export function generateFieldMapping(
   schema: unknown,
-  existingMapping: FormFieldMapping | null = null
+  existingMapping: FormFieldMapping | null = null,
 ): FormFieldMapping {
   const fields = extractFieldsFromSchema(schema);
   const mapping: FormFieldMapping = { ...(existingMapping || {}) };
@@ -252,7 +254,7 @@ export function generateFieldMapping(
       }
     }
     throw new Error(
-      `Maximum string field slots (${MAX_STRING_SLOTS}) exceeded. Cannot add more string fields to this form.`
+      `Maximum string field slots (${MAX_STRING_SLOTS}) exceeded. Cannot add more string fields to this form.`,
     );
   }
 
@@ -264,7 +266,7 @@ export function generateFieldMapping(
       }
     }
     throw new Error(
-      `Maximum numeric field slots (${MAX_NUM_SLOTS}) exceeded. Cannot add more numeric fields to this form.`
+      `Maximum numeric field slots (${MAX_NUM_SLOTS}) exceeded. Cannot add more numeric fields to this form.`,
     );
   }
 
@@ -321,7 +323,7 @@ export function generateFieldMapping(
  */
 export function transformToContactData(
   data: Record<string, unknown>,
-  fieldMapping: FormFieldMapping
+  fieldMapping: FormFieldMapping,
 ): Record<string, unknown> {
   const contactData: Record<string, unknown> = {};
 

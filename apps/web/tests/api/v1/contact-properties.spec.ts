@@ -19,6 +19,7 @@ import {
   POST as CREATE_PROPERTY,
   GET as LIST_PROPERTIES,
 } from "@/app/(main)/api/v1/contact-properties/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
   type CreatedApiKey,
   cleanupWorkspace,
@@ -30,7 +31,6 @@ import {
   put,
   type TestWorkspace,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -54,7 +54,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "DATE",
         defaultValue: timestampNow,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -73,7 +73,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "NUMBER",
         defaultValue: "1500.50",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -92,7 +92,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "STRING",
         defaultValue: "Engineering",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -110,7 +110,7 @@ describe("POST /api/v1/contact-properties", () => {
         name: "Optional Field",
         type: "STRING",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -128,7 +128,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "DATE",
         defaultValue: "not-a-timestamp",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -150,7 +150,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "NUMBER",
         defaultValue: "abc123",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -172,7 +172,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "STRING",
         defaultValue: "",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -194,7 +194,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "STRING",
         defaultValue: "value",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -220,8 +220,8 @@ describe("POST /api/v1/contact-properties", () => {
           type: "STRING",
           defaultValue: "test",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
 
     // Try to create duplicate
@@ -232,7 +232,7 @@ describe("POST /api/v1/contact-properties", () => {
         type: "STRING",
         defaultValue: "test2",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await CREATE_PROPERTY(request);
@@ -269,15 +269,15 @@ describe("GET /api/v1/contact-properties", () => {
             type: "STRING",
             defaultValue: `value${i}`,
           },
-          fullAccessApiKey.key
-        )
+          fullAccessApiKey.key,
+        ),
       );
     }
 
     // Get first page
     const firstRequest = get(
       "/contact-properties?limit=2",
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const firstResponse = await LIST_PROPERTIES(firstRequest);
     const firstData = await firstResponse.json();
@@ -288,7 +288,7 @@ describe("GET /api/v1/contact-properties", () => {
     const lastIdFromFirstPage = firstData.data[firstData.data.length - 1].id;
     const secondRequest = get(
       `/contact-properties?limit=2&after=${lastIdFromFirstPage}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const secondResponse = await LIST_PROPERTIES(secondRequest);
     const secondData = await secondResponse.json();
@@ -324,8 +324,8 @@ describe("GET /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "NUMBER",
           defaultValue: "42.5",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -348,7 +348,7 @@ describe("GET /api/v1/contact-properties/[contactPropertyId]", () => {
   test("should return 404 for non-existent property", async () => {
     const request = get(
       "/contact-properties/non-existent-id",
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await GET_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: "non-existent-id" }),
@@ -374,8 +374,8 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "STRING",
           defaultValue: "value",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -383,7 +383,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
     const request = put(
       `/contact-properties/${id}`,
       { name: "Updated Name" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await UPDATE_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: id }),
@@ -396,7 +396,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
       get(`/contact-properties/${id}`, fullAccessApiKey.key),
       {
         params: Promise.resolve({ contactPropertyId: id }),
-      }
+      },
     );
     const getData = await getResponse.json();
     expect(getData.name).toBe("Updated Name");
@@ -412,8 +412,8 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "NUMBER",
           defaultValue: "100",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -421,7 +421,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
     const request = put(
       `/contact-properties/${id}`,
       { defaultValue: "200.5" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await UPDATE_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: id }),
@@ -434,7 +434,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
       get(`/contact-properties/${id}`, fullAccessApiKey.key),
       {
         params: Promise.resolve({ contactPropertyId: id }),
-      }
+      },
     );
     const getData = await getResponse.json();
     expect(getData.defaultValue).toBe("200.5");
@@ -450,8 +450,8 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "NUMBER",
           defaultValue: "100",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -459,7 +459,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
     const request = put(
       `/contact-properties/${id}`,
       { defaultValue: "not-a-number" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await UPDATE_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: id }),
@@ -483,8 +483,8 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "DATE",
           defaultValue: Date.now().toString(),
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -492,7 +492,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
     const request = put(
       `/contact-properties/${id}`,
       { defaultValue: "invalid-date" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await UPDATE_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: id }),
@@ -510,7 +510,7 @@ describe("PUT /api/v1/contact-properties/[contactPropertyId]", () => {
     const request = put(
       "/contact-properties/non-existent-id",
       { name: "Updated" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await UPDATE_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: "non-existent-id" }),
@@ -536,8 +536,8 @@ describe("DELETE /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "STRING",
           defaultValue: "value",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -554,7 +554,7 @@ describe("DELETE /api/v1/contact-properties/[contactPropertyId]", () => {
       get(`/contact-properties/${id}`, fullAccessApiKey.key),
       {
         params: Promise.resolve({ contactPropertyId: id }),
-      }
+      },
     );
     expect(getResponse.status).toBe(404);
   });
@@ -562,7 +562,7 @@ describe("DELETE /api/v1/contact-properties/[contactPropertyId]", () => {
   test("should return 404 when deleting non-existent property", async () => {
     const request = del(
       "/contact-properties/non-existent-id",
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response = await DELETE_PROPERTY(request, {
       params: Promise.resolve({ contactPropertyId: "non-existent-id" }),
@@ -588,8 +588,8 @@ describe("DELETE /api/v1/contact-properties/[contactPropertyId]", () => {
           type: "STRING",
           defaultValue: "value1",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
     const { id } = await createResponse.json();
 
@@ -598,7 +598,7 @@ describe("DELETE /api/v1/contact-properties/[contactPropertyId]", () => {
       del(`/contact-properties/${id}`, fullAccessApiKey.key),
       {
         params: Promise.resolve({ contactPropertyId: id }),
-      }
+      },
     );
 
     // Create new property with same name
@@ -609,7 +609,7 @@ describe("DELETE /api/v1/contact-properties/[contactPropertyId]", () => {
         type: "STRING",
         defaultValue: "value2",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const secondCreateResponse = await CREATE_PROPERTY(secondCreateRequest);
@@ -628,8 +628,8 @@ describe("Slot Assignment", () => {
           type: "NUMBER",
           defaultValue: "1",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
 
     const dateResponse = await CREATE_PROPERTY(
@@ -640,8 +640,8 @@ describe("Slot Assignment", () => {
           type: "DATE",
           defaultValue: Date.now().toString(),
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
 
     const stringResponse = await CREATE_PROPERTY(
@@ -652,8 +652,8 @@ describe("Slot Assignment", () => {
           type: "STRING",
           defaultValue: "test",
         },
-        fullAccessApiKey.key
-      )
+        fullAccessApiKey.key,
+      ),
     );
 
     expect(numResponse.status).toBe(201);

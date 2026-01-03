@@ -10,8 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
-import { getTopic, updateTopic, deleteTopic } from "@/app/(main)/api/v1/topics/handler";
+import {
+  deleteTopic,
+  getTopic,
+  updateTopic,
+} from "@/app/(main)/api/v1/topics/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/topics/[topicId]
@@ -21,16 +25,14 @@ import { getTopic, updateTopic, deleteTopic } from "@/app/(main)/api/v1/topics/h
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
   return withErrorHandling(request, () =>
-    withApiSession(
-      request,
-      (apiKey) => getTopic(apiKey.workspaceId, topicId),
-      ["read:topics"]
-    )
+    withApiSession(request, (apiKey) => getTopic(apiKey.workspaceId, topicId), [
+      "read:topics",
+    ]),
   );
 }
 
@@ -42,7 +44,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
@@ -50,8 +52,8 @@ export async function PUT(
     withApiSession(
       request,
       (apiKey, request) => updateTopic(apiKey.workspaceId, topicId, request),
-      ["update:topics"]
-    )
+      ["update:topics"],
+    ),
   );
 }
 
@@ -63,7 +65,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
@@ -71,7 +73,7 @@ export async function DELETE(
     withApiSession(
       request,
       (apiKey) => deleteTopic(apiKey.workspaceId, topicId),
-      ["delete:topics"]
-    )
+      ["delete:topics"],
+    ),
   );
 }

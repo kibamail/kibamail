@@ -91,7 +91,7 @@ type ApiResponse<T = unknown> = {
 export function responseOk<T>(
   data?: T,
   object?: ApiObjectType,
-  meta?: unknown
+  meta?: unknown,
 ): NextResponse<ApiResponse<T>> {
   const response: ApiResponse<T> = { object, ...data };
   if (meta) {
@@ -114,7 +114,7 @@ export function responseOk<T>(
  */
 export function responseCreated<T>(
   data: T,
-  object?: ApiObjectType
+  object?: ApiObjectType,
 ): NextResponse<ApiResponse<T>> {
   return NextResponse.json({ object, ...data }, { status: 201 });
 }
@@ -151,7 +151,7 @@ export function responseNoContent(): NextResponse {
  * ```
  */
 export function responseBadRequest(
-  error: string
+  error: string,
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 400 });
 }
@@ -173,7 +173,7 @@ export function responseBadRequest(
  * ```
  */
 export function responseUnauthorized(
-  error = "Authentication required"
+  error = "Authentication required",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 401 });
 }
@@ -194,8 +194,8 @@ export function responseUnauthorized(
  * throw new ForbiddenError('You do not have permission to access this resource', ErrorCode.ACCESS_DENIED)
  * ```
  */
-export function responseForbidden(
-  error = "Access denied"
+function responseForbidden(
+  error = "Access denied",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 403 });
 }
@@ -217,7 +217,7 @@ export function responseForbidden(
  * ```
  */
 export function responseNotFound(
-  error = "Resource not found"
+  error = "Resource not found",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 404 });
 }
@@ -238,9 +238,7 @@ export function responseNotFound(
  * throw new ConflictError('Email already exists', ErrorCode.EMAIL_ALREADY_EXISTS)
  * ```
  */
-export function responseConflict(
-  error: string
-): NextResponse<ApiResponse<never>> {
+function responseConflict(error: string): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 409 });
 }
 
@@ -284,8 +282,8 @@ export function responseConflict(
  * }
  * ```
  */
-export function responseValidationFailed(
-  zodError: ZodError
+function responseValidationFailed(
+  zodError: ZodError,
 ): NextResponse<ApiResponse<never>> {
   const fieldErrors: Record<string, string[]> = {};
 
@@ -302,7 +300,7 @@ export function responseValidationFailed(
       error: "Validation failed",
       fieldErrors,
     },
-    { status: 422 }
+    { status: 422 },
   );
 }
 
@@ -322,8 +320,8 @@ export function responseValidationFailed(
  * throw new RateLimitError('Too many requests. Try again in 60 seconds', ErrorCode.RATE_LIMIT_EXCEEDED)
  * ```
  */
-export function responseRateLimitExceeded(
-  error = "Rate limit exceeded"
+function responseRateLimitExceeded(
+  error = "Rate limit exceeded",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 429 });
 }
@@ -344,8 +342,8 @@ export function responseRateLimitExceeded(
  * throw new InternalServerError('Database connection failed', ErrorCode.DATABASE_ERROR)
  * ```
  */
-export function responseServerError(
-  error = "Internal server error"
+function responseServerError(
+  error = "Internal server error",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 500 });
 }
@@ -366,8 +364,8 @@ export function responseServerError(
  * throw new ServiceUnavailableError('Maintenance in progress', ErrorCode.SERVICE_UNAVAILABLE)
  * ```
  */
-export function responseServiceUnavailable(
-  error = "Service temporarily unavailable"
+function responseServiceUnavailable(
+  error = "Service temporarily unavailable",
 ): NextResponse<ApiResponse<never>> {
   return NextResponse.json({ error }, { status: 503 });
 }

@@ -24,7 +24,9 @@ import { getSession } from "@/lib/auth/get-session";
 import { UserSessionDropdown } from "./_components/profile/user-dropdown";
 import { SidebarNavigation } from "./_components/sidebar-navigation";
 
-export default async function DashboardSidebarLayout({ children }: PropsWithChildren) {
+export default async function DashboardSidebarLayout({
+  children,
+}: PropsWithChildren) {
   const session = await getSession();
 
   return (

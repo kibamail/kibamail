@@ -3,13 +3,13 @@
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Xmark } from "iconoir-react";
-import { useEffect, type PropsWithChildren } from "react";
+import { type PropsWithChildren, useEffect } from "react";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
-import { useImportContactsStore } from "./store/import-contacts-store";
-import { StepOneUploadCsv } from "./steps/step-one-upload-csv";
-import { StepTwoMatchHeaders } from "./steps/step-two-match-headers";
-import { StepThreeImportSettings } from "./steps/step-three-import-settings";
 import { StepFourProcessing } from "./steps/step-four-processing";
+import { StepOneUploadCsv } from "./steps/step-one-upload-csv";
+import { StepThreeImportSettings } from "./steps/step-three-import-settings";
+import { StepTwoMatchHeaders } from "./steps/step-two-match-headers";
+import { useImportContactsStore } from "./store/import-contacts-store";
 
 interface ImportContactsDialogProps extends ToggleState {
   onImportCompleted?: () => void;

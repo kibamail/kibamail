@@ -51,9 +51,7 @@
   "nodeid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
   "tls_cipher": "TLS_AES_128_GCM_SHA256",
   "tls_protocol_version": "TLSv1.2",
-  "tls_peer_subject_name": [
-    "CN=*.yahoodns.net"
-  ],
+  "tls_peer_subject_name": ["CN=*.yahoodns.net"],
   "provider_name": "yahoo",
   "session_id": "sess-delivery-002"
 }

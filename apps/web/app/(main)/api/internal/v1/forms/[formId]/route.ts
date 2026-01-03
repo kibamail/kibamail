@@ -12,8 +12,12 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  deleteForm,
+  getForm,
+  updateForm,
+} from "@/app/(main)/api/v1/forms/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { getForm, updateForm, deleteForm } from "@/app/(main)/api/v1/forms/handler";
 
 /**
  * GET /api/internal/v1/forms/[formId]
@@ -24,7 +28,7 @@ import { getForm, updateForm, deleteForm } from "@/app/(main)/api/v1/forms/handl
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -37,8 +41,8 @@ export async function GET(
         }
         return getForm(session.currentOrganization.id, formId);
       },
-      ["read:forms"]
-    )
+      ["read:forms"],
+    ),
   );
 }
 
@@ -51,7 +55,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -64,8 +68,8 @@ export async function PUT(
         }
         return updateForm(session.currentOrganization.id, formId, request);
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }
 
@@ -78,7 +82,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -91,7 +95,7 @@ export async function DELETE(
         }
         return deleteForm(session.currentOrganization.id, formId);
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }

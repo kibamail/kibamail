@@ -78,7 +78,7 @@ export class QueueWrapper<Q extends QueueName> {
             name: error.name,
           },
         },
-        "Queue error"
+        "Queue error",
       );
     });
   }
@@ -102,7 +102,7 @@ export class QueueWrapper<Q extends QueueName> {
   async push<J extends JobName<Q>>(
     jobName: J,
     data: JobData<Q, J>,
-    options?: JobOptions
+    options?: JobOptions,
   ): Promise<string> {
     try {
       const job = await this.queue.add(jobName, data, options);
@@ -110,7 +110,7 @@ export class QueueWrapper<Q extends QueueName> {
       const jobLogger = createJobLogger(
         this.queueName,
         jobName,
-        job.id as string
+        job.id as string,
       );
 
       jobLogger.info({ data, options }, "Job pushed to queue");
@@ -119,7 +119,7 @@ export class QueueWrapper<Q extends QueueName> {
     } catch (error) {
       this.logger.error(
         { error, jobName, data, options },
-        "Failed to push job to queue"
+        "Failed to push job to queue",
       );
       throw error;
     }
@@ -144,7 +144,7 @@ export class QueueWrapper<Q extends QueueName> {
       name: J;
       data: JobData<Q, J>;
       options?: JobOptions;
-    }>
+    }>,
   ): Promise<string[]> {
     try {
       const bullJobs = await this.queue.addBulk(
@@ -152,7 +152,7 @@ export class QueueWrapper<Q extends QueueName> {
           name: job.name,
           data: job.data,
           opts: job.options,
-        }))
+        })),
       );
 
       this.logger.info({ count: bullJobs.length }, "Bulk jobs pushed to queue");

@@ -24,23 +24,20 @@ type QueueConnection = ConnectionOptions | Cluster;
 export function getQueueConnection(): QueueConnection {
   if (env.REDIS_CLUSTER_MODE) {
     // BullMQ requires an ioredis Cluster instance for cluster mode
-    return new Cluster(
-      [{ host: env.REDIS_HOST, port: env.REDIS_PORT }],
-      {
-        redisOptions: {
-          password: env.REDIS_PASSWORD,
-          connectTimeout: 10000,
-          keepAlive: 30000,
-          maxRetriesPerRequest: null,
-        },
-        clusterRetryStrategy(times) {
-          const delay = Math.min(times * 50, 2000);
-          return delay;
-        },
-        enableReadyCheck: true,
-        scaleReads: "slave",
-      }
-    );
+    return new Cluster([{ host: env.REDIS_HOST, port: env.REDIS_PORT }], {
+      redisOptions: {
+        password: env.REDIS_PASSWORD,
+        connectTimeout: 10000,
+        keepAlive: 30000,
+        maxRetriesPerRequest: null,
+      },
+      clusterRetryStrategy(times) {
+        const delay = Math.min(times * 50, 2000);
+        return delay;
+      },
+      enableReadyCheck: true,
+      scaleReads: "slave",
+    });
   }
 
   // Standalone mode

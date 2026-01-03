@@ -31,7 +31,7 @@ import { changeMemberRoleSchema, inviteMembersSchema } from "./schema";
 export async function inviteMembers(
   session: UserSession,
   request: NextRequest,
-  params: { id: string }
+  params: { id: string },
 ) {
   const data = await validateRequestBody(inviteMembersSchema, request);
 
@@ -45,7 +45,7 @@ export async function inviteMembers(
 
   if (!roleId) {
     return responseBadRequest(
-      "The role you provided does not seem to be valid. Please try again."
+      "The role you provided does not seem to be valid. Please try again.",
     );
   }
 
@@ -59,7 +59,7 @@ export async function inviteMembers(
 
     if (parsedError.code === "entity.unique_integrity_violation") {
       return responseBadRequest(
-        "This user was already invited. Please delete the current invitation to invite again."
+        "This user was already invited. Please delete the current invitation to invite again.",
       );
     }
 
@@ -73,7 +73,7 @@ export async function inviteMembers(
   if (!invitation) {
     throw new InternalServerError(
       "Failed to create member invitation. Please try again.",
-      error
+      error,
     );
   }
 
@@ -99,7 +99,7 @@ export async function inviteMembers(
 export async function changeMemberRole(
   _session: UserSession,
   request: NextRequest,
-  params: { id: string; memberId: string }
+  params: { id: string; memberId: string },
 ) {
   const data = await validateRequestBody(changeMemberRoleSchema, request);
 
@@ -113,7 +113,7 @@ export async function changeMemberRole(
 
   if (!roleId) {
     return responseBadRequest(
-      "The role you provided does not seem to be valid. Please try again."
+      "The role you provided does not seem to be valid. Please try again.",
     );
   }
 
@@ -132,7 +132,7 @@ export async function changeMemberRole(
 
     throw new InternalServerError(
       "Failed to update member role. Please try again.",
-      error
+      error,
     );
   }
 

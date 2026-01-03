@@ -65,7 +65,8 @@ export function CreateContactModal({
     },
   });
 
-  const isLoading = topicsLoading || propertiesLoading || (isEditMode && contactLoading);
+  const isLoading =
+    topicsLoading || propertiesLoading || (isEditMode && contactLoading);
 
   const {
     register,
@@ -146,7 +147,7 @@ export function CreateContactModal({
       toast(
         isEditMode
           ? "Contact updated successfully."
-          : "Contact created successfully."
+          : "Contact created successfully.",
       );
       onClose();
       router.refresh();
@@ -180,7 +181,9 @@ export function CreateContactModal({
           <div className="space-y-6 py-4 px-6">
             {isEditMode && contactLoading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="text-kb-content-secondary">Loading contact...</div>
+                <div className="text-kb-content-secondary">
+                  Loading contact...
+                </div>
               </div>
             ) : (
               <>
@@ -231,7 +234,9 @@ export function CreateContactModal({
                   <Switch.Root
                     id="subscribed"
                     checked={watch("subscribed")}
-                    onCheckedChange={(checked) => setValue("subscribed", checked)}
+                    onCheckedChange={(checked) =>
+                      setValue("subscribed", checked)
+                    }
                   >
                     <Switch.Label
                       htmlFor="subscribed"
@@ -271,7 +276,9 @@ export function CreateContactModal({
                                         ? field.value
                                         : undefined
                                     }
-                                    onValueChange={(date) => field.onChange(date)}
+                                    onValueChange={(date) =>
+                                      field.onChange(date)
+                                    }
                                     label={property.name}
                                     hint=""
                                   />
@@ -292,7 +299,9 @@ export function CreateContactModal({
                                   valueAsNumber: true,
                                 })}
                               >
-                                <TextField.Label>{property.name}</TextField.Label>
+                                <TextField.Label>
+                                  {property.name}
+                                </TextField.Label>
                               </TextField.Root>
                             );
                           }

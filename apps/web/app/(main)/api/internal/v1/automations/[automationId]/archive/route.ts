@@ -10,8 +10,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { archiveAutomation } from "@/app/(main)/api/v1/automations/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * POST /api/internal/v1/automations/[automationId]/archive
@@ -22,7 +22,7 @@ import { archiveAutomation } from "@/app/(main)/api/v1/automations/handler";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   const { automationId } = await params;
 
@@ -35,7 +35,7 @@ export async function POST(
         }
         return archiveAutomation(session.currentOrganization.id, automationId);
       },
-      ["manage:automations"]
-    )
+      ["manage:automations"],
+    ),
   );
 }

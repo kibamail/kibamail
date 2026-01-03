@@ -7,22 +7,22 @@
  * - DELETE /api/v1/topics/[topicId] - Delete specific topic
  */
 
-import { GET, PUT, DELETE } from "@/app/(main)/api/v1/topics/[topicId]/route";
-import { POST } from "@/app/(main)/api/v1/topics/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { DELETE, GET, PUT } from "@/app/(main)/api/v1/topics/[topicId]/route";
+import { POST } from "@/app/(main)/api/v1/topics/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
-  post,
-  get,
-  put,
+  createTestWorkspace,
   del,
+  get,
+  post,
+  put,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -54,7 +54,10 @@ afterAll(async () => {
 
 describe("GET /api/v1/topics/[topicId]", () => {
   test("should retrieve a topic by ID", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Retrieve Test");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Retrieve Test",
+    );
     const request = get(`/topics/${createdTopic.id}`, fullAccessApiKey.key);
     const params = Promise.resolve({ topicId: createdTopic.id });
 
@@ -84,7 +87,10 @@ describe("GET /api/v1/topics/[topicId]", () => {
   });
 
   test("should not retrieve topic from different workspace", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Workspace Test");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Workspace Test",
+    );
 
     // Create different workspace
     const otherWorkspace = createTestWorkspace();
@@ -122,9 +128,16 @@ describe("GET /api/v1/topics/[topicId]", () => {
 
 describe("PUT /api/v1/topics/[topicId]", () => {
   test("should update topic name", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Original Name");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Original Name",
+    );
     const updateData = { name: "Updated Name" };
-    const request = put(`/topics/${createdTopic.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/topics/${createdTopic.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ topicId: createdTopic.id });
 
     const response = await PUT(request, { params });
@@ -135,9 +148,16 @@ describe("PUT /api/v1/topics/[topicId]", () => {
     expect(responseData.id).toBe(createdTopic.id);
   });
   test("should update topic visibility", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Visibility Test");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Visibility Test",
+    );
     const updateData = { visibility: "PRIVATE" as const };
-    const request = put(`/topics/${createdTopic.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/topics/${createdTopic.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ topicId: createdTopic.id });
 
     const response = await PUT(request, { params });
@@ -149,7 +169,11 @@ describe("PUT /api/v1/topics/[topicId]", () => {
   test("should update defaultOptIn flag", async () => {
     const createdTopic = await createTestTopic(fullAccessApiKey, "OptIn Test");
     const updateData = { defaultOptIn: true };
-    const request = put(`/topics/${createdTopic.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/topics/${createdTopic.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ topicId: createdTopic.id });
 
     const response = await PUT(request, { params });
@@ -167,7 +191,11 @@ describe("PUT /api/v1/topics/[topicId]", () => {
       description: "New description",
       defaultOptIn: true,
     };
-    const request = put(`/topics/${createdTopic.id}`, updateData, fullAccessApiKey.key);
+    const request = put(
+      `/topics/${createdTopic.id}`,
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ topicId: createdTopic.id });
 
     const response = await PUT(request, { params });
@@ -177,14 +205,21 @@ describe("PUT /api/v1/topics/[topicId]", () => {
     expect(responseData.id).toBeDefined();
   });
   test("should reject update without update:topics scope", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Scope Update Test");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Scope Update Test",
+    );
     const readOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
       scopes: ["read:topics"],
     });
 
     const updateData = { name: "Should Fail" };
-    const request = put(`/topics/${createdTopic.id}`, updateData, readOnlyApiKey.key);
+    const request = put(
+      `/topics/${createdTopic.id}`,
+      updateData,
+      readOnlyApiKey.key,
+    );
     const params = Promise.resolve({ topicId: createdTopic.id });
 
     const response = await PUT(request, { params });
@@ -196,7 +231,11 @@ describe("PUT /api/v1/topics/[topicId]", () => {
 
   test("should return 404 when updating non-existent topic", async () => {
     const updateData = { name: "Does Not Exist" };
-    const request = put("/topics/non_existent_id", updateData, fullAccessApiKey.key);
+    const request = put(
+      "/topics/non_existent_id",
+      updateData,
+      fullAccessApiKey.key,
+    );
     const params = Promise.resolve({ topicId: "non_existent_id" });
 
     const response = await PUT(request, { params });
@@ -212,7 +251,10 @@ describe("PUT /api/v1/topics/[topicId]", () => {
 
 describe("DELETE /api/v1/topics/[topicId]", () => {
   test("should delete a topic", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Topic to Delete");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Topic to Delete",
+    );
     const request = del(`/topics/${createdTopic.id}`, fullAccessApiKey.key);
     const params = Promise.resolve({ topicId: createdTopic.id });
 
@@ -246,7 +288,10 @@ describe("DELETE /api/v1/topics/[topicId]", () => {
   });
 
   test("should reject delete without delete:topics scope", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Scope Delete Test");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Scope Delete Test",
+    );
     const readOnlyApiKey = await createTestApiKey({
       workspaceId: testWorkspace.id,
       scopes: ["read:topics"],
@@ -263,7 +308,10 @@ describe("DELETE /api/v1/topics/[topicId]", () => {
   });
 
   test("should not delete topic from different workspace", async () => {
-    const createdTopic = await createTestTopic(fullAccessApiKey, "Workspace Delete Test");
+    const createdTopic = await createTestTopic(
+      fullAccessApiKey,
+      "Workspace Delete Test",
+    );
 
     // Create different workspace
     const otherWorkspace = createTestWorkspace();

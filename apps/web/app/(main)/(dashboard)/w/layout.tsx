@@ -17,9 +17,7 @@ export default async function WorkspaceLayout({ children }: PropsWithChildren) {
 
   return (
     <QueryProvider>
-      <UserProvider session={session}>
-        {children}
-      </UserProvider>
+      <UserProvider session={session}>{children}</UserProvider>
     </QueryProvider>
   );
 }

@@ -1,27 +1,27 @@
-import * as React from "react";
 import {
-  Html,
-  Head,
   Body,
+  Button,
   Container,
+  Head,
+  Heading,
+  Hr,
+  Html,
+  Img,
+  Link,
   Section,
   Text,
-  Heading,
-  Button,
-  Link,
-  Img,
-  Hr,
 } from "@react-email/components";
+import * as React from "react";
 import type {
-  Node,
-  Mark,
   BroadcastDocument,
-  RenderContext,
   BroadcastStyles,
+  Mark,
+  Node,
+  RenderContext,
 } from "./types";
 
 function toReactStyle(
-  customStyle?: Record<string, unknown>
+  customStyle?: Record<string, unknown>,
 ): React.CSSProperties {
   if (!customStyle) return {};
 
@@ -48,7 +48,7 @@ function renderMarks(
   text: string,
   marks: Mark[] | undefined,
   context: RenderContext,
-  key: string
+  key: string,
 ): React.ReactNode {
   const processedText = replaceVariables(text, context);
 
@@ -111,7 +111,7 @@ function renderMarks(
       case "link": {
         const href = replaceVariables(
           (mark.attrs?.href as string) || "#",
-          context
+          context,
         );
         result = (
           <Link
@@ -171,11 +171,11 @@ function renderNode(
   node: Node,
   context: RenderContext,
   key: string,
-  styles: BroadcastStyles = {}
+  styles: BroadcastStyles = {},
 ): React.ReactNode {
   const { type, attrs, content, marks, text } = node;
   const customStyle = toReactStyle(
-    attrs?.customStyle as Record<string, unknown>
+    attrs?.customStyle as Record<string, unknown>,
   );
 
   switch (type) {
@@ -203,7 +203,7 @@ function renderNode(
       return (
         <Text key={key} style={style}>
           {content.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </Text>
       );
@@ -215,7 +215,7 @@ function renderNode(
 
       const headingKey = `h${Math.min(
         Math.max(level, 1),
-        6
+        6,
       )}` as keyof NonNullable<BroadcastStyles["heading"]>;
       const levelStyle = styles.heading?.[headingKey] || {};
 
@@ -238,7 +238,7 @@ function renderNode(
       return (
         <Heading key={key} as={as} style={style}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </Heading>
       );
@@ -312,7 +312,7 @@ function renderNode(
       return (
         <Button key={key} href={href} style={buttonStyle}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </Button>
       );
@@ -327,7 +327,7 @@ function renderNode(
       return (
         <Section key={key} style={panelStyle}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </Section>
       );
@@ -368,7 +368,7 @@ function renderNode(
       return (
         <ul key={key} style={listStyle}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </ul>
       );
@@ -384,7 +384,7 @@ function renderNode(
       return (
         <ol key={key} style={listStyle}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </ol>
       );
@@ -394,7 +394,7 @@ function renderNode(
       return (
         <li key={key}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </li>
       );
@@ -415,7 +415,7 @@ function renderNode(
       return (
         <blockquote key={key} style={blockquoteStyle}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </blockquote>
       );
@@ -435,7 +435,7 @@ function renderNode(
       return (
         <div key={key} style={codeBlockStyle}>
           {content?.map((child, i) =>
-            renderNode(child, context, `${key}-${i}`, styles)
+            renderNode(child, context, `${key}-${i}`, styles),
           )}
         </div>
       );
@@ -446,7 +446,7 @@ function renderNode(
         return (
           <React.Fragment key={key}>
             {content.map((child, i) =>
-              renderNode(child, context, `${key}-${i}`, styles)
+              renderNode(child, context, `${key}-${i}`, styles),
             )}
           </React.Fragment>
         );
@@ -463,10 +463,10 @@ const defaultStyles: BroadcastStyles = {
   container: {},
 };
 
-export function renderBroadcastEmail(
+function renderBroadcastEmail(
   document: BroadcastDocument,
   context: RenderContext = {},
-  styles: BroadcastStyles = {}
+  styles: BroadcastStyles = {},
 ): React.ReactElement {
   const { body, container, ...restStyles } = styles;
 
@@ -482,7 +482,7 @@ export function renderBroadcastEmail(
       <Body style={mergedStyles.body}>
         <Container style={mergedStyles.container}>
           {document.content.map((node, i) =>
-            renderNode(node, context, `node-${i}`, mergedStyles)
+            renderNode(node, context, `node-${i}`, mergedStyles),
           )}
         </Container>
       </Body>
@@ -493,7 +493,7 @@ export function renderBroadcastEmail(
 export async function renderBroadcastToHtml(
   document: BroadcastDocument,
   context: RenderContext = {},
-  styles: BroadcastStyles = {}
+  styles: BroadcastStyles = {},
 ): Promise<string> {
   const { render } = await import("@react-email/components");
   const element = renderBroadcastEmail(document, context, styles);

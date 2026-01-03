@@ -22,11 +22,11 @@ import { createPublicFormSubmission } from "./handler";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
   return withErrorHandling(request, () =>
-    createPublicFormSubmission(formId, request)
+    createPublicFormSubmission(formId, request),
   );
 }

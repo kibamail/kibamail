@@ -1,6 +1,6 @@
+import type { ContactStatus, TopicVisibility } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { fakeWorkspaceId } from "./factories";
-import type { ContactStatus, TopicVisibility } from "@prisma/client";
 
 export interface TestWorkspace {
   id: string;
@@ -80,7 +80,7 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
   });
 }
 
-export async function cleanupWorkspaces(workspaceIds: string[]): Promise<void> {
+async function cleanupWorkspaces(workspaceIds: string[]): Promise<void> {
   await Promise.all(workspaceIds.map(cleanupWorkspace));
 }
 
@@ -95,17 +95,17 @@ export async function createTestContacts(
     timezone?: string;
     city?: string;
     status?: ContactStatus;
-  }>
+  }>,
 ) {
   const createdContacts = await Promise.all(
-    contacts.map(contact =>
+    contacts.map((contact) =>
       prisma.contact.create({
         data: {
           workspaceId,
           ...contact,
         },
-      })
-    )
+      }),
+    ),
   );
 
   return createdContacts;
@@ -117,17 +117,17 @@ export async function createTestTopics(
     name: string;
     description?: string;
     visibility?: TopicVisibility;
-  }>
+  }>,
 ) {
   const createdTopics = await Promise.all(
-    topics.map(topic =>
+    topics.map((topic) =>
       prisma.topic.create({
         data: {
           workspaceId,
           ...topic,
         },
-      })
-    )
+      }),
+    ),
   );
 
   return createdTopics;

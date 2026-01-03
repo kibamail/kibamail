@@ -4,8 +4,9 @@
  * Converts FilterBuilder filters to segment conditions that match the exact
  * schema required by the backend API.
  */
-import { v4 as uuidv4 } from "uuid";
+
 import type { FilterBuilder } from "@kibamail/owly";
+import { v4 as uuidv4 } from "uuid";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
 /**
@@ -15,7 +16,7 @@ import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
  * @returns ConditionInput that matches the segment schema
  */
 export function convertFiltersToConditions(
-  filters: FilterBuilder.FilterBuilderFilter[]
+  filters: FilterBuilder.FilterBuilderFilter[],
 ): ConditionInput {
   if (filters.length === 0) {
     // Default condition that matches all contacts
@@ -43,7 +44,7 @@ export function convertFiltersToConditions(
  * @returns ConditionInput (field condition or topic condition)
  */
 function convertSingleFilter(
-  filter: FilterBuilder.FilterBuilderFilter
+  filter: FilterBuilder.FilterBuilderFilter,
 ): ConditionInput {
   const { fieldId, operatorId, value } = filter;
 
@@ -93,7 +94,7 @@ function convertSingleFilter(
  * @returns Segment schema operator
  */
 function mapOperatorToSegmentOperator(
-  filterOperator: string
+  filterOperator: string,
 ):
   | "eq"
   | "ne"
@@ -153,7 +154,7 @@ function mapOperatorToSegmentOperator(
  */
 function convertValueToSegmentValue(
   value: any,
-  operatorId: string
+  operatorId: string,
 ): string | number | boolean | null | (string | number)[] {
   switch (value.type) {
     case "text":
@@ -192,7 +193,7 @@ function convertValueToSegmentValue(
  * @returns Array of FilterBuilder filters
  */
 export function convertConditionsToFilters(
-  conditions: ConditionInput | null | undefined
+  conditions: ConditionInput | null | undefined,
 ): FilterBuilder.FilterBuilderFilter[] {
   if (!conditions) {
     return [];
@@ -217,7 +218,7 @@ export function convertConditionsToFilters(
  * @returns FilterBuilder filter or null
  */
 function convertSingleConditionToFilter(
-  condition: ConditionInput
+  condition: ConditionInput,
 ): FilterBuilder.FilterBuilderFilter | null {
   // Handle topic subscriptions
   if (
@@ -255,7 +256,7 @@ function convertSingleConditionToFilter(
     const operatorId = mapSegmentOperatorToFilterOperator(condition.operator);
     const value = convertSegmentValueToFilterValue(
       condition.value,
-      condition.operator
+      condition.operator,
     );
 
     return {
@@ -303,7 +304,7 @@ function mapSegmentOperatorToFilterOperator(segmentOperator: string): string {
  */
 function convertSegmentValueToFilterValue(
   value: string | number | boolean | null | (string | number)[],
-  operator: string
+  operator: string,
 ): any {
   if (value === null) {
     return { type: "none", value: null };

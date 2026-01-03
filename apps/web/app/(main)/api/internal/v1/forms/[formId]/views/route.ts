@@ -21,11 +21,9 @@ import { createFormPageView } from "./handler";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
-  return withErrorHandling(request, () =>
-    createFormPageView(formId, request)
-  );
+  return withErrorHandling(request, () => createFormPageView(formId, request));
 }

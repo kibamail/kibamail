@@ -1,6 +1,6 @@
+import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
-import { notFound } from "next/navigation";
 import { DoubleOptInEmailEditorClient } from "./_components/double-opt-in-email-editor-client";
 
 async function getSenderIdentities(workspaceId: string) {
@@ -36,7 +36,7 @@ async function getDomains(workspaceId: string) {
 async function getEmailAndForm(
   workspaceId: string,
   formId: string,
-  emailId: string
+  emailId: string,
 ) {
   const [form, email, senderIdentities, domains] = await Promise.all([
     prisma.form.findFirst({
@@ -83,7 +83,7 @@ export default async function DoubleOptInEmailPage({
   const { form, email, senderIdentities, domains } = await getEmailAndForm(
     session.currentOrganization.id,
     formId,
-    emailId
+    emailId,
   );
 
   if (!form || !email) {

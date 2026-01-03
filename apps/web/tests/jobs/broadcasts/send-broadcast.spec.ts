@@ -12,6 +12,8 @@
  */
 
 import { afterAll, describe, expect, test } from "vitest";
+import { WARMUP_TIERS_BY_NUMBER } from "@/config/warmup";
+import { sendBroadcast } from "@/jobs/broadcasts/send-broadcast";
 import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
 import {
@@ -19,8 +21,6 @@ import {
   createTestContacts,
   createTestWorkspace,
 } from "@/tests/utils";
-import { WARMUP_TIERS_BY_NUMBER } from "@/config/warmup";
-import { sendBroadcast } from "@/jobs/broadcasts/send-broadcast";
 
 // Track workspaces and broadcast IDs for cleanup
 const workspacesToCleanup: string[] = [];
@@ -32,7 +32,7 @@ async function createTestDomain(
     name: string;
     maxSendPerDay: number;
     maxSendPerHour: number;
-  }
+  },
 ) {
   return prisma.sendingDomain.create({
     data: {
@@ -56,7 +56,7 @@ async function createTestDomain(
 
 async function createTestSenderIdentity(
   workspaceId: string,
-  sendingDomainId: string
+  sendingDomainId: string,
 ) {
   return prisma.senderIdentity.create({
     data: {
@@ -71,7 +71,7 @@ async function createTestSenderIdentity(
 async function createTestBroadcast(
   workspaceId: string,
   senderIdentityId: string,
-  sendingDomainId: string
+  sendingDomainId: string,
 ) {
   const broadcast = await prisma.broadcast.create({
     data: {
@@ -129,7 +129,8 @@ async function getBatchJobsForBroadcast(broadcastId: string) {
   // Filter for send-broadcast-batch jobs for this specific broadcast
   return allJobs.filter(
     (job) =>
-      job.name === "send-broadcast-batch" && job.data?.broadcastId === broadcastId
+      job.name === "send-broadcast-batch" &&
+      job.data?.broadcastId === broadcastId,
   );
 }
 
@@ -157,77 +158,81 @@ afterAll(async () => {
 
 describe("sendBroadcast job", () => {
   describe("Tier 3 domain (250/day, 50/hour) with 5,400 recipients", () => {
-    test("should dispatch batches spread across 22 days", { timeout: 30000 }, async () => {
-      // Create fresh workspace for this test
-      const testWorkspace = createTestWorkspace();
-      workspacesToCleanup.push(testWorkspace.id);
+    test(
+      "should dispatch batches spread across 22 days",
+      { timeout: 30000 },
+      async () => {
+        // Create fresh workspace for this test
+        const testWorkspace = createTestWorkspace();
+        workspacesToCleanup.push(testWorkspace.id);
 
-      const tier3 = WARMUP_TIERS_BY_NUMBER[3];
+        const tier3 = WARMUP_TIERS_BY_NUMBER[3];
 
-      // Create domain with Tier 3 limits
-      const domain = await createTestDomain(testWorkspace.id, {
-        name: `tier3-${Date.now()}.example.com`,
-        maxSendPerDay: tier3.dailyLimit,
-        maxSendPerHour: tier3.hourlyLimit,
-      });
+        // Create domain with Tier 3 limits
+        const domain = await createTestDomain(testWorkspace.id, {
+          name: `tier3-${Date.now()}.example.com`,
+          maxSendPerDay: tier3.dailyLimit,
+          maxSendPerHour: tier3.hourlyLimit,
+        });
 
-      const senderIdentity = await createTestSenderIdentity(
-        testWorkspace.id,
-        domain.id
-      );
+        const senderIdentity = await createTestSenderIdentity(
+          testWorkspace.id,
+          domain.id,
+        );
 
-      const broadcast = await createTestBroadcast(
-        testWorkspace.id,
-        senderIdentity.id,
-        domain.id
-      );
+        const broadcast = await createTestBroadcast(
+          testWorkspace.id,
+          senderIdentity.id,
+          domain.id,
+        );
 
-      // Create 5,400 contacts
-      const contactData = Array.from({ length: 5400 }, (_, i) => ({
-        email: `tier3-contact${i}-${Date.now()}@example.com`,
-        status: "SUBSCRIBED" as const,
-      }));
-      await createTestContacts(testWorkspace.id, contactData);
+        // Create 5,400 contacts
+        const contactData = Array.from({ length: 5400 }, (_, i) => ({
+          email: `tier3-contact${i}-${Date.now()}@example.com`,
+          status: "SUBSCRIBED" as const,
+        }));
+        await createTestContacts(testWorkspace.id, contactData);
 
-      // Run the job
-      await sendBroadcast({ broadcastId: broadcast.id }, "test-job-tier3");
+        // Run the job
+        await sendBroadcast({ broadcastId: broadcast.id }, "test-job-tier3");
 
-      // Get batch jobs for THIS broadcast only
-      const batchJobs = await getBatchJobsForBroadcast(broadcast.id);
+        // Get batch jobs for THIS broadcast only
+        const batchJobs = await getBatchJobsForBroadcast(broadcast.id);
 
-      // Should have created batch jobs
-      expect(batchJobs.length).toBeGreaterThan(0);
+        // Should have created batch jobs
+        expect(batchJobs.length).toBeGreaterThan(0);
 
-      // Calculate total contacts across all batches
-      const totalContacts = batchJobs.reduce(
-        (sum, job) => sum + (job.data.contactIds?.length ?? 0),
-        0
-      );
-      expect(totalContacts).toBe(5400);
+        // Calculate total contacts across all batches
+        const totalContacts = batchJobs.reduce(
+          (sum, job) => sum + (job.data.contactIds?.length ?? 0),
+          0,
+        );
+        expect(totalContacts).toBe(5400);
 
-      // Verify each batch has max 50 contacts (hourly limit)
-      for (const job of batchJobs) {
-        expect(job.data.contactIds.length).toBeLessThanOrEqual(50);
-        expect(job.data.broadcastId).toBe(broadcast.id);
-        expect(job.data.batchId).toBeDefined();
-      }
+        // Verify each batch has max 50 contacts (hourly limit)
+        for (const job of batchJobs) {
+          expect(job.data.contactIds.length).toBeLessThanOrEqual(50);
+          expect(job.data.broadcastId).toBe(broadcast.id);
+          expect(job.data.batchId).toBeDefined();
+        }
 
-      // Verify broadcast status was updated to SENDING
-      const updatedBroadcast = await prisma.broadcast.findUnique({
-        where: { id: broadcast.id },
-      });
-      expect(updatedBroadcast?.status).toBe("SENDING");
+        // Verify broadcast status was updated to SENDING
+        const updatedBroadcast = await prisma.broadcast.findUnique({
+          where: { id: broadcast.id },
+        });
+        expect(updatedBroadcast?.status).toBe("SENDING");
 
-      // Calculate days by grouping delays
-      const delays = batchJobs.map((job) => job.opts?.delay ?? 0);
-      const dayBuckets = new Set(
-        delays.map((d) => Math.floor(d / (24 * 60 * 60 * 1000)))
-      );
+        // Calculate days by grouping delays
+        const delays = batchJobs.map((job) => job.opts?.delay ?? 0);
+        const dayBuckets = new Set(
+          delays.map((d) => Math.floor(d / (24 * 60 * 60 * 1000))),
+        );
 
-      // Should span approximately 22 days (5400 / 250 = 21.6)
-      expect(dayBuckets.size).toBeGreaterThanOrEqual(20);
-      expect(dayBuckets.size).toBeLessThanOrEqual(25);
-    });
+        // Should span approximately 22 days (5400 / 250 = 21.6)
+        expect(dayBuckets.size).toBeGreaterThanOrEqual(20);
+        expect(dayBuckets.size).toBeLessThanOrEqual(25);
+      },
+    );
   });
 
   describe("Tier 8 domain (10,000/day, 2,000/hour) with 2,000 recipients", () => {
@@ -247,13 +252,13 @@ describe("sendBroadcast job", () => {
 
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        domain.id
+        domain.id,
       );
 
       const broadcast = await createTestBroadcast(
         testWorkspace.id,
         senderIdentity.id,
-        domain.id
+        domain.id,
       );
 
       // Create 2,000 contacts
@@ -273,7 +278,7 @@ describe("sendBroadcast job", () => {
       expect(batchJobs.length).toBe(2);
 
       const sortedJobs = batchJobs.sort(
-        (a, b) => a.data.contactIds.length - b.data.contactIds.length
+        (a, b) => a.data.contactIds.length - b.data.contactIds.length,
       );
       expect(sortedJobs[0].data.contactIds.length).toBe(1000);
       expect(sortedJobs[1].data.contactIds.length).toBe(1000);
@@ -281,14 +286,14 @@ describe("sendBroadcast job", () => {
       // Calculate total contacts
       const totalContacts = batchJobs.reduce(
         (sum, job) => sum + job.data.contactIds.length,
-        0
+        0,
       );
       expect(totalContacts).toBe(2000);
 
       // All batches should be on day 0 (today) - delays should be minimal
       const delays = batchJobs.map((job) => job.opts?.delay ?? 0);
       const dayBuckets = new Set(
-        delays.map((d) => Math.floor(d / (24 * 60 * 60 * 1000)))
+        delays.map((d) => Math.floor(d / (24 * 60 * 60 * 1000))),
       );
       expect(dayBuckets.size).toBe(1);
     });
@@ -308,13 +313,13 @@ describe("sendBroadcast job", () => {
 
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        domain.id
+        domain.id,
       );
 
       const broadcast = await createTestBroadcast(
         testWorkspace.id,
         senderIdentity.id,
-        domain.id
+        domain.id,
       );
 
       // Run the job with no contacts
@@ -346,7 +351,7 @@ describe("sendBroadcast job", () => {
 
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        domain.id
+        domain.id,
       );
 
       // Create broadcast in DRAFT status
@@ -373,7 +378,7 @@ describe("sendBroadcast job", () => {
 
     test("should throw error for non-existent broadcast", async () => {
       await expect(
-        sendBroadcast({ broadcastId: "non-existent-id" }, "test-job-notfound")
+        sendBroadcast({ broadcastId: "non-existent-id" }, "test-job-notfound"),
       ).rejects.toThrow("Broadcast non-existent-id not found");
     });
 
@@ -393,7 +398,7 @@ describe("sendBroadcast job", () => {
       broadcastIdsToCleanup.push(broadcast.id);
 
       await expect(
-        sendBroadcast({ broadcastId: broadcast.id }, "test-job-nodomain")
+        sendBroadcast({ broadcastId: broadcast.id }, "test-job-nodomain"),
       ).rejects.toThrow("has no sending domain");
     });
   });
@@ -412,13 +417,13 @@ describe("sendBroadcast job", () => {
 
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        domain.id
+        domain.id,
       );
 
       const broadcast = await createTestBroadcast(
         testWorkspace.id,
         senderIdentity.id,
-        domain.id
+        domain.id,
       );
 
       // Create specific contacts
@@ -438,7 +443,7 @@ describe("sendBroadcast job", () => {
 
       // Collect all contact IDs from batch jobs
       const allDispatchedContactIds = batchJobs.flatMap(
-        (job) => job.data.contactIds
+        (job) => job.data.contactIds,
       );
 
       // All original contacts should be in the dispatched jobs

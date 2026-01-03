@@ -253,10 +253,7 @@ describe("conditionsToPrismaWhere", () => {
       });
 
       expect(result).toEqual({
-        AND: [
-          { status: "SUBSCRIBED" },
-          { country: "US" },
-        ],
+        AND: [{ status: "SUBSCRIBED" }, { country: "US" }],
       });
     });
 
@@ -277,10 +274,7 @@ describe("conditionsToPrismaWhere", () => {
       });
 
       expect(result).toEqual({
-        OR: [
-          { status: "BOUNCED" },
-          { status: "COMPLAINED" },
-        ],
+        OR: [{ status: "BOUNCED" }, { status: "COMPLAINED" }],
       });
     });
 
@@ -366,10 +360,7 @@ describe("conditionsToPrismaWhere", () => {
         AND: [
           { status: "SUBSCRIBED" },
           {
-            OR: [
-              { country: "US" },
-              { country: "CA" },
-            ],
+            OR: [{ country: "US" }, { country: "CA" }],
           },
         ],
       });
@@ -413,10 +404,7 @@ describe("conditionsToPrismaWhere", () => {
         AND: [
           { status: "SUBSCRIBED" },
           {
-            OR: [
-              { country: "US" },
-              { country: "CA" },
-            ],
+            OR: [{ country: "US" }, { country: "CA" }],
           },
           {
             AND: [
@@ -477,7 +465,11 @@ describe("conditionsToPrismaWhere", () => {
 
     test("should throw error for empty logical operator", () => {
       expect(() => {
-        conditionsToPrismaWhere({ $and: undefined, $or: undefined, $not: undefined } as ConditionInput);
+        conditionsToPrismaWhere({
+          $and: undefined,
+          $or: undefined,
+          $not: undefined,
+        } as ConditionInput);
       }).toThrow("Invalid logical operator structure");
     });
   });

@@ -1,7 +1,7 @@
 import { Text } from "@kibamail/owly";
 import {
-  DashboardLayoutStickyContentHeaderContainer,
   DashboardLayoutContentHeader,
+  DashboardLayoutStickyContentHeaderContainer,
 } from "@kibamail/owly/dashboard-layout";
 import * as Tabs from "@kibamail/owly/tabs";
 

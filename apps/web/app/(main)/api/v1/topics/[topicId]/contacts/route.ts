@@ -5,8 +5,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import { getTopicContacts } from "@/app/(main)/api/v1/topics/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/topics/[topicId]/contacts
@@ -16,15 +16,16 @@ import { getTopicContacts } from "@/app/(main)/api/v1/topics/handler";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
   return withErrorHandling(request, () =>
     withApiSession(
       request,
-      (apiKey, request) => getTopicContacts(apiKey.workspaceId, topicId, request),
-      ["read:contacts"]
-    )
+      (apiKey, request) =>
+        getTopicContacts(apiKey.workspaceId, topicId, request),
+      ["read:contacts"],
+    ),
   );
 }

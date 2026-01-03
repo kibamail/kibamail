@@ -1,18 +1,18 @@
 "use client";
 
+import { Text } from "@kibamail/owly";
 import { Button } from "@kibamail/owly/button";
 import type { FilterBuilderFilter } from "@kibamail/owly/filter-builder";
 import * as FilterBuilder from "@kibamail/owly/filter-builder";
-import { Text } from "@kibamail/owly";
 import { Filter } from "iconoir-react";
 import { useCallback, useMemo } from "react";
-import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 import { useIfElseFieldDefinitions } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_hooks/use-if-else-field-definitions";
-import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import {
-  transformFiltersToConditions,
   transformConditionsToFilters,
+  transformFiltersToConditions,
 } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_utils/conditions-transformer";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
+import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
 export function IfElseConfig() {
   const { selectedNodeId, nodes, setNodes } = useFlowStore();
@@ -39,12 +39,12 @@ export function IfElseConfig() {
               ...node,
               data: { ...node.data, conditions },
             }
-          : node
+          : node,
       );
 
       setNodes(updatedNodes);
     },
-    [selectedNodeId, nodes, setNodes]
+    [selectedNodeId, nodes, setNodes],
   );
 
   return (

@@ -7,25 +7,25 @@
  * - DELETE /api/v1/forms/[formId] - Delete form
  */
 
-import { GET, PUT, DELETE } from "@/app/(main)/api/v1/forms/[formId]/route";
-import { POST } from "@/app/(main)/api/v1/forms/route";
-import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { DELETE, GET, PUT } from "@/app/(main)/api/v1/forms/[formId]/route";
+import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
+import { POST } from "@/app/(main)/api/v1/forms/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
+  del,
   post,
   put,
-  del,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
 import { validFormFields } from "@/tests/utils/form-fixtures";
-import { prisma } from "@/lib/db";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -57,7 +57,7 @@ describe("GET /api/v1/forms/[formId]", () => {
         display: "POPUP",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -93,7 +93,7 @@ describe("GET /api/v1/forms/[formId]", () => {
         name: "Default Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -164,7 +164,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         description: "Original description",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -177,7 +177,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Updated Name",
         description: "Updated description",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -198,7 +198,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Type Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -211,7 +211,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         type: "SURVEY",
         display: "POPUP",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -243,7 +243,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -255,7 +255,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         type: "INVALID_TYPE",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -275,7 +275,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -297,7 +297,11 @@ describe("PUT /api/v1/forms/[formId]", () => {
                   type: "email",
                   name: "email",
                   label: "Email Address",
-                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                  appearance: {
+                    width: "full",
+                    labelPosition: "top",
+                    size: "default",
+                  },
                 },
                 {
                   id: "field_firstName",
@@ -305,14 +309,22 @@ describe("PUT /api/v1/forms/[formId]", () => {
                   name: "firstName",
                   label: "First Name",
                   validation: { required: true },
-                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                  appearance: {
+                    width: "full",
+                    labelPosition: "top",
+                    size: "default",
+                  },
                 },
                 {
                   id: "field_lastName",
                   type: "text",
                   name: "lastName",
                   label: "Last Name",
-                  appearance: { width: "full", labelPosition: "top", size: "default" },
+                  appearance: {
+                    width: "full",
+                    labelPosition: "top",
+                    size: "default",
+                  },
                 },
               ],
               collapsible: false,
@@ -329,7 +341,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         fields: newFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -347,7 +359,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -369,7 +381,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         settings: newSettings,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -400,7 +412,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -422,7 +434,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         name: "Updated Name",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -442,7 +454,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -460,7 +472,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         name: "Updated Name",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(updateRequest, {
@@ -476,7 +488,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const request = put(
       "/forms/nonexistent",
       { name: "New Name" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUT(request, {
@@ -500,7 +512,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const request = put(
       "/forms/some-id",
       { name: "New Name" },
-      readOnlyKey.key
+      readOnlyKey.key,
     );
 
     const response = await PUT(request, {
@@ -522,7 +534,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         name: "Form to Delete",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -587,7 +599,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         name: "Root Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -607,7 +619,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
     const version2Request = post(
       `/forms/${rootForm.id}/versions`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const version2Response = await CREATE_VERSION(version2Request, {
@@ -676,7 +688,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         name: "Root Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -745,7 +757,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         name: "Published Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);
@@ -782,7 +794,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         name: "Archived Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await POST(createRequest);

@@ -18,8 +18,8 @@
  * redirect('/api/auth/signin?returnTo=/dashboard')
  */
 
-import type { NextRequest } from "next/server";
 import { signIn } from "@logto/next/server-actions";
+import type { NextRequest } from "next/server";
 import { logtoConfig } from "@/config/logto";
 import { env } from "@/env/schema";
 

@@ -1,24 +1,24 @@
 "use client";
 
 import { Button } from "@kibamail/owly/button";
-import * as Dialog from "@kibamail/owly/dialog";
-import * as TextField from "@kibamail/owly/text-field";
-import * as SelectField from "@kibamail/owly/select-field";
 import * as DateField from "@kibamail/owly/date-field";
+import * as Dialog from "@kibamail/owly/dialog";
+import * as SelectField from "@kibamail/owly/select-field";
+import * as TextField from "@kibamail/owly/text-field";
 import { useToast } from "@kibamail/owly/toast";
+import type { ContactProperty } from "@prisma/client";
 import {
   Calendar as CalendarIcon,
   Number0Square,
   Text as TextIcon,
 } from "iconoir-react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
-import { useMutation } from "@/hooks/use-mutation";
-import { internalApi } from "@/lib/api/client";
-import type { ToggleState } from "@/hooks/utils/useToggleState";
-import type { CreateContactPropertyRequest } from "@/app/(main)/api/v1/contact-properties/schema";
-import type { ContactProperty } from "@prisma/client";
 import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
+import type { CreateContactPropertyRequest } from "@/app/(main)/api/v1/contact-properties/schema";
+import { useMutation } from "@/hooks/use-mutation";
+import type { ToggleState } from "@/hooks/utils/useToggleState";
+import { internalApi } from "@/lib/api/client";
 
 interface CreateContactPropertyFormData {
   name: string;
@@ -95,7 +95,7 @@ export function CreateContactPropertyModal({
       toast(
         isEditMode
           ? "Contact property updated successfully."
-          : "Contact property created successfully."
+          : "Contact property created successfully.",
       );
       onClose();
       router.refresh();

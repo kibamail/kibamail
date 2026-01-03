@@ -1,14 +1,19 @@
 "use client";
 
-import * as React from "react";
-import { Star } from "lucide-react";
-import { Trash, Copy, Menu } from "iconoir-react";
 import type { JSONContent } from "@tiptap/react";
-
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Copy, Menu, Trash } from "iconoir-react";
+import { Star } from "lucide-react";
+import type * as React from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -18,18 +23,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldContent,
-  FieldGroup,
-  FieldTitle,
-} from "@/components/ui/field";
-
-import type { FormField as FormFieldType } from "./types";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import { ContentFieldEditor } from "./content-field-editor";
-import { ContentBlockRenderer } from "@/lib/form-builder/components/content-block-renderer";
+import type { FormField as FormFieldType } from "./types";
 
 interface FieldDecoratorProps {
   field: FormFieldType;
@@ -44,7 +41,7 @@ interface FieldDecoratorProps {
   children: React.ReactNode;
 }
 
-export function FieldDecorator({
+function FieldDecorator({
   field,
   isSelected,
   onClick,
@@ -62,7 +59,7 @@ export function FieldDecorator({
       className={cn(
         "group relative transition-all",
         !readOnly && "cursor-pointer",
-        isOverlay && "shadow-lg bg-white"
+        isOverlay && "shadow-lg bg-white",
       )}
     >
       {/* Selection indicator - left bar */}
@@ -72,7 +69,7 @@ export function FieldDecorator({
             "absolute -left-3 top-0 bottom-0 w-0.5 rounded-full transition-colors",
             isSelected
               ? "bg-kb-border-info"
-              : "bg-transparent group-hover:bg-kb-border-info"
+              : "bg-transparent group-hover:bg-kb-border-info",
           )}
         />
       )}
@@ -159,15 +156,12 @@ export function CanvasFieldRenderer({
         readOnly={readOnly}
       >
         <div onClick={(event) => event.stopPropagation()}>
-          {!isOverlay && onContentChange ? (
-            <ContentFieldEditor
-              content={field.richContent}
-              onChange={onContentChange}
-              placeholder="Type '/' for commands, or start writing..."
-            />
-          ) : (
-            <ContentBlockRenderer content={field.richContent} />
-          )}
+          <ContentFieldEditor
+            content={field.richContent}
+            onChange={onContentChange}
+            placeholder="Type '/' for commands, or start writing..."
+            readOnly={isOverlay || !onContentChange}
+          />
         </div>
       </FieldDecorator>
     );
@@ -414,17 +408,11 @@ export function CanvasFieldRenderer({
 
       case "number":
         return (
-          <Input
-            id={field.id}
-            type="number"
-            placeholder={field.placeholder}
-          />
+          <Input id={field.id} type="number" placeholder={field.placeholder} />
         );
 
       case "textarea":
-        return (
-          <Textarea id={field.id} placeholder={field.placeholder} />
-        );
+        return <Textarea id={field.id} placeholder={field.placeholder} />;
 
       case "select":
         return (

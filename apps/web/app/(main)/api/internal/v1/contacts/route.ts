@@ -7,10 +7,10 @@
  * Workspace is deduced from the session's current organization
  */
 
-import type { NextRequest } from "next/server";
 import { ContactSourceType } from "@prisma/client";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
+import type { NextRequest } from "next/server";
 import { createContact } from "@/app/(main)/api/v1/contacts/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * POST /api/internal/v1/contacts
@@ -31,6 +31,6 @@ export async function POST(request: NextRequest) {
       return createContact(workspaceId, request, {
         sourceType: ContactSourceType.MANUAL,
       });
-    })
+    }),
   );
 }

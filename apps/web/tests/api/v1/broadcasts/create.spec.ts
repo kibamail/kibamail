@@ -8,8 +8,8 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
 import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
-import { POST as CreateTopic } from "@/app/(main)/api/v1/topics/route";
 import { POST as CreateSegment } from "@/app/(main)/api/v1/segments/route";
+import { POST as CreateTopic } from "@/app/(main)/api/v1/topics/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import {
   type CreatedApiKey,
@@ -125,7 +125,9 @@ describe("POST /api/v1/broadcasts", () => {
 
     expect(response.status).toBe(201);
     expect(responseData.emailContent).toBeDefined();
-    expect(responseData.emailContent.subject).toBe("Welcome to our newsletter!");
+    expect(responseData.emailContent.subject).toBe(
+      "Welcome to our newsletter!",
+    );
     expect(responseData.emailContent.text).toBe("Plain text content");
     expect(responseData.emailContent.html).toBe("<p>HTML content</p>");
     expect(responseData.emailContent.previewText).toBe("Preview text here");
@@ -168,7 +170,10 @@ describe("POST /api/v1/broadcasts", () => {
   });
 
   test("should create a broadcast with segmentId", async () => {
-    const segment = await createTestSegment(fullAccessApiKey, "Active Subscribers");
+    const segment = await createTestSegment(
+      fullAccessApiKey,
+      "Active Subscribers",
+    );
 
     const broadcastData = {
       name: "Broadcast with Segment",
@@ -195,7 +200,9 @@ describe("POST /api/v1/broadcasts", () => {
 
     expect(response.status).toBe(400);
     expect(responseData.error.type).toBe(ErrorType.INVALID_REQUEST_ERROR);
-    expect(responseData.error.code).toBe(ErrorCode.BROADCAST_INVALID_FROM_DOMAIN);
+    expect(responseData.error.code).toBe(
+      ErrorCode.BROADCAST_INVALID_FROM_DOMAIN,
+    );
   });
 
   test("should reject broadcast with invalid from email format", async () => {

@@ -10,8 +10,8 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { createFormVersion } from "@/app/(main)/api/v1/forms/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * POST /api/internal/v1/forms/[formId]/versions
@@ -22,7 +22,7 @@ import { createFormVersion } from "@/app/(main)/api/v1/forms/handler";
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ formId: string }> }
+  { params }: { params: Promise<{ formId: string }> },
 ) {
   const { formId } = await params;
 
@@ -33,9 +33,13 @@ export async function POST(
         if (!session.currentOrganization) {
           throw new Error("No active workspace found");
         }
-        return createFormVersion(session.currentOrganization.id, formId, request);
+        return createFormVersion(
+          session.currentOrganization.id,
+          formId,
+          request,
+        );
       },
-      ["manage:forms"]
-    )
+      ["manage:forms"],
+    ),
   );
 }

@@ -58,7 +58,10 @@ export function normalizeCity(value: string): NormalizationResult {
   }
 
   if (trimmed.length > MAX_CITY_LENGTH) {
-    return { success: false, reason: `City name too long (max ${MAX_CITY_LENGTH} chars)` };
+    return {
+      success: false,
+      reason: `City name too long (max ${MAX_CITY_LENGTH} chars)`,
+    };
   }
 
   if (/^\d+$/.test(trimmed)) {

@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import dayjs from "dayjs";
-import type { WebhookDestination } from "@/webhooks/client/types";
+import { useState } from "react";
 import { internalApi } from "@/lib/api/client";
-import { WebhookEventsTable } from "./webhook-events-table";
+import type { WebhookDestination } from "@/webhooks/client/types";
 import { WebhookEventsFilter } from "./webhook-events-filter";
+import { WebhookEventsTable } from "./webhook-events-table";
 import { WebhookStatusFilter } from "./webhook-status-filter";
 
 interface WebhookDetailClientProps {

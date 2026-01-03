@@ -9,13 +9,13 @@
  */
 
 import { afterAll, describe, expect, test } from "vitest";
-import { prisma } from "@/lib/db";
 import { fetchBroadcastRecipientIds } from "@/lib/broadcasts/recipient-fetcher";
+import { prisma } from "@/lib/db";
 import {
   cleanupWorkspace,
-  createTestWorkspace,
   createTestContacts,
   createTestTopics,
+  createTestWorkspace,
 } from "@/tests/utils";
 
 const workspacesToCleanup: string[] = [];
@@ -82,8 +82,16 @@ describe("fetchBroadcastRecipientIds", () => {
       // Subscribe first two contacts to the topic
       await prisma.contactTopic.createMany({
         data: [
-          { contactId: contacts[0].id, topicId: topic.id, status: "SUBSCRIBED" },
-          { contactId: contacts[1].id, topicId: topic.id, status: "SUBSCRIBED" },
+          {
+            contactId: contacts[0].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
+          {
+            contactId: contacts[1].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
         ],
       });
 
@@ -113,8 +121,16 @@ describe("fetchBroadcastRecipientIds", () => {
 
       await prisma.contactTopic.createMany({
         data: [
-          { contactId: contacts[0].id, topicId: topic.id, status: "SUBSCRIBED" },
-          { contactId: contacts[1].id, topicId: topic.id, status: "UNSUBSCRIBED" },
+          {
+            contactId: contacts[0].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
+          {
+            contactId: contacts[1].id,
+            topicId: topic.id,
+            status: "UNSUBSCRIBED",
+          },
         ],
       });
 
@@ -142,8 +158,16 @@ describe("fetchBroadcastRecipientIds", () => {
 
       await prisma.contactTopic.createMany({
         data: [
-          { contactId: contacts[0].id, topicId: topic.id, status: "SUBSCRIBED" },
-          { contactId: contacts[1].id, topicId: topic.id, status: "SUBSCRIBED" },
+          {
+            contactId: contacts[0].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
+          {
+            contactId: contacts[1].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
         ],
       });
 
@@ -281,9 +305,23 @@ describe("fetchBroadcastRecipientIds", () => {
       });
 
       await createTestContacts(workspace.id, [
-        { email: "us-with-name@example.com", status: "SUBSCRIBED", country: "US", firstName: "John" },
-        { email: "us-no-name@example.com", status: "SUBSCRIBED", country: "US" },
-        { email: "uk-with-name@example.com", status: "SUBSCRIBED", country: "UK", firstName: "Jane" },
+        {
+          email: "us-with-name@example.com",
+          status: "SUBSCRIBED",
+          country: "US",
+          firstName: "John",
+        },
+        {
+          email: "us-no-name@example.com",
+          status: "SUBSCRIBED",
+          country: "US",
+        },
+        {
+          email: "uk-with-name@example.com",
+          status: "SUBSCRIBED",
+          country: "UK",
+          firstName: "Jane",
+        },
       ]);
 
       const contactIds = await fetchBroadcastRecipientIds(workspace.id, {
@@ -416,8 +454,16 @@ describe("fetchBroadcastRecipientIds", () => {
 
       await prisma.contactTopic.createMany({
         data: [
-          { contactId: contacts[0].id, topicId: topic.id, status: "SUBSCRIBED" },
-          { contactId: contacts[1].id, topicId: topic.id, status: "SUBSCRIBED" },
+          {
+            contactId: contacts[0].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
+          {
+            contactId: contacts[1].id,
+            topicId: topic.id,
+            status: "SUBSCRIBED",
+          },
         ],
       });
 
@@ -477,7 +523,11 @@ describe("fetchBroadcastRecipientIds", () => {
 
       await createTestContacts(workspace.id, [
         { email: "active-us@example.com", status: "SUBSCRIBED", country: "US" },
-        { email: "unsub-us@example.com", status: "UNSUBSCRIBED", country: "US" },
+        {
+          email: "unsub-us@example.com",
+          status: "UNSUBSCRIBED",
+          country: "US",
+        },
       ]);
 
       const contactIds = await fetchBroadcastRecipientIds(workspace.id, {

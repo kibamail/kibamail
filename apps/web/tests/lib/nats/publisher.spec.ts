@@ -9,18 +9,18 @@
  * - NATS_URL, NATS_USER, NATS_PASSWORD, NATS_TLS_CA env vars set
  */
 
-import { describe, expect, test, beforeAll, afterAll } from "vitest";
+import { StringCodec } from "nats";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import {
-  getNatsConnection,
-  getJetStream,
   closeNatsConnection,
+  type EmailMessage,
+  getJetStream,
+  getNatsConnection,
+  isStreamReady,
+  type NatsConnectionOptions,
   publishEmail,
   publishEmailBatch,
-  isStreamReady,
-  type EmailMessage,
-  type NatsConnectionOptions,
 } from "@/lib/nats";
-import { StringCodec } from "nats";
 
 const sc = StringCodec();
 
@@ -35,7 +35,7 @@ function getTestNatsOptions(): NatsConnectionOptions {
 
   if (!url || !user || !password || !tlsCa) {
     throw new Error(
-      "NATS_URL, NATS_USER, NATS_PASSWORD, and NATS_TLS_CA must be set for integration tests"
+      "NATS_URL, NATS_USER, NATS_PASSWORD, and NATS_TLS_CA must be set for integration tests",
     );
   }
 
@@ -46,7 +46,7 @@ function getTestNatsOptions(): NatsConnectionOptions {
  * Create a test email message
  */
 function createTestEmailMessage(
-  overrides: Partial<EmailMessage> = {}
+  overrides: Partial<EmailMessage> = {},
 ): EmailMessage {
   const id = `test-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
@@ -213,7 +213,7 @@ describe("NATS Publisher Integration Tests", () => {
     test("should publish large batch efficiently", async () => {
       const batchSize = 100;
       const messages = Array.from({ length: batchSize }, (_, i) =>
-        createTestEmailMessage({ contact_id: `contact-batch-${i}` })
+        createTestEmailMessage({ contact_id: `contact-batch-${i}` }),
       );
 
       const startTime = Date.now();
@@ -227,8 +227,8 @@ describe("NATS Publisher Integration Tests", () => {
 
       console.log(
         `Published ${batchSize} messages in ${duration}ms (${Math.round(
-          (batchSize / duration) * 1000
-        )} msgs/sec)`
+          (batchSize / duration) * 1000,
+        )} msgs/sec)`,
       );
     });
 

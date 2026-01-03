@@ -33,48 +33,15 @@ export const SpecialNodeType = {
   EMPTY: "empty",
 } as const;
 
-// Combined type for all node types
-export const NodeType = {
-  ...TriggerNodeType,
-  ...ActionNodeType,
-  ...RuleNodeType,
-  ...SpecialNodeType,
-} as const;
-
 // TypeScript types derived from the const objects
-export type TriggerNodeTypeValue =
+type TriggerNodeTypeValue =
   (typeof TriggerNodeType)[keyof typeof TriggerNodeType];
-export type ActionNodeTypeValue =
-  (typeof ActionNodeType)[keyof typeof ActionNodeType];
-export type RuleNodeTypeValue = (typeof RuleNodeType)[keyof typeof RuleNodeType];
-export type SpecialNodeTypeValue =
-  (typeof SpecialNodeType)[keyof typeof SpecialNodeType];
-export type NodeTypeValue = (typeof NodeType)[keyof typeof NodeType];
 
-// Helper arrays for iteration and grouping
-export const TRIGGER_NODE_TYPES: TriggerNodeTypeValue[] = Object.values(
-  TriggerNodeType
-);
-export const ACTION_NODE_TYPES: ActionNodeTypeValue[] =
-  Object.values(ActionNodeType);
-export const RULE_NODE_TYPES: RuleNodeTypeValue[] = Object.values(RuleNodeType);
-export const SPECIAL_NODE_TYPES: SpecialNodeTypeValue[] =
-  Object.values(SpecialNodeType);
-export const ALL_NODE_TYPES: NodeTypeValue[] = Object.values(NodeType);
+// Helper array for iteration (used by isTriggerNodeType)
+const TRIGGER_NODE_TYPES: TriggerNodeTypeValue[] =
+  Object.values(TriggerNodeType);
 
-// Type guards
+// Type guard
 export function isTriggerNodeType(type: string): type is TriggerNodeTypeValue {
   return TRIGGER_NODE_TYPES.includes(type as TriggerNodeTypeValue);
-}
-
-export function isActionNodeType(type: string): type is ActionNodeTypeValue {
-  return ACTION_NODE_TYPES.includes(type as ActionNodeTypeValue);
-}
-
-export function isRuleNodeType(type: string): type is RuleNodeTypeValue {
-  return RULE_NODE_TYPES.includes(type as RuleNodeTypeValue);
-}
-
-export function isSpecialNodeType(type: string): type is SpecialNodeTypeValue {
-  return SPECIAL_NODE_TYPES.includes(type as SpecialNodeTypeValue);
 }

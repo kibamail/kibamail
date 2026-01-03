@@ -1,7 +1,7 @@
 import * as Tabs from "@kibamail/owly/tabs";
-import { TopicsTable } from "./_components/topics-table";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
+import { TopicsTable } from "./_components/topics-table";
 
 async function getTopics(workspaceId: string) {
   const topics = await prisma.topic.findMany({

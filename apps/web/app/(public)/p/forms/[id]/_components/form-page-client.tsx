@@ -1,58 +1,65 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { FormRenderer } from "@/lib/form-builder"
-import type { FormBuilderSchema, FormSubmissionData } from "@/lib/form-builder"
+import { useEffect } from "react";
+import type { FormBuilderSchema, FormSubmissionData } from "@/lib/form-builder";
+import { FormRenderer } from "@/lib/form-builder";
 
-const VIEW_COOKIE_PREFIX = "kiba_fv_"
-const VIEW_COOKIE_MAX_AGE_DAYS = 30
+const VIEW_COOKIE_PREFIX = "kiba_fv_";
+const VIEW_COOKIE_MAX_AGE_DAYS = 30;
 
 interface FormPageClientProps {
-  formId: string
-  schema: FormBuilderSchema
-  shouldSetViewCookie?: boolean
+  formId: string;
+  schema: FormBuilderSchema;
+  shouldSetViewCookie?: boolean;
 }
 
-export function FormPageClient({ formId, schema, shouldSetViewCookie }: FormPageClientProps) {
+export function FormPageClient({
+  formId,
+  schema,
+  shouldSetViewCookie,
+}: FormPageClientProps) {
   useEffect(() => {
     if (shouldSetViewCookie) {
-      const cookieName = `${VIEW_COOKIE_PREFIX}${formId}`
-      const maxAge = VIEW_COOKIE_MAX_AGE_DAYS * 24 * 60 * 60
-      document.cookie = `${cookieName}=1; path=/; max-age=${maxAge}; SameSite=Lax`
+      const cookieName = `${VIEW_COOKIE_PREFIX}${formId}`;
+      const maxAge = VIEW_COOKIE_MAX_AGE_DAYS * 24 * 60 * 60;
+      document.cookie = `${cookieName}=1; path=/; max-age=${maxAge}; SameSite=Lax`;
     }
-  }, [formId, shouldSetViewCookie])
+  }, [formId, shouldSetViewCookie]);
 
   async function onSubmit(data: FormSubmissionData): Promise<boolean> {
     try {
-      const response = await fetch(`/api/internal/v1/forms/${formId}/submissions`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/internal/v1/forms/${formId}/submissions`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
         },
-        body: JSON.stringify(data),
-      })
+      );
 
       if (!response.ok) {
-        const errorData = await response.json()
-        console.error("Form submission failed:", errorData)
-        return false
+        const errorData = await response.json();
+        console.error("Form submission failed:", errorData);
+        return false;
       }
 
-      const successAction = schema.settings.successAction
+      const successAction = schema.settings.successAction;
       if (successAction.type === "redirect") {
         if (successAction.openInNewTab) {
-          window.open(successAction.url, "_blank", "noopener,noreferrer")
+          window.open(successAction.url, "_blank", "noopener,noreferrer");
         } else {
-          window.location.href = successAction.url
+          window.location.href = successAction.url;
         }
       }
 
-      return true
+      return true;
     } catch (error) {
-      console.error("Form submission error:", error)
-      return false
+      console.error("Form submission error:", error);
+      return false;
     }
   }
 
-  return <FormRenderer schema={schema} onSubmit={onSubmit} />
+  return <FormRenderer schema={schema} onSubmit={onSubmit} />;
 }

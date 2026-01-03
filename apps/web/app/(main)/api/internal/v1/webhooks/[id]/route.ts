@@ -9,8 +9,11 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  deleteWebhookDestination,
+  updateWebhookDestination,
+} from "@/app/(main)/api/internal/v1/webhooks/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { updateWebhookDestination, deleteWebhookDestination } from "@/app/(main)/api/internal/v1/webhooks/handler";
 
 /**
  * PATCH /api/internal/v1/webhooks/[id]

@@ -24,9 +24,7 @@ export async function register() {
     const { PeriodicExportingMetricReader } = await import(
       "@opentelemetry/sdk-metrics"
     );
-    const { BatchLogRecordProcessor } = await import(
-      "@opentelemetry/sdk-logs"
-    );
+    const { BatchLogRecordProcessor } = await import("@opentelemetry/sdk-logs");
     const { resourceFromAttributes } = await import("@opentelemetry/resources");
     const { ATTR_SERVICE_NAME } = await import(
       "@opentelemetry/semantic-conventions"
@@ -77,7 +75,9 @@ export async function register() {
 
     // Set up logger provider
     const loggerProvider = new LoggerProvider({ resource });
-    loggerProvider.addLogRecordProcessor(new BatchLogRecordProcessor(logExporter));
+    loggerProvider.addLogRecordProcessor(
+      new BatchLogRecordProcessor(logExporter),
+    );
     logs.setGlobalLoggerProvider(loggerProvider);
 
     // Initialize the OpenTelemetry SDK
@@ -111,7 +111,9 @@ export async function register() {
       sdk
         .shutdown()
         .then(() => console.log("OpenTelemetry SDK shut down successfully"))
-        .catch((error) => console.error("Error shutting down OpenTelemetry SDK", error))
+        .catch((error) =>
+          console.error("Error shutting down OpenTelemetry SDK", error),
+        )
         .finally(() => process.exit(0));
     });
 

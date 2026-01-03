@@ -7,10 +7,10 @@ import { useToast } from "@kibamail/owly/toast";
 import { EditPencil, MoreHoriz, Trash } from "iconoir-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { CreateContactModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/create-contact-modal";
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
-import { CreateContactModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/create-contact-modal";
 
 interface ContactActionsDropdownProps {
   variant?: "icon" | "default";

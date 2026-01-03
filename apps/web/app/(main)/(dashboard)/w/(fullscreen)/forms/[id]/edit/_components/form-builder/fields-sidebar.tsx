@@ -1,37 +1,37 @@
 "use client";
 
+import * as ColorField from "@kibamail/owly/color-field";
+import * as Select from "@kibamail/owly/select-field";
+import * as Tabs from "@kibamail/owly/tabs";
+import * as TextField from "@kibamail/owly/text-field";
 import {
-  Type,
-  AtSign,
-  Hashtag,
-  Phone,
   AlignLeft,
-  List,
-  Circle,
-  CheckSquare,
+  AtSign,
   Calendar,
+  CheckSquare,
+  Circle,
   Clock,
-  Link,
-  EyeClosed,
-  Star,
   ControlSlider,
+  EyeClosed,
+  Hashtag,
+  LayoutLeft,
+  Link,
+  List,
+  ListSelect,
+  Minus,
+  NavArrowDown,
+  Phone,
+  Plus,
+  Puzzle,
+  Star,
+  Type,
   Upload,
   ViewGrid,
-  Puzzle,
-  ListSelect,
-  Plus,
-  Minus,
-  LayoutLeft,
-  NavArrowDown,
 } from "iconoir-react";
 import { useState } from "react";
-import * as Tabs from "@kibamail/owly/tabs";
-import * as Select from "@kibamail/owly/select-field";
-import * as ColorField from "@kibamail/owly/color-field";
-import * as TextField from "@kibamail/owly/text-field";
-import { FIELD_DEFINITIONS, FIELD_CATEGORIES, type FieldType } from "./types";
 import { useFormBuilder } from "./form-builder-context";
 import { SpacingInput } from "./spacing-input";
+import { FIELD_CATEGORIES, FIELD_DEFINITIONS, type FieldType } from "./types";
 
 // Popular Google Fonts for forms
 const POPULAR_FONTS = [
@@ -185,7 +185,9 @@ export function FieldsSidebar() {
     });
   }
 
-  function onContainerBorderRadiusChange(event: React.ChangeEvent<HTMLInputElement>) {
+  function onContainerBorderRadiusChange(
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) {
     const value = event.target.value.replace(/[^0-9]/g, "");
     updateTheme({
       container: {
@@ -206,7 +208,10 @@ export function FieldsSidebar() {
     });
   }
 
-  function onBodyPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
+  function onBodyPaddingChange(
+    side: "top" | "right" | "bottom" | "left",
+    value: string,
+  ) {
     const paddingKey = `padding${side.charAt(0).toUpperCase()}${side.slice(1)}`;
     updateTheme({
       body: {
@@ -216,7 +221,10 @@ export function FieldsSidebar() {
     });
   }
 
-  function onContainerPaddingChange(side: "top" | "right" | "bottom" | "left", value: string) {
+  function onContainerPaddingChange(
+    side: "top" | "right" | "bottom" | "left",
+    value: string,
+  ) {
     const paddingKey = `padding${side.charAt(0).toUpperCase()}${side.slice(1)}`;
     updateTheme({
       container: {
@@ -226,7 +234,10 @@ export function FieldsSidebar() {
     });
   }
 
-  function onThemeColorChange(colorKey: keyof typeof schema.settings.theme.colors, value: string) {
+  function onThemeColorChange(
+    colorKey: keyof typeof schema.settings.theme.colors,
+    value: string,
+  ) {
     updateTheme({
       colors: {
         ...schema.settings.theme.colors,
@@ -235,21 +246,34 @@ export function FieldsSidebar() {
     });
   }
 
-  const bodyBackground = schema.settings.theme.body?.background as string ?? "#f5f7fa";
-  const containerBackground = schema.settings.theme.container?.backgroundColor as string ?? "#ffffff";
-  const containerBorderRadius = schema.settings.theme.container?.borderRadius as string ?? "12px";
-  const containerMaxWidth = schema.settings.theme.container?.maxWidth as string ?? "672px";
+  const bodyBackground =
+    (schema.settings.theme.body?.background as string) ?? "#f5f7fa";
+  const containerBackground =
+    (schema.settings.theme.container?.backgroundColor as string) ?? "#ffffff";
+  const containerBorderRadius =
+    (schema.settings.theme.container?.borderRadius as string) ?? "12px";
+  const containerMaxWidth =
+    (schema.settings.theme.container?.maxWidth as string) ?? "672px";
 
   function parsePadding(
     obj: Record<string, unknown> | undefined,
-    defaultValue: string
+    defaultValue: string,
   ): { top: string; right: string; bottom: string; left: string } {
     if (!obj) {
-      return { top: defaultValue, right: defaultValue, bottom: defaultValue, left: defaultValue };
+      return {
+        top: defaultValue,
+        right: defaultValue,
+        bottom: defaultValue,
+        left: defaultValue,
+      };
     }
 
     // Check for individual padding properties first
-    const hasIndividual = obj.paddingTop || obj.paddingRight || obj.paddingBottom || obj.paddingLeft;
+    const hasIndividual =
+      obj.paddingTop ||
+      obj.paddingRight ||
+      obj.paddingBottom ||
+      obj.paddingLeft;
     if (hasIndividual) {
       return {
         top: (obj.paddingTop as string) ?? defaultValue,
@@ -262,31 +286,50 @@ export function FieldsSidebar() {
     // Fall back to shorthand padding
     const shorthand = obj.padding as string;
     if (shorthand) {
-      return { top: shorthand, right: shorthand, bottom: shorthand, left: shorthand };
+      return {
+        top: shorthand,
+        right: shorthand,
+        bottom: shorthand,
+        left: shorthand,
+      };
     }
 
-    return { top: defaultValue, right: defaultValue, bottom: defaultValue, left: defaultValue };
+    return {
+      top: defaultValue,
+      right: defaultValue,
+      bottom: defaultValue,
+      left: defaultValue,
+    };
   }
 
   const bodyPadding = parsePadding(schema.settings.theme.body, "16px");
-  const containerPadding = parsePadding(schema.settings.theme.container, "32px");
+  const containerPadding = parsePadding(
+    schema.settings.theme.container,
+    "32px",
+  );
 
   function extractColor(value: string): string {
     if (value.startsWith("#")) return value;
-    if (value.startsWith("linear-gradient") || value.startsWith("radial-gradient")) {
+    if (
+      value.startsWith("linear-gradient") ||
+      value.startsWith("radial-gradient")
+    ) {
       const match = value.match(/#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}/);
       return match ? match[0] : "#f5f7fa";
     }
     return "#f5f7fa";
   }
 
-  const fieldsByCategory = FIELD_DEFINITIONS.reduce((acc, field) => {
-    if (!acc[field.category]) {
-      acc[field.category] = [];
-    }
-    acc[field.category].push(field);
-    return acc;
-  }, {} as Record<string, typeof FIELD_DEFINITIONS>);
+  const fieldsByCategory = FIELD_DEFINITIONS.reduce(
+    (acc, field) => {
+      if (!acc[field.category]) {
+        acc[field.category] = [];
+      }
+      acc[field.category].push(field);
+      return acc;
+    },
+    {} as Record<string, typeof FIELD_DEFINITIONS>,
+  );
 
   return (
     <div className="w-[300px] h-full bg-kb-surface-secondary border-r border-kb-border-tertiary flex flex-col shrink-0">
@@ -497,42 +540,61 @@ export function FieldsSidebar() {
                   <ColorField.Root
                     label="Primary"
                     value={schema.settings.theme.colors?.primary ?? "#18181b"}
-                    onColorChange={(color) => onThemeColorChange("primary", color)}
+                    onColorChange={(color) =>
+                      onThemeColorChange("primary", color)
+                    }
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Primary Text"
-                    value={schema.settings.theme.colors?.primaryForeground ?? "#fafafa"}
-                    onColorChange={(color) => onThemeColorChange("primaryForeground", color)}
+                    value={
+                      schema.settings.theme.colors?.primaryForeground ??
+                      "#fafafa"
+                    }
+                    onColorChange={(color) =>
+                      onThemeColorChange("primaryForeground", color)
+                    }
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Text"
-                    value={schema.settings.theme.colors?.foreground ?? "#09090b"}
-                    onColorChange={(color) => onThemeColorChange("foreground", color)}
+                    value={
+                      schema.settings.theme.colors?.foreground ?? "#09090b"
+                    }
+                    onColorChange={(color) =>
+                      onThemeColorChange("foreground", color)
+                    }
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Muted Text"
-                    value={schema.settings.theme.colors?.mutedForeground ?? "#71717a"}
-                    onColorChange={(color) => onThemeColorChange("mutedForeground", color)}
+                    value={
+                      schema.settings.theme.colors?.mutedForeground ?? "#71717a"
+                    }
+                    onColorChange={(color) =>
+                      onThemeColorChange("mutedForeground", color)
+                    }
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Border"
                     value={schema.settings.theme.colors?.border ?? "#e4e4e7"}
-                    onColorChange={(color) => onThemeColorChange("border", color)}
+                    onColorChange={(color) =>
+                      onThemeColorChange("border", color)
+                    }
                   />
                 </div>
                 <div className="px-4">
                   <ColorField.Root
                     label="Input Border"
                     value={schema.settings.theme.colors?.input ?? "#e4e4e7"}
-                    onColorChange={(color) => onThemeColorChange("input", color)}
+                    onColorChange={(color) =>
+                      onThemeColorChange("input", color)
+                    }
                   />
                 </div>
               </div>

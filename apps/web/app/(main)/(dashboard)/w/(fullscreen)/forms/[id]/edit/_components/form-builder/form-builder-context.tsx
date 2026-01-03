@@ -2,28 +2,28 @@
 
 import {
   createContext,
+  type ReactNode,
   useCallback,
   useContext,
-  useState,
   useMemo,
-  type ReactNode,
+  useState,
 } from "react";
 import type {
+  FieldOption,
+  FieldType,
   FormBuilderSchema,
+  FormField,
   FormPage,
   FormSection,
-  FormField,
-  FieldType,
   FormSettings,
   FormStyling,
   FormTheme,
-  FieldOption,
 } from "./types";
 import {
   createEmptyField,
+  DEFAULT_FIELD_APPEARANCE,
   DEFAULT_FORM_SETTINGS,
   DEFAULT_FORM_STYLING,
-  DEFAULT_FIELD_APPEARANCE,
   FIELD_TYPE_CONFIGS,
 } from "./types";
 
@@ -104,24 +104,24 @@ interface FormBuilderContextValue {
   updateSection: (
     pageIndex: number,
     sectionId: string,
-    updates: Partial<FormSection>
+    updates: Partial<FormSection>,
   ) => void;
-  moveSection: (
-    pageIndex: number,
-    fromIndex: number,
-    toIndex: number
-  ) => void;
+  moveSection: (pageIndex: number, fromIndex: number, toIndex: number) => void;
   duplicateSection: (pageIndex: number, sectionId: string) => void;
 
   // Field operations
-  addField: (pageIndex: number, sectionId: string, fieldType: FieldType) => void;
+  addField: (
+    pageIndex: number,
+    sectionId: string,
+    fieldType: FieldType,
+  ) => void;
   removeField: (pageIndex: number, sectionId: string, fieldId: string) => void;
   selectField: (fieldId: string | null) => void;
   updateField: (
     pageIndex: number,
     sectionId: string,
     fieldId: string,
-    updates: Partial<FormField>
+    updates: Partial<FormField>,
   ) => void;
   moveField: (
     fromPageIndex: number,
@@ -129,28 +129,32 @@ interface FormBuilderContextValue {
     fromFieldIndex: number,
     toPageIndex: number,
     toSectionId: string,
-    toFieldIndex: number
+    toFieldIndex: number,
   ) => void;
-  duplicateField: (pageIndex: number, sectionId: string, fieldId: string) => void;
+  duplicateField: (
+    pageIndex: number,
+    sectionId: string,
+    fieldId: string,
+  ) => void;
 
   // Field option operations
   addFieldOption: (
     pageIndex: number,
     sectionId: string,
-    fieldId: string
+    fieldId: string,
   ) => void;
   removeFieldOption: (
     pageIndex: number,
     sectionId: string,
     fieldId: string,
-    optionId: string
+    optionId: string,
   ) => void;
   updateFieldOption: (
     pageIndex: number,
     sectionId: string,
     fieldId: string,
     optionId: string,
-    updates: Partial<FieldOption>
+    updates: Partial<FieldOption>,
   ) => void;
 
   // Settings operations
@@ -159,14 +163,18 @@ interface FormBuilderContextValue {
   updateTheme: (updates: Partial<FormTheme>) => void;
 
   // Submit button operations
-  updateSubmitButton: (updates: Partial<import("./types").FormSubmitButton>) => void;
+  updateSubmitButton: (
+    updates: Partial<import("./types").FormSubmitButton>,
+  ) => void;
 
   // Form metadata operations
   updateFormMeta: (updates: { title?: string; description?: string }) => void;
 
   // Utility
   clearSelection: () => void;
-  getFieldLocation: (fieldId: string) => { pageIndex: number; sectionId: string } | null;
+  getFieldLocation: (
+    fieldId: string,
+  ) => { pageIndex: number; sectionId: string } | null;
 }
 
 const FormBuilderContext = createContext<FormBuilderContextValue | null>(null);
@@ -187,7 +195,7 @@ export function FormBuilderProvider({
   children,
 }: FormBuilderProviderProps) {
   const [doubleOptInEmailId, setDoubleOptInEmailId] = useState<string | null>(
-    initialDoubleOptInEmailId
+    initialDoubleOptInEmailId,
   );
   const [schema, setSchema] = useState<FormBuilderSchema>(() => {
     if (initialSchema && initialSchema.pages?.length > 0) {
@@ -210,7 +218,9 @@ export function FormBuilderProvider({
   });
 
   const [selectedPageIndex, setSelectedPageIndex] = useState(0);
-  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(null);
+  const [selectedSectionId, setSelectedSectionId] = useState<string | null>(
+    null,
+  );
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
 
   // Computed values
@@ -244,16 +254,21 @@ export function FormBuilderProvider({
     }));
   }, []);
 
-  const removePage = useCallback((pageIndex: number) => {
-    setSchema((prev) => {
-      if (prev.pages.length <= 1) return prev;
-      const newPages = prev.pages.filter((_, i) => i !== pageIndex);
-      return { ...prev, pages: newPages };
-    });
-    setSelectedPageIndex((prev) => Math.max(0, Math.min(prev, schema.pages.length - 2)));
-    setSelectedSectionId(null);
-    setSelectedFieldId(null);
-  }, [schema.pages.length]);
+  const removePage = useCallback(
+    (pageIndex: number) => {
+      setSchema((prev) => {
+        if (prev.pages.length <= 1) return prev;
+        const newPages = prev.pages.filter((_, i) => i !== pageIndex);
+        return { ...prev, pages: newPages };
+      });
+      setSelectedPageIndex((prev) =>
+        Math.max(0, Math.min(prev, schema.pages.length - 2)),
+      );
+      setSelectedSectionId(null);
+      setSelectedFieldId(null);
+    },
+    [schema.pages.length],
+  );
 
   const selectPage = useCallback((pageIndex: number) => {
     setSelectedPageIndex(pageIndex);
@@ -261,14 +276,17 @@ export function FormBuilderProvider({
     setSelectedFieldId(null);
   }, []);
 
-  const updatePage = useCallback((pageIndex: number, updates: Partial<FormPage>) => {
-    setSchema((prev) => ({
-      ...prev,
-      pages: prev.pages.map((page, i) =>
-        i === pageIndex ? { ...page, ...updates } : page
-      ),
-    }));
-  }, []);
+  const updatePage = useCallback(
+    (pageIndex: number, updates: Partial<FormPage>) => {
+      setSchema((prev) => ({
+        ...prev,
+        pages: prev.pages.map((page, i) =>
+          i === pageIndex ? { ...page, ...updates } : page,
+        ),
+      }));
+    },
+    [],
+  );
 
   const movePage = useCallback((fromIndex: number, toIndex: number) => {
     setSchema((prev) => {
@@ -283,7 +301,9 @@ export function FormBuilderProvider({
   const duplicatePage = useCallback((pageIndex: number) => {
     setSchema((prev) => {
       const pageToDuplicate = prev.pages[pageIndex];
-      const duplicatedPage: FormPage = JSON.parse(JSON.stringify(pageToDuplicate));
+      const duplicatedPage: FormPage = JSON.parse(
+        JSON.stringify(pageToDuplicate),
+      );
 
       // Generate new IDs for the duplicated page and all its contents
       duplicatedPage.id = generateId();
@@ -318,7 +338,7 @@ export function FormBuilderProvider({
       pages: prev.pages.map((page, i) =>
         i === pageIndex
           ? { ...page, sections: [...page.sections, createNewSection()] }
-          : page
+          : page,
       ),
     }));
   }, []);
@@ -332,7 +352,7 @@ export function FormBuilderProvider({
               ...page,
               sections: page.sections.filter((s) => s.id !== sectionId),
             }
-          : page
+          : page,
       ),
     }));
     setSelectedSectionId(null);
@@ -353,14 +373,14 @@ export function FormBuilderProvider({
             ? {
                 ...page,
                 sections: page.sections.map((s) =>
-                  s.id === sectionId ? { ...s, ...updates } : s
+                  s.id === sectionId ? { ...s, ...updates } : s,
                 ),
               }
-            : page
+            : page,
         ),
       }));
     },
-    []
+    [],
   );
 
   const moveSection = useCallback(
@@ -376,42 +396,47 @@ export function FormBuilderProvider({
         }),
       }));
     },
-    []
+    [],
   );
 
-  const duplicateSection = useCallback((pageIndex: number, sectionId: string) => {
-    setSchema((prev) => ({
-      ...prev,
-      pages: prev.pages.map((page, i) => {
-        if (i !== pageIndex) return page;
-        const sectionIndex = page.sections.findIndex((s) => s.id === sectionId);
-        if (sectionIndex === -1) return page;
+  const duplicateSection = useCallback(
+    (pageIndex: number, sectionId: string) => {
+      setSchema((prev) => ({
+        ...prev,
+        pages: prev.pages.map((page, i) => {
+          if (i !== pageIndex) return page;
+          const sectionIndex = page.sections.findIndex(
+            (s) => s.id === sectionId,
+          );
+          if (sectionIndex === -1) return page;
 
-        const sectionToDuplicate = page.sections[sectionIndex];
-        const duplicatedSection: FormSection = JSON.parse(
-          JSON.stringify(sectionToDuplicate)
-        );
+          const sectionToDuplicate = page.sections[sectionIndex];
+          const duplicatedSection: FormSection = JSON.parse(
+            JSON.stringify(sectionToDuplicate),
+          );
 
-        duplicatedSection.id = generateId();
-        duplicatedSection.title = sectionToDuplicate.title
-          ? `${sectionToDuplicate.title} (copy)`
-          : undefined;
-        duplicatedSection.fields = duplicatedSection.fields.map((field) => ({
-          ...field,
-          id: generateId(),
-          name: `field_${generateId()}`,
-          options: field.options?.map((opt) => ({
-            ...opt,
+          duplicatedSection.id = generateId();
+          duplicatedSection.title = sectionToDuplicate.title
+            ? `${sectionToDuplicate.title} (copy)`
+            : undefined;
+          duplicatedSection.fields = duplicatedSection.fields.map((field) => ({
+            ...field,
             id: generateId(),
-          })),
-        }));
+            name: `field_${generateId()}`,
+            options: field.options?.map((opt) => ({
+              ...opt,
+              id: generateId(),
+            })),
+          }));
 
-        const newSections = [...page.sections];
-        newSections.splice(sectionIndex + 1, 0, duplicatedSection);
-        return { ...page, sections: newSections };
-      }),
-    }));
-  }, []);
+          const newSections = [...page.sections];
+          newSections.splice(sectionIndex + 1, 0, duplicatedSection);
+          return { ...page, sections: newSections };
+        }),
+      }));
+    },
+    [],
+  );
 
   // Field operations
   const addField = useCallback(
@@ -426,15 +451,15 @@ export function FormBuilderProvider({
                 sections: page.sections.map((section) =>
                   section.id === sectionId
                     ? { ...section, fields: [...section.fields, newField] }
-                    : section
+                    : section,
                 ),
               }
-            : page
+            : page,
         ),
       }));
       setSelectedFieldId(newField.id);
     },
-    []
+    [],
   );
 
   const removeField = useCallback(
@@ -451,17 +476,17 @@ export function FormBuilderProvider({
                         ...section,
                         fields: section.fields.filter((f) => f.id !== fieldId),
                       }
-                    : section
+                    : section,
                 ),
               }
-            : page
+            : page,
         ),
       }));
       if (selectedFieldId === fieldId) {
         setSelectedFieldId(null);
       }
     },
-    [selectedFieldId]
+    [selectedFieldId],
   );
 
   const selectField = useCallback((fieldId: string | null) => {
@@ -473,7 +498,7 @@ export function FormBuilderProvider({
       pageIndex: number,
       sectionId: string,
       fieldId: string,
-      updates: Partial<FormField>
+      updates: Partial<FormField>,
     ) => {
       setSchema((prev) => ({
         ...prev,
@@ -486,17 +511,19 @@ export function FormBuilderProvider({
                     ? {
                         ...section,
                         fields: section.fields.map((field) =>
-                          field.id === fieldId ? { ...field, ...updates } : field
+                          field.id === fieldId
+                            ? { ...field, ...updates }
+                            : field,
                         ),
                       }
-                    : section
+                    : section,
                 ),
               }
-            : page
+            : page,
         ),
       }));
     },
-    []
+    [],
   );
 
   const moveField = useCallback(
@@ -506,7 +533,7 @@ export function FormBuilderProvider({
       fromFieldIndex: number,
       toPageIndex: number,
       toSectionId: string,
-      toFieldIndex: number
+      toFieldIndex: number,
     ) => {
       setSchema((prev) => {
         const newPages = JSON.parse(JSON.stringify(prev.pages));
@@ -514,7 +541,7 @@ export function FormBuilderProvider({
         // Get the field to move
         const fromPage = newPages[fromPageIndex];
         const fromSection = fromPage.sections.find(
-          (s: FormSection) => s.id === fromSectionId
+          (s: FormSection) => s.id === fromSectionId,
         );
         if (!fromSection) return prev;
 
@@ -523,7 +550,7 @@ export function FormBuilderProvider({
         // Insert the field at the new position
         const toPage = newPages[toPageIndex];
         const toSection = toPage.sections.find(
-          (s: FormSection) => s.id === toSectionId
+          (s: FormSection) => s.id === toSectionId,
         );
         if (!toSection) return prev;
 
@@ -532,7 +559,7 @@ export function FormBuilderProvider({
         return { ...prev, pages: newPages };
       });
     },
-    []
+    [],
   );
 
   const duplicateField = useCallback(
@@ -545,12 +572,14 @@ export function FormBuilderProvider({
             ...page,
             sections: page.sections.map((section) => {
               if (section.id !== sectionId) return section;
-              const fieldIndex = section.fields.findIndex((f) => f.id === fieldId);
+              const fieldIndex = section.fields.findIndex(
+                (f) => f.id === fieldId,
+              );
               if (fieldIndex === -1) return section;
 
               const fieldToDuplicate = section.fields[fieldIndex];
               const duplicatedField: FormField = JSON.parse(
-                JSON.stringify(fieldToDuplicate)
+                JSON.stringify(fieldToDuplicate),
               );
 
               duplicatedField.id = generateId();
@@ -569,7 +598,7 @@ export function FormBuilderProvider({
         }),
       }));
     },
-    []
+    [],
   );
 
   // Field option operations
@@ -601,14 +630,14 @@ export function FormBuilderProvider({
                           };
                         }),
                       }
-                    : section
+                    : section,
                 ),
               }
-            : page
+            : page,
         ),
       }));
     },
-    []
+    [],
   );
 
   const removeFieldOption = useCallback(
@@ -616,7 +645,7 @@ export function FormBuilderProvider({
       pageIndex: number,
       sectionId: string,
       fieldId: string,
-      optionId: string
+      optionId: string,
     ) => {
       setSchema((prev) => ({
         ...prev,
@@ -633,20 +662,20 @@ export function FormBuilderProvider({
                             ? {
                                 ...field,
                                 options: field.options?.filter(
-                                  (opt) => opt.id !== optionId
+                                  (opt) => opt.id !== optionId,
                                 ),
                               }
-                            : field
+                            : field,
                         ),
                       }
-                    : section
+                    : section,
                 ),
               }
-            : page
+            : page,
         ),
       }));
     },
-    []
+    [],
   );
 
   const updateFieldOption = useCallback(
@@ -655,7 +684,7 @@ export function FormBuilderProvider({
       sectionId: string,
       fieldId: string,
       optionId: string,
-      updates: Partial<FieldOption>
+      updates: Partial<FieldOption>,
     ) => {
       setSchema((prev) => ({
         ...prev,
@@ -672,20 +701,22 @@ export function FormBuilderProvider({
                             ? {
                                 ...field,
                                 options: field.options?.map((opt) =>
-                                  opt.id === optionId ? { ...opt, ...updates } : opt
+                                  opt.id === optionId
+                                    ? { ...opt, ...updates }
+                                    : opt,
                                 ),
                               }
-                            : field
+                            : field,
                         ),
                       }
-                    : section
+                    : section,
                 ),
               }
-            : page
+            : page,
         ),
       }));
     },
-    []
+    [],
   );
 
   // Settings operations
@@ -723,7 +754,7 @@ export function FormBuilderProvider({
         },
       }));
     },
-    []
+    [],
   );
 
   // Form metadata operations
@@ -734,7 +765,7 @@ export function FormBuilderProvider({
         ...updates,
       }));
     },
-    []
+    [],
   );
 
   // Utility functions
@@ -755,7 +786,7 @@ export function FormBuilderProvider({
       }
       return null;
     },
-    [schema.pages]
+    [schema.pages],
   );
 
   return (

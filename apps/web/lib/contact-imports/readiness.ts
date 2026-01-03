@@ -41,6 +41,8 @@ export class ImportReadinessChecker {
   }
 }
 
-export function checkImportReadiness(contactImport: ContactImport): ReadinessResult {
+export function checkImportReadiness(
+  contactImport: ContactImport,
+): ReadinessResult {
   return new ImportReadinessChecker().check(contactImport);
 }

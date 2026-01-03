@@ -8,16 +8,19 @@
  * without authentication. The workspace is derived from the form record.
  */
 
-import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/submissions/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/submissions/route";
+import { ErrorCode } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
   cleanupWorkspace,
+  createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils";
-import { signUpFormFields, surveyFormFields } from "@/tests/utils/form-fixtures";
-import { prisma } from "@/lib/db";
-import { ErrorCode } from "@/lib/api/error-codes";
+import {
+  signUpFormFields,
+  surveyFormFields,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 
@@ -36,7 +39,7 @@ function publicPost(path: string, body: Record<string, unknown>): Request {
       "Content-Type": "application/json",
       "User-Agent": "Mozilla/5.0 (Test Browser)",
       "X-Forwarded-For": "203.0.113.42",
-      "Referer": "https://example.com/landing-page",
+      Referer: "https://example.com/landing-page",
     },
     body: JSON.stringify(body),
   });
@@ -60,9 +63,27 @@ beforeAll(async () => {
       fields: signUpFormFields as never,
       publishedAt: new Date(),
       fieldMapping: {
-        email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-        firstName: { slot: "fieldString1", type: "string", fieldType: "text", contactPropertyId: "firstName", contactPropertyType: "standard" },
-        lastName: { slot: "fieldString2", type: "string", fieldType: "text", contactPropertyId: "lastName", contactPropertyType: "standard" },
+        email: {
+          slot: "fieldString0",
+          type: "string",
+          fieldType: "email",
+          contactPropertyId: "email",
+          contactPropertyType: "standard",
+        },
+        firstName: {
+          slot: "fieldString1",
+          type: "string",
+          fieldType: "text",
+          contactPropertyId: "firstName",
+          contactPropertyType: "standard",
+        },
+        lastName: {
+          slot: "fieldString2",
+          type: "string",
+          fieldType: "text",
+          contactPropertyId: "lastName",
+          contactPropertyType: "standard",
+        },
       } as never,
     },
   });
@@ -85,9 +106,23 @@ beforeAll(async () => {
       fields: surveyFormFields as never,
       publishedAt: new Date(),
       fieldMapping: {
-        email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-        feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
-        satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
+        email: {
+          slot: "fieldString0",
+          type: "string",
+          fieldType: "email",
+          contactPropertyId: "email",
+          contactPropertyType: "standard",
+        },
+        feedback: {
+          slot: "fieldString1",
+          type: "string",
+          fieldType: "textarea",
+        },
+        satisfaction: {
+          slot: "fieldNum0",
+          type: "number",
+          fieldType: "rating",
+        },
       } as never,
     },
   });
@@ -356,9 +391,23 @@ describe("POST /api/internal/v1/forms/[formId]/submissions - Version Handling", 
         version: 1,
         fields: surveyFormFields as never,
         fieldMapping: {
-          email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-          feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
-          satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
+          email: {
+            slot: "fieldString0",
+            type: "string",
+            fieldType: "email",
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+          },
+          feedback: {
+            slot: "fieldString1",
+            type: "string",
+            fieldType: "textarea",
+          },
+          satisfaction: {
+            slot: "fieldNum0",
+            type: "number",
+            fieldType: "rating",
+          },
         } as never,
       },
     });
@@ -376,9 +425,23 @@ describe("POST /api/internal/v1/forms/[formId]/submissions - Version Handling", 
         publishedAt: new Date(),
         fields: surveyFormFields as never,
         fieldMapping: {
-          email: { slot: "fieldString0", type: "string", fieldType: "email", contactPropertyId: "email", contactPropertyType: "standard" },
-          feedback: { slot: "fieldString1", type: "string", fieldType: "textarea" },
-          satisfaction: { slot: "fieldNum0", type: "number", fieldType: "rating" },
+          email: {
+            slot: "fieldString0",
+            type: "string",
+            fieldType: "email",
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+          },
+          feedback: {
+            slot: "fieldString1",
+            type: "string",
+            fieldType: "textarea",
+          },
+          satisfaction: {
+            slot: "fieldNum0",
+            type: "number",
+            fieldType: "rating",
+          },
         } as never,
       },
     });

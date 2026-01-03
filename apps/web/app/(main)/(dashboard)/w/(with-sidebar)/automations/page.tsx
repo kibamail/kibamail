@@ -1,15 +1,15 @@
-import * as Tabs from "@kibamail/owly/tabs";
 import {
-  DashboardLayoutStickyContentHeaderContainer,
-  DashboardLayoutContentHeader,
   DashboardLayoutContentActions,
+  DashboardLayoutContentHeader,
+  DashboardLayoutStickyContentHeaderContainer,
 } from "@kibamail/owly/dashboard-layout";
-import { AutomationsTable } from "./_components/automations-table";
-import { CreateAutomationButton } from "./_components/create-automation-button";
+import * as Tabs from "@kibamail/owly/tabs";
+import { redirect } from "next/navigation";
 import { SearchInput } from "@/app/(main)/(dashboard)/w/(with-sidebar)/_components/search-input";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
-import { redirect } from "next/navigation";
+import { AutomationsTable } from "./_components/automations-table";
+import { CreateAutomationButton } from "./_components/create-automation-button";
 
 export default async function AutomationsPage() {
   const session = await getSession();
@@ -44,7 +44,7 @@ export default async function AutomationsPage() {
   const automationsWithVersions = rootAutomations.map((root) => {
     // All versions: the root itself + all child versions
     const allVersions = [root, ...root.versions].sort(
-      (a, b) => b.version - a.version
+      (a, b) => b.version - a.version,
     );
 
     // Find published version (could be root or a child)

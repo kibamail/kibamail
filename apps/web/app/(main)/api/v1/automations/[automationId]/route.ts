@@ -10,12 +10,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
 import {
+  deleteAutomation,
   getAutomation,
   updateAutomation,
-  deleteAutomation,
 } from "@/app/(main)/api/v1/automations/handler";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 
 /**
  * GET /api/v1/automations/[automationId]
@@ -25,14 +25,14 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { automationId } = await params;
     return withApiSession(
       request,
       (apiKey) => getAutomation(apiKey.workspaceId, automationId),
-      ["read:automations"]
+      ["read:automations"],
     );
   });
 }
@@ -45,7 +45,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { automationId } = await params;
@@ -53,7 +53,7 @@ export async function PUT(
       request,
       (apiKey, request) =>
         updateAutomation(apiKey.workspaceId, automationId, request),
-      ["write:automations"]
+      ["write:automations"],
     );
   });
 }
@@ -66,14 +66,14 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   return withErrorHandling(request, async () => {
     const { automationId } = await params;
     return withApiSession(
       request,
       (apiKey) => deleteAutomation(apiKey.workspaceId, automationId),
-      ["delete:automations"]
+      ["delete:automations"],
     );
   });
 }

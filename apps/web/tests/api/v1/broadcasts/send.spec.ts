@@ -6,9 +6,11 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import {
+  GET as GetBroadcast,
+  PUT as UpdateBroadcast,
+} from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
 import { POST as SendBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/send/route";
-import { GET as GetBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
-import { PUT as UpdateBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcastId]/route";
 import { POST as CreateBroadcast } from "@/app/(main)/api/v1/broadcasts/route";
 import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
@@ -43,7 +45,7 @@ async function createTestBroadcast(
       html?: string;
       previewText?: string;
     };
-  }
+  },
 ) {
   const request = post("/broadcasts", data, apiKey.key);
   const response = await CreateBroadcast(request);
@@ -64,7 +66,7 @@ async function updateTestBroadcast(
       html?: string;
       previewText?: string;
     };
-  }
+  },
 ) {
   const request = put(`/broadcasts/${broadcastId}`, data, apiKey.key);
   const params = Promise.resolve({ broadcastId });
@@ -147,7 +149,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -177,7 +179,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -205,7 +207,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -217,10 +219,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
   });
 
   test("should reject sending broadcast without unsubscribe link", async () => {
-    await createVerifiedDomain(
-      fullAccessApiKey,
-      "no-unsubscribe.example.com"
-    );
+    await createVerifiedDomain(fullAccessApiKey, "no-unsubscribe.example.com");
 
     // Create contacts
     await createTestContacts(testWorkspace.id, [
@@ -244,7 +243,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -273,7 +272,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -307,7 +306,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      freshApiKey.key
+      freshApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -325,7 +324,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const domainRequest = post(
       "/domains",
       { name: "unverified.example.com" },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     await CreateDomain(domainRequest);
 
@@ -345,7 +344,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -358,10 +357,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
   });
 
   test("should reject sending non-draft broadcast", async () => {
-    await createVerifiedDomain(
-      fullAccessApiKey,
-      "non-draft-send.example.com"
-    );
+    await createVerifiedDomain(fullAccessApiKey, "non-draft-send.example.com");
 
     const createdBroadcast = await createTestBroadcast(fullAccessApiKey, {
       name: "Non-Draft Send Broadcast",
@@ -381,7 +377,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -393,10 +389,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
   });
 
   test("should reject sending already queued broadcast", async () => {
-    await createVerifiedDomain(
-      fullAccessApiKey,
-      "already-queued.example.com"
-    );
+    await createVerifiedDomain(fullAccessApiKey, "already-queued.example.com");
 
     const createdBroadcast = await createTestBroadcast(fullAccessApiKey, {
       name: "Already Queued Broadcast",
@@ -416,7 +409,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -431,7 +424,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       "/broadcasts/non_existent_id/send",
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: "non_existent_id" });
 
@@ -462,7 +455,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      readOnlyApiKey.key
+      readOnlyApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -476,7 +469,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
   test("should not send broadcast from different workspace", async () => {
     await createVerifiedDomain(
       fullAccessApiKey,
-      "cross-workspace-send.example.com"
+      "cross-workspace-send.example.com",
     );
 
     const createdBroadcast = await createTestBroadcast(fullAccessApiKey, {
@@ -495,7 +488,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      otherApiKey.key
+      otherApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -509,10 +502,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
   });
 
   test("should correctly preserve sendAt time", async () => {
-    await createVerifiedDomain(
-      fullAccessApiKey,
-      "sendat-verify.example.com"
-    );
+    await createVerifiedDomain(fullAccessApiKey, "sendat-verify.example.com");
 
     // Create contacts
     await createTestContacts(testWorkspace.id, [
@@ -536,7 +526,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     const request = post(
       `/broadcasts/${createdBroadcast.id}/send`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const params = Promise.resolve({ broadcastId: createdBroadcast.id });
 
@@ -548,7 +538,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     // Verify via GET
     const getRequest = get(
       `/broadcasts/${createdBroadcast.id}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const getParams = Promise.resolve({ broadcastId: createdBroadcast.id });
     const getResponse = await GetBroadcast(getRequest, { params: getParams });
@@ -557,7 +547,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
     expect(getData.sendAt).toBeDefined();
     expect(new Date(getData.sendAt).getTime()).toBeCloseTo(
       new Date(expectedSendAt).getTime(),
-      -3 // Allow 1 second difference
+      -3, // Allow 1 second difference
     );
   });
 });

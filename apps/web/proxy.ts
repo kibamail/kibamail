@@ -1,6 +1,6 @@
 import { getLogtoContext } from "@logto/next/server-actions";
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { logtoConfig } from "./config/logto";
 import { CookieKey, Cookies } from "./lib/cookies";
 import { getBaseUrl } from "./lib/url";

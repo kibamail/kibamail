@@ -5,21 +5,21 @@
  * - GET /api/v1/forms - List all root forms with cursor-based pagination
  */
 
-import { GET } from "@/app/(main)/api/v1/forms/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { GET } from "@/app/(main)/api/v1/forms/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  apiRequest,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   get,
-  apiRequest,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
 import { validFormFields } from "@/tests/utils/form-fixtures";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
-import { prisma } from "@/lib/db";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -117,7 +117,7 @@ describe("GET /api/v1/forms - Authentication & Authorization", () => {
     expect(response.status).toBe(401);
     expect(responseData.error.type).toBe(ErrorType.AUTHENTICATION_ERROR);
     expect(responseData.error.code).toBe(
-      ErrorCode.MISSING_AUTHORIZATION_HEADER
+      ErrorCode.MISSING_AUTHORIZATION_HEADER,
     );
     expect(responseData.error.message).toBeDefined();
     expect(responseData.error.requestId).toBeDefined();
@@ -185,7 +185,7 @@ describe("GET /api/v1/forms - List Forms", () => {
 
     // Check that version form is NOT in the list
     const versionInList = responseData.data.find(
-      (f: any) => f.id === versionFormId
+      (f: any) => f.id === versionFormId,
     );
     expect(versionInList).toBeUndefined();
 
@@ -234,14 +234,12 @@ describe("GET /api/v1/forms - List Forms", () => {
     expect(response.status).toBe(200);
 
     // Find specific forms and check their type/display
-    const signupForm = responseData.data.find(
-      (f: any) => f.id === rootForm1Id
-    );
+    const signupForm = responseData.data.find((f: any) => f.id === rootForm1Id);
     expect(signupForm.type).toBe("SIGN_UP");
     expect(signupForm.display).toBe("INLINE_EMBED");
 
     const contactForm = responseData.data.find(
-      (f: any) => f.id === rootForm2Id
+      (f: any) => f.id === rootForm2Id,
     );
     expect(contactForm.type).toBe("SURVEY");
     expect(contactForm.display).toBe("POPUP");
@@ -271,7 +269,7 @@ describe("GET /api/v1/forms - List Forms", () => {
 
     // Find the form with null description (Contact Form)
     const formWithNullDesc = responseData.data.find(
-      (f: any) => f.id === rootForm2Id
+      (f: any) => f.id === rootForm2Id,
     );
     expect(formWithNullDesc).toBeDefined();
     expect(formWithNullDesc.description).toBeNull();
@@ -323,7 +321,7 @@ describe("GET /api/v1/forms - Pagination", () => {
     const firstItemId = data1.data[0].id;
     const request2 = get(
       `/forms?limit=1&after=${firstItemId}`,
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
     const response2 = await GET(request2);
     const data2 = await response2.json();
@@ -388,7 +386,7 @@ describe("GET /api/v1/forms - Workspace Isolation", () => {
 
     // None should be from other workspace
     const hasOtherWorkspaceForm = responseData.data.some(
-      (f: any) => f.name === "Other Workspace Form"
+      (f: any) => f.name === "Other Workspace Form",
     );
     expect(hasOtherWorkspaceForm).toBe(false);
 

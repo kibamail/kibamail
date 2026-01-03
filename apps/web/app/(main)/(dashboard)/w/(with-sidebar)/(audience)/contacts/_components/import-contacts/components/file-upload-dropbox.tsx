@@ -5,8 +5,8 @@ import { Progress } from "@kibamail/owly/progress";
 import { Text } from "@kibamail/owly/text";
 import { CloudUpload } from "iconoir-react";
 import {
-  useFileUpload,
   type UseFileUploadProps,
+  useFileUpload,
 } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/import-contacts/hooks/use-file-upload";
 
 interface FileUploadDropboxProps extends UseFileUploadProps {

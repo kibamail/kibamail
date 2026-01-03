@@ -5,12 +5,12 @@
  */
 
 import type { NextRequest } from "next/server";
-import { prisma } from "@/lib/db";
-import { responseOk } from "@/lib/api/responses";
 import {
   createPaginationMeta,
   parsePaginationParams,
 } from "@/lib/api/pagination";
+import { responseOk } from "@/lib/api/responses";
+import { prisma } from "@/lib/db";
 
 /**
  * Get all API keys for the workspace (paginated)
@@ -22,8 +22,10 @@ import {
  * @param request - Next.js request object
  * @returns Paginated response with API keys
  */
-export async function listApiKeysHandler(workspaceId: string, request: NextRequest) {
-
+export async function listApiKeysHandler(
+  workspaceId: string,
+  request: NextRequest,
+) {
   const { page, limit, skip } = parsePaginationParams(request);
 
   const [keys, total] = await Promise.all([

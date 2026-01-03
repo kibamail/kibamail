@@ -47,7 +47,9 @@ export function WorkspaceSettings({
     inviteMembersState.onOpenChange?.(value);
   }
 
-  function onChangeRoleOpenChange(value: boolean | ((prev: boolean) => boolean)) {
+  function onChangeRoleOpenChange(
+    value: boolean | ((prev: boolean) => boolean),
+  ) {
     const open =
       typeof value === "function" ? value(changeRoleState.open) : value;
     if (!open && changeRoleState.open) {

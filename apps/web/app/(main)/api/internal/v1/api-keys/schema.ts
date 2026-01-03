@@ -47,7 +47,7 @@ export const listApiKeysResponseSchema = z.object({
       scopes: z.array(z.string()),
       lastUsedAt: z.string().nullable(),
       createdAt: z.string(),
-    })
+    }),
   ),
 });
 

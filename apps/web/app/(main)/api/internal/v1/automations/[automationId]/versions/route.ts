@@ -11,11 +11,11 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
 import {
-  listAutomationVersions,
   createAutomationVersion,
+  listAutomationVersions,
 } from "@/app/(main)/api/v1/automations/handler";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 /**
  * GET /api/internal/v1/automations/[automationId]/versions
@@ -26,7 +26,7 @@ import {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   const { automationId } = await params;
 
@@ -39,11 +39,11 @@ export async function GET(
         }
         return listAutomationVersions(
           session.currentOrganization.id,
-          automationId
+          automationId,
         );
       },
-      ["read:automations"]
-    )
+      ["read:automations"],
+    ),
   );
 }
 
@@ -56,7 +56,7 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ automationId: string }> }
+  { params }: { params: Promise<{ automationId: string }> },
 ) {
   const { automationId } = await params;
 
@@ -70,10 +70,10 @@ export async function POST(
         return createAutomationVersion(
           session.currentOrganization.id,
           automationId,
-          request
+          request,
         );
       },
-      ["manage:automations"]
-    )
+      ["manage:automations"],
+    ),
   );
 }

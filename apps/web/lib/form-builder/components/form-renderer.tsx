@@ -1,13 +1,25 @@
 "use client";
 
-import * as React from "react";
 import { ChevronLeft, ChevronRight, Star } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -17,21 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Progress } from "@/components/ui/progress";
-import {
-  Field,
-  FieldLabel,
-  FieldDescription,
-  FieldError,
-  FieldContent,
-  FieldGroup,
-  FieldTitle,
-} from "@/components/ui/field";
+import { Textarea } from "@/components/ui/textarea";
+import { ContentBlockRenderer } from "@/lib/form-builder/components/content-block-renderer";
 
 import type {
   FormBuilderSchema,
@@ -41,7 +40,7 @@ import type {
   FormSubmissionData,
   FormTheme,
 } from "@/lib/form-builder/schema";
-import { ContentBlockRenderer } from "@/lib/form-builder/components/content-block-renderer";
+import { cn } from "@/lib/utils";
 
 function themeToStyleVars(theme: FormTheme): React.CSSProperties {
   const { colors, radius, font } = theme;
@@ -101,7 +100,7 @@ function shouldAutoAdvance(page: FormPage): boolean {
 
   const field = fields[0];
   return AUTO_ADVANCE_FIELD_TYPES.includes(
-    field.type as (typeof AUTO_ADVANCE_FIELD_TYPES)[number]
+    field.type as (typeof AUTO_ADVANCE_FIELD_TYPES)[number],
   );
 }
 
@@ -292,7 +291,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
                     "size-6",
                     i < currentRating
                       ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground"
+                      : "text-muted-foreground",
                   )}
                 />
               </button>
@@ -408,7 +407,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
           </Select>
         );
 
-      case "multi_select":
+      case "multi_select": {
         const selectedValues = (value as string[]) ?? [];
         return (
           <FieldGroup className="gap-3">
@@ -422,7 +421,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
                       onChange([...selectedValues, option.value]);
                     } else {
                       onChange(
-                        selectedValues.filter((v) => v !== option.value)
+                        selectedValues.filter((v) => v !== option.value),
                       );
                     }
                   }}
@@ -434,6 +433,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             ))}
           </FieldGroup>
         );
+      }
 
       case "date":
         return (
@@ -486,7 +486,7 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
       default:
         return null;
     }
-  };
+  }
 
   return (
     <div className={cn(widthClass)}>
@@ -548,7 +548,7 @@ function SectionRenderer({
               <ChevronRight
                 className={cn(
                   "size-4 transition-transform",
-                  isOpen && "rotate-90"
+                  isOpen && "rotate-90",
                 )}
               />
               {section.title && (
@@ -780,98 +780,98 @@ export function FormRenderer({
                 )}
               </div>
             ) : (
-            <form
-              onSubmit={onFormSubmit}
-              className={cn("space-y-6", className)}
-            >
-              {schema.title && (
-                <div className="mb-6">
-                  <h1 className="text-2xl font-bold">{schema.title}</h1>
-                  {schema.description && (
-                    <p className="text-muted-foreground mt-1">
-                      {schema.description}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              {isMultiPage && schema.settings.showProgressBar && (
-                <div className="mb-6">
-                  <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                    <span>
-                      Page {currentPageIndex + 1} of {totalPages}
-                    </span>
-                    <span>{Math.round(progress)}%</span>
-                  </div>
-                  <Progress value={progress} />
-                </div>
-              )}
-
-              <PageRenderer
-                page={currentPage}
-                formData={formData}
-                onChange={onFieldChange}
-                errors={errors}
-              />
-
-              {(() => {
-                const showSubmitButton = !isMultiPage || isLastPage;
-                const isFullWidth =
-                  showSubmitButton && schema.settings.submitButton.fullWidth;
-
-                const previousButton = isMultiPage && (
-                  <Button
-                    type="button"
-                    variant="link"
-                    onClick={onPrevious}
-                    disabled={isFirstPage}
-                  >
-                    <ChevronLeft className="size-4 mr-1" />
-                    Previous
-                  </Button>
-                );
-
-                return (
-                  <div
-                    className={cn(
-                      "flex pt-4",
-                      isFullWidth
-                        ? "flex-col gap-1 items-center"
-                        : "flex-row gap-3",
-                      !isFullWidth &&
-                        (isMultiPage
-                          ? "justify-between"
-                          : submitButtonPosition[
-                              schema.settings.submitButton.position
-                            ])
+              <form
+                onSubmit={onFormSubmit}
+                className={cn("space-y-6", className)}
+              >
+                {schema.title && (
+                  <div className="mb-6">
+                    <h1 className="text-2xl font-bold">{schema.title}</h1>
+                    {schema.description && (
+                      <p className="text-muted-foreground mt-1">
+                        {schema.description}
+                      </p>
                     )}
-                  >
-                    {!isFullWidth && previousButton}
-
-                    {isMultiPage && !isLastPage ? (
-                      <Button type="button" onClick={onNext}>
-                        Next
-                        <ChevronRight className="size-4 ml-1" />
-                      </Button>
-                    ) : (
-                      <Button
-                        type="submit"
-                        variant={schema.settings.submitButton.variant}
-                        size={schema.settings.submitButton.size}
-                        disabled={isSubmitting}
-                        className={cn(isFullWidth && "w-full")}
-                      >
-                        {isSubmitting
-                          ? schema.settings.submitButton.loadingText
-                          : schema.settings.submitButton.text}
-                      </Button>
-                    )}
-
-                    {isFullWidth && previousButton}
                   </div>
-                );
-              })()}
-            </form>
+                )}
+
+                {isMultiPage && schema.settings.showProgressBar && (
+                  <div className="mb-6">
+                    <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                      <span>
+                        Page {currentPageIndex + 1} of {totalPages}
+                      </span>
+                      <span>{Math.round(progress)}%</span>
+                    </div>
+                    <Progress value={progress} />
+                  </div>
+                )}
+
+                <PageRenderer
+                  page={currentPage}
+                  formData={formData}
+                  onChange={onFieldChange}
+                  errors={errors}
+                />
+
+                {(() => {
+                  const showSubmitButton = !isMultiPage || isLastPage;
+                  const isFullWidth =
+                    showSubmitButton && schema.settings.submitButton.fullWidth;
+
+                  const previousButton = isMultiPage && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      onClick={onPrevious}
+                      disabled={isFirstPage}
+                    >
+                      <ChevronLeft className="size-4 mr-1" />
+                      Previous
+                    </Button>
+                  );
+
+                  return (
+                    <div
+                      className={cn(
+                        "flex pt-4",
+                        isFullWidth
+                          ? "flex-col gap-1 items-center"
+                          : "flex-row gap-3",
+                        !isFullWidth &&
+                          (isMultiPage
+                            ? "justify-between"
+                            : submitButtonPosition[
+                                schema.settings.submitButton.position
+                              ]),
+                      )}
+                    >
+                      {!isFullWidth && previousButton}
+
+                      {isMultiPage && !isLastPage ? (
+                        <Button type="button" onClick={onNext}>
+                          Next
+                          <ChevronRight className="size-4 ml-1" />
+                        </Button>
+                      ) : (
+                        <Button
+                          type="submit"
+                          variant={schema.settings.submitButton.variant}
+                          size={schema.settings.submitButton.size}
+                          disabled={isSubmitting}
+                          className={cn(isFullWidth && "w-full")}
+                        >
+                          {isSubmitting
+                            ? schema.settings.submitButton.loadingText
+                            : schema.settings.submitButton.text}
+                        </Button>
+                      )}
+
+                      {isFullWidth && previousButton}
+                    </div>
+                  );
+                })()}
+              </form>
             )}
           </div>
         </div>

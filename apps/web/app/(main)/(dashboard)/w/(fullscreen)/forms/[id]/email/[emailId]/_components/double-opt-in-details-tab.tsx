@@ -1,18 +1,18 @@
 "use client";
 
-import { useId, useCallback, useMemo } from "react";
-import * as TextField from "@kibamail/owly/text-field";
 import * as Alert from "@kibamail/owly/alert";
+import { Button } from "@kibamail/owly/button";
 import { Checkbox } from "@kibamail/owly/checkbox";
 import { Text } from "@kibamail/owly/text";
-import { Button } from "@kibamail/owly/button";
+import * as TextField from "@kibamail/owly/text-field";
 import { WarningTriangle } from "iconoir-react";
-import { SenderSelect } from "@/components/sender-select";
+import { useCallback, useId, useMemo } from "react";
 import { ReplyToSelect } from "@/components/reply-to-select";
 import type {
-  TransformedSenderIdentity,
   CreatedDomain,
+  TransformedSenderIdentity,
 } from "@/components/sender-select";
+import { SenderSelect } from "@/components/sender-select";
 
 export interface EmailDetails {
   subject: string;
@@ -146,14 +146,14 @@ function SenderDetailsSection({
     (id: string | undefined) => {
       onChange({ senderIdentityId: id });
     },
-    [onChange]
+    [onChange],
   );
 
   const onReplyToChange = useCallback(
     (id: string | undefined) => {
       onChange({ replyToIdentityId: id });
     },
-    [onChange]
+    [onChange],
   );
 
   const selectedSender = useMemo(() => {
@@ -163,7 +163,7 @@ function SenderDetailsSection({
   const replyToIdentities = useMemo(() => {
     if (!selectedSender) return [];
     return senderIdentities.filter(
-      (s) => s.domainId === selectedSender.domainId
+      (s) => s.domainId === selectedSender.domainId,
     );
   }, [senderIdentities, selectedSender]);
 

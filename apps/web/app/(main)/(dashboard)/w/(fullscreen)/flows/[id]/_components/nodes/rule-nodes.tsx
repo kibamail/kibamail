@@ -1,14 +1,14 @@
 "use client";
 
-import { Clock, NetworkReverse, Percentage } from "iconoir-react";
-import type { NodeProps } from "@xyflow/react";
 import { Badge } from "@kibamail/owly/badge";
-import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
+import type { NodeProps } from "@xyflow/react";
+import { Clock, NetworkReverse, Percentage } from "iconoir-react";
 import { useFlowEditor } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/flow-editor-context";
+import { BaseFlowNode } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/_components/nodes/base-flow-node";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 
 function countConditions(
-  conditions: ConditionInput | null | undefined
+  conditions: ConditionInput | null | undefined,
 ): number {
   if (!conditions) return 0;
 

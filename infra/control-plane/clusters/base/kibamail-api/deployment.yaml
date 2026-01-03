@@ -217,6 +217,23 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: OTEL_INGESTION_API_KEY
+
+            # NATS Configuration
+            - name: NATS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-nats
+                  key: NATS_URL
+            - name: NATS_NKEY_SEED
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-nats
+                  key: NATS_NKEY_SEED
+            - name: NATS_TLS_CA
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-nats
+                  key: NATS_TLS_CA
           resources:
             requests:
               cpu: 100m

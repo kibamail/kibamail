@@ -22,7 +22,7 @@ export function StatsCard({ children, className }: StatsCardProps) {
     <div
       className={clsx(
         "w-full rounded-lg border border-kb-border-tertiary bg-kb-surface-primary overflow-hidden",
-        className
+        className,
       )}
     >
       <div className="flex divide-x divide-kb-border-tertiary h-full">

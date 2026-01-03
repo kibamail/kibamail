@@ -1,12 +1,12 @@
 "use client";
 
-import { useRef, useImperativeHandle, forwardRef } from "react";
-import type { JSONContent } from "@tiptap/react";
 import {
+  type EditorStylesConfig,
   EmailEditor,
   type EmailEditorRef,
-  type EditorStylesConfig,
 } from "@repo/broadcast-editor";
+import type { JSONContent } from "@tiptap/react";
+import { forwardRef, useImperativeHandle, useRef } from "react";
 import "@repo/broadcast-editor/styles";
 import type { EmailEditorMode } from "./types";
 
@@ -115,11 +115,7 @@ function getVariablesForMode(mode: EmailEditorMode): string[] {
     case "template":
       return [...baseVariables, "unsubscribe_url"];
     case "email":
-      return [
-        ...baseVariables,
-        "unsubscribe_url",
-        "preferences_url",
-      ];
+      return [...baseVariables, "unsubscribe_url", "preferences_url"];
   }
 }
 
@@ -135,10 +131,12 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
       onUpload,
       mode,
     },
-    ref
+    ref,
   ) {
     const emailEditorRef = useRef<EmailEditorRef>(null);
-    const stylesRef = useRef<EditorStylesConfig>(initialStyles ?? defaultStyles);
+    const stylesRef = useRef<EditorStylesConfig>(
+      initialStyles ?? defaultStyles,
+    );
 
     function onStylesChange(styles: EditorStylesConfig) {
       stylesRef.current = styles;
@@ -155,7 +153,7 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
         },
         getStyles: () => stylesRef.current,
       }),
-      []
+      [],
     );
 
     function onChange(_content: JSONContent) {}
@@ -163,7 +161,7 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
     async function upload(
       file: File,
       onProgress?: (event: { progress: number }) => void,
-      _abortSignal?: AbortSignal
+      _abortSignal?: AbortSignal,
     ): Promise<string> {
       if (!onUpload) {
         throw new Error("File upload not configured");
@@ -195,5 +193,5 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
         />
       </div>
     );
-  }
+  },
 );

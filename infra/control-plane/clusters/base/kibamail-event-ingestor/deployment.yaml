@@ -69,14 +69,21 @@ spec:
               value: "http://$(HOST_IP):4318"
             - name: OTEL_EXPORTER_OTLP_INSECURE
               value: "true"
+            - name: OTEL_INGESTION_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: OTEL_INGESTION_API_KEY
             - name: METRICS_PORT
               value: "9091"
+
             # Database
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: control-plane-postgres
                   key: DATABASE_URL
+
             # Redis/Valkey
             - name: REDIS_HOST
               value: "kibamail-valkey.kibamail-valkey.svc.cluster.local"
@@ -91,27 +98,160 @@ spec:
               value: "0"
             - name: REDIS_CLUSTER_MODE
               value: "true"
-            # NATS
+
+            # Logto Authentication
+            - name: LOGTO_TENANT_ID
+              value: "default"
+            - name: LOGTO_ENDPOINT
+              value: "https://auth.staging.kibamail.com"
+            - name: LOGTO_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: APP_ID
+            - name: LOGTO_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: APP_SECRET
+            - name: LOGTO_BASE_URL
+              value: "https://staging.kibamail.com"
+            - name: LOGTO_COOKIE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: LOGTO_COOKIE_SECRET
+            - name: LOGTO_COOKIE_SECURE
+              value: "true"
+            - name: LOGTO_M2M_APP_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: M2M_APP_ID
+            - name: LOGTO_M2M_APP_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-logto
+                  key: M2M_APP_SECRET
+
+            # Outpost Webhook Delivery
+            - name: OUTPOST_API_URL
+              value: "http://outpost.outpost.svc.cluster.local:3333"
+            - name: OUTPOST_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-outpost
+                  key: API_KEY
+            - name: OUTPOST_API_JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-outpost
+                  key: API_JWT_SECRET
+            - name: OUTPOST_AES_ENCRYPTION_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-outpost
+                  key: AES_ENCRYPTION_SECRET
+            - name: OUTPOST_REDIS_HOST
+              value: "kibamail-valkey.kibamail-valkey.svc.cluster.local"
+            - name: OUTPOST_REDIS_PORT
+              value: "6379"
+            - name: OUTPOST_REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-valkey
+                  key: password
+            - name: OUTPOST_REDIS_DATABASE
+              value: "1"
+
+            # S3 Public Bucket
+            - name: S3_PUBLIC_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-public
+                  key: ENDPOINT
+            - name: S3_PUBLIC_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-public
+                  key: REGION
+            - name: S3_PUBLIC_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-public
+                  key: ACCESS_KEY_ID
+            - name: S3_PUBLIC_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-public
+                  key: SECRET_ACCESS_KEY
+            - name: S3_PUBLIC_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-public
+                  key: BUCKET
+            - name: S3_PUBLIC_URL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-public
+                  key: PUBLIC_URL
+
+            # S3 Private Bucket
+            - name: S3_PRIVATE_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-private
+                  key: ENDPOINT
+            - name: S3_PRIVATE_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-private
+                  key: REGION
+            - name: S3_PRIVATE_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-private
+                  key: ACCESS_KEY_ID
+            - name: S3_PRIVATE_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-private
+                  key: SECRET_ACCESS_KEY
+            - name: S3_PRIVATE_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-s3-private
+                  key: BUCKET
+
+            # Application Credentials
+            - name: APP_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: APP_KEY
+            - name: INTERNAL_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: INTERNAL_SERVICE_KEY
+
+            # NATS (using NKey authentication)
             - name: NATS_URL
               valueFrom:
                 secretKeyRef:
                   name: control-plane-nats
                   key: NATS_URL
-            - name: NATS_USER
+            - name: NATS_NKEY_SEED
               valueFrom:
                 secretKeyRef:
                   name: control-plane-nats
-                  key: NATS_USER
-            - name: NATS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: control-plane-nats
-                  key: NATS_PASSWORD
+                  key: NATS_NKEY_SEED
             - name: NATS_TLS_CA
               valueFrom:
                 secretKeyRef:
                   name: control-plane-nats
                   key: NATS_TLS_CA
+
             # Event consumer configuration
             - name: EVENT_BATCH_SIZE
               value: "100"

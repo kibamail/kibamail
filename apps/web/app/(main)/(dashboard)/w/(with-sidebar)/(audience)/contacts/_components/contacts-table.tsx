@@ -36,7 +36,7 @@ export interface ContactsTableProps {
 
 function formatCellValue(
   value: unknown,
-  propertyType?: "DATE" | "NUMBER" | "TEXT" | "STRING"
+  propertyType?: "DATE" | "NUMBER" | "TEXT" | "STRING",
 ): string {
   if (value === null || value === undefined) {
     return "-";

@@ -8,6 +8,7 @@
 
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { DEFAULT_WARMUP_TIER } from "@/config/warmup";
 import { env } from "@/env/schema";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { ConflictError, NotFoundError } from "@/lib/api/errors";
@@ -23,14 +24,13 @@ import {
   generateDkimKeyPair,
   generateDkimSubdomain,
 } from "@/lib/sending-domains/dkim";
+import { generateDmarcReportingCode } from "@/lib/sending-domains/dmarc";
 import {
   DNS_CONFIG,
-  generateDmarcReportingCode,
   getDnsRecords,
   verifyDnsRecords,
 } from "@/lib/sending-domains/dns";
 import { createSendingDomainSchema, updateSendingDomainSchema } from "./schema";
-import { DEFAULT_WARMUP_TIER } from "@/config/warmup";
 
 /**
  * Format a sending domain for API response

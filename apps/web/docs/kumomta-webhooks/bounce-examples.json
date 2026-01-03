@@ -17,7 +17,11 @@
         "command": "RCPT TO"
       },
       "bounce_classification": "InvalidRecipient",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_001" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_001"
+      }
     },
     {
       "_scenario": "Mailbox full - quota exceeded",
@@ -35,7 +39,11 @@
         "command": "DATA"
       },
       "bounce_classification": "QuotaIssues",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_002" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_002"
+      }
     },
     {
       "_scenario": "Inactive mailbox - account disabled",
@@ -53,7 +61,11 @@
         "command": "RCPT TO"
       },
       "bounce_classification": "InactiveMailbox",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_003" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_003"
+      }
     },
     {
       "_scenario": "Bad domain - domain does not exist",
@@ -71,7 +83,11 @@
         "command": "RCPT TO"
       },
       "bounce_classification": "BadDomain",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_004" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_004"
+      }
     },
     {
       "_scenario": "Spam blocked - IP reputation",
@@ -89,7 +105,11 @@
         "command": "RCPT TO"
       },
       "bounce_classification": "SpamBlock",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_005" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_005"
+      }
     },
     {
       "_scenario": "Authentication failed - DMARC reject",
@@ -107,7 +127,11 @@
         "command": "DATA"
       },
       "bounce_classification": "AuthenticationFailed",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_006" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_006"
+      }
     },
     {
       "_scenario": "Relay denied",
@@ -125,7 +149,11 @@
         "command": "RCPT TO"
       },
       "bounce_classification": "RelayDenied",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_007" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_007"
+      }
     },
     {
       "_scenario": "Content rejected - attachment blocked",
@@ -143,7 +171,11 @@
         "command": "DATA"
       },
       "bounce_classification": "ContentRelated",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_008" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_008"
+      }
     },
     {
       "_scenario": "Policy rejection - domain blacklisted",
@@ -161,7 +193,11 @@
         "command": "DATA"
       },
       "bounce_classification": "PolicyRelated",
-      "meta": { "tenant_id": "ws_001", "broadcast_id": "bc_001", "contact_id": "ct_009" }
+      "meta": {
+        "tenant_id": "ws_001",
+        "broadcast_id": "bc_001",
+        "contact_id": "ct_009"
+      }
     }
   ]
 }

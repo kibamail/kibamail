@@ -1,18 +1,18 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { prisma } from "@/lib/db";
-import { NotFoundError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { NotFoundError } from "@/lib/api/errors";
+import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { checkBroadcastReadiness } from "@/lib/broadcasts/readiness";
+import { prisma } from "@/lib/db";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;
 }
 
 export type {
-  ReadinessCheckItem,
   BroadcastReadinessResult as BroadcastReadinessResponse,
+  ReadinessCheckItem,
 } from "@/lib/broadcasts/readiness";
 
 export async function GET(request: NextRequest, { params }: RouteParams) {
@@ -45,13 +45,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       if (!broadcast) {
         throw new NotFoundError(
           "Broadcast not found",
-          ErrorCode.BROADCAST_NOT_FOUND
+          ErrorCode.BROADCAST_NOT_FOUND,
         );
       }
 
       const result = await checkBroadcastReadiness(workspaceId, broadcast);
 
       return NextResponse.json(result, { status: 200 });
-    })
+    }),
   );
 }

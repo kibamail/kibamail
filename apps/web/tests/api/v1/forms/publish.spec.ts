@@ -5,22 +5,26 @@
  * - POST /api/v1/forms/[formId]/publish - Publish a form
  */
 
-import { POST as CREATE_FORM } from "@/app/(main)/api/v1/forms/route";
-import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
-import { POST as PUBLISH_FORM } from "@/app/(main)/api/v1/forms/[formId]/publish/route";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { POST as PUBLISH_FORM } from "@/app/(main)/api/v1/forms/[formId]/publish/route";
+import { POST as CREATE_VERSION } from "@/app/(main)/api/v1/forms/[formId]/versions/route";
+import { POST as CREATE_FORM } from "@/app/(main)/api/v1/forms/route";
+import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
-  createTestWorkspace,
+  type CreatedApiKey,
+  cleanupWorkspace,
   createFullAccessApiKey,
   createTestApiKey,
-  cleanupWorkspace,
+  createTestWorkspace,
   post,
   type TestWorkspace,
-  type CreatedApiKey,
 } from "@/tests/utils";
-import { validFormFields, formWithoutEmailField, formWithUnmappedFields } from "@/tests/utils/form-fixtures";
-import { prisma } from "@/lib/db";
-import { ErrorType, ErrorCode } from "@/lib/api/error-codes";
+import {
+  formWithoutEmailField,
+  formWithUnmappedFields,
+  validFormFields,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -49,7 +53,7 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -64,7 +68,7 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      readOnlyKey.key
+      readOnlyKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {
@@ -87,7 +91,7 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
         name: "Test Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -97,7 +101,7 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {
@@ -121,7 +125,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
         description: "Subscribe to our newsletter",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -131,7 +135,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {
@@ -162,7 +166,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
         name: "Already Published Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -172,7 +176,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const publishRequest1 = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     await PUBLISH_FORM(publishRequest1, {
@@ -183,7 +187,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const publishRequest2 = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest2, {
@@ -203,7 +207,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
         name: "Contact Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -213,7 +217,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const publishRequest1 = post(
       `/forms/${rootForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     await PUBLISH_FORM(publishRequest1, {
@@ -226,7 +230,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       {
         name: "Contact Form v2",
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const versionResponse = await CREATE_VERSION(versionRequest, {
@@ -238,7 +242,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const publishRequest2 = post(
       `/forms/${version2.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest2, {
@@ -272,7 +276,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
         name: "Survey Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -281,31 +285,31 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     // Publish root
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
 
     // Create and publish version 2
     const v2Response = await CREATE_VERSION(
       post(`/forms/${rootForm.id}/versions`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
     const version2 = await v2Response.json();
 
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // Create and publish version 3
     const v3Response = await CREATE_VERSION(
       post(`/forms/${rootForm.id}/versions`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
     const version3 = await v3Response.json();
 
     const response = await PUBLISH_FORM(
       post(`/forms/${version3.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version3.id }) }
+      { params: Promise.resolve({ formId: version3.id }) },
     );
 
     expect(response.status).toBe(200);
@@ -333,7 +337,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     const publishRequest = post(
       "/forms/non_existent_id/publish",
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {
@@ -351,7 +355,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
         name: "Feedback Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -359,35 +363,35 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
 
     // Create and publish version 2
     const v2Response = await CREATE_VERSION(
       post(`/forms/${rootForm.id}/versions`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
     const version2 = await v2Response.json();
 
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // Create and publish version 3
     const v3Response = await CREATE_VERSION(
       post(`/forms/${rootForm.id}/versions`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
     const version3 = await v3Response.json();
 
     await PUBLISH_FORM(
       post(`/forms/${version3.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version3.id }) }
+      { params: Promise.resolve({ formId: version3.id }) },
     );
 
     // Verify version 3 is currently published
-    let currentRoot = await prisma.form.findUnique({
+    const currentRoot = await prisma.form.findUnique({
       where: { id: rootForm.id },
     });
     expect(currentRoot?.publishedVersionId).toBe(version3.id);
@@ -395,7 +399,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
     // ROLLBACK: Publish version 2 again (rolling back from v3 to v2)
     const rollbackResponse = await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     expect(rollbackResponse.status).toBe(200);
@@ -427,7 +431,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
         name: "Registration Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -435,43 +439,43 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
 
     // Create and publish version 2
     const v2Response = await CREATE_VERSION(
       post(`/forms/${rootForm.id}/versions`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
     const version2 = await v2Response.json();
 
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // Create and publish version 3
     const v3Response = await CREATE_VERSION(
       post(`/forms/${rootForm.id}/versions`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: rootForm.id }) }
+      { params: Promise.resolve({ formId: rootForm.id }) },
     );
     const version3 = await v3Response.json();
 
     await PUBLISH_FORM(
       post(`/forms/${version3.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version3.id }) }
+      { params: Promise.resolve({ formId: version3.id }) },
     );
 
     // Rollback to version 2
     await PUBLISH_FORM(
       post(`/forms/${version2.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version2.id }) }
+      { params: Promise.resolve({ formId: version2.id }) },
     );
 
     // ROLL-FORWARD: Publish version 3 again
     const rollForwardResponse = await PUBLISH_FORM(
       post(`/forms/${version3.id}/publish`, {}, fullAccessApiKey.key),
-      { params: Promise.resolve({ formId: version3.id }) }
+      { params: Promise.resolve({ formId: version3.id }) },
     );
 
     expect(rollForwardResponse.status).toBe(200);
@@ -505,7 +509,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
         name: "Unmapped Fields Form",
         fields: formWithUnmappedFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -515,7 +519,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {
@@ -537,7 +541,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
         name: "No Email Mapping Form",
         fields: formWithoutEmailField,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -547,7 +551,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {
@@ -568,7 +572,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
         name: "Properly Mapped Form",
         fields: validFormFields,
       },
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const createResponse = await CREATE_FORM(createRequest);
@@ -578,7 +582,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
       {},
-      fullAccessApiKey.key
+      fullAccessApiKey.key,
     );
 
     const response = await PUBLISH_FORM(publishRequest, {

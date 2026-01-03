@@ -32,6 +32,8 @@ export async function PATCH(
   const { id } = await params;
 
   return withErrorHandling(request, () =>
-    withSession(request, (session) => updateContactImport(session, id, request)),
+    withSession(request, (session) =>
+      updateContactImport(session, id, request),
+    ),
   );
 }

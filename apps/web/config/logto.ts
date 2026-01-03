@@ -185,4 +185,4 @@ export const logtoConfig = {
  * }
  * ```
  */
-export type LogtoConfig = typeof logtoConfig;
+type LogtoConfig = typeof logtoConfig;

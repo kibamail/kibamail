@@ -16,24 +16,24 @@ import {
   UserXmark,
   WarningTriangle,
 } from "iconoir-react";
+import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
 import {
   ActionNodeType,
-  RuleNodeType,
   isTriggerNodeType,
+  RuleNodeType,
 } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/types/node-types";
-import { useFlowStore } from "@/app/(main)/(dashboard)/w/(fullscreen)/flows/[id]/state/flow-store";
-import { useFlowEditor } from "./flow-editor-context";
 import { AddNodeCard } from "./add-node-card";
-import { TriggerConfiguration } from "./configurations/trigger-configuration";
+import { IfElseConfig } from "./configurations/if-else-config";
 import { PercentageSplitConfiguration } from "./configurations/percentage-split-configuration";
-import { UpdateContactConfig } from "./configurations/update-contact-config";
+import { TimeDelayConfig } from "./configurations/time-delay-config";
 import {
   AddToTopicConfig,
   RemoveFromTopicConfig,
 } from "./configurations/topic-config";
-import { TimeDelayConfig } from "./configurations/time-delay-config";
-import { IfElseConfig } from "./configurations/if-else-config";
+import { TriggerConfiguration } from "./configurations/trigger-configuration";
+import { UpdateContactConfig } from "./configurations/update-contact-config";
 import { WebhookConfig } from "./configurations/webhook-config";
+import { useFlowEditor } from "./flow-editor-context";
 
 const actionNodes = [
   { id: ActionNodeType.SEND_EMAIL, label: "Send email", icon: Mail },
@@ -83,7 +83,9 @@ export function FlowComposerSidebar() {
   const isReadOnly = automation?.status !== "DRAFT";
   const selectedNode = nodes.find((node) => node.id === selectedNodeId);
   const isConfigurationMode = sidebarScreen === "node-configuration";
-  const selectedNodeErrors = selectedNodeId ? getNodeErrors(selectedNodeId) : [];
+  const selectedNodeErrors = selectedNodeId
+    ? getNodeErrors(selectedNodeId)
+    : [];
 
   function onAddNode(nodeType: string) {
     const nodeId = `${nodeType}-${Date.now()}`;
@@ -144,7 +146,9 @@ export function FlowComposerSidebar() {
                   {selectedNodeErrors.map((error, idx) => (
                     <li key={idx} className="flex items-start gap-1.5">
                       <span className="text-kb-content-negative mt-0.5">•</span>
-                      <Text className="text-sm text-kb-content-secondary">{error.message}</Text>
+                      <Text className="text-sm text-kb-content-secondary">
+                        {error.message}
+                      </Text>
                     </li>
                   ))}
                 </ul>

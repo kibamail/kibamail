@@ -9,7 +9,7 @@
  */
 
 import type { NextRequest } from "next/server";
-import { withErrorHandling, withApiSession } from "@/lib/api/requests";
+import { withApiSession, withErrorHandling } from "@/lib/api/requests";
 import { createContact, listContacts } from "./handler";
 
 /**
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => createContact(apiKey.workspaceId, request),
-      ["write:contacts"]
+      ["write:contacts"],
     ),
   );
 }
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     withApiSession(
       request,
       (apiKey, request) => listContacts(apiKey.workspaceId, request),
-      ["read:contacts"]
+      ["read:contacts"],
     ),
   );
 }

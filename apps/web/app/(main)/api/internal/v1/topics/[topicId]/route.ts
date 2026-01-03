@@ -9,8 +9,12 @@
  */
 
 import type { NextRequest } from "next/server";
+import {
+  deleteTopic,
+  getTopic,
+  updateTopic,
+} from "@/app/(main)/api/v1/topics/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { getTopic, updateTopic, deleteTopic } from "@/app/(main)/api/v1/topics/handler";
 
 /**
  * GET /api/internal/v1/topics/[topicId]
@@ -21,7 +25,7 @@ import { getTopic, updateTopic, deleteTopic } from "@/app/(main)/api/v1/topics/h
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
@@ -34,8 +38,8 @@ export async function GET(
         }
         return getTopic(session.currentOrganization.id, topicId);
       },
-      ["read:topics"]
-    )
+      ["read:topics"],
+    ),
   );
 }
 
@@ -48,7 +52,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
@@ -61,8 +65,8 @@ export async function PUT(
         }
         return updateTopic(session.currentOrganization.id, topicId, request);
       },
-      ["manage:topics"]
-    )
+      ["manage:topics"],
+    ),
   );
 }
 
@@ -75,7 +79,7 @@ export async function PUT(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ topicId: string }> }
+  { params }: { params: Promise<{ topicId: string }> },
 ) {
   const { topicId } = await params;
 
@@ -88,7 +92,7 @@ export async function DELETE(
         }
         return deleteTopic(session.currentOrganization.id, topicId);
       },
-      ["manage:topics"]
-    )
+      ["manage:topics"],
+    ),
   );
 }

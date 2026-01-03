@@ -1,7 +1,7 @@
 import {
-  parsePhoneNumberWithError,
-  ParseError,
   type CountryCode,
+  ParseError,
+  parsePhoneNumberWithError,
 } from "libphonenumber-js";
 import type { NormalizationResult } from "@/lib/contact-imports/types";
 

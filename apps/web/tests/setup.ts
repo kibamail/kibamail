@@ -3,8 +3,8 @@
  * Loads environment variables before tests run
  */
 
-import * as dotenv from "dotenv";
 import * as path from "node:path";
+import * as dotenv from "dotenv";
 
 // Load .env.test file with override to ensure all variables are set
 dotenv.config({

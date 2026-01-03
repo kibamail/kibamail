@@ -6,38 +6,29 @@
  */
 
 // API Client utilities
-export { TestApiRequest, apiRequest, get, post, put, del } from "./api-client";
+export { apiRequest, del, get, post, put } from "./api-client";
 
 // API Key utilities
 export {
-  createTestApiKey,
-  createFullAccessApiKey,
-  createReadOnlyApiKey,
-  cleanupApiKeys,
-  deleteApiKey,
   type CreateApiKeyOptions,
   type CreatedApiKey,
+  createFullAccessApiKey,
+  createReadOnlyApiKey,
+  createTestApiKey,
 } from "./api-keys";
 
 // Data factories
 export {
   fakeContact,
-  fakeMinimalContact,
-  fakeTag,
-  fakeTopic,
-  fakeSegment,
-  fakeApiKey,
-  fakeWorkspaceId,
   fakeContacts,
-  CONTACT_STATUSES,
+  fakeMinimalContact,
 } from "./factories";
 
 // Workspace utilities
 export {
-  createTestWorkspace,
   cleanupWorkspace,
-  cleanupWorkspaces,
   createTestContacts,
   createTestTopics,
+  createTestWorkspace,
   type TestWorkspace,
 } from "./workspace";

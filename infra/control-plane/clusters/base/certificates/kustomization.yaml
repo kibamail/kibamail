@@ -6,3 +6,4 @@ resources:
   - cluster-issuer.yaml
   - selfsigned-issuer.yaml
   - certificate.yaml
+  - tracking-certificate.yaml
