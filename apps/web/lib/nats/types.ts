@@ -82,6 +82,10 @@ export interface PublishAck {
 export interface NatsConnectionOptions {
   url: string;
   tlsCa: string;
+  /** Client certificate for mTLS (base64 encoded) */
+  tlsCert?: string;
+  /** Client private key for mTLS (base64 encoded) */
+  tlsKey?: string;
   /** NKey seed for authentication (starts with 'SU' for user seed) */
   nkeySeed?: string;
   /** Username for password-based authentication */

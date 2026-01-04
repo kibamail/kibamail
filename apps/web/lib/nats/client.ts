@@ -44,9 +44,19 @@ export async function getNatsConnection(
     throw new Error("NATS_TLS_CA is required for TLS connection");
   }
 
-  const tls = {
+  const tls: {
+    ca: string;
+    cert?: string;
+    key?: string;
+  } = {
     ca: Buffer.from(options.tlsCa, "base64").toString("utf-8"),
   };
+
+  // Add client certificate for mTLS if provided
+  if (options.tlsCert && options.tlsKey) {
+    tls.cert = Buffer.from(options.tlsCert, "base64").toString("utf-8");
+    tls.key = Buffer.from(options.tlsKey, "base64").toString("utf-8");
+  }
 
   // Build connection options based on authentication method
   const connectionOptions: Parameters<typeof connect>[0] = {

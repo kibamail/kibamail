@@ -40,6 +40,8 @@ export function getNatsOptions(): NatsConnectionOptions {
   return {
     url: env.NATS_URL,
     tlsCa: env.NATS_TLS_CA,
+    tlsCert: env.NATS_TLS_CERT,
+    tlsKey: env.NATS_TLS_KEY,
     nkeySeed: env.NATS_NKEY_SEED,
     user: env.NATS_USER,
     password: env.NATS_PASSWORD,

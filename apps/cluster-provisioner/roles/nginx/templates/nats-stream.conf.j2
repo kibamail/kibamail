@@ -10,8 +10,7 @@ upstream nats_backend {
 }
 
 server {
-    listen {{ nginx_nats_listen_port }};
-    listen [::]:{{ nginx_nats_listen_port }};
+    listen {{ ansible_host }}:{{ nginx_nats_listen_port }};
 
     proxy_pass nats_backend;
     proxy_connect_timeout {{ nginx_proxy_connect_timeout }};

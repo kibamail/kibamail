@@ -251,6 +251,16 @@ spec:
                 secretKeyRef:
                   name: control-plane-nats
                   key: NATS_TLS_CA
+            - name: NATS_TLS_CERT
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-nats
+                  key: NATS_TLS_CERT
+            - name: NATS_TLS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-nats
+                  key: NATS_TLS_KEY
 
             # Event consumer configuration
             - name: EVENT_BATCH_SIZE

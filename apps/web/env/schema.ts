@@ -841,6 +841,36 @@ export const env = createEnv({
       .string()
       .min(1, "NATS_TLS_CA is required for TLS connection")
       .describe("Base64-encoded CA certificate for NATS TLS"),
+
+    /**
+     * NATS TLS Client Certificate (Base64 encoded)
+     *
+     * The client certificate for mTLS authentication with NATS.
+     * Base64 encode the certificate file: base64 -i client.pem
+     *
+     * Required when the NATS server has TLS verify enabled (mTLS).
+     *
+     * @example "LS0tLS1CRUdJTi..."
+     */
+    NATS_TLS_CERT: z
+      .string()
+      .optional()
+      .describe("Base64-encoded client certificate for NATS mTLS"),
+
+    /**
+     * NATS TLS Client Private Key (Base64 encoded)
+     *
+     * The client private key for mTLS authentication with NATS.
+     * Base64 encode the key file: base64 -i client-key.pem
+     *
+     * Required when the NATS server has TLS verify enabled (mTLS).
+     *
+     * @example "LS0tLS1CRUdJTi..."
+     */
+    NATS_TLS_KEY: z
+      .string()
+      .optional()
+      .describe("Base64-encoded client private key for NATS mTLS"),
   },
 
   /**
@@ -916,6 +946,8 @@ export const env = createEnv({
     NATS_USER: process.env.NATS_USER,
     NATS_PASSWORD: process.env.NATS_PASSWORD,
     NATS_TLS_CA: process.env.NATS_TLS_CA,
+    NATS_TLS_CERT: process.env.NATS_TLS_CERT,
+    NATS_TLS_KEY: process.env.NATS_TLS_KEY,
     // Map client environment variables here
     // Example:
     // NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
