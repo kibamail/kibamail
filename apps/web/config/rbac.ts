@@ -512,4 +512,3 @@ export type Permission =
   // Automations Management
   | "read:automations"
   | "manage:automations";
-

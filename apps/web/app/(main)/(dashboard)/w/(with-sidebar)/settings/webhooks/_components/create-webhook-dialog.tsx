@@ -70,7 +70,13 @@ export function CreateWebhookDialog({
     setValue("config", {});
   }, [destinationType, destinationTypes, setValue]);
 
-  const createMutation = useMutation<unknown, Error, CreateWebhookFormData, unknown, CreateWebhookFormData>({
+  const createMutation = useMutation<
+    unknown,
+    Error,
+    CreateWebhookFormData,
+    unknown,
+    CreateWebhookFormData
+  >({
     async mutationFn(data: CreateWebhookFormData) {
       return internalApi.webhooks().create({
         type: data.destination_type,

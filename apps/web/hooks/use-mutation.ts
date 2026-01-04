@@ -75,7 +75,13 @@ export function useMutation<
   TContext = unknown,
   TFieldValues extends FieldValues = FieldValues,
 >(
-  options: ExtendedUseMutationOptions<TData, TError, TVariables, TContext, TFieldValues>,
+  options: ExtendedUseMutationOptions<
+    TData,
+    TError,
+    TVariables,
+    TContext,
+    TFieldValues
+  >,
 ): UseMutationResult<TData, TError, TVariables, TContext> {
   const { error: toast } = useToast();
   const { setError: formSetError, ...reactQueryOptions } = options;

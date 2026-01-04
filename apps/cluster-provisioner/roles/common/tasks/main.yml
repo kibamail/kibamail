@@ -65,3 +65,11 @@
     regexp: "^#?DefaultLimitNOFILE="
     line: "DefaultLimitNOFILE=1048576"
   notify: Reload systemd
+
+- name: Add proxy.kbmta.net to /etc/hosts
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*proxy\\.kbmta\\.net$"
+    line: "{{ proxy_host }}    proxy.kbmta.net"
+    state: present
+  when: proxy_host is defined

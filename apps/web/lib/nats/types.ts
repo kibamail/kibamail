@@ -58,6 +58,7 @@ export interface EmailMessage {
   preview_text: string;
   content_key: string;
   attachments: EmailAttachment[];
+  headers: Record<string, string>;
   metadata: Record<string, string>;
   track_opens: boolean;
   track_clicks: boolean;

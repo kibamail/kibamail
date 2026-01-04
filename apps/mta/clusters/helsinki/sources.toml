@@ -5,7 +5,7 @@
 # Production cluster for Europe (Finland - Hetzner Helsinki)
 # IP Range: 37.27.167.40/29 (37.27.167.40 - 37.27.167.47)
 #
-# All traffic is routed through the SOCKS5 proxy server at proxy.kbmta.net:5000
+# All traffic is routed through the SOCKS5 proxy server at 10.0.0.2:5000 (vSwitch)
 # The proxy server holds the public IPs and initiates outbound connections.
 #
 # Active IPs: 37.27.167.45, 37.27.167.46, 37.27.167.47
@@ -31,17 +31,17 @@
 # -----------------------------------------------------------------------------
 
 [source."mktg-mta-1"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.45"
 ehlo_domain = "mktg-mta-1.kbmta.net"
 
 [source."mktg-mta-2"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.46"
 ehlo_domain = "mktg-mta-2.kbmta.net"
 
 [source."mktg-mta-3"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.47"
 ehlo_domain = "mktg-mta-3.kbmta.net"
 
@@ -50,27 +50,27 @@ ehlo_domain = "mktg-mta-3.kbmta.net"
 # -----------------------------------------------------------------------------
 
 [source."mktg-mta-4"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.40"
 ehlo_domain = "mktg-mta-4.kbmta.net"
 
 [source."mktg-mta-5"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.41"
 ehlo_domain = "mktg-mta-5.kbmta.net"
 
 [source."mktg-mta-6"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.42"
 ehlo_domain = "mktg-mta-6.kbmta.net"
 
 [source."mktg-mta-7"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.43"
 ehlo_domain = "mktg-mta-7.kbmta.net"
 
 [source."mktg-mta-8"]
-socks5_proxy_server = "proxy.kbmta.net:5000"
+socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.44"
 ehlo_domain = "mktg-mta-8.kbmta.net"
 

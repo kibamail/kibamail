@@ -127,8 +127,14 @@ async function _publicFileExists(key: string): Promise<boolean> {
     await publicS3Client.send(command);
     return true;
   } catch (error: unknown) {
-    const s3Error = error as { name?: string; $metadata?: { httpStatusCode?: number } };
-    if (s3Error.name === "NotFound" || s3Error.$metadata?.httpStatusCode === 404) {
+    const s3Error = error as {
+      name?: string;
+      $metadata?: { httpStatusCode?: number };
+    };
+    if (
+      s3Error.name === "NotFound" ||
+      s3Error.$metadata?.httpStatusCode === 404
+    ) {
       return false;
     }
     throw error;

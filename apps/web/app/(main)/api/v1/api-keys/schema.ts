@@ -44,4 +44,3 @@ const _apiKeyDeleteResponseSchema = z.object({
   object: z.literal("api_key"),
   id: z.string().describe("ID of the deleted API key"),
 });
-

@@ -29,6 +29,10 @@ const envSchema = z.object({
     .default("0")
     .transform((val) => parseInt(val, 10))
     .pipe(z.number().int().min(0).max(15)),
+
+  // Internal API configuration for ACME challenges
+  INTERNAL_API_URL: z.string().url().default("http://localhost:3000"),
+  INTERNAL_SERVICE_KEY: z.string().min(32),
 });
 
 export const env = envSchema.parse(process.env);

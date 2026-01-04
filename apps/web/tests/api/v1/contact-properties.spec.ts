@@ -295,7 +295,7 @@ describe("GET /api/v1/contact-properties", () => {
 
     expect(secondData.data.length).toBeGreaterThan(0);
     // Verify no overlap
-    const secondIds = secondData.data.map((p: any) => p.id);
+    const secondIds = secondData.data.map((p: { id: string }) => p.id);
     expect(secondIds).not.toContain(lastIdFromFirstPage);
   });
 

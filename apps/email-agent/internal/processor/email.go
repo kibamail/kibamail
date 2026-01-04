@@ -91,6 +91,30 @@ func (p *EmailProcessor) HandleMessage(ctx context.Context, msg Message) error {
 		return kiberrors.Mark(err, kiberrors.ErrPermanent)
 	}
 
+	// Get the logger from context (contains NATS metadata like stream_seq, consumer_seq)
+	ctxLogger := zerolog.Ctx(ctx)
+
+	// Log the complete message for dashboard visibility
+	// This log entry can be identified by log_type and ingested into ClickHouse
+	ctxLogger.Info().
+		Str("log_type", "nats_message_received").
+		Str("message_id", emailMsg.ID).
+		Str("tenant_id", emailMsg.TenantID).
+		Str("broadcast_id", emailMsg.BroadcastID).
+		Str("contact_id", emailMsg.ContactID).
+		Str("recipient_email", emailMsg.Recipient.Email).
+		Str("recipient_name", emailMsg.Recipient.Name).
+		Str("sender_email", emailMsg.Sender.FullAddress()).
+		Str("sender_name", emailMsg.Sender.Name).
+		Str("subject", emailMsg.Subject).
+		Str("content_key", emailMsg.ContentKey).
+		Bool("track_opens", emailMsg.TrackOpens).
+		Bool("track_clicks", emailMsg.TrackClicks).
+		Interface("headers", emailMsg.Headers).
+		Interface("metadata", emailMsg.Metadata).
+		Int("attachments_count", len(emailMsg.Attachments)).
+		Msg("nats message received")
+
 	msgLogger := p.logger.With().
 		Str("message_id", emailMsg.ID).
 		Str("tenant_id", emailMsg.TenantID).
@@ -107,6 +131,18 @@ func (p *EmailProcessor) HandleMessage(ctx context.Context, msg Message) error {
 
 	if err != nil {
 		if kiberrors.IsPermanent(err) {
+			// Log permanent failure for dashboard
+			ctxLogger.Error().
+				Str("log_type", "nats_message_processed").
+				Str("message_id", emailMsg.ID).
+				Str("tenant_id", emailMsg.TenantID).
+				Str("broadcast_id", emailMsg.BroadcastID).
+				Str("recipient_email", emailMsg.Recipient.Email).
+				Str("status", "terminated").
+				Err(err).
+				Dur("duration_ms", duration).
+				Msg("message processing failed permanently")
+
 			msgLogger.Error().
 				Err(err).
 				Dur("duration_ms", duration).
@@ -114,6 +150,18 @@ func (p *EmailProcessor) HandleMessage(ctx context.Context, msg Message) error {
 			msg.Term()
 			return err
 		}
+
+		// Log transient failure for dashboard
+		ctxLogger.Warn().
+			Str("log_type", "nats_message_processed").
+			Str("message_id", emailMsg.ID).
+			Str("tenant_id", emailMsg.TenantID).
+			Str("broadcast_id", emailMsg.BroadcastID).
+			Str("recipient_email", emailMsg.Recipient.Email).
+			Str("status", "retrying").
+			Err(err).
+			Dur("duration_ms", duration).
+			Msg("message processing failed transiently")
 
 		// Transient error - NAK for retry
 		msgLogger.Warn().
@@ -133,6 +181,17 @@ func (p *EmailProcessor) HandleMessage(ctx context.Context, msg Message) error {
 		p.metrics.EmailsProcessed.Inc()
 		p.metrics.EmailProcessingDuration.Observe(duration.Seconds())
 	}
+
+	// Log success for dashboard
+	ctxLogger.Info().
+		Str("log_type", "nats_message_processed").
+		Str("message_id", emailMsg.ID).
+		Str("tenant_id", emailMsg.TenantID).
+		Str("broadcast_id", emailMsg.BroadcastID).
+		Str("recipient_email", emailMsg.Recipient.Email).
+		Str("status", "success").
+		Dur("duration_ms", duration).
+		Msg("message processed successfully")
 
 	msgLogger.Debug().
 		Dur("duration_ms", duration).
@@ -182,7 +241,7 @@ func (p *EmailProcessor) processEmail(ctx context.Context, msg *domain.EmailMess
 
 	// 3. Build KumoMTA injection request
 	req := &kumomta.InjectRequest{
-		EnvelopeSender: msg.Sender.FullAddress(),
+		EnvelopeSender: msg.Metadata["envelope_sender"],
 		Content: kumomta.ContentBuilder{
 			HTMLBody: content.HTML,
 			TextBody: content.Text,
@@ -222,6 +281,11 @@ func (p *EmailProcessor) processEmail(ctx context.Context, msg *domain.EmailMess
 	// Add metadata headers
 	for k, v := range msg.Metadata {
 		req.Content.Headers["X-Kibamail-Meta-"+k] = v
+	}
+
+	// Add custom headers (e.g., List-Unsubscribe)
+	for k, v := range msg.Headers {
+		req.Content.Headers[k] = v
 	}
 
 	// 4. Inject into KumoMTA

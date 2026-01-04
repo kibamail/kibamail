@@ -7,6 +7,15 @@ nginx_nats_upstream_host: "10.0.0.1"
 nginx_nats_upstream_port: 4222
 nginx_nats_hostname: "nats.{{ cluster_name }}.kbmta.net"
 
+# NATS monitoring HTTP proxy
+nginx_nats_monitor_enabled: true
+nginx_nats_monitor_port: 8222
+
+# TLS certificate configuration (Let's Encrypt via Cloudflare DNS)
+nginx_tls_enabled: true
+nginx_tls_cert_email: "engineering@kibamail.com"
+nginx_tls_dir: "/etc/nginx/tls"
+
 # Proxy timeouts
 nginx_proxy_connect_timeout: "10s"
 nginx_proxy_timeout: "300s"

@@ -143,8 +143,11 @@ export function FlowComposerSidebar() {
               <div className="flex flex-col gap-1">
                 <Alert.Title>Validation errors</Alert.Title>
                 <ul className="space-y-1">
-                  {selectedNodeErrors.map((error, idx) => (
-                    <li key={idx} className="flex items-start gap-1.5">
+                  {selectedNodeErrors.map((error) => (
+                    <li
+                      key={`${error.nodeId}-${error.field}`}
+                      className="flex items-start gap-1.5"
+                    >
                       <span className="text-kb-content-negative mt-0.5">•</span>
                       <Text className="text-sm text-kb-content-secondary">
                         {error.message}

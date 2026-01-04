@@ -21,6 +21,9 @@ const trackingQueue = new Queue("tracking", { connection });
 // Forms queue (shared with apps/web worker)
 const formsQueue = new Queue("forms", { connection });
 
+// Contacts queue (shared with apps/web worker)
+const contactsQueue = new Queue("contacts", { connection });
+
 export interface OpenEvent {
   emailSendId: string;
   timestamp: number;
@@ -39,6 +42,12 @@ export interface ClickEvent {
 export interface ConfirmationEvent {
   formId: string;
   confirmationToken: string;
+}
+
+export interface UnsubscribeEvent {
+  contactId: string;
+  broadcastId: string;
+  source: "link" | "list-unsubscribe";
 }
 
 /**
@@ -76,8 +85,27 @@ export async function dispatchConfirmation(
 }
 
 /**
+ * Dispatch an unsubscribe job
+ *
+ * This pushes to the contacts queue which is processed by apps/web worker.
+ * Handles RFC 8058 one-click unsubscribe and manual unsubscribe requests.
+ */
+export async function dispatchUnsubscribe(
+  event: UnsubscribeEvent
+): Promise<void> {
+  await contactsQueue.add("unsubscribe", event, {
+    removeOnComplete: 1000,
+    removeOnFail: 5000,
+  });
+}
+
+/**
  * Close all queue connections (for graceful shutdown)
  */
 export async function closeQueue(): Promise<void> {
-  await Promise.all([trackingQueue.close(), formsQueue.close()]);
+  await Promise.all([
+    trackingQueue.close(),
+    formsQueue.close(),
+    contactsQueue.close(),
+  ]);
 }

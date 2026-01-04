@@ -62,8 +62,11 @@ function ValidationErrorsList({ errors }: { errors: ValidationError[] }) {
               )}
             </div>
             <ul className="space-y-1.5">
-              {nodeErrors.map((error, idx) => (
-                <li key={idx} className="flex items-start gap-2">
+              {nodeErrors.map((error) => (
+                <li
+                  key={`${error.nodeId}-${error.field}`}
+                  className="flex items-start gap-2"
+                >
                   <WarningTriangle className="w-4 h-4 text-kb-content-warning mt-0.5 shrink-0" />
                   <Text className="text-sm text-kb-content-secondary">
                     {error.message}

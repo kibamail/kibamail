@@ -71,85 +71,98 @@ function renderTextWithMarks(
 }
 
 // Render inline content (text nodes with marks)
-function renderInlineContent(content?: TipTapNode[]): React.ReactNode {
+function renderInlineContent(
+  content: TipTapNode[] | undefined,
+  keyPrefix: string,
+): React.ReactNode {
   if (!content || content.length === 0) return null;
 
-  return content.map((node, index) => {
+  return content.map((node, idx) => {
+    const nodeKey = `${keyPrefix}-inline-${idx}`;
     if (node.type === "text" && node.text) {
       return (
-        <React.Fragment key={index}>
+        <React.Fragment key={nodeKey}>
           {renderTextWithMarks(node.text, node.marks)}
         </React.Fragment>
       );
     }
     if (node.type === "hardBreak") {
-      return <br key={index} />;
+      return <br key={nodeKey} />;
     }
     return null;
   });
 }
 
-// Render a single TipTap node
-function renderNode(node: TipTapNode, index: number): React.ReactNode {
+// Render a single TipTap node with a unique path-based key
+function renderNode(node: TipTapNode, keyPath: string): React.ReactNode {
   switch (node.type) {
     case "paragraph": {
-      const content = renderInlineContent(node.content);
+      const content = renderInlineContent(node.content, keyPath);
       // Render empty paragraphs with a <br /> to preserve spacing
-      return <p key={index}>{content ?? <br />}</p>;
+      return <p key={keyPath}>{content ?? <br />}</p>;
     }
 
     case "heading": {
       const level = (node.attrs?.level as number) ?? 1;
+      const headingContent = renderInlineContent(node.content, keyPath);
       switch (level) {
         case 1:
-          return <h1 key={index}>{renderInlineContent(node.content)}</h1>;
+          return <h1 key={keyPath}>{headingContent}</h1>;
         case 2:
-          return <h2 key={index}>{renderInlineContent(node.content)}</h2>;
+          return <h2 key={keyPath}>{headingContent}</h2>;
         case 3:
-          return <h3 key={index}>{renderInlineContent(node.content)}</h3>;
+          return <h3 key={keyPath}>{headingContent}</h3>;
         case 4:
-          return <h4 key={index}>{renderInlineContent(node.content)}</h4>;
+          return <h4 key={keyPath}>{headingContent}</h4>;
         case 5:
-          return <h5 key={index}>{renderInlineContent(node.content)}</h5>;
+          return <h5 key={keyPath}>{headingContent}</h5>;
         case 6:
-          return <h6 key={index}>{renderInlineContent(node.content)}</h6>;
+          return <h6 key={keyPath}>{headingContent}</h6>;
         default:
-          return <h1 key={index}>{renderInlineContent(node.content)}</h1>;
+          return <h1 key={keyPath}>{headingContent}</h1>;
       }
     }
 
     case "bulletList":
       return (
-        <ul key={index}>
-          {node.content?.map((item, i) => renderNode(item, i))}
+        <ul key={keyPath}>
+          {node.content?.map((item, idx) =>
+            renderNode(item, `${keyPath}-${idx}`),
+          )}
         </ul>
       );
 
     case "orderedList":
       return (
-        <ol key={index}>
-          {node.content?.map((item, i) => renderNode(item, i))}
+        <ol key={keyPath}>
+          {node.content?.map((item, idx) =>
+            renderNode(item, `${keyPath}-${idx}`),
+          )}
         </ol>
       );
 
     case "listItem":
       return (
-        <li key={index}>
-          {node.content?.map((child, i) => renderNode(child, i))}
+        <li key={keyPath}>
+          {node.content?.map((child, idx) =>
+            renderNode(child, `${keyPath}-${idx}`),
+          )}
         </li>
       );
 
     case "blockquote":
       return (
-        <blockquote key={index}>
-          {node.content?.map((child, i) => renderNode(child, i))}
+        <blockquote key={keyPath}>
+          {node.content?.map((child, idx) =>
+            renderNode(child, `${keyPath}-${idx}`),
+          )}
         </blockquote>
       );
 
     case "codeBlock":
       return (
-        <pre key={index}>
-          <code>{renderInlineContent(node.content)}</code>
+        <pre key={keyPath}>
+          <code>{renderInlineContent(node.content, keyPath)}</code>
         </pre>
       );
 
@@ -194,21 +207,23 @@ function renderNode(node: TipTapNode, index: number): React.ReactNode {
         );
 
       return (
-        <div key={index} className={alignmentClass}>
+        <div key={keyPath} className={alignmentClass}>
           {content}
         </div>
       );
     }
 
     case "horizontalRule":
-      return <hr key={index} />;
+      return <hr key={keyPath} />;
 
     default:
       // For unknown node types, try to render their content
       if (node.content) {
         return (
-          <div key={index}>
-            {node.content.map((child, i) => renderNode(child, i))}
+          <div key={keyPath}>
+            {node.content.map((child, idx) =>
+              renderNode(child, `${keyPath}-${idx}`),
+            )}
           </div>
         );
       }
@@ -227,5 +242,7 @@ export function ContentBlockRenderer({ content }: ContentBlockRendererProps) {
     return null;
   }
 
-  return <div>{doc.content.map((node, index) => renderNode(node, index))}</div>;
+  return (
+    <div>{doc.content.map((node, idx) => renderNode(node, `node-${idx}`))}</div>
+  );
 }

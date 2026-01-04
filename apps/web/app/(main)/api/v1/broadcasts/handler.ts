@@ -6,7 +6,12 @@
  * Workspace is deduced from the API key, not from URL parameters
  */
 
-import type { Broadcast, EmailContent, SenderIdentity } from "@prisma/client";
+import type {
+  Broadcast,
+  EmailContent,
+  Prisma,
+  SenderIdentity,
+} from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { ErrorCode } from "@/lib/api/error-codes";
@@ -18,12 +23,63 @@ import {
 import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import {
+  type BroadcastDocument,
+  type BroadcastStyles,
+  renderBroadcastToHtml,
+} from "@/lib/broadcast-renderer";
+import {
   checkBroadcastReadiness,
   getReadinessErrors,
 } from "@/lib/broadcasts/readiness";
 import { prisma } from "@/lib/db";
+import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { queue } from "@/lib/queue";
 import { createBroadcastSchema, updateBroadcastSchema } from "./schema";
+
+/**
+ * Prepare email content data with auto-generated plain text.
+ *
+ * Generates plain text from HTML content if:
+ * - HTML is provided (contentHtml) but text is not
+ * - OR JSON is provided (contentJson) but text is not
+ *
+ * This ensures emails always have a text version for multipart/alternative.
+ */
+async function prepareEmailContentData(emailContent: {
+  subject?: string | null;
+  text?: string | null;
+  html?: string | null;
+  previewText?: string | null;
+  contentJson?: unknown;
+  styles?: unknown;
+}): Promise<Prisma.EmailContentCreateInput> {
+  let contentText = emailContent.text ?? null;
+
+  // Auto-generate plain text if not provided
+  if (!contentText) {
+    if (emailContent.html) {
+      // Generate from provided HTML
+      contentText = htmlToPlainText(emailContent.html);
+    } else if (emailContent.contentJson) {
+      // Render JSON to HTML first, then convert to text
+      const html = await renderBroadcastToHtml(
+        emailContent.contentJson as BroadcastDocument,
+        {},
+        (emailContent.styles as BroadcastStyles) ?? {},
+      );
+      contentText = htmlToPlainText(html);
+    }
+  }
+
+  return {
+    subject: emailContent.subject,
+    contentText,
+    contentHtml: emailContent.html,
+    previewText: emailContent.previewText,
+    contentJson: emailContent.contentJson as Prisma.InputJsonValue,
+    styles: emailContent.styles as Prisma.InputJsonValue,
+  };
+}
 
 /**
  * Parse email into local part and domain
@@ -178,15 +234,9 @@ export async function createBroadcast(
 
   let emailContentId: string | undefined;
   if (data.emailContent) {
+    const emailContentData = await prepareEmailContentData(data.emailContent);
     const emailContent = await prisma.emailContent.create({
-      data: {
-        subject: data.emailContent.subject,
-        contentText: data.emailContent.text,
-        contentHtml: data.emailContent.html,
-        previewText: data.emailContent.previewText,
-        contentJson: data.emailContent.contentJson,
-        styles: data.emailContent.styles,
-      },
+      data: emailContentData,
     });
     emailContentId = emailContent.id;
   }
@@ -397,27 +447,15 @@ export async function updateBroadcast(
     if (data.emailContent === null) {
       updateData.emailContentId = null;
     } else if (existingBroadcast.emailContentId) {
+      const emailContentData = await prepareEmailContentData(data.emailContent);
       await prisma.emailContent.update({
         where: { id: existingBroadcast.emailContentId },
-        data: {
-          subject: data.emailContent.subject,
-          contentText: data.emailContent.text,
-          contentHtml: data.emailContent.html,
-          previewText: data.emailContent.previewText,
-          contentJson: data.emailContent.contentJson,
-          styles: data.emailContent.styles,
-        },
+        data: emailContentData,
       });
     } else {
+      const emailContentData = await prepareEmailContentData(data.emailContent);
       const emailContent = await prisma.emailContent.create({
-        data: {
-          subject: data.emailContent.subject,
-          contentText: data.emailContent.text,
-          contentHtml: data.emailContent.html,
-          previewText: data.emailContent.previewText,
-          contentJson: data.emailContent.contentJson,
-          styles: data.emailContent.styles,
-        },
+        data: emailContentData,
       });
       updateData.emailContentId = emailContent.id;
     }
@@ -597,7 +635,14 @@ export async function sendBroadcast(workspaceId: string, broadcastId: string) {
     },
   });
 
-  const sendAt = new Date(broadcast.sendAt!);
+  if (!broadcast.sendAt) {
+    throw new BadRequestError(
+      "Broadcast send time is not set",
+      ErrorCode.MISSING_REQUIRED_FIELD,
+    );
+  }
+
+  const sendAt = new Date(broadcast.sendAt);
   const jobRunAt = new Date(sendAt.getTime() - 5 * 60 * 1000); // 5 minutes before
   const delay = Math.max(0, jobRunAt.getTime() - Date.now());
 

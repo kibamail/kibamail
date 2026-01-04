@@ -26,7 +26,8 @@ vswitch_netplan_file: "/etc/netplan/60-vswitch.yaml"
 # Network configuration
 # Egress IP range: 37.27.167.40/29 (37.27.167.40 - 37.27.167.47)
 cluster_network: "37.27.167.40/29"
-proxy_host: "135.181.114.227"
+# Proxy is accessed via vSwitch private network
+proxy_host: "10.0.0.2"
 proxy_socks5_port: 5000
 
 # Sending IP configuration

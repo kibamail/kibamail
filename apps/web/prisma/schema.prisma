@@ -1035,9 +1035,13 @@ model SendingDomain {
   /// When DMARC record was verified
   dmarcVerifiedAt             DateTime?
   /// SSL certificate key (encrypted)
-  trackingSslCertKey          String?
+  trackingSslCertKey          String?          @db.Text
   /// SSL certificate secret (encrypted)
-  trackingSslCertSecret       String?
+  trackingSslCertSecret       String?          @db.Text
+  /// ACME challenge token for SSL certificate validation
+  trackingSslChallengeToken   String?
+  /// ACME challenge key authorization (encrypted)
+  trackingSslChallengeAuth    String?          @db.Text
   /// Whether open tracking is enabled for this domain
   openTrackingEnabled         Boolean          @default(false)
   /// Whether click tracking is enabled for this domain
@@ -1368,6 +1372,8 @@ enum EventType {
   Any // Any/unknown event
   Click // Link clicked
   Open // Email opened
+  Unsubscribed // Contact unsubscribed via clicking unsubscribe link
+  ListUnsubscribe // Contact unsubscribed via RFC 8058 one-click (email client)
 }
 
 /// *
@@ -1420,3 +1426,4 @@ enum EmailType {
   AUTOMATION // Emails in automation flows
   NOTIFICATION // System notifications
 }
+

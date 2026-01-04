@@ -188,11 +188,13 @@ describe("GET /api/v1/automations", () => {
     expect(secondData.data.length).toBe(10);
 
     // Ensure cursor automation is excluded
-    expect(secondData.data.every((a: any) => a.id !== cursorId)).toBe(true);
+    expect(
+      secondData.data.every((a: { id: string }) => a.id !== cursorId),
+    ).toBe(true);
 
     // Ensure no overlap
-    const firstPageIds = firstData.data.map((a: any) => a.id);
-    const secondPageIds = secondData.data.map((a: any) => a.id);
+    const firstPageIds = firstData.data.map((a: { id: string }) => a.id);
+    const secondPageIds = secondData.data.map((a: { id: string }) => a.id);
     const overlap = firstPageIds.filter((id: string) =>
       secondPageIds.includes(id),
     );

@@ -6,11 +6,15 @@ import { sendBroadcast } from "./broadcasts/send-broadcast";
 import { sendBroadcastBatch } from "./broadcasts/send-broadcast-batch";
 import { sendTestBroadcast } from "./broadcasts/send-test-broadcast";
 import { processImport } from "./contact-imports/process-import";
+import { unsubscribe } from "./contacts/unsubscribe";
 import { confirmDoubleOptIn } from "./forms/confirm-double-opt-in";
 import { sendDoubleOptIn } from "./forms/send-double-opt-in";
 import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
+import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
 import { checkVerification } from "./sending-domains/check-verification";
+import { issueTrackingSsl } from "./sending-domains/issue-tracking-ssl";
+import { renewExpiringSsl } from "./sending-domains/renew-expiring-ssl";
 
 const logger = queueLogger.child({ worker: "unified" });
 const METRICS_PORT = process.env.METRICS_PORT || 9090;
@@ -36,6 +40,9 @@ configureWorker("contact-imports", {
 configureWorker("sending-domains", {
   processors: {
     "check-verification": checkVerification,
+    "check-tracking-dns": checkTrackingDns,
+    "issue-tracking-ssl": issueTrackingSsl,
+    "renew-expiring-ssl": renewExpiringSsl,
   },
   concurrency: 3,
 });
@@ -57,6 +64,13 @@ configureWorker("forms", {
   concurrency: 5,
 });
 
+configureWorker("contacts", {
+  processors: {
+    unsubscribe: unsubscribe,
+  },
+  concurrency: 5,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -67,11 +81,31 @@ const queues = [
   "sending-domains",
   "broadcasts",
   "forms",
+  "contacts",
 ] as const;
 
 for (const queueName of queues) {
   queue(queueName).start();
 }
+
+// Schedule repeatable jobs
+async function scheduleRepeatableJobs() {
+  const sendingDomainsQueue = queue("sending-domains").getQueue().getQueue();
+
+  // SSL certificate renewal check - runs every 24 hours
+  // upsertJobScheduler creates or updates atomically, safe for multiple pods
+  await sendingDomainsQueue.upsertJobScheduler(
+    "ssl-renewal-scheduler",
+    { every: 24 * 60 * 60 * 1000 }, // 24 hours in milliseconds
+    { name: "renew-expiring-ssl", data: {} },
+  );
+
+  logger.info("Scheduled SSL certificate renewal job (every 24 hours)");
+}
+
+scheduleRepeatableJobs().catch((err) => {
+  logger.error({ error: err }, "Failed to schedule repeatable jobs");
+});
 
 logger.info(
   {
@@ -81,18 +115,28 @@ logger.info(
       { queue: "contact-imports", jobs: ["process-import"], concurrency: 1 },
       {
         queue: "sending-domains",
-        jobs: ["check-verification"],
+        jobs: [
+          "check-verification",
+          "check-tracking-dns",
+          "issue-tracking-ssl",
+          "renew-expiring-ssl",
+        ],
         concurrency: 3,
       },
       {
         queue: "broadcasts",
         jobs: ["send-broadcast", "send-broadcast-batch", "send-test-broadcast"],
-        concurrency: 5,
+        concurrency: 100,
       },
       {
         queue: "forms",
         jobs: ["send-double-opt-in", "confirm-double-opt-in"],
-        concurrency: 5,
+        concurrency: 100,
+      },
+      {
+        queue: "contacts",
+        jobs: ["unsubscribe"],
+        concurrency: 100,
       },
     ],
   },

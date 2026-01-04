@@ -51,6 +51,7 @@ local shaper = shaping:setup_with_automation {
   publish = { 'http://127.0.0.1:8008' },
   subscribe = { 'http://127.0.0.1:8008' },
   extra_files = {
+    '/opt/kumomta/share/policy-extras/shaping.toml',
     '/opt/kumomta/share/community/shaping.toml',
     '/opt/kumomta/etc/policy/shaping.toml',
   },

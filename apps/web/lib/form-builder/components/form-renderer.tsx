@@ -281,23 +281,26 @@ function FieldRenderer({ field, value, onChange, error }: FieldRendererProps) {
             {isRequired && <span className="text-destructive ml-0.5">*</span>}
           </FieldLabel>
           <div className="flex gap-1">
-            {Array.from({ length: maxRating }, (_, i) => (
-              <button
-                key={i}
-                type="button"
-                onClick={() => onChange(i + 1)}
-                className="p-0.5 hover:scale-110 transition-transform"
-              >
-                <Star
-                  className={cn(
-                    "size-6",
-                    i < currentRating
-                      ? "fill-yellow-400 text-yellow-400"
-                      : "text-muted-foreground",
-                  )}
-                />
-              </button>
-            ))}
+            {Array.from({ length: maxRating }, (_, i) => {
+              const ratingValue = i + 1;
+              return (
+                <button
+                  key={`star-${ratingValue}`}
+                  type="button"
+                  onClick={() => onChange(ratingValue)}
+                  className="p-0.5 hover:scale-110 transition-transform"
+                >
+                  <Star
+                    className={cn(
+                      "size-6",
+                      i < currentRating
+                        ? "fill-yellow-400 text-yellow-400"
+                        : "text-muted-foreground",
+                    )}
+                  />
+                </button>
+              );
+            })}
           </div>
           {field.description && (
             <FieldDescription>{field.description}</FieldDescription>

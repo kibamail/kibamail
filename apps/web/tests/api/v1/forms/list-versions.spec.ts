@@ -196,7 +196,7 @@ describe("GET /api/v1/forms/{formId}/versions - List Versions", () => {
 
     expect(response.status).toBe(200);
 
-    const versionIds = responseData.data.map((v: any) => v.id);
+    const versionIds = responseData.data.map((v: { id: string }) => v.id);
     expect(versionIds).toContain(rootFormId); // Root form (v1)
     expect(versionIds).toContain(version2Id); // Version 2
     expect(versionIds).toContain(version3Id); // Version 3
@@ -212,7 +212,9 @@ describe("GET /api/v1/forms/{formId}/versions - List Versions", () => {
 
     expect(response.status).toBe(200);
 
-    const versions = responseData.data.map((v: any) => v.version);
+    const versions = responseData.data.map(
+      (v: { version: number }) => v.version,
+    );
     expect(versions).toEqual([1, 2, 3]); // Ascending order
   });
 
@@ -255,7 +257,7 @@ describe("GET /api/v1/forms/{formId}/versions - List Versions", () => {
 
     expect(response.status).toBe(200);
 
-    const statuses = responseData.data.map((v: any) => v.status);
+    const statuses = responseData.data.map((v: { status: string }) => v.status);
     expect(statuses).toContain("DRAFT");
     expect(statuses).toContain("PUBLISHED");
     expect(statuses).toContain("ARCHIVED");
@@ -396,7 +398,7 @@ describe("GET /api/v1/forms/{formId}/versions - Workspace Isolation", () => {
 
     // None should be from other workspace
     const hasOtherWorkspaceVersion = responseData.data.some(
-      (v: any) => v.id === otherRoot.id,
+      (v: { id: string }) => v.id === otherRoot.id,
     );
     expect(hasOtherWorkspaceVersion).toBe(false);
 
@@ -416,9 +418,15 @@ describe("GET /api/v1/forms/{formId}/versions - Version Metadata", () => {
 
     expect(response.status).toBe(200);
 
-    const v1 = responseData.data.find((v: any) => v.version === 1);
-    const v2 = responseData.data.find((v: any) => v.version === 2);
-    const v3 = responseData.data.find((v: any) => v.version === 3);
+    const v1 = responseData.data.find(
+      (v: { version: number }) => v.version === 1,
+    );
+    const v2 = responseData.data.find(
+      (v: { version: number }) => v.version === 2,
+    );
+    const v3 = responseData.data.find(
+      (v: { version: number }) => v.version === 3,
+    );
 
     expect(v1).toBeDefined();
     expect(v1.name).toBe("Newsletter Signup");
@@ -450,8 +458,8 @@ describe("GET /api/v1/forms/{formId}/versions - Version Metadata", () => {
     expect(response2.status).toBe(200);
 
     // Version order should be consistent
-    const versions1 = data1.data.map((v: any) => v.version);
-    const versions2 = data2.data.map((v: any) => v.version);
+    const versions1 = data1.data.map((v: { version: number }) => v.version);
+    const versions2 = data2.data.map((v: { version: number }) => v.version);
 
     expect(versions1).toEqual(versions2);
     expect(versions1).toEqual([1, 2, 3]);

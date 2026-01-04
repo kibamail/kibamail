@@ -169,4 +169,3 @@ export const logtoConfig = {
    */
   sessionWrapper: new RedisSessionWrapper(),
 } satisfies LogtoNextConfig;
-

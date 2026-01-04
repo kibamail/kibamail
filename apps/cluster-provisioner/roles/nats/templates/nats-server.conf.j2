@@ -23,6 +23,9 @@ log_file: "/var/log/nats/nats-server.log"
 # PID file
 pid_file: "/var/run/nats/nats-server.pid"
 
+# HTTP Monitoring endpoint
+http_port: {{ nats_http_port }}
+
 {% if nats_tls_enabled %}
 # TLS Configuration
 tls {
@@ -96,6 +99,36 @@ authorization {
             "_INBOX.>",
             "$JS.API.>",
             "$JS.ACK.>"
+          ]
+        }
+      }
+    },
+    # kibamail-debugger: Readonly user for monitoring and debugging (NKey auth)
+    {
+      nkey: {{ nats_debugger_pubkey }}
+      permissions: {
+        publish: {
+          allow: [
+            # Only allow JetStream API for reading stream/consumer info
+            "$JS.API.INFO",
+            "$JS.API.STREAM.INFO.>",
+            "$JS.API.STREAM.LIST",
+            "$JS.API.STREAM.NAMES",
+            "$JS.API.CONSUMER.INFO.>",
+            "$JS.API.CONSUMER.LIST.>",
+            "$JS.API.CONSUMER.NAMES.>",
+            # Allow reading messages (but not acking or modifying)
+            "$JS.API.DIRECT.GET.>",
+            "$JS.API.STREAM.MSG.GET.>"
+          ]
+        }
+        subscribe: {
+          allow: [
+            # Subscribe to all kibamail subjects for monitoring
+            "kibamail.>",
+            # JetStream API responses
+            "_INBOX.>",
+            "$JS.API.>"
           ]
         }
       }

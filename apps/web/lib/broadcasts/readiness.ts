@@ -336,6 +336,9 @@ export async function checkBroadcastReadiness(
 
 export function getReadinessErrors(result: BroadcastReadinessResult): string[] {
   return result.checklist
-    .filter((item) => !item.completed && item.reason)
-    .map((item) => item.reason!);
+    .filter(
+      (item): item is typeof item & { reason: string } =>
+        !item.completed && typeof item.reason === "string",
+    )
+    .map((item) => item.reason);
 }

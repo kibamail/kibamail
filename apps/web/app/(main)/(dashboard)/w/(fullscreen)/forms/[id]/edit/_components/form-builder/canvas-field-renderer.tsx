@@ -345,9 +345,15 @@ export function CanvasFieldRenderer({
             {isRequired && <span className="text-destructive ml-0.5">*</span>}
           </FieldLabel>
           <div className="flex gap-1">
-            {Array.from({ length: maxRating }, (_, i) => (
-              <Star key={i} className="size-6 text-muted-foreground" />
-            ))}
+            {Array.from({ length: maxRating }, (_, i) => {
+              const ratingValue = i + 1;
+              return (
+                <Star
+                  key={`star-${ratingValue}`}
+                  className="size-6 text-muted-foreground"
+                />
+              );
+            })}
           </div>
           {field.description && (
             <FieldDescription>{field.description}</FieldDescription>

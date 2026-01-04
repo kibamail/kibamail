@@ -129,7 +129,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(responseData.object).toBe("segment_list");
-    const ids = responseData.data.map((s: any) => s.id);
+    const ids = responseData.data.map((s: { id: string }) => s.id);
     expect(ids).not.toContain(segment1.id);
   });
 
@@ -152,7 +152,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     expect(responseData.object).toBe("segment_list");
-    const ids = responseData.data.map((s: any) => s.id);
+    const ids = responseData.data.map((s: { id: string }) => s.id);
     expect(ids).not.toContain(segment3.id);
   });
 
@@ -210,7 +210,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     // Should not include segment from other workspace
-    const names = responseData.data.map((s: any) => s.name);
+    const names = responseData.data.map((s: { name: string }) => s.name);
     expect(names).not.toContain("Other Workspace Segment");
 
     await cleanupWorkspace(otherWorkspace.id);
@@ -224,7 +224,7 @@ describe("GET /api/v1/segments", () => {
     const responseData = await response.json();
 
     const foundSegment = responseData.data.find(
-      (s: any) => s.id === segment.id,
+      (s: { id: string }) => s.id === segment.id,
     );
 
     expect(foundSegment).toBeDefined();

@@ -311,7 +311,7 @@ describe("Contact Properties in Contact Responses", () => {
 
     // Find our test contact
     const foundContact = responseData.data.find(
-      (c: any) => c.id === contact.id,
+      (c: { id: string }) => c.id === contact.id,
     );
     expect(foundContact).toBeDefined();
     expect(foundContact.properties).toBeDefined();

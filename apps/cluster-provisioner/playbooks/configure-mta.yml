@@ -235,6 +235,16 @@
         mode: "0644"
       notify: restart kumomta
 
+    # Copy shaping configuration
+    - name: Copy shaping configuration
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/shaping.toml"
+        dest: "{{ kumomta_policy_dir }}/shaping.toml"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
     # Copy cluster-specific sources configuration
     - name: Copy cluster sources configuration
       ansible.builtin.copy:

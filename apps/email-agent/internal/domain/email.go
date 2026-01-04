@@ -15,6 +15,7 @@ type EmailMessage struct {
 	PreviewText string             `json:"preview_text"` // Preview text for email clients
 	ContentKey  string             `json:"content_key"`  // S3 key prefix for content (HTML/text)
 	Attachments []EmailAttachment  `json:"attachments"`  // Attachments to include
+	Headers     map[string]string  `json:"headers"`      // Custom headers (e.g., List-Unsubscribe)
 	Metadata    map[string]string  `json:"metadata"`     // Additional metadata
 	TrackOpens  bool               `json:"track_opens"`  // Track email opens
 	TrackClicks bool               `json:"track_clicks"` // Track link clicks

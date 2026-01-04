@@ -57,6 +57,9 @@ export type QueueJobs = {
   // Sending domains queue for domain verification checks
   "sending-domains": {
     "check-verification": { domainId: string; attempt: number };
+    "check-tracking-dns": { domainId: string; attempt?: number };
+    "issue-tracking-ssl": { domainId: string };
+    "renew-expiring-ssl": Record<string, never>;
   };
   // Forms queue for form-related background jobs
   forms: {
@@ -69,6 +72,14 @@ export type QueueJobs = {
     "confirm-double-opt-in": {
       formId: string;
       confirmationToken: string;
+    };
+  };
+  // Contacts queue for contact-related background jobs
+  contacts: {
+    unsubscribe: {
+      contactId: string;
+      broadcastId: string;
+      source: "link" | "list-unsubscribe";
     };
   };
 };

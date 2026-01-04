@@ -185,12 +185,12 @@ describe("GET /api/v1/forms - List Forms", () => {
 
     // Check that version form is NOT in the list
     const versionInList = responseData.data.find(
-      (f: any) => f.id === versionFormId,
+      (f: { id: string }) => f.id === versionFormId,
     );
     expect(versionInList).toBeUndefined();
 
     // Check that all root forms ARE in the list
-    const rootIds = responseData.data.map((f: any) => f.id);
+    const rootIds = responseData.data.map((f: { id: string }) => f.id);
     expect(rootIds).toContain(rootForm1Id);
     expect(rootIds).toContain(rootForm2Id);
     expect(rootIds).toContain(rootForm3Id);
@@ -234,12 +234,14 @@ describe("GET /api/v1/forms - List Forms", () => {
     expect(response.status).toBe(200);
 
     // Find specific forms and check their type/display
-    const signupForm = responseData.data.find((f: any) => f.id === rootForm1Id);
+    const signupForm = responseData.data.find(
+      (f: { id: string }) => f.id === rootForm1Id,
+    );
     expect(signupForm.type).toBe("SIGN_UP");
     expect(signupForm.display).toBe("INLINE_EMBED");
 
     const contactForm = responseData.data.find(
-      (f: any) => f.id === rootForm2Id,
+      (f: { id: string }) => f.id === rootForm2Id,
     );
     expect(contactForm.type).toBe("SURVEY");
     expect(contactForm.display).toBe("POPUP");
@@ -253,7 +255,7 @@ describe("GET /api/v1/forms - List Forms", () => {
 
     expect(response.status).toBe(200);
 
-    const statuses = responseData.data.map((f: any) => f.status);
+    const statuses = responseData.data.map((f: { status: string }) => f.status);
     expect(statuses).toContain("DRAFT");
     expect(statuses).toContain("PUBLISHED");
     expect(statuses).toContain("ARCHIVED");
@@ -269,7 +271,7 @@ describe("GET /api/v1/forms - List Forms", () => {
 
     // Find the form with null description (Contact Form)
     const formWithNullDesc = responseData.data.find(
-      (f: any) => f.id === rootForm2Id,
+      (f: { id: string }) => f.id === rootForm2Id,
     );
     expect(formWithNullDesc).toBeDefined();
     expect(formWithNullDesc.description).toBeNull();
@@ -386,7 +388,7 @@ describe("GET /api/v1/forms - Workspace Isolation", () => {
 
     // None should be from other workspace
     const hasOtherWorkspaceForm = responseData.data.some(
-      (f: any) => f.name === "Other Workspace Form",
+      (f: { name: string }) => f.name === "Other Workspace Form",
     );
     expect(hasOtherWorkspaceForm).toBe(false);
 

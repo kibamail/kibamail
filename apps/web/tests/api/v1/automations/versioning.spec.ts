@@ -464,10 +464,12 @@ describe("Editing Published Automation - Version Creation", () => {
     const versions = await listResponse.json();
 
     const draftExists = versions.data.some(
-      (v: any) => v.status === "DRAFT" && v.version === 2,
+      (v: { status: string; version: number }) =>
+        v.status === "DRAFT" && v.version === 2,
     );
     const publishedExists = versions.data.some(
-      (v: any) => v.status === "PUBLISHED" && v.version === 1,
+      (v: { status: string; version: number }) =>
+        v.status === "PUBLISHED" && v.version === 1,
     );
 
     expect(draftExists).toBe(true);
@@ -593,18 +595,24 @@ describe("Editing Published Automation - Version Creation", () => {
     expect(newVersion.nodes.length).toBe(3);
     expect(newVersion.edges.length).toBe(2);
 
-    const triggerNode = newVersion.nodes.find((n: any) => n.id === "trigger-1");
+    const triggerNode = newVersion.nodes.find(
+      (n: { id: string }) => n.id === "trigger-1",
+    );
     expect(triggerNode.data.conditions).toEqual({
       field: "email",
       operator: "contains",
       value: "@company.com",
     });
 
-    const delayNode = newVersion.nodes.find((n: any) => n.id === "delay-1");
+    const delayNode = newVersion.nodes.find(
+      (n: { id: string }) => n.id === "delay-1",
+    );
     expect(delayNode.data.duration).toBe(3);
     expect(delayNode.data.unit).toBe("days");
 
-    const emailNode = newVersion.nodes.find((n: any) => n.id === "email-1");
+    const emailNode = newVersion.nodes.find(
+      (n: { id: string }) => n.id === "email-1",
+    );
     expect(emailNode.data.subject).toBe("Welcome!");
     expect(emailNode.data.templateId).toBe("tpl-123");
   });
@@ -670,7 +678,7 @@ describe("Full Versioning Workflow", () => {
     const versions = await listResponse.json();
     expect(versions.data.length).toBe(2);
 
-    const statuses = versions.data.map((v: any) => v.status);
+    const statuses = versions.data.map((v: { status: string }) => v.status);
     expect(statuses).toContain("PUBLISHED");
     expect(statuses).toContain("ARCHIVED");
   });

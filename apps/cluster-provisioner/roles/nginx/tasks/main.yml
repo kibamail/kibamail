@@ -5,7 +5,9 @@
     msg: |
       Setting up Nginx on {{ inventory_hostname }}
       - NATS proxy: {{ nginx_nats_hostname }}:{{ nginx_nats_listen_port }}
+      - NATS monitor: https://{{ nginx_nats_hostname }}:{{ nginx_nats_monitor_port }}
       - Upstream: {{ nginx_nats_upstream_host }}:{{ nginx_nats_upstream_port }}
+      - TLS enabled: {{ nginx_tls_enabled }}
 
 - name: Install nginx with stream module
   ansible.builtin.apt:
@@ -14,6 +16,133 @@
       - libnginx-mod-stream
     state: present
     update_cache: yes
+
+# =============================================================================
+# TLS Certificate (Let's Encrypt via Cloudflare DNS)
+# =============================================================================
+
+- name: Check if TLS certificate already exists
+  ansible.builtin.stat:
+    path: "{{ nginx_tls_dir }}/fullchain.pem"
+  register: nginx_tls_cert_exists
+  when: nginx_tls_enabled
+
+- name: Validate CLOUDFLARE_API_TOKEN environment variable
+  ansible.builtin.fail:
+    msg: "CLOUDFLARE_API_TOKEN environment variable is required for TLS certificate issuance"
+  when:
+    - nginx_tls_enabled
+    - not nginx_tls_cert_exists.stat.exists | default(true)
+    - lookup('env', 'CLOUDFLARE_API_TOKEN') == ''
+
+- name: Install certbot and Cloudflare plugin
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+    update_cache: yes
+  when:
+    - nginx_tls_enabled
+    - not nginx_tls_cert_exists.stat.exists | default(true)
+
+- name: Create certbot credentials directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt/cloudflare
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when:
+    - nginx_tls_enabled
+    - not nginx_tls_cert_exists.stat.exists | default(true)
+
+- name: Create Cloudflare credentials file
+  ansible.builtin.copy:
+    content: |
+      dns_cloudflare_api_token = {{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}
+    dest: /etc/letsencrypt/cloudflare/credentials.ini
+    owner: root
+    group: root
+    mode: "0600"
+  when:
+    - nginx_tls_enabled
+    - not nginx_tls_cert_exists.stat.exists | default(true)
+
+- name: Obtain TLS certificate from Let's Encrypt via Cloudflare DNS
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials /etc/letsencrypt/cloudflare/credentials.ini
+      --dns-cloudflare-propagation-seconds 30
+      --non-interactive
+      --agree-tos
+      --email {{ nginx_tls_cert_email }}
+      -d {{ nginx_nats_hostname }}
+  when:
+    - nginx_tls_enabled
+    - not nginx_tls_cert_exists.stat.exists | default(true)
+  register: nginx_certbot_result
+
+- name: Create nginx TLS directory
+  ansible.builtin.file:
+    path: "{{ nginx_tls_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  when: nginx_tls_enabled
+
+- name: Check if letsencrypt certificate exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ nginx_nats_hostname }}/fullchain.pem"
+  register: letsencrypt_cert_exists
+  when: nginx_tls_enabled
+
+- name: Copy TLS certificate to nginx
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ nginx_nats_hostname }}/fullchain.pem"
+    dest: "{{ nginx_tls_dir }}/fullchain.pem"
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: yes
+  when:
+    - nginx_tls_enabled
+    - letsencrypt_cert_exists.stat.exists | default(false)
+  notify: Reload nginx
+
+- name: Copy TLS private key to nginx
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ nginx_nats_hostname }}/privkey.pem"
+    dest: "{{ nginx_tls_dir }}/privkey.pem"
+    owner: root
+    group: root
+    mode: "0600"
+    remote_src: yes
+  when:
+    - nginx_tls_enabled
+    - letsencrypt_cert_exists.stat.exists | default(false)
+  notify: Reload nginx
+
+- name: Create certbot renewal hook for nginx
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      cp /etc/letsencrypt/live/{{ nginx_nats_hostname }}/fullchain.pem {{ nginx_tls_dir }}/fullchain.pem
+      cp /etc/letsencrypt/live/{{ nginx_nats_hostname }}/privkey.pem {{ nginx_tls_dir }}/privkey.pem
+      chown root:root {{ nginx_tls_dir }}/*.pem
+      chmod 644 {{ nginx_tls_dir }}/fullchain.pem
+      chmod 600 {{ nginx_tls_dir }}/privkey.pem
+      systemctl reload nginx || true
+    dest: /etc/letsencrypt/renewal-hooks/deploy/nginx.sh
+    owner: root
+    group: root
+    mode: "0755"
+  when:
+    - nginx_tls_enabled
+    - letsencrypt_cert_exists.stat.exists | default(false)
 
 - name: Ensure nginx is enabled
   ansible.builtin.systemd:
@@ -37,6 +166,24 @@
     mode: "0644"
   notify: Reload nginx
   when: nginx_nats_proxy_enabled
+
+- name: Deploy NATS monitoring HTTP proxy configuration
+  ansible.builtin.template:
+    src: nats-monitor.conf.j2
+    dest: /etc/nginx/sites-available/nats-monitor.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+  when: nginx_nats_monitor_enabled
+
+- name: Enable NATS monitoring site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/nats-monitor.conf
+    dest: /etc/nginx/sites-enabled/nats-monitor.conf
+    state: link
+  notify: Reload nginx
+  when: nginx_nats_monitor_enabled
 
 - name: Ensure stream block is in nginx.conf
   ansible.builtin.blockinfile:
@@ -66,5 +213,10 @@
       NATS stream proxy:
       - External: {{ nginx_nats_hostname }}:{{ nginx_nats_listen_port }}
       - Upstream: {{ nginx_nats_upstream_host }}:{{ nginx_nats_upstream_port }}
+
+      NATS monitoring HTTPS:
+      - External: https://{{ nginx_nats_hostname }}:{{ nginx_nats_monitor_port }}
+      - Upstream: http://{{ nginx_nats_upstream_host }}:{{ nats_http_port }}
+      - TLS: {{ nginx_tls_dir }}/fullchain.pem
 
       DNS required: {{ nginx_nats_hostname }} -> {{ ansible_host }}

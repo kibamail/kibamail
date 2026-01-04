@@ -100,10 +100,11 @@ export async function bulkInsertEvents(
     // Record events processed by type and workspace
     const byTypeAndWorkspace = new Map<string, Map<string, number>>();
     for (const event of events) {
-      if (!byTypeAndWorkspace.has(event.type)) {
-        byTypeAndWorkspace.set(event.type, new Map());
+      let wsMap = byTypeAndWorkspace.get(event.type);
+      if (!wsMap) {
+        wsMap = new Map();
+        byTypeAndWorkspace.set(event.type, wsMap);
       }
-      const wsMap = byTypeAndWorkspace.get(event.type)!;
       wsMap.set(event.tenant_id, (wsMap.get(event.tenant_id) || 0) + 1);
     }
     for (const [eventType, wsMap] of byTypeAndWorkspace) {

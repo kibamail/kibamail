@@ -79,7 +79,11 @@ export const sendBroadcastBatch: JobProcessor<
     throw new Error(`Broadcast ${broadcastId} has no subject`);
   }
 
-  if (!broadcast.senderIdentity || !broadcast.sendingDomain) {
+  if (
+    !broadcast.senderIdentity ||
+    !broadcast.sendingDomain ||
+    !broadcast.senderIdentity.sendingDomain
+  ) {
     throw new Error(
       `Broadcast ${broadcastId} missing sender identity or sending domain`,
     );
@@ -133,7 +137,7 @@ export const sendBroadcastBatch: JobProcessor<
     },
     senderIdentity: {
       ...broadcast.senderIdentity,
-      sendingDomain: broadcast.senderIdentity.sendingDomain!,
+      sendingDomain: broadcast.senderIdentity.sendingDomain,
     },
     sendingDomain: broadcast.sendingDomain,
     trackOpens: broadcast.trackOpens,

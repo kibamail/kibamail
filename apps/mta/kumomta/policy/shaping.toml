@@ -1,0 +1,11 @@
+# =============================================================================
+# Kibamail Traffic Shaping - Production
+# =============================================================================
+#
+# This file extends the community shaping rules with production-specific settings.
+# The base rules come from /opt/kumomta/share/community/shaping.toml
+#
+# =============================================================================
+
+# Default settings applied to all domains unless overridden
+[default]

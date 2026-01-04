@@ -122,7 +122,7 @@ describe("POST /api/v1/contacts/search", () => {
     expect(responseData.data.length).toBe(20); // Default limit
     expect(responseData.hasMore).toBe(true); // 70 total SUBSCRIBED contacts
 
-    responseData.data.forEach((contact: any) => {
+    responseData.data.forEach((contact: { properties: unknown }) => {
       expect(contact.properties).toBeDefined();
       expect(contact.properties).toBeTypeOf("object");
     });
@@ -368,7 +368,7 @@ describe("POST /api/v1/contacts/search", () => {
     expect(secondData.data).toHaveLength(10);
     expect(secondData.hasMore).toBe(true);
     // Verify no overlap
-    const secondIds = secondData.data.map((c: any) => c.id);
+    const secondIds = secondData.data.map((c: { id: string }) => c.id);
     expect(secondIds).not.toContain(lastIdFromFirstPage);
   });
 

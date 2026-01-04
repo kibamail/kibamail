@@ -48,8 +48,19 @@ export function WebhookEventsTable({
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {Array.from({ length: 10 }).map((_, idx) => (
-                <Table.Row key={`skeleton-${idx}`}>
+              {[
+                "row-1",
+                "row-2",
+                "row-3",
+                "row-4",
+                "row-5",
+                "row-6",
+                "row-7",
+                "row-8",
+                "row-9",
+                "row-10",
+              ].map((rowKey) => (
+                <Table.Row key={rowKey}>
                   <Table.Cell>
                     <Skeleton width={100} height={12} />
                   </Table.Cell>

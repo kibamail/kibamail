@@ -61,6 +61,14 @@ spec:
                   key: password
             - name: REDIS_DATABASE
               value: "0"
+            # Internal API configuration (for ACME challenges)
+            - name: INTERNAL_API_URL
+              value: "http://kibamail-api.kibamail-api.svc.cluster.local:3000"
+            - name: INTERNAL_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: INTERNAL_SERVICE_KEY
           resources:
             requests:
               cpu: 100m
@@ -84,3 +92,55 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+        # OpenResty sidecar for TLS termination
+        - name: openresty
+          image: ghcr.io/kibamail/kibamail-tracking-tls:prod
+          imagePullPolicy: Always
+          ports:
+            - name: https
+              containerPort: 443
+              protocol: TCP
+            - name: http-redirect
+              containerPort: 80
+              protocol: TCP
+          env:
+            - name: INTERNAL_API_URL
+              value: "http://kibamail-api.kibamail-api.svc.cluster.local:3000"
+            - name: INTERNAL_SERVICE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: INTERNAL_SERVICE_KEY
+          volumeMounts:
+            - name: fallback-cert
+              mountPath: /etc/ssl/fallback
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /nginx-health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /nginx-health
+              port: https
+              scheme: HTTPS
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+      volumes:
+        - name: fallback-cert
+          secret:
+            secretName: tracking-tls

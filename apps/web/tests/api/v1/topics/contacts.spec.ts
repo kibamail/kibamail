@@ -240,7 +240,7 @@ describe("GET /api/v1/topics/[topicId]/contacts", () => {
     expect(secondData.hasMore).toBe(true);
 
     // Verify no overlap
-    const secondIds = secondData.data.map((c: any) => c.id);
+    const secondIds = secondData.data.map((c: { id: string }) => c.id);
     expect(secondIds).not.toContain(lastIdFromFirstPage);
   });
 

@@ -82,6 +82,9 @@ export interface PreparedEmail {
   htmlBody: string;
   textBody?: string;
 
+  // Headers
+  headers: Record<string, string>;
+
   // Tracking
   trackOpens: boolean;
   trackClicks: boolean;
@@ -129,6 +132,26 @@ function buildVariables(
     unsubscribe_url: `https://${trackingDomain}/u/${contact.id}/${broadcast.id}`,
     preferences_url: `https://${trackingDomain}/p/${contact.id}`,
     view_in_browser_url: `https://${trackingDomain}/v/${broadcast.id}/${contact.id}`,
+  };
+}
+
+/**
+ * Build RFC 8058 List-Unsubscribe headers for one-click unsubscribe
+ *
+ * Gmail and Yahoo require these headers for bulk senders (Feb 2024+).
+ * Format:
+ *   List-Unsubscribe: <https://...>, <mailto:...>
+ *   List-Unsubscribe-Post: List-Unsubscribe=One-Click
+ *
+ * @param unsubscribeUrl - The HTTPS unsubscribe URL
+ * @returns Headers object with List-Unsubscribe and List-Unsubscribe-Post
+ */
+function buildListUnsubscribeHeaders(
+  unsubscribeUrl: string,
+): Record<string, string> {
+  return {
+    "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   };
 }
 
@@ -206,6 +229,9 @@ async function prepareEmail(
   // Build envelope sender for bounce handling
   const envelopeSender = `bounces+${emailSendId}@${broadcast.sendingDomain.returnPathSubDomain}.${domain}`;
 
+  // Build List-Unsubscribe headers (RFC 8058)
+  const headers = buildListUnsubscribeHeaders(variables.unsubscribe_url);
+
   // Substitute variables in subject and preview text
   const subject = substituteVariables(
     broadcast.emailContent.subject,
@@ -240,6 +266,9 @@ async function prepareEmail(
     previewText,
     htmlBody: trackingResult.html,
     textBody,
+
+    // Headers
+    headers,
 
     // Tracking
     trackOpens,
@@ -329,7 +358,10 @@ export async function convertToNatsMessages(
       const textKey = `${contentKey}/content.txt`;
       try {
         await uploadPrivateFile(textKey, prepared.textBody, "text/plain");
-        logger.debug({ emailSendId: prepared.emailSendId, textKey }, "Email text content uploaded to S3");
+        logger.debug(
+          { emailSendId: prepared.emailSendId, textKey },
+          "Email text content uploaded to S3",
+        );
       } catch (error) {
         logger.error(
           {
@@ -373,6 +405,7 @@ export async function convertToNatsMessages(
       preview_text: prepared.previewText,
       content_key: contentKey,
       attachments: [],
+      headers: prepared.headers,
       metadata: {
         message_id: prepared.messageId,
         envelope_sender: prepared.envelopeSender,

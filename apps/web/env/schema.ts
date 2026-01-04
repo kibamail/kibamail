@@ -724,6 +724,68 @@ export const env = createEnv({
       .describe("Application secret key for encryption"),
 
     // ============================================================================
+    // ACME/SSL CONFIGURATION
+    // ============================================================================
+    // Configuration for automatic SSL certificate provisioning via Let's Encrypt.
+
+    /**
+     * ACME Directory URL
+     *
+     * The ACME directory URL for certificate provisioning.
+     * Defaults to Let's Encrypt production. Use staging for testing.
+     *
+     * @default "https://acme-v02.api.letsencrypt.org/directory"
+     * @example "https://acme-staging-v02.api.letsencrypt.org/directory"
+     */
+    ACME_DIRECTORY_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("https://acme-v02.api.letsencrypt.org/directory"),
+
+    /**
+     * ACME Contact Email
+     *
+     * Email address for Let's Encrypt notifications about certificate expiry.
+     *
+     * @example "ssl@kibamail.com"
+     */
+    ACME_CONTACT_EMAIL: z
+      .string()
+      .email()
+      .optional()
+      .default("ssl@kibamail.com"),
+
+    /**
+     * ACME Account Key (Base64 encoded)
+     *
+     * The ACME account private key for Let's Encrypt certificate provisioning.
+     * This key identifies your account with Let's Encrypt and is used to sign
+     * certificate requests.
+     *
+     * Generate a new account key:
+     * ```bash
+     * # Generate private key
+     * openssl genrsa 4096 > acme-account.key
+     * # Base64 encode for environment variable
+     * base64 -i acme-account.key
+     * ```
+     *
+     * Or create an account using acme-client and export the key.
+     *
+     * ⚠️ SECURITY:
+     * - Keep this secret and never commit to version control
+     * - Use the same key across all instances
+     * - If compromised, you'll need to register a new account with Let's Encrypt
+     *
+     * @example "LS0tLS1CRUdJTiBSU0EgUFJJVkFURSBLRVktLS0tLQo..."
+     */
+    ACME_ACCOUNT_KEY: z
+      .string()
+      .min(1)
+      .describe("Base64-encoded ACME account private key for Let's Encrypt"),
+
+    // ============================================================================
     // INTERNAL SERVICE AUTHENTICATION
     // ============================================================================
     // Used for service-to-service authentication between internal services
@@ -939,6 +1001,9 @@ export const env = createEnv({
     S3_PRIVATE_SECRET_ACCESS_KEY: process.env.S3_PRIVATE_SECRET_ACCESS_KEY,
     S3_PRIVATE_BUCKET: process.env.S3_PRIVATE_BUCKET,
     APP_KEY: process.env.APP_KEY,
+    ACME_DIRECTORY_URL: process.env.ACME_DIRECTORY_URL,
+    ACME_CONTACT_EMAIL: process.env.ACME_CONTACT_EMAIL,
+    ACME_ACCOUNT_KEY: process.env.ACME_ACCOUNT_KEY,
     INTERNAL_SERVICE_KEY: process.env.INTERNAL_SERVICE_KEY,
     OTEL_INGESTION_API_KEY: process.env.OTEL_INGESTION_API_KEY,
     NATS_URL: process.env.NATS_URL,
@@ -973,4 +1038,3 @@ export const env = createEnv({
    */
   emptyStringAsUndefined: true,
 });
-
