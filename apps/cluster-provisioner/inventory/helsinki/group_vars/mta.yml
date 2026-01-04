@@ -41,12 +41,12 @@ tsa_redis_url: "redis://{{ redis_host }}:{{ redis_port }}"
 # Non-secret configuration (secrets are prompted during playbook run)
 #
 # S3 configuration for email logs
-email_agent_s3_endpoint: "https://fsn1.your-objectstorage.com"  # TODO: Set S3 endpoint
-email_agent_s3_region: "fsn1"                                   # TODO: Set S3 region
-email_agent_s3_bucket: "kibamail-email-logs"                    # TODO: Set bucket name
+email_agent_s3_endpoint: "https://fsn1.your-objectstorage.com" # TODO: Set S3 endpoint
+email_agent_s3_region: "fsn1" # TODO: Set S3 region
+email_agent_s3_bucket: "production-kibamail-com-private" # TODO: Set bucket name
 
 # Control plane API
-email_agent_control_api_base_url: "https://api.kibamail.com"    # TODO: Set control plane URL
+email_agent_control_api_base_url: "https://api.kibamail.com" # TODO: Set control plane URL
 #
 # Secret variables (prompted interactively when running deploy-email-agent.yml):
 # - email_agent_s3_access_key_id: S3 access key

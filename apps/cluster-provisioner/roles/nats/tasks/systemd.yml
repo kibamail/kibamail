@@ -26,14 +26,14 @@
 - name: Wait for NATS to be ready
   ansible.builtin.wait_for:
     port: "{{ nats_client_port }}"
-    host: 127.0.0.1
+    host: "{{ nats_listen_address }}"
     delay: 2
     timeout: 30
 
 - name: Verify NATS is running
   ansible.builtin.command: >
     /usr/local/bin/nats account info
-    --server nats://admin:{{ nats_admin_password }}@127.0.0.1:{{ nats_client_port }}
+    --server nats://admin:{{ nats_admin_password }}@{{ nats_listen_address }}:{{ nats_client_port }}
     {% if nats_tls_enabled %}
     --tlsca {{ nats_tls_dir }}/ca.pem
     --tlscert {{ nats_tls_dir }}/client.pem

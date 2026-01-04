@@ -81,6 +81,7 @@
       - "DNS:nats.{{ cluster_name }}.kbmta.net"
       - "IP:127.0.0.1"
       - "IP:{{ ansible_host }}"
+      - "IP:{{ vswitch_private_ip }}"
     extended_key_usage:
       - serverAuth
       - clientAuth

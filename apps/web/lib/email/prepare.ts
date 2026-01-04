@@ -14,9 +14,12 @@ import {
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import type { EmailMessage } from "@/lib/nats";
+import { queueLogger } from "@/lib/queue";
 import { uploadPrivateFile } from "@/lib/storage/private-storage";
 import { generateMessageIdForDomain } from "./message-id";
 import { applyTracking } from "./tracking";
+
+const logger = queueLogger.child({ module: "email-prepare" });
 
 /**
  * Contact data needed for email personalization
@@ -285,12 +288,59 @@ export async function convertToNatsMessages(
     const contentKey = `emails/${prepared.workspaceId}/${prepared.broadcastId}/${prepared.emailSendId}`;
     const htmlKey = `${contentKey}/content.html`;
 
-    await uploadPrivateFile(htmlKey, prepared.htmlBody, "text/html");
+    logger.info(
+      {
+        emailSendId: prepared.emailSendId,
+        broadcastId: prepared.broadcastId,
+        htmlKey,
+        contentLength: prepared.htmlBody.length,
+      },
+      "Uploading email HTML content to S3",
+    );
+
+    try {
+      const uploadResult = await uploadPrivateFile(
+        htmlKey,
+        prepared.htmlBody,
+        "text/html",
+      );
+      logger.info(
+        {
+          emailSendId: prepared.emailSendId,
+          htmlKey,
+          etag: uploadResult.etag,
+        },
+        "Email HTML content uploaded to S3",
+      );
+    } catch (error) {
+      logger.error(
+        {
+          emailSendId: prepared.emailSendId,
+          htmlKey,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to upload email HTML content to S3",
+      );
+      throw error;
+    }
 
     // Upload plain text if available
     if (prepared.textBody) {
       const textKey = `${contentKey}/content.txt`;
-      await uploadPrivateFile(textKey, prepared.textBody, "text/plain");
+      try {
+        await uploadPrivateFile(textKey, prepared.textBody, "text/plain");
+        logger.debug({ emailSendId: prepared.emailSendId, textKey }, "Email text content uploaded to S3");
+      } catch (error) {
+        logger.error(
+          {
+            emailSendId: prepared.emailSendId,
+            textKey,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          "Failed to upload email text content to S3",
+        );
+        throw error;
+      }
     }
 
     // Build recipient name from first and last name

@@ -21,6 +21,9 @@ import {
 } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { env } from "@/env/schema";
+import { queueLogger } from "@/lib/queue";
+
+const logger = queueLogger.child({ module: "private-storage" });
 
 /**
  * S3 client configured for the private bucket
@@ -63,6 +66,16 @@ export async function uploadPrivateFile(
   body: PutObjectCommandInput["Body"],
   contentType?: string,
 ) {
+  logger.debug(
+    {
+      bucket: env.S3_PRIVATE_BUCKET,
+      key,
+      contentType,
+      endpoint: env.S3_PRIVATE_ENDPOINT,
+    },
+    "Uploading file to private S3 bucket",
+  );
+
   const command = new PutObjectCommand({
     Bucket: env.S3_PRIVATE_BUCKET,
     Key: key,
@@ -71,6 +84,15 @@ export async function uploadPrivateFile(
   });
 
   const response = await privateS3Client.send(command);
+
+  logger.debug(
+    {
+      bucket: env.S3_PRIVATE_BUCKET,
+      key,
+      etag: response.ETag,
+    },
+    "File uploaded to private S3 bucket",
+  );
 
   return {
     etag: response.ETag,

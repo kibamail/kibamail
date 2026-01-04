@@ -3,7 +3,7 @@
 - name: Set NATS connection options
   ansible.builtin.set_fact:
     nats_cli_opts: >-
-      --server nats://admin:{{ nats_admin_password }}@127.0.0.1:{{ nats_client_port }}
+      --server nats://admin:{{ nats_admin_password }}@{{ nats_listen_address }}:{{ nats_client_port }}
       {% if nats_tls_enabled %}
       --tlsca {{ nats_tls_dir }}/ca.pem
       --tlscert {{ nats_tls_dir }}/client.pem
