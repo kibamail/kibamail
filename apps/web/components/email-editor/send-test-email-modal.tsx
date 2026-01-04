@@ -82,8 +82,8 @@ export function SendTestEmailModal({
     onOpenChange(false);
   }
 
-  function onSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function onSubmit(event: React.FormEvent) {
+    event.preventDefault();
 
     const emails = parseEmails(emailsInput);
     const validation = validateEmails(emails);
@@ -113,8 +113,8 @@ export function SendTestEmailModal({
             <TextareaField.Root
               placeholder="email@example.com, another@example.com"
               value={emailsInput}
-              onChange={(e) => {
-                setEmailsInput(e.target.value);
+              onChange={(event) => {
+                setEmailsInput(event.target.value);
                 if (validationError) {
                   setValidationError(undefined);
                 }

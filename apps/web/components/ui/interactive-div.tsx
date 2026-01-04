@@ -36,7 +36,7 @@ export function InteractiveDiv({
   stopPropagationOnly,
   "aria-label": ariaLabel,
 }: InteractiveDivProps) {
-  function handleClick(event: MouseEvent<HTMLButtonElement | HTMLDivElement>) {
+  function onClickInternal(event: MouseEvent<HTMLButtonElement | HTMLDivElement>) {
     if (stopPropagationOnly) {
       event.stopPropagation();
       return;
@@ -47,7 +47,7 @@ export function InteractiveDiv({
 
   if (stopPropagationOnly) {
     return (
-      <div role="presentation" onClick={handleClick} className={className}>
+      <div role="presentation" onClick={onClickInternal} className={className}>
         {children}
       </div>
     );
@@ -56,7 +56,7 @@ export function InteractiveDiv({
   return (
     <button
       type="button"
-      onClick={handleClick}
+      onClick={onClickInternal}
       aria-label={ariaLabel}
       disabled={disabled}
       className={cn(

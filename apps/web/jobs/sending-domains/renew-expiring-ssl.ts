@@ -58,9 +58,10 @@ export const renewExpiringSsl: JobProcessor<
 
   // Queue renewal jobs for each domain
   const renewalJobs = domainsNeedingRenewal.map((domain) => {
+    // trackingDomainSslVerifiedAt is guaranteed non-null by the query filter
+    const sslVerifiedAt = domain.trackingDomainSslVerifiedAt!;
     const daysOld = Math.floor(
-      (Date.now() - domain.trackingDomainSslVerifiedAt?.getTime()) /
-        (1000 * 60 * 60 * 24),
+      (Date.now() - sslVerifiedAt.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     logger.info(

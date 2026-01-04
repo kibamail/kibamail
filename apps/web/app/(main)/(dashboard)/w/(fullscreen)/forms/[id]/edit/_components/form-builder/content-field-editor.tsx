@@ -28,7 +28,7 @@ export function ContentFieldEditor({
 }: ContentFieldEditorProps) {
   const editorRef = useRef<EmailEditorRef>(null);
 
-  const handleChange = onChange ?? (() => {});
+  const onChangeInternal = onChange ?? (() => {});
 
   return (
     <div className="content-field-editor">
@@ -37,7 +37,7 @@ export function ContentFieldEditor({
         features={FORM_BUILDER_PRESET}
         placeholder={placeholder}
         initialContent={content as JSONContent | undefined}
-        onChange={handleChange}
+        onChange={onChangeInternal}
         onUpload={placeholderUpload}
         editable={!readOnly}
       />

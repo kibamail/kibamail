@@ -185,21 +185,21 @@ export function MoreOptions({
   useEffect(() => {
     if (!editor) return;
 
-    const handleSelectionUpdate = () => {
+    function onSelectionUpdate() {
       setShow(
         shouldShowMoreOptions({
           editor,
           hideWhenUnavailable,
         })
       );
-    };
+    }
 
-    handleSelectionUpdate();
+    onSelectionUpdate();
 
-    editor.on("selectionUpdate", handleSelectionUpdate);
+    editor.on("selectionUpdate", onSelectionUpdate);
 
     return () => {
-      editor.off("selectionUpdate", handleSelectionUpdate);
+      editor.off("selectionUpdate", onSelectionUpdate);
     };
   }, [editor, hideWhenUnavailable]);
 

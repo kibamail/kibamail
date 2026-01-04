@@ -1,5 +1,8 @@
 FROM openresty/openresty:1.25.3.1-alpine
 
+# Install perl (required for opm) and curl
+RUN apk add --no-cache perl curl
+
 # Install lua-resty-http for making HTTP requests to internal API
 RUN opm get ledgetech/lua-resty-http
 

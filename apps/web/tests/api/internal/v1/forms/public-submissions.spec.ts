@@ -9,6 +9,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { NextRequest } from "next/server";
 import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/submissions/route";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
@@ -32,8 +33,8 @@ let unpublishedFormId: string;
 /**
  * Helper to create a public form submission request (no auth)
  */
-function publicPost(path: string, body: Record<string, unknown>): Request {
-  return new Request(`http://localhost:3000/api/internal/v1${path}`, {
+function publicPost(path: string, body: Record<string, unknown>): NextRequest {
+  return new NextRequest(`http://localhost:3000/api/internal/v1${path}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -110,7 +110,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
       getBoundingClientRectRef.current = getBoundingClientRect
     }, [editor, getBoundingClientRect])
 
-    const handleOpenChange = useCallback(
+    const setOpenState = useCallback(
       (newOpen: boolean) => {
         onOpenChange?.(newOpen)
         setOpen(newOpen)
@@ -118,7 +118,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
       [onOpenChange]
     )
 
-    const handleFloatingOpenChange = (open: boolean) => {
+    function onFloatingOpenChange(open: boolean) {
       if (!open && editor) {
         // When the floating element closes, reset the selection.
         // This lets the user place the cursor again and ensures the drag handle reappears,
@@ -129,7 +129,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
         editor.view.dispatch(tr)
       }
 
-      handleOpenChange(open)
+      setOpenState(open)
     }
 
     // Use referenceElement if provided, otherwise create dynamic rect function
@@ -152,7 +152,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
         strategy: "fixed",
         placement: "top",
         middleware: [shift(), flip(), offset(4)],
-        onOpenChange: handleFloatingOpenChange,
+        onOpenChange: onFloatingOpenChange,
         dismissOptions: {
           enabled: true,
           escapeKey: true,
@@ -173,7 +173,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
       const newRect = getBoundingClientRect(editor)
 
       if (newRect && shouldShow !== undefined && !preventShowRef.current) {
-        handleOpenChange(shouldShow)
+        setOpenState(shouldShow)
         return
       }
 
@@ -184,36 +184,36 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
         !preventShowRef.current &&
         (shouldShowResult || preventHideRef.current)
       ) {
-        handleOpenChange(true)
+        setOpenState(true)
       } else if (
         !preventHideRef.current &&
         (!shouldShowResult || preventShowRef.current || !editor.isEditable)
       ) {
-        handleOpenChange(false)
+        setOpenState(false)
       }
-    }, [editor, getBoundingClientRect, handleOpenChange, shouldShow])
+    }, [editor, getBoundingClientRect, setOpenState, shouldShow])
 
     useEffect(() => {
       if (!editor || !closeOnEscape) return
 
-      const handleKeyDown = (event: KeyboardEvent) => {
+      function onKeyDown(event: KeyboardEvent) {
         if (event.key === "Escape" && open) {
-          handleOpenChange(false)
+          setOpenState(false)
           return true
         }
         return false
       }
 
-      editor.view.dom.addEventListener("keydown", handleKeyDown)
+      editor.view.dom.addEventListener("keydown", onKeyDown)
       return () => {
-        editor.view.dom.removeEventListener("keydown", handleKeyDown)
+        editor.view.dom.removeEventListener("keydown", onKeyDown)
       }
-    }, [editor, open, closeOnEscape, handleOpenChange])
+    }, [editor, open, closeOnEscape, setOpenState])
 
     useEffect(() => {
       if (!editor) return
 
-      const handleBlur = (event: FocusEvent) => {
+      function onBlur(event: FocusEvent) {
         if (preventHideRef.current) {
           preventHideRef.current = false
           return
@@ -231,38 +231,38 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
             floatingElement.contains(relatedTarget))
 
         if (!isWithinEditor && !isWithinFloatingElement && open) {
-          handleOpenChange(false)
+          setOpenState(false)
         }
       }
 
-      editor.view.dom.addEventListener("blur", handleBlur)
+      editor.view.dom.addEventListener("blur", onBlur)
       return () => {
-        editor.view.dom.removeEventListener("blur", handleBlur)
+        editor.view.dom.removeEventListener("blur", onBlur)
       }
-    }, [editor, handleOpenChange, open])
+    }, [editor, setOpenState, open])
 
     useEffect(() => {
       if (!editor) return
 
-      const handleDrag = () => {
+      function onDrag() {
         if (open) {
-          handleOpenChange(false)
+          setOpenState(false)
         }
       }
 
-      editor.view.dom.addEventListener("dragstart", handleDrag)
-      editor.view.dom.addEventListener("dragover", handleDrag)
+      editor.view.dom.addEventListener("dragstart", onDrag)
+      editor.view.dom.addEventListener("dragover", onDrag)
 
       return () => {
-        editor.view.dom.removeEventListener("dragstart", handleDrag)
-        editor.view.dom.removeEventListener("dragover", handleDrag)
+        editor.view.dom.removeEventListener("dragstart", onDrag)
+        editor.view.dom.removeEventListener("dragover", onDrag)
       }
-    }, [editor, open, handleOpenChange])
+    }, [editor, open, setOpenState])
 
     useEffect(() => {
       if (!editor) return
 
-      const handleMouseDown = (event: MouseEvent) => {
+      function onMouseDown(event: MouseEvent) {
         if (event.button !== 0) return
 
         preventShowRef.current = true
@@ -286,19 +286,19 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
         view.dispatch(tr)
       }
 
-      const handleMouseUp = () => {
+      function onMouseUp() {
         if (preventShowRef.current) {
           preventShowRef.current = false
           updateSelectionState()
         }
       }
 
-      editor.view.dom.addEventListener("mousedown", handleMouseDown)
-      editor.view.root.addEventListener("mouseup", handleMouseUp)
+      editor.view.dom.addEventListener("mousedown", onMouseDown)
+      editor.view.root.addEventListener("mouseup", onMouseUp)
 
       return () => {
-        editor.view.dom.removeEventListener("mousedown", handleMouseDown)
-        editor.view.root.removeEventListener("mouseup", handleMouseUp)
+        editor.view.dom.removeEventListener("mousedown", onMouseDown)
+        editor.view.root.removeEventListener("mouseup", onMouseUp)
       }
     }, [editor, updateSelectionState])
 

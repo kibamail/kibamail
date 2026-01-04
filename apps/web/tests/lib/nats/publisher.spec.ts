@@ -72,6 +72,7 @@ function createTestEmailMessage(
     preview_text: "This is a test email preview",
     content_key: `emails/test-workspace-123/test-broadcast-456/${id}`,
     attachments: [],
+    headers: {},
     metadata: {
       message_id: `<${id}@example.com>`,
       envelope_sender: `bounces+${id}@bounce.example.com`,

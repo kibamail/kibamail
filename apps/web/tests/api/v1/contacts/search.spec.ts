@@ -471,7 +471,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     const ageRecord = await prisma.contactProperty.findUnique({
       where: { id: ageData.id },
     });
-    const agePropertySlot = ageRecord?.slot;
+    const agePropertySlot = ageRecord?.slot as string;
 
     // Create test contacts with different ages
     for (let i = 0; i < 5; i++) {
@@ -541,7 +541,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     const deptRecord = await prisma.contactProperty.findUnique({
       where: { id: deptData.id },
     });
-    const deptPropertySlot = deptRecord?.slot;
+    const deptPropertySlot = deptRecord?.slot as string;
 
     // Create test contacts
     for (let i = 0; i < 5; i++) {
@@ -610,7 +610,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     const ageRecord = await prisma.contactProperty.findUnique({
       where: { id: ageData.id },
     });
-    const agePropertySlot = ageRecord?.slot;
+    const agePropertySlot = ageRecord?.slot as string;
 
     const deptProperty = await CREATE_PROPERTY(
       post(
@@ -623,7 +623,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     const deptRecord = await prisma.contactProperty.findUnique({
       where: { id: deptData.id },
     });
-    const deptPropertySlot = deptRecord?.slot;
+    const deptPropertySlot = deptRecord?.slot as string;
 
     // Create matching contacts: age >= 30 AND department = Engineering
     for (let i = 0; i < 4; i++) {
@@ -745,7 +745,7 @@ describe("POST /api/v1/contacts/search - Custom Property Filtering", () => {
     const ageRecord = await prisma.contactProperty.findUnique({
       where: { id: ageData.id },
     });
-    const agePropertySlot = ageRecord?.slot;
+    const agePropertySlot = ageRecord?.slot as string;
 
     // Create property that won't be set
     await CREATE_PROPERTY(

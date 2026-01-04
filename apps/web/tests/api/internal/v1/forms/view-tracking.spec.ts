@@ -8,6 +8,7 @@
  */
 
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { NextRequest } from "next/server";
 import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/views/route";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
@@ -31,7 +32,7 @@ function viewRequest(
     ip?: string;
     referer?: string;
   } = {},
-): Request {
+): NextRequest {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -46,7 +47,7 @@ function viewRequest(
     headers.Referer = options.referer;
   }
 
-  return new Request(`http://localhost:3000/api/internal/v1${path}`, {
+  return new NextRequest(`http://localhost:3000/api/internal/v1${path}`, {
     method: "POST",
     headers,
   });

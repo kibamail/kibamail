@@ -30,7 +30,7 @@ export function BaseFlowNode({
   const hasMultipleOutputs = outputHandles.length > 1;
   const isTrigger = type === "trigger";
   const hasErrors = errors.length > 0;
-  const handleClassName = selected
+  const connectionHandleClassName = selected
     ? "w-2! h-2! bg-kb-bg-info!"
     : "w-2! h-2! bg-kb-border-primary!";
 
@@ -48,7 +48,7 @@ export function BaseFlowNode({
         <Handle
           type="target"
           position={Position.Top}
-          className={handleClassName}
+          className={connectionHandleClassName}
         />
       )}
 
@@ -72,13 +72,13 @@ export function BaseFlowNode({
 
       {hasMultipleOutputs ? (
         <div className="absolute bottom-0 left-0 right-0 flex justify-around">
-          {outputHandles.map((handle) => (
+          {outputHandles.map((outputHandle) => (
             <Handle
-              key={handle.id}
+              key={outputHandle.id}
               type="source"
               position={Position.Bottom}
-              id={handle.id}
-              className={handleClassName}
+              id={outputHandle.id}
+              className={connectionHandleClassName}
               style={{
                 position: "relative",
                 left: 0,
@@ -92,7 +92,7 @@ export function BaseFlowNode({
           type="source"
           position={Position.Bottom}
           id={outputHandles[0].id}
-          className={handleClassName}
+          className={connectionHandleClassName}
         />
       )}
     </div>

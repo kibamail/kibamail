@@ -51,7 +51,12 @@ export function PublishButton({
     refetch,
   } = useQuery<ReadinessResponse>({
     queryKey: ["email-readiness", entityId],
-    queryFn: () => onCheckReadiness?.(),
+    queryFn: () => {
+      if (!onCheckReadiness) {
+        throw new Error("onCheckReadiness is required when shouldCheckReadiness is true");
+      }
+      return onCheckReadiness();
+    },
     enabled: open && shouldCheckReadiness,
     refetchOnWindowFocus: false,
   });

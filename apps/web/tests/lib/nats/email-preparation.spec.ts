@@ -46,6 +46,7 @@ function convertToNatsMessage(
     preview_text: prepared.previewText,
     content_key: contentKey,
     attachments: [],
+    headers: prepared.headers,
     metadata: {
       message_id: prepared.messageId,
       envelope_sender: prepared.envelopeSender,
@@ -79,6 +80,7 @@ function createMockPreparedEmail(
     previewText: "Thanks for signing up!",
     htmlBody: "<html><body>Welcome!</body></html>",
     textBody: "Welcome!",
+    headers: {},
     trackOpens: true,
     trackClicks: true,
     links: [],

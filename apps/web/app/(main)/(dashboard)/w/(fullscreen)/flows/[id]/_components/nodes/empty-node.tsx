@@ -4,7 +4,7 @@ import { Handle, type NodeProps, Position } from "@xyflow/react";
 import { Plus } from "iconoir-react";
 
 export function EmptyNode({ selected = false }: NodeProps) {
-  const handleClassName = selected
+  const connectionHandleClassName = selected
     ? "w-2! h-2! bg-kb-bg-info!"
     : "w-2! h-2! bg-kb-border-primary!";
 
@@ -19,7 +19,7 @@ export function EmptyNode({ selected = false }: NodeProps) {
       <Handle
         type="target"
         position={Position.Top}
-        className={handleClassName}
+        className={connectionHandleClassName}
       />
 
       <div className="flex items-center justify-center text-kb-content-disabled">
@@ -30,7 +30,7 @@ export function EmptyNode({ selected = false }: NodeProps) {
         type="source"
         position={Position.Bottom}
         id="default"
-        className={handleClassName}
+        className={connectionHandleClassName}
       />
     </div>
   );

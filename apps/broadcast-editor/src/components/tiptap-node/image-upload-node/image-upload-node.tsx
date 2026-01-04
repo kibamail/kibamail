@@ -291,34 +291,34 @@ const ImageUploadDragArea: React.FC<ImageUploadDragAreaProps> = ({
   const [isDragOver, setIsDragOver] = useState(false)
   const [isDragActive, setIsDragActive] = useState(false)
 
-  const handleDragEnter = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  function onDragEnter(event: React.DragEvent) {
+    event.preventDefault()
+    event.stopPropagation()
     setIsDragActive(true)
   }
 
-  const handleDragLeave = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+  function onDragLeave(event: React.DragEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
       setIsDragActive(false)
       setIsDragOver(false)
     }
   }
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  function onDragOver(event: React.DragEvent) {
+    event.preventDefault()
+    event.stopPropagation()
     setIsDragOver(true)
   }
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
+  function onDrop(event: React.DragEvent) {
+    event.preventDefault()
+    event.stopPropagation()
     setIsDragActive(false)
     setIsDragOver(false)
 
-    const files = Array.from(e.dataTransfer.files)
+    const files = Array.from(event.dataTransfer.files)
     if (files.length > 0) {
       onFile(files)
     }
@@ -327,10 +327,10 @@ const ImageUploadDragArea: React.FC<ImageUploadDragAreaProps> = ({
   return (
     <div
       className={`tiptap-image-upload-drag-area ${isDragActive ? "drag-active" : ""} ${isDragOver ? "drag-over" : ""}`}
-      onDragEnter={handleDragEnter}
-      onDragLeave={handleDragLeave}
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      onDragEnter={onDragEnter}
+      onDragLeave={onDragLeave}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
     >
       {children}
     </div>
@@ -395,8 +395,8 @@ const ImageUploadPreview: React.FC<ImageUploadPreviewProps> = ({
           <Button
             type="button"
             data-style="ghost"
-            onClick={(e) => {
-              e.stopPropagation()
+            onClick={(event) => {
+              event.stopPropagation()
               onRemove()
             }}
           >
@@ -450,7 +450,7 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
   const { fileItems, uploadFiles, removeFileItem, clearAllFiles } =
     useFileUpload(uploadOptions)
 
-  const handleUpload = async (files: File[]) => {
+  async function onUpload(files: File[]) {
     const urls = await uploadFiles(files)
 
     if (urls.length > 0) {
@@ -483,16 +483,16 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
+  function onInputChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = event.target.files
     if (!files || files.length === 0) {
       extension.options.onError?.(new Error("No file selected"))
       return
     }
-    handleUpload(Array.from(files))
+    onUpload(Array.from(files))
   }
 
-  const handleClick = () => {
+  function onClick() {
     if (inputRef.current && fileItems.length === 0) {
       inputRef.current.value = ""
       inputRef.current.click()
@@ -505,10 +505,10 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
     <NodeViewWrapper
       className="tiptap-image-upload"
       tabIndex={0}
-      onClick={handleClick}
+      onClick={onClick}
     >
       {!hasFiles && (
-        <ImageUploadDragArea onFile={handleUpload}>
+        <ImageUploadDragArea onFile={onUpload}>
           <DropZoneContent maxSize={maxSize} limit={limit} />
         </ImageUploadDragArea>
       )}
@@ -521,8 +521,8 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
               <Button
                 type="button"
                 data-style="ghost"
-                onClick={(e) => {
-                  e.stopPropagation()
+                onClick={(event) => {
+                  event.stopPropagation()
                   clearAllFiles()
                 }}
               >
@@ -546,8 +546,8 @@ export const ImageUploadNode: React.FC<NodeViewProps> = (props) => {
         accept={accept}
         type="file"
         multiple={limit > 1}
-        onChange={handleChange}
-        onClick={(e: React.MouseEvent<HTMLInputElement>) => e.stopPropagation()}
+        onChange={onInputChange}
+        onClick={(event: React.MouseEvent<HTMLInputElement>) => event.stopPropagation()}
       />
     </NodeViewWrapper>
   )

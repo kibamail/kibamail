@@ -242,9 +242,10 @@ describe("NATS Event Consumer Integration Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await consumer.stop();
 
-      expect(receivedEvent).toBeDefined();
-      expect(receivedEvent?.type).toBe("Delivery");
-      expect(receivedEvent?.response.code).toBe(250);
+      expect(receivedEvent).not.toBeNull();
+      const event = receivedEvent as unknown as EmailEvent;
+      expect(event.type).toBe("Delivery");
+      expect(event.response.code).toBe(250);
     });
 
     test("should handle bounce events", async () => {
@@ -279,9 +280,10 @@ describe("NATS Event Consumer Integration Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await consumer.stop();
 
-      expect(receivedEvent).toBeDefined();
-      expect(receivedEvent?.type).toBe("Bounce");
-      expect(receivedEvent?.bounce_classification).toBe("InvalidRecipient");
+      expect(receivedEvent).not.toBeNull();
+      const event = receivedEvent as unknown as EmailEvent;
+      expect(event.type).toBe("Bounce");
+      expect(event.bounce_classification).toBe("InvalidRecipient");
     });
 
     test("should handle feedback events", async () => {
@@ -314,8 +316,9 @@ describe("NATS Event Consumer Integration Tests", () => {
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await consumer.stop();
 
-      expect(receivedEvent).toBeDefined();
-      expect(receivedEvent?.type).toBe("Feedback");
+      expect(receivedEvent).not.toBeNull();
+      const event = receivedEvent as unknown as EmailEvent;
+      expect(event.type).toBe("Feedback");
     });
   });
 });

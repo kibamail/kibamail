@@ -82,7 +82,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "age-test@example.com",
         firstName: "Alice",
-        [propertyRecord?.slot]: 30,
+        [propertyRecord?.slot as string]: 30,
       },
     });
 
@@ -125,7 +125,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "date-test@example.com",
         firstName: "Bob",
-        [propertyRecord?.slot]: joinDate,
+        [propertyRecord?.slot as string]: joinDate,
       },
     });
 
@@ -166,7 +166,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "string-test@example.com",
         firstName: "Charlie",
-        [propertyRecord?.slot]: "Marketing",
+        [propertyRecord?.slot as string]: "Marketing",
       },
     });
 
@@ -216,8 +216,8 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "multi-prop@example.com",
         firstName: "Diana",
-        [ageRecord?.slot]: 7,
-        [titleRecord?.slot]: "Senior Engineer",
+        [ageRecord?.slot as string]: 7,
+        [titleRecord?.slot as string]: "Senior Engineer",
       },
     });
 
@@ -297,7 +297,7 @@ describe("Contact Properties in Contact Responses", () => {
         workspaceId: testWorkspace.id,
         email: "list-prop@example.com",
         firstName: "Frank",
-        [propertyRecord?.slot]: 150,
+        [propertyRecord?.slot as string]: 150,
       },
     });
 

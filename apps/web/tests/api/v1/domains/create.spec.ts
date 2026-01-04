@@ -91,7 +91,7 @@ describe("POST /api/v1/domains", () => {
     expect(domain?.dkimPublicKey).toBeDefined();
 
     // Decrypt the private key
-    const privateKey = decrypt(domain?.dkimPrivateKey, env.APP_KEY);
+    const privateKey = decrypt(domain?.dkimPrivateKey as string, env.APP_KEY);
 
     // Test signing and verifying
     const message = "Test message for DKIM signing";
@@ -101,7 +101,7 @@ describe("POST /api/v1/domains", () => {
 
     const verify = createVerify("RSA-SHA256");
     verify.update(message);
-    const isValid = verify.verify(domain?.dkimPublicKey, signature, "base64");
+    const isValid = verify.verify(domain?.dkimPublicKey as string, signature, "base64");
 
     expect(isValid).toBe(true);
   });
