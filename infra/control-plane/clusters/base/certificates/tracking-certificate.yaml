@@ -2,6 +2,7 @@ apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: tracking-tls
+  namespace: kibamail-tracking
 spec:
   secretName: tracking-tls
   issuerRef:

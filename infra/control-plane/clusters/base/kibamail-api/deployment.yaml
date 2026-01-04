@@ -217,6 +217,11 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: OTEL_INGESTION_API_KEY
+            - name: ACME_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: ACME_ACCOUNT_KEY
 
             # NATS Configuration
             - name: NATS_URL

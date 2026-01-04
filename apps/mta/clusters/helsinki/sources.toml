@@ -30,49 +30,55 @@
 # Active Sources (currently in pools)
 # -----------------------------------------------------------------------------
 
-[source."mktg-mta-1"]
-socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.45"
-ehlo_domain = "mktg-mta-1.kbmta.net"
-
-[source."mktg-mta-2"]
-socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.46"
-ehlo_domain = "mktg-mta-2.kbmta.net"
-
-[source."mktg-mta-3"]
-socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.47"
-ehlo_domain = "mktg-mta-3.kbmta.net"
-
-# -----------------------------------------------------------------------------
-# Reserved Sources (not currently in pools)
-# -----------------------------------------------------------------------------
-
-[source."mktg-mta-4"]
-socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.40"
-ehlo_domain = "mktg-mta-4.kbmta.net"
-
 [source."mktg-mta-5"]
 socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.41"
+socks5_proxy_source_address = "37.27.167.45"
 ehlo_domain = "mktg-mta-5.kbmta.net"
 
 [source."mktg-mta-6"]
 socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.42"
+socks5_proxy_source_address = "37.27.167.46"
 ehlo_domain = "mktg-mta-6.kbmta.net"
 
 [source."mktg-mta-7"]
 socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.43"
+socks5_proxy_source_address = "37.27.167.47"
 ehlo_domain = "mktg-mta-7.kbmta.net"
 
-[source."mktg-mta-8"]
+# -----------------------------------------------------------------------------
+# Reserved Sources (not currently in pools)
+# -----------------------------------------------------------------------------
+# These IPs have matching A and PTR records configured:
+#   37.27.167.41 <-> mktg-mta-1.kbmta.net
+#   37.27.167.42 <-> mktg-mta-2.kbmta.net
+#   37.27.167.43 <-> mktg-mta-3.kbmta.net
+#   37.27.167.44 <-> mktg-mta-4.kbmta.net
+#   37.27.167.40 <-> mktg-mta-8.kbmta.net (if configured)
+
+[source."mktg-mta-1"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "37.27.167.41"
+ehlo_domain = "mktg-mta-1.kbmta.net"
+
+[source."mktg-mta-2"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "37.27.167.42"
+ehlo_domain = "mktg-mta-2.kbmta.net"
+
+[source."mktg-mta-3"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "37.27.167.43"
+ehlo_domain = "mktg-mta-3.kbmta.net"
+
+[source."mktg-mta-4"]
 socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.44"
-ehlo_domain = "mktg-mta-8.kbmta.net"
+ehlo_domain = "mktg-mta-4.kbmta.net"
+
+[source."mktg-mta-0"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "37.27.167.40"
+ehlo_domain = "mktg-mta-0.kbmta.net"
 
 
 # =============================================================================
@@ -89,13 +95,13 @@ ehlo_domain = "mktg-mta-8.kbmta.net"
 
 [pool."marketing"]
 
-[pool."marketing"."mktg-mta-1"]
+[pool."marketing"."mktg-mta-5"]
 weight = 1
 
-[pool."marketing"."mktg-mta-2"]
+[pool."marketing"."mktg-mta-6"]
 weight = 1
 
-[pool."marketing"."mktg-mta-3"]
+[pool."marketing"."mktg-mta-7"]
 weight = 1
 
 # -----------------------------------------------------------------------------
@@ -104,11 +110,11 @@ weight = 1
 
 [pool."default"]
 
-[pool."default"."mktg-mta-1"]
+[pool."default"."mktg-mta-5"]
 weight = 1
 
-[pool."default"."mktg-mta-2"]
+[pool."default"."mktg-mta-6"]
 weight = 1
 
-[pool."default"."mktg-mta-3"]
+[pool."default"."mktg-mta-7"]
 weight = 1

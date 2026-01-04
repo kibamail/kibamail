@@ -234,6 +234,11 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: INTERNAL_SERVICE_KEY
+            - name: ACME_ACCOUNT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: ACME_ACCOUNT_KEY
 
             # NATS (using NKey authentication)
             - name: NATS_URL
