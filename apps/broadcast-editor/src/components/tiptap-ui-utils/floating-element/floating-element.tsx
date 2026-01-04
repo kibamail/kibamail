@@ -263,7 +263,7 @@ export const FloatingElement = forwardRef<HTMLDivElement, FloatingElementProps>(
       if (!editor) return
 
       function onMouseDown(event: MouseEvent) {
-        if (event.button !== 0) return
+        if (event.button !== 0 || !editor) return
 
         preventShowRef.current = true
 
