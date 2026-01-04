@@ -248,6 +248,10 @@ export const sendDoubleOptIn: JobProcessor<
     .filter(Boolean)
     .join(" ");
 
+  // Build unsubscribe URL for List-Unsubscribe headers
+  // Uses the contact's unsubscribe endpoint - will delete unconfirmed contact
+  const unsubscribeUrl = `https://${trackingDomain}/u/${contact.id}/doi-${formId}`;
+
   // Build NATS message
   const natsMessage: EmailMessage = {
     id: emailSendId,
@@ -271,6 +275,10 @@ export const sendDoubleOptIn: JobProcessor<
     preview_text: previewText,
     content_key: contentKey,
     attachments: [],
+    headers: {
+      "List-Unsubscribe": `<${unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
     metadata: {
       message_id: messageId,
       envelope_sender: envelopeSender,

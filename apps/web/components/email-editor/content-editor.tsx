@@ -122,7 +122,7 @@ function getVariablesForMode(mode: EmailEditorMode): string[] {
 export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
   function ContentEditor(
     {
-      entityId,
+      entityId: _entityId,
       stylesOpen,
       onStylesOpenChange,
       initialContent,

@@ -22,6 +22,7 @@ import type { JSONContent } from "@tiptap/react";
 import { Plus } from "iconoir-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { InteractiveDiv } from "@/components/ui/interactive-div";
 import { cn } from "@/lib/utils";
 import { CanvasFieldRenderer } from "./canvas-field-renderer";
 import { SUBMIT_BUTTON_ID, useFormBuilder } from "./form-builder-context";
@@ -389,10 +390,12 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                       : "justify-end",
               )}
             >
-              <div
+              <InteractiveDiv
                 onClick={
                   readOnly ? undefined : () => selectField(SUBMIT_BUTTON_ID)
                 }
+                disabled={readOnly}
+                aria-label="Select submit button"
                 className={cn(
                   "group relative transition-all",
                   !readOnly && "cursor-pointer",
@@ -420,7 +423,7 @@ export function FormCanvas({ readOnly = false }: FormCanvasProps) {
                 >
                   {schema.settings.submitButton.text}
                 </Button>
-              </div>
+              </InteractiveDiv>
             </div>
           </div>
         </div>

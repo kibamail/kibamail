@@ -85,7 +85,8 @@ export async function getNatsConnection(
 
   // Set up connection event handlers
   (async () => {
-    for await (const status of connection?.status()) {
+    if (!connection) return;
+    for await (const status of connection.status()) {
       switch (status.type) {
         case "disconnect":
           logger.warn({ data: status.data }, "NATS disconnected");

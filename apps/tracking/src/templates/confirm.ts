@@ -1,5 +1,5 @@
 /**
- * HTML Templates for Double Opt-In Confirmation
+ * HTML Templates
  *
  * Loads static HTML files into memory at startup.
  */
@@ -16,3 +16,8 @@ export const thankYouHtml = readFileSync(
 );
 
 export const errorHtml = readFileSync(join(__dirname, "error.html"), "utf-8");
+
+export const unsubscribedHtml = readFileSync(
+  join(__dirname, "unsubscribed.html"),
+  "utf-8"
+);

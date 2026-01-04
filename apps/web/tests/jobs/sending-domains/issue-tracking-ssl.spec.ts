@@ -255,7 +255,10 @@ describe("issue-tracking-ssl job", () => {
       expect(updatedDomain?.trackingDomainSslVerifiedAt).toBeDefined();
 
       // Verify they can be decrypted
-      if (updatedDomain?.trackingSslCertKey && updatedDomain?.trackingSslCertSecret) {
+      if (
+        updatedDomain?.trackingSslCertKey &&
+        updatedDomain?.trackingSslCertSecret
+      ) {
         expect(decrypt(updatedDomain.trackingSslCertKey)).toBe(certificate);
         expect(decrypt(updatedDomain.trackingSslCertSecret)).toBe(
           privateKey.toString("utf-8"),

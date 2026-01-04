@@ -11,6 +11,7 @@ env:
   WORKER_IMAGE: ${{ github.repository_owner }}/kibamail-worker
   EVENT_INGESTOR_IMAGE: ${{ github.repository_owner }}/kibamail-event-ingestor
   TRACKING_IMAGE: ${{ github.repository_owner }}/kibamail-tracking
+  TRACKING_TLS_IMAGE: ${{ github.repository_owner }}/kibamail-tracking-tls
 
 jobs:
   build-web:

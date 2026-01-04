@@ -7,11 +7,6 @@ import { FormRenderer } from "@/lib/form-builder";
 const VIEW_COOKIE_PREFIX = "kiba_fv_";
 const VIEW_COOKIE_MAX_AGE_DAYS = 30;
 
-function setCookie(name: string, value: string, maxAgeSeconds: number): void {
-  // biome-ignore lint/suspicious/noDocumentCookie: Legitimate cookie setting for form view tracking
-  document.cookie = `${name}=${value}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
-}
-
 interface FormPageClientProps {
   formId: string;
   schema: FormBuilderSchema;
@@ -27,7 +22,7 @@ export function FormPageClient({
     if (shouldSetViewCookie) {
       const cookieName = `${VIEW_COOKIE_PREFIX}${formId}`;
       const maxAge = VIEW_COOKIE_MAX_AGE_DAYS * 24 * 60 * 60;
-      setCookie(cookieName, "1", maxAge);
+      document.cookie = `${cookieName}=1; path=/; max-age=${maxAge}; SameSite=Lax`;
     }
   }, [formId, shouldSetViewCookie]);
 

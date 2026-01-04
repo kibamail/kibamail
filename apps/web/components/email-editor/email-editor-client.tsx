@@ -6,7 +6,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings, StatUp, Xmark } from "iconoir-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getEmailFromSenderSelect } from "@/components/sender-select";
 import { ContentEditor, type ContentEditorRef } from "./content-editor";
 import { EmailDetailsTab } from "./email-details-tab";
@@ -86,7 +86,10 @@ export function EmailEditorClient<T extends EmailEditorMode>({
     !initialDetails.senderIdentityId && senderIdentities.length === 0,
   );
 
-  const allDomains = [...domains, ...addedDomains];
+  const allDomains = useMemo(
+    () => [...domains, ...addedDomains],
+    [domains, addedDomains],
+  );
 
   const onDetailsChange = useCallback(
     (updates: Partial<EditorDetails<T>>) => {

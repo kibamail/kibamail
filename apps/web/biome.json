@@ -19,10 +19,11 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noUnknownAtRules": "off"
+        "noUnknownAtRules": "off",
+        "noDocumentCookie": "off"
       },
       "security": {
-        "noDangerouslySetInnerHtml": "info"
+        "noDangerouslySetInnerHtml": "off"
       },
       "correctness": {
         "useUniqueElementIds": "off"

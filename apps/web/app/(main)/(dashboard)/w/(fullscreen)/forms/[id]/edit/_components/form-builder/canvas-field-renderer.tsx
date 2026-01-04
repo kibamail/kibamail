@@ -14,6 +14,7 @@ import {
   FieldTitle,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { InteractiveDiv } from "@/components/ui/interactive-div";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
@@ -42,6 +43,7 @@ interface FieldDecoratorProps {
 }
 
 function FieldDecorator({
+  field,
   isSelected,
   onClick,
   onRemove,
@@ -53,8 +55,10 @@ function FieldDecorator({
   children,
 }: FieldDecoratorProps) {
   return (
-    <div
+    <InteractiveDiv
       onClick={readOnly ? undefined : onClick}
+      disabled={readOnly}
+      aria-label={`Select ${field.label || field.type} field`}
       className={cn(
         "group relative transition-all",
         !readOnly && "cursor-pointer",
@@ -112,7 +116,7 @@ function FieldDecorator({
       <div className={allowInteraction ? undefined : "pointer-events-none"}>
         {children}
       </div>
-    </div>
+    </InteractiveDiv>
   );
 }
 
@@ -154,14 +158,14 @@ export function CanvasFieldRenderer({
         allowInteraction={!readOnly}
         readOnly={readOnly}
       >
-        <div onClick={(event) => event.stopPropagation()}>
+        <InteractiveDiv stopPropagationOnly>
           <ContentFieldEditor
             content={field.richContent}
             onChange={onContentChange}
             placeholder="Type '/' for commands, or start writing..."
             readOnly={isOverlay || !onContentChange}
           />
-        </div>
+        </InteractiveDiv>
       </FieldDecorator>
     );
   }

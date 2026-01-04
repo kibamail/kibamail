@@ -4,7 +4,7 @@ import * as Select from "@kibamail/owly/select-field";
 import * as Tabs from "@kibamail/owly/tabs";
 import { Text } from "@kibamail/owly/text";
 import { Filter, Group, User } from "iconoir-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { SectionHeader } from "@/components/email-editor/details-sections/shared";
 import type { BroadcastDetails } from "@/components/email-editor/types";
 import { useSegments } from "@/hooks/use-segments";
@@ -31,11 +31,11 @@ export function RecipientsSection({
   const topics = topicsData?.data || [];
   const segments = segmentsData?.data || [];
 
-  function getCurrentRecipientType(): RecipientType {
+  const getCurrentRecipientType = useCallback((): RecipientType => {
     if (topicId) return "topic";
     if (segmentId) return "segment";
     return "all";
-  }
+  }, [topicId, segmentId]);
 
   const [recipientType, setRecipientType] = useState<RecipientType>(
     getCurrentRecipientType,
