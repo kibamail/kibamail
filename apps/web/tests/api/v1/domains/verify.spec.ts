@@ -15,6 +15,7 @@ import {
   vi,
 } from "vitest";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import type { verifyDnsRecords } from "@/lib/sending-domains/dns";
 import {
   apiRequest,
@@ -506,15 +507,15 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
     });
   });
 
-  test("should not queue SSL certificate issuance when tracking domain was already verified", async () => {
+  test("should not queue SSL certificate issuance when SSL is already in progress", async () => {
     const createdDomain = await createTestDomain(
       fullAccessApiKey,
-      "ssl-no-retrigger.example.com",
+      "ssl-in-progress.example.com",
     );
 
     const expectedTrackingValue = createdDomain.dnsRecords.tracking.value;
 
-    // First verification - tracking becomes verified
+    // First verification - tracking becomes verified, SSL queued
     mockVerifyDnsRecords.mockResolvedValue({
       dkim: { configured: false, expected: "", found: [] },
       returnPath: { configured: false, expected: "", found: [] },
@@ -535,10 +536,16 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
       params: Promise.resolve({ domainId: createdDomain.id }),
     });
 
+    // Simulate SSL job starting - set status to in_progress
+    await prisma.sendingDomain.update({
+      where: { id: createdDomain.id },
+      data: { sslIssuanceStatus: "in_progress" },
+    });
+
     // Clear calls after first verification
     mockQueuePush.mockClear();
 
-    // Second verification - tracking still configured but was already verified
+    // Second verification - SSL is in progress, should not re-queue
     const request2 = apiRequest(`/domains/${createdDomain.id}/verify`)
       .method("POST")
       .auth(fullAccessApiKey.key)
@@ -551,8 +558,107 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
     expect(response2.status).toBe(200);
     expect(data2.trackingVerified).toBe(true);
 
-    // SSL issuance should NOT be queued again
+    // SSL issuance should NOT be queued when already in progress
     expect(mockQueuePush).not.toHaveBeenCalledWith("issue-tracking-ssl", {
+      domainId: createdDomain.id,
+    });
+  });
+
+  test("should not queue SSL certificate issuance when SSL is already completed", async () => {
+    const createdDomain = await createTestDomain(
+      fullAccessApiKey,
+      "ssl-completed.example.com",
+    );
+
+    const expectedTrackingValue = createdDomain.dnsRecords.tracking.value;
+
+    // Set tracking as verified and SSL as completed
+    await prisma.sendingDomain.update({
+      where: { id: createdDomain.id },
+      data: {
+        trackingDomainVerifiedAt: new Date(),
+        sslIssuanceStatus: "completed",
+      },
+    });
+
+    mockVerifyDnsRecords.mockResolvedValue({
+      dkim: { configured: false, expected: "", found: [] },
+      returnPath: { configured: false, expected: "", found: [] },
+      tracking: {
+        configured: true,
+        expected: expectedTrackingValue,
+        found: [expectedTrackingValue],
+      },
+      dmarc: { configured: false, expected: "", found: [] },
+      allVerified: false,
+    });
+
+    mockQueuePush.mockClear();
+
+    const request = apiRequest(`/domains/${createdDomain.id}/verify`)
+      .method("POST")
+      .auth(fullAccessApiKey.key)
+      .build();
+    const response = await VerifyPOST(request, {
+      params: Promise.resolve({ domainId: createdDomain.id }),
+    });
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.trackingVerified).toBe(true);
+
+    // SSL issuance should NOT be queued when already completed
+    expect(mockQueuePush).not.toHaveBeenCalledWith("issue-tracking-ssl", {
+      domainId: createdDomain.id,
+    });
+  });
+
+  test("should queue SSL certificate issuance when SSL previously failed", async () => {
+    const createdDomain = await createTestDomain(
+      fullAccessApiKey,
+      "ssl-retry-failed.example.com",
+    );
+
+    const expectedTrackingValue = createdDomain.dnsRecords.tracking.value;
+
+    // Set tracking as verified but SSL as failed
+    await prisma.sendingDomain.update({
+      where: { id: createdDomain.id },
+      data: {
+        trackingDomainVerifiedAt: new Date(),
+        sslIssuanceStatus: "failed",
+        sslIssuanceError: "Previous failure",
+      },
+    });
+
+    mockVerifyDnsRecords.mockResolvedValue({
+      dkim: { configured: false, expected: "", found: [] },
+      returnPath: { configured: false, expected: "", found: [] },
+      tracking: {
+        configured: true,
+        expected: expectedTrackingValue,
+        found: [expectedTrackingValue],
+      },
+      dmarc: { configured: false, expected: "", found: [] },
+      allVerified: false,
+    });
+
+    mockQueuePush.mockClear();
+
+    const request = apiRequest(`/domains/${createdDomain.id}/verify`)
+      .method("POST")
+      .auth(fullAccessApiKey.key)
+      .build();
+    const response = await VerifyPOST(request, {
+      params: Promise.resolve({ domainId: createdDomain.id }),
+    });
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data.trackingVerified).toBe(true);
+
+    // SSL issuance SHOULD be queued when previous attempt failed
+    expect(mockQueuePush).toHaveBeenCalledWith("issue-tracking-ssl", {
       domainId: createdDomain.id,
     });
   });

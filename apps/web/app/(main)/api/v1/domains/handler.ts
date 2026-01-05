@@ -368,8 +368,18 @@ export async function verifySendingDomain(
     updateData.dmarcVerifiedAt = now;
   }
 
-  // Queue SSL certificate issuance if tracking domain was newly verified
-  if (trackingNewlyVerified) {
+  // Determine if we should trigger SSL issuance:
+  // 1. Tracking domain is newly verified, OR
+  // 2. Tracking domain was already verified but SSL issuance hasn't started/completed
+  const trackingIsVerified =
+    trackingNewlyVerified || domain.trackingDomainVerifiedAt !== null;
+  const sslNotInProgress =
+    domain.sslIssuanceStatus !== "in_progress" &&
+    domain.sslIssuanceStatus !== "completed";
+  const shouldTriggerSsl = trackingIsVerified && sslNotInProgress;
+
+  // Queue SSL certificate issuance if needed
+  if (shouldTriggerSsl) {
     // Set SSL issuance status to pending before queuing the job
     (updateData as Record<string, unknown>).sslIssuanceStatus = "pending";
   }
@@ -379,7 +389,7 @@ export async function verifySendingDomain(
     data: updateData,
   });
 
-  if (trackingNewlyVerified) {
+  if (shouldTriggerSsl) {
     await queue("sending-domains").push("issue-tracking-ssl", { domainId });
   }
 
