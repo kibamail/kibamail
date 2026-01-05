@@ -28,8 +28,9 @@ import {
 } from "@/tests/utils";
 
 // Create the mock function using vi.hoisted so it's available for vi.mock
-const { mockVerifyDnsRecords } = vi.hoisted(() => ({
+const { mockVerifyDnsRecords, mockQueuePush } = vi.hoisted(() => ({
   mockVerifyDnsRecords: vi.fn<typeof verifyDnsRecords>(),
+  mockQueuePush: vi.fn(),
 }));
 
 // Mock the dns module to intercept verifyDnsRecords
@@ -39,6 +40,17 @@ vi.mock("@/lib/sending-domains/dns", async (importOriginal) => {
   return {
     ...actual,
     verifyDnsRecords: mockVerifyDnsRecords,
+  };
+});
+
+// Mock the queue module to verify SSL job is dispatched
+vi.mock("@/lib/queue", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/queue")>();
+  return {
+    ...actual,
+    queue: (queueName: string) => ({
+      push: mockQueuePush,
+    }),
   };
 });
 
@@ -450,5 +462,134 @@ describe("POST /api/v1/domains/[domainId]/verify", () => {
     expect(responseData.verification.dkim.configured).toBe(false);
     expect(responseData.verification.returnPath.configured).toBe(false);
     expect(responseData.verification.tracking.configured).toBe(false);
+  });
+
+  test("should queue SSL certificate issuance when tracking domain is newly verified", async () => {
+    const createdDomain = await createTestDomain(
+      fullAccessApiKey,
+      "ssl-trigger.example.com",
+    );
+
+    const expectedTrackingValue = createdDomain.dnsRecords.tracking.value;
+
+    // Mock verifyDnsRecords to return tracking as verified
+    mockVerifyDnsRecords.mockResolvedValue({
+      dkim: { configured: false, expected: "", found: [] },
+      returnPath: { configured: false, expected: "", found: [] },
+      tracking: {
+        configured: true,
+        expected: expectedTrackingValue,
+        found: [expectedTrackingValue],
+      },
+      dmarc: { configured: false, expected: "", found: [] },
+      allVerified: false,
+    });
+
+    // Clear any previous calls from domain creation
+    mockQueuePush.mockClear();
+
+    const request = apiRequest(`/domains/${createdDomain.id}/verify`)
+      .method("POST")
+      .auth(fullAccessApiKey.key)
+      .build();
+    const params = Promise.resolve({ domainId: createdDomain.id });
+
+    const response = await VerifyPOST(request, { params });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.trackingVerified).toBe(true);
+
+    // Verify SSL issuance job was queued
+    expect(mockQueuePush).toHaveBeenCalledWith("issue-tracking-ssl", {
+      domainId: createdDomain.id,
+    });
+  });
+
+  test("should not queue SSL certificate issuance when tracking domain was already verified", async () => {
+    const createdDomain = await createTestDomain(
+      fullAccessApiKey,
+      "ssl-no-retrigger.example.com",
+    );
+
+    const expectedTrackingValue = createdDomain.dnsRecords.tracking.value;
+
+    // First verification - tracking becomes verified
+    mockVerifyDnsRecords.mockResolvedValue({
+      dkim: { configured: false, expected: "", found: [] },
+      returnPath: { configured: false, expected: "", found: [] },
+      tracking: {
+        configured: true,
+        expected: expectedTrackingValue,
+        found: [expectedTrackingValue],
+      },
+      dmarc: { configured: false, expected: "", found: [] },
+      allVerified: false,
+    });
+
+    const request1 = apiRequest(`/domains/${createdDomain.id}/verify`)
+      .method("POST")
+      .auth(fullAccessApiKey.key)
+      .build();
+    await VerifyPOST(request1, {
+      params: Promise.resolve({ domainId: createdDomain.id }),
+    });
+
+    // Clear calls after first verification
+    mockQueuePush.mockClear();
+
+    // Second verification - tracking still configured but was already verified
+    const request2 = apiRequest(`/domains/${createdDomain.id}/verify`)
+      .method("POST")
+      .auth(fullAccessApiKey.key)
+      .build();
+    const response2 = await VerifyPOST(request2, {
+      params: Promise.resolve({ domainId: createdDomain.id }),
+    });
+    const data2 = await response2.json();
+
+    expect(response2.status).toBe(200);
+    expect(data2.trackingVerified).toBe(true);
+
+    // SSL issuance should NOT be queued again
+    expect(mockQueuePush).not.toHaveBeenCalledWith("issue-tracking-ssl", {
+      domainId: createdDomain.id,
+    });
+  });
+
+  test("should not queue SSL certificate issuance when tracking domain is not verified", async () => {
+    const createdDomain = await createTestDomain(
+      fullAccessApiKey,
+      "ssl-not-verified.example.com",
+    );
+
+    // Mock verifyDnsRecords to return tracking as NOT verified
+    mockVerifyDnsRecords.mockResolvedValue({
+      dkim: { configured: false, expected: "", found: [] },
+      returnPath: { configured: false, expected: "", found: [] },
+      tracking: { configured: false, expected: "", found: [] },
+      dmarc: { configured: false, expected: "", found: [] },
+      allVerified: false,
+    });
+
+    // Clear any previous calls from domain creation
+    mockQueuePush.mockClear();
+
+    const request = apiRequest(`/domains/${createdDomain.id}/verify`)
+      .method("POST")
+      .auth(fullAccessApiKey.key)
+      .build();
+    const params = Promise.resolve({ domainId: createdDomain.id });
+
+    const response = await VerifyPOST(request, { params });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.trackingVerified).toBe(false);
+
+    // SSL issuance should NOT be queued
+    expect(mockQueuePush).not.toHaveBeenCalledWith("issue-tracking-ssl", {
+      domainId: createdDomain.id,
+    });
   });
 });

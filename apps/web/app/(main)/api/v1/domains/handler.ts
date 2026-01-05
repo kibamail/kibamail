@@ -347,10 +347,11 @@ export async function verifySendingDomain(
     updateData.returnPathDomainVerifiedAt = now;
   }
 
-  if (
-    verificationResult.tracking.configured &&
-    !domain.trackingDomainVerifiedAt
-  ) {
+  // Track if tracking domain is being newly verified for SSL issuance
+  const trackingNewlyVerified =
+    verificationResult.tracking.configured && !domain.trackingDomainVerifiedAt;
+
+  if (trackingNewlyVerified) {
     updateData.trackingDomainVerifiedAt = now;
   }
 
@@ -362,6 +363,11 @@ export async function verifySendingDomain(
     where: { id: domainId },
     data: updateData,
   });
+
+  // Queue SSL certificate issuance if tracking domain was newly verified
+  if (trackingNewlyVerified) {
+    await queue("sending-domains").push("issue-tracking-ssl", { domainId });
+  }
 
   // Return verification result along with updated domain
   return responseOk(
