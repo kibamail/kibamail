@@ -21,7 +21,8 @@ const (
 	CiliumChartName = "cilium"
 )
 
-// CiliumInstaller handles Cilium CNI installation with Gateway API support
+// CiliumInstaller handles Cilium CNI installation (CNI only, no Gateway API)
+// Gateway API is handled by Istio instead due to Cilium hostNetwork bugs
 type CiliumInstaller struct {
 	kubeconfig string
 }
@@ -68,26 +69,24 @@ func (c *CiliumInstaller) Install(ctx context.Context, client *kubernetes.Client
 		return nil
 	}
 
-	spinner, err := ui.StartSpinner("Installing Cilium CNI with Gateway API support...")
+	spinner, err := ui.StartSpinner("Installing Cilium CNI...")
 	if err != nil {
 		return err
 	}
 
-	// Install Gateway API CRDs first (required for Cilium Gateway API support)
+	// Install Gateway API CRDs (required for Istio Gateway API support)
 	ui.PrintStep(1, 3, "Installing Gateway API CRDs")
 	if err := c.installGatewayAPICRDs(ctx); err != nil {
 		ui.StopSpinnerFail(spinner, "Failed to install Gateway API CRDs")
 		return fmt.Errorf("failed to install Gateway API CRDs: %w", err)
 	}
 
-	// Cilium Helm values - minimal configuration as per requirements
+	// Cilium Helm values - CNI only, Gateway API disabled (handled by Istio)
+	// See: https://github.com/cilium/cilium/issues/42786 (hostNetwork bug)
 	values := map[string]interface{}{
 		"kubeProxyReplacement": true,
 		"gatewayAPI": map[string]interface{}{
-			"enabled": true,
-			"hostNetwork": map[string]interface{}{
-				"enabled": true,
-			},
+			"enabled": false,
 		},
 	}
 

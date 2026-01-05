@@ -15,6 +15,7 @@ import (
 
 var (
 	skipCilium            bool
+	skipIstio             bool
 	skipCertManager       bool
 	skipCloudNativePG     bool
 	skipBarmanCloud       bool
@@ -33,7 +34,8 @@ var installCmd = &cobra.Command{
 	Long: `Install all required infrastructure components for the Kibamail control plane.
 
 Components installed:
-  - Cilium CNI with Gateway API support
+  - Cilium CNI (networking only, Gateway API disabled)
+  - Istio Gateway API controller (with hostNetwork support)
   - cert-manager for certificate management
   - CloudNativePG for PostgreSQL
   - Barman Cloud Plugin for PostgreSQL backups
@@ -54,6 +56,7 @@ func init() {
 	rootCmd.AddCommand(installCmd)
 
 	installCmd.Flags().BoolVar(&skipCilium, "skip-cilium", false, "Skip Cilium installation")
+	installCmd.Flags().BoolVar(&skipIstio, "skip-istio", false, "Skip Istio installation")
 	installCmd.Flags().BoolVar(&skipCertManager, "skip-cert-manager", false, "Skip cert-manager installation")
 	installCmd.Flags().BoolVar(&skipCloudNativePG, "skip-cloudnativepg", false, "Skip CloudNativePG installation")
 	installCmd.Flags().BoolVar(&skipBarmanCloud, "skip-barman-cloud", false, "Skip Barman Cloud Plugin installation")
@@ -126,6 +129,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 
 	components := []componentDef{
 		{skip: skipCilium, installer: installer.NewCiliumInstaller(kubeconfig)},
+		{skip: skipIstio, installer: installer.NewIstioInstaller(kubeconfig)},
 		{skip: skipCertManager, installer: installer.NewCertManagerInstaller(kubeconfig)},
 		{skip: skipCloudNativePG, installer: installer.NewCloudNativePGInstaller(kubeconfig)},
 		{skip: skipBarmanCloud, installer: installer.NewBarmanCloudInstaller(kubeconfig)},

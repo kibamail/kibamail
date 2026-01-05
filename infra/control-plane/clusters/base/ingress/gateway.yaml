@@ -1,9 +1,33 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibamail-gateway-config
+data:
+  deployment: |
+    spec:
+      template:
+        spec:
+          hostNetwork: true
+          dnsPolicy: ClusterFirstWithHostNet
+          securityContext:
+            sysctls: []
+  service: |
+    spec:
+      type: ClusterIP
+---
 apiVersion: gateway.networking.k8s.io/v1
 kind: Gateway
 metadata:
   name: kibamail-gateway
+  annotations:
+    networking.istio.io/service-type: ClusterIP
 spec:
-  gatewayClassName: cilium
+  gatewayClassName: istio
+  infrastructure:
+    parametersRef:
+      group: ""
+      kind: ConfigMap
+      name: kibamail-gateway-config
   listeners:
     # HTTP listener for ACME challenges and health checks
     - name: http
