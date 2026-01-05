@@ -21,10 +21,22 @@ export const renewExpiringSsl: JobProcessor<
   "sending-domains",
   "renew-expiring-ssl"
 > = async (_data, jobId) => {
-  logger.info({ jobId }, "Starting SSL certificate renewal check");
+  logger.info(
+    { jobId, renewalThresholdDays: RENEWAL_THRESHOLD_DAYS },
+    "=== SSL CERTIFICATE RENEWAL CHECK STARTED ===",
+  );
 
   const thresholdDate = new Date();
   thresholdDate.setDate(thresholdDate.getDate() - RENEWAL_THRESHOLD_DAYS);
+
+  logger.info(
+    {
+      jobId,
+      thresholdDate: thresholdDate.toISOString(),
+      lookingForCertsOlderThan: `${RENEWAL_THRESHOLD_DAYS} days`,
+    },
+    "Searching for certificates issued before threshold date",
+  );
 
   // Find all domains with SSL certificates issued before the threshold
   const domainsNeedingRenewal = await prisma.sendingDomain.findMany({
@@ -47,13 +59,16 @@ export const renewExpiringSsl: JobProcessor<
   });
 
   if (domainsNeedingRenewal.length === 0) {
-    logger.info({ jobId }, "No certificates need renewal");
+    logger.info(
+      { jobId, thresholdDate: thresholdDate.toISOString() },
+      "No certificates need renewal - all certificates are within the valid period",
+    );
     return;
   }
 
   logger.info(
     { jobId, count: domainsNeedingRenewal.length },
-    "Found certificates needing renewal",
+    "=== FOUND CERTIFICATES NEEDING RENEWAL ===",
   );
 
   // Queue renewal jobs for each domain
@@ -63,16 +78,21 @@ export const renewExpiringSsl: JobProcessor<
     const daysOld = Math.floor(
       (Date.now() - sslVerifiedAt.getTime()) / (1000 * 60 * 60 * 24),
     );
+    const daysUntilExpiry = 90 - daysOld;
+    const trackingDomain = `${domain.trackingSubDomain}.${domain.name}`;
 
     logger.info(
       {
         jobId,
         domainId: domain.id,
         domainName: domain.name,
-        trackingDomain: `${domain.trackingSubDomain}.${domain.name}`,
-        daysOld,
+        trackingDomain,
+        certificateIssuedAt: sslVerifiedAt.toISOString(),
+        certificateAgeDays: daysOld,
+        daysUntilExpiry,
+        status: daysUntilExpiry <= 0 ? "EXPIRED" : "EXPIRING_SOON",
       },
-      "Queuing SSL renewal",
+      "Queuing SSL certificate renewal for domain",
     );
 
     return {
@@ -82,10 +102,15 @@ export const renewExpiringSsl: JobProcessor<
   });
 
   // Push all renewal jobs to the queue
+  logger.info(
+    { jobId, count: renewalJobs.length },
+    "Pushing renewal jobs to queue",
+  );
+
   await queue("sending-domains").pushBulk(renewalJobs);
 
   logger.info(
     { jobId, count: renewalJobs.length },
-    "SSL renewal jobs queued successfully",
+    "=== SSL CERTIFICATE RENEWAL CHECK COMPLETED - RENEWAL JOBS QUEUED ===",
   );
 };

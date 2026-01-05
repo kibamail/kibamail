@@ -403,6 +403,7 @@ kumo.on('smtp_server_message_received', function(msg)
     'X-Kibamail-Contact-Id',
     'X-Kibamail-Workspace-Id',
     'X-Kibamail-Email-Send-Id',
+    'X-Kibamail-Pool',
   }
 
   -- Get the workspace ID from auth metadata (if available)
@@ -416,8 +417,9 @@ kumo.on('smtp_server_message_received', function(msg)
     end
   end
 
-  -- Assign to marketing pool
-  msg:set_meta('egress_pool', 'marketing')
+  -- SMTP injection always uses transactional pool
+  -- Marketing emails are only supported via HTTP injection
+  msg:set_meta('egress_pool', 'transactional')
 
   -- ==========================================================================
   -- 2-FOLD DKIM SIGNING
@@ -490,10 +492,13 @@ kumo.on('http_message_generated', function(msg)
     'X-Kibamail-Contact-Id',
     'X-Kibamail-Workspace-Id',
     'X-Kibamail-Email-Send-Id',
+    'X-Kibamail-Pool',
   }
 
-  -- Assign to marketing pool
-  msg:set_meta('egress_pool', 'marketing')
+  -- Read pool from header (set by control plane)
+  -- Valid values: 'marketing', 'transactional'
+  local pool = msg:get_meta('kibamail_pool') or 'marketing'
+  msg:set_meta('egress_pool', pool)
 
   -- Get sender domain
   local from_header = msg:from_header()

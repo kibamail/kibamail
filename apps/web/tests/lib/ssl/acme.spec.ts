@@ -10,12 +10,10 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 // Use vi.hoisted to ensure mocks are available before module loading
 const { mockClientInstance, mockForge } = vi.hoisted(() => {
   const mockClientInstance = {
-    createAccount: vi.fn(),
     auto: vi.fn(),
   };
 
   const mockForge = {
-    createPrivateKey: vi.fn(),
     createCsr: vi.fn(),
   };
 
@@ -25,7 +23,6 @@ const { mockClientInstance, mockForge } = vi.hoisted(() => {
 vi.mock("acme-client", () => {
   // Create a proper class mock that can be instantiated
   class MockClient {
-    createAccount = mockClientInstance.createAccount;
     auto = mockClientInstance.auto;
   }
 
@@ -80,7 +77,7 @@ describe("AcmeCertificateTool", () => {
       const tool = createAcmeTool();
 
       expect(() => tool.client()).toThrow(
-        "Account key not set. Call setAccountKey() first.",
+        "Account key not set. Call setAccountKey() first."
       );
     });
 
@@ -94,25 +91,12 @@ describe("AcmeCertificateTool", () => {
     });
   });
 
-  describe("generateAccountKey", () => {
-    test("should generate a new private key", async () => {
-      const expectedKey = Buffer.from("generated-private-key");
-      mockForge.createPrivateKey.mockResolvedValue(expectedKey);
-
-      const tool = createAcmeTool();
-      const key = await tool.generateAccountKey();
-
-      expect(mockForge.createPrivateKey).toHaveBeenCalled();
-      expect(key).toEqual(expectedKey);
-    });
-  });
-
   describe("createCsr", () => {
     test("should throw if domain not set", async () => {
       const tool = createAcmeTool();
 
       await expect(tool.createCsr()).rejects.toThrow(
-        "Domain not set. Call forDomain() first.",
+        "Domain not set. Call forDomain() first."
       );
     });
 
@@ -131,31 +115,6 @@ describe("AcmeCertificateTool", () => {
     });
   });
 
-  describe("createAccount", () => {
-    test("should create ACME account and return account with key", async () => {
-      const generatedKey = Buffer.from("new-account-key");
-      const account = {
-        status: "valid",
-        orders: "https://acme.example.com/orders",
-        contact: ["mailto:ssl@kibamail.com"],
-      };
-
-      mockForge.createPrivateKey.mockResolvedValue(generatedKey);
-      mockClient.createAccount.mockResolvedValue(account);
-
-      const tool = createAcmeTool();
-      const result = await tool.createAccount();
-
-      expect(mockForge.createPrivateKey).toHaveBeenCalled();
-      expect(mockClient.createAccount).toHaveBeenCalledWith({
-        termsOfServiceAgreed: true,
-        contact: expect.arrayContaining([expect.stringMatching(/^mailto:/)]),
-      });
-      expect(result.accountKey).toEqual(generatedKey);
-      expect(result.account).toEqual(account);
-    });
-  });
-
   describe("issueCertificate", () => {
     test("should throw if domain not set", async () => {
       const tool = createAcmeTool().setAccountKey(Buffer.from("key"));
@@ -163,8 +122,8 @@ describe("AcmeCertificateTool", () => {
       await expect(
         tool.issueCertificate(
           async () => {},
-          async () => {},
-        ),
+          async () => {}
+        )
       ).rejects.toThrow("Domain not set. Call forDomain() first.");
     });
 
@@ -174,8 +133,8 @@ describe("AcmeCertificateTool", () => {
       await expect(
         tool.issueCertificate(
           async () => {},
-          async () => {},
-        ),
+          async () => {}
+        )
       ).rejects.toThrow("Account key not set. Call setAccountKey() first.");
     });
 
@@ -186,7 +145,6 @@ describe("AcmeCertificateTool", () => {
         "-----BEGIN CERTIFICATE-----\nABC123\n-----END CERTIFICATE-----";
 
       mockForge.createCsr.mockResolvedValue([privateKey, csr]);
-      mockClient.createAccount.mockResolvedValue({ status: "valid" });
       mockClient.auto.mockResolvedValue(certificate);
 
       const onChallengeCreate = vi.fn();
@@ -198,7 +156,7 @@ describe("AcmeCertificateTool", () => {
 
       const result = await tool.issueCertificate(
         onChallengeCreate,
-        onChallengeRemove,
+        onChallengeRemove
       );
 
       expect(result.certificate).toBe(certificate);
@@ -220,19 +178,18 @@ describe("AcmeCertificateTool", () => {
         "-----BEGIN CERTIFICATE-----\nABC123\n-----END CERTIFICATE-----";
 
       mockForge.createCsr.mockResolvedValue([privateKey, csr]);
-      mockClient.createAccount.mockResolvedValue({ status: "valid" });
 
       mockClient.auto.mockImplementation(
         async (opts: {
           challengeCreateFn: (
             authz: { identifier: { value: string } },
             challenge: { token: string; type: string },
-            keyAuth: string,
+            keyAuth: string
           ) => Promise<void>;
           challengeRemoveFn: (
             authz: { identifier: { value: string } },
             challenge: { token: string; type: string },
-            keyAuth: string,
+            keyAuth: string
           ) => Promise<void>;
         }) => {
           // Simulate ACME calling the challenge functions
@@ -244,7 +201,7 @@ describe("AcmeCertificateTool", () => {
           await opts.challengeRemoveFn(authz, challenge, keyAuth);
 
           return certificate;
-        },
+        }
       );
 
       const onChallengeCreate = vi.fn();
@@ -258,7 +215,7 @@ describe("AcmeCertificateTool", () => {
 
       expect(onChallengeCreate).toHaveBeenCalledWith(
         "challenge-token-123",
-        "challenge-token-123.thumbprint",
+        "challenge-token-123.thumbprint"
       );
       expect(onChallengeRemove).toHaveBeenCalledWith("challenge-token-123");
     });
@@ -268,7 +225,6 @@ describe("AcmeCertificateTool", () => {
       const csr = Buffer.from("domain-csr");
 
       mockForge.createCsr.mockResolvedValue([privateKey, csr]);
-      mockClient.createAccount.mockResolvedValue({ status: "valid" });
       mockClient.auto.mockRejectedValue(new Error("ACME authorization failed"));
 
       const tool = createAcmeTool()
@@ -278,8 +234,8 @@ describe("AcmeCertificateTool", () => {
       await expect(
         tool.issueCertificate(
           async () => {},
-          async () => {},
-        ),
+          async () => {}
+        )
       ).rejects.toThrow("ACME authorization failed");
     });
   });

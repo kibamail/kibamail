@@ -14,7 +14,9 @@ receivers:
       http:
         endpoint: "127.0.0.1:{{ otel_collector_otlp_http_port }}"
 
-  # Journald receiver for application logs (email-agent logs to systemd journal)
+  # Journald receiver for application logs
+  # - email-agent: JSON logs (zerolog)
+  # - kumomta/kumo-tsa-daemon: Plain text logs with timestamp prefix
   journald:
     units:
 {% for unit in otel_collector_journald_units %}
@@ -37,7 +39,7 @@ receivers:
             error: error
             fatal: fatal
             panic: fatal
-      # Extract trace correlation from log body
+      # Extract trace correlation from JSON logs
       - type: move
         from: attributes.trace_id
         to: attributes["trace.id"]
@@ -46,11 +48,31 @@ receivers:
         from: attributes.span_id
         to: attributes["span.id"]
         if: attributes.span_id != nil
-      # Move message to body
+      # Move message to body for JSON logs
       - type: move
         from: attributes.message
         to: body
         if: attributes.message != nil
+      # Parse KumoMTA/TSA plain text logs (format: 2026-01-04T14:44:15.391570Z  INFO localset-0 kumod: message)
+      - type: regex_parser
+        if: body matches "^\\d{4}-\\d{2}-\\d{2}T"
+        regex: '^(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d+Z)\s+(?P<level>\w+)\s+(?P<thread>[^\s]+)\s+(?P<component>[^:]+):\s*(?P<message>.*)$'
+        timestamp:
+          parse_from: attributes.timestamp
+          layout: '%Y-%m-%dT%H:%M:%S.%fZ'
+        severity:
+          parse_from: attributes.level
+          mapping:
+            TRACE: trace
+            DEBUG: debug
+            INFO: info
+            WARN: warn
+            ERROR: error
+      # Move parsed message to body for KumoMTA logs
+      - type: move
+        from: attributes.message
+        to: body
+        if: attributes.message != nil and attributes.component != nil
 
   # Host metrics (optional - CPU, memory, disk, network)
   hostmetrics:

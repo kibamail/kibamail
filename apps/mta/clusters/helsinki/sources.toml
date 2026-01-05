@@ -3,13 +3,19 @@
 # =============================================================================
 #
 # Production cluster for Europe (Finland - Hetzner Helsinki)
-# IP Range: 37.27.167.40/29 (37.27.167.40 - 37.27.167.47)
+#
+# Marketing IP Range: 37.27.167.40/29
+#   - Network address: 37.27.167.40 (unusable)
+#   - Usable hosts: 37.27.167.41 - 37.27.167.46 (6 IPs)
+#   - Broadcast address: 37.27.167.47 (unusable)
+#
+# Transactional IP Range: 135.181.10.0/29
+#   - Network address: 135.181.10.0 (unusable)
+#   - Usable hosts: 135.181.10.1 - 135.181.10.6 (6 IPs)
+#   - Broadcast address: 135.181.10.7 (unusable)
 #
 # All traffic is routed through the SOCKS5 proxy server at 10.0.0.2:5000 (vSwitch)
 # The proxy server holds the public IPs and initiates outbound connections.
-#
-# Active IPs: 37.27.167.45, 37.27.167.46, 37.27.167.47
-# Reserved IPs: 37.27.167.40 - 37.27.167.44 (defined but not in pools)
 #
 # =============================================================================
 
@@ -40,11 +46,6 @@ socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.46"
 ehlo_domain = "mktg-mta-6.kbmta.net"
 
-[source."mktg-mta-7"]
-socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.47"
-ehlo_domain = "mktg-mta-7.kbmta.net"
-
 # -----------------------------------------------------------------------------
 # Reserved Sources (not currently in pools)
 # -----------------------------------------------------------------------------
@@ -53,7 +54,7 @@ ehlo_domain = "mktg-mta-7.kbmta.net"
 #   37.27.167.42 <-> mktg-mta-2.kbmta.net
 #   37.27.167.43 <-> mktg-mta-3.kbmta.net
 #   37.27.167.44 <-> mktg-mta-4.kbmta.net
-#   37.27.167.40 <-> mktg-mta-8.kbmta.net (if configured)
+#
 
 [source."mktg-mta-1"]
 socks5_proxy_server = "10.0.0.2:5000"
@@ -75,12 +76,6 @@ socks5_proxy_server = "10.0.0.2:5000"
 socks5_proxy_source_address = "37.27.167.44"
 ehlo_domain = "mktg-mta-4.kbmta.net"
 
-[source."mktg-mta-0"]
-socks5_proxy_server = "10.0.0.2:5000"
-socks5_proxy_source_address = "37.27.167.40"
-ehlo_domain = "mktg-mta-0.kbmta.net"
-
-
 # =============================================================================
 # EGRESS POOLS
 # =============================================================================
@@ -101,9 +96,6 @@ weight = 1
 [pool."marketing"."mktg-mta-6"]
 weight = 1
 
-[pool."marketing"."mktg-mta-7"]
-weight = 1
-
 # -----------------------------------------------------------------------------
 # Default Pool - Fallback pool when no specific pool is assigned
 # -----------------------------------------------------------------------------
@@ -116,5 +108,59 @@ weight = 1
 [pool."default"."mktg-mta-6"]
 weight = 1
 
-[pool."default"."mktg-mta-7"]
+# =============================================================================
+# TRANSACTIONAL EGRESS SOURCES
+# =============================================================================
+#
+# IP Range: 135.181.10.0/29
+#   - Network address: 135.181.10.0 (unusable)
+#   - Usable hosts: 135.181.10.1 - 135.181.10.6 (6 IPs)
+#   - Broadcast address: 135.181.10.7 (unusable)
+#
+# Pattern: trx-mta-<idx>.kbmta.net
+#
+# DNS requirements:
+#   - Forward DNS (A record): trx-mta-X.kbmta.net -> 135.181.10.X
+#   - Reverse DNS (PTR record): 135.181.10.X -> trx-mta-X.kbmta.net
+
+[source."trx-mta-1"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "135.181.10.1"
+ehlo_domain = "trx-mta-1.kbmta.net"
+
+[source."trx-mta-2"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "135.181.10.2"
+ehlo_domain = "trx-mta-2.kbmta.net"
+
+[source."trx-mta-3"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "135.181.10.3"
+ehlo_domain = "trx-mta-3.kbmta.net"
+
+[source."trx-mta-4"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "135.181.10.4"
+ehlo_domain = "trx-mta-4.kbmta.net"
+
+[source."trx-mta-5"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "135.181.10.5"
+ehlo_domain = "trx-mta-5.kbmta.net"
+
+[source."trx-mta-6"]
+socks5_proxy_server = "10.0.0.2:5000"
+socks5_proxy_source_address = "135.181.10.6"
+ehlo_domain = "trx-mta-6.kbmta.net"
+
+# -----------------------------------------------------------------------------
+# Transactional Pool - All transactional emails (password resets, receipts, etc.)
+# -----------------------------------------------------------------------------
+
+[pool."transactional"]
+
+[pool."transactional"."trx-mta-1"]
+weight = 1
+
+[pool."transactional"."trx-mta-2"]
 weight = 1

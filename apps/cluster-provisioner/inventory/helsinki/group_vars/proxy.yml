@@ -1,23 +1,38 @@
 # Helsinki Proxy Node Variables
 #
 # Configuration for the SOCKS5 proxy server that handles outbound email traffic.
-# The proxy binds multiple IPs from the egress subnet for IP rotation.
+# The proxy binds multiple IPs from the egress subnets for IP rotation.
 #
 ---
 # Network interface to bind sending IPs to
 # Verify with 'ip link show' on the proxy server
 proxy_network_interface: "enp41s0"
 
-# Sending IPs to bind from the /29 subnet (37.27.167.40-47)
-# 37.27.167.40 is typically the network address, 37.27.167.47 is broadcast
-# Using .41-.46 for sending (6 usable IPs)
+# Marketing IPs from /29 subnet (37.27.167.40/29)
+#   - Network address: 37.27.167.40 (not usable for sending)
+#   - Usable hosts: 37.27.167.41-46 (6 IPs)
+#   - Broadcast address: 37.27.167.47 (not usable for sending)
+#
+# Transactional IPs from /29 subnet (135.181.10.0/29)
+#   - Network address: 135.181.10.0 (not usable for sending)
+#   - Usable hosts: 135.181.10.1-6 (6 IPs)
+#   - Broadcast address: 135.181.10.7 (not usable for sending)
 proxy_bind_ips:
+  # Marketing IPs (mktg-mta-X.kbmta.net)
   - "37.27.167.41"
   - "37.27.167.42"
   - "37.27.167.43"
   - "37.27.167.44"
   - "37.27.167.45"
   - "37.27.167.46"
+
+  # Transactional IPs (trx-mta-X.kbmta.net)
+  - "135.181.10.1"
+  - "135.181.10.2"
+  - "135.181.10.3"
+  - "135.181.10.4"
+  - "135.181.10.5"
+  - "135.181.10.6"
 proxy_bind_ip_netmask: 29
 
 # KumoProxy SOCKS5 server configuration

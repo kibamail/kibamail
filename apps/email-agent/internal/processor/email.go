@@ -102,6 +102,7 @@ func (p *EmailProcessor) HandleMessage(ctx context.Context, msg Message) error {
 		Str("tenant_id", emailMsg.TenantID).
 		Str("broadcast_id", emailMsg.BroadcastID).
 		Str("contact_id", emailMsg.ContactID).
+		Str("pool", emailMsg.Pool).
 		Str("recipient_email", emailMsg.Recipient.Email).
 		Str("recipient_name", emailMsg.Recipient.Name).
 		Str("sender_email", emailMsg.Sender.FullAddress()).
@@ -240,6 +241,12 @@ func (p *EmailProcessor) processEmail(ctx context.Context, msg *domain.EmailMess
 	}
 
 	// 3. Build KumoMTA injection request
+	// Determine egress pool (default to marketing if not specified)
+	pool := msg.Pool
+	if pool == "" {
+		pool = "marketing"
+	}
+
 	req := &kumomta.InjectRequest{
 		EnvelopeSender: msg.Metadata["envelope_sender"],
 		Content: kumomta.ContentBuilder{
@@ -252,6 +259,7 @@ func (p *EmailProcessor) processEmail(ctx context.Context, msg *domain.EmailMess
 			Subject:     msg.Subject,
 			Attachments: attachments,
 			Headers: map[string]string{
+				"X-Kibamail-Pool":      pool,
 				"X-Kibamail-Tenant":    msg.TenantID,
 				"X-Kibamail-Broadcast": msg.BroadcastID,
 				"X-Kibamail-Contact":   msg.ContactID,

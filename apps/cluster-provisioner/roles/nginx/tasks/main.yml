@@ -185,6 +185,119 @@
   notify: Reload nginx
   when: nginx_nats_monitor_enabled
 
+# =============================================================================
+# Email Agent Metrics Proxy (TLS)
+# =============================================================================
+
+- name: Check if agent metrics TLS certificate already exists
+  ansible.builtin.stat:
+    path: "{{ nginx_agent_tls_dir }}/fullchain.pem"
+  register: nginx_agent_tls_cert_exists
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+
+- name: Obtain TLS certificate for agent metrics from Let's Encrypt via Cloudflare DNS
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials /etc/letsencrypt/cloudflare/credentials.ini
+      --dns-cloudflare-propagation-seconds 30
+      --non-interactive
+      --agree-tos
+      --email {{ nginx_tls_cert_email }}
+      -d {{ nginx_agent_metrics_hostname }}
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+    - not nginx_agent_tls_cert_exists.stat.exists | default(true)
+  register: nginx_agent_certbot_result
+
+- name: Create nginx agent TLS directory
+  ansible.builtin.file:
+    path: "{{ nginx_agent_tls_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0750"
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+
+- name: Check if agent letsencrypt certificate exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ nginx_agent_metrics_hostname }}/fullchain.pem"
+  register: agent_letsencrypt_cert_exists
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+
+- name: Copy agent TLS certificate to nginx
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ nginx_agent_metrics_hostname }}/fullchain.pem"
+    dest: "{{ nginx_agent_tls_dir }}/fullchain.pem"
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: yes
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+    - agent_letsencrypt_cert_exists.stat.exists | default(false)
+  notify: Reload nginx
+
+- name: Copy agent TLS private key to nginx
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ nginx_agent_metrics_hostname }}/privkey.pem"
+    dest: "{{ nginx_agent_tls_dir }}/privkey.pem"
+    owner: root
+    group: root
+    mode: "0600"
+    remote_src: yes
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+    - agent_letsencrypt_cert_exists.stat.exists | default(false)
+  notify: Reload nginx
+
+- name: Create certbot renewal hook for agent nginx
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      cp /etc/letsencrypt/live/{{ nginx_agent_metrics_hostname }}/fullchain.pem {{ nginx_agent_tls_dir }}/fullchain.pem
+      cp /etc/letsencrypt/live/{{ nginx_agent_metrics_hostname }}/privkey.pem {{ nginx_agent_tls_dir }}/privkey.pem
+      chown root:root {{ nginx_agent_tls_dir }}/*.pem
+      chmod 644 {{ nginx_agent_tls_dir }}/fullchain.pem
+      chmod 600 {{ nginx_agent_tls_dir }}/privkey.pem
+      systemctl reload nginx || true
+    dest: /etc/letsencrypt/renewal-hooks/deploy/nginx-agent.sh
+    owner: root
+    group: root
+    mode: "0755"
+  when:
+    - nginx_tls_enabled
+    - nginx_agent_metrics_enabled
+    - agent_letsencrypt_cert_exists.stat.exists | default(false)
+
+- name: Deploy email agent metrics proxy configuration
+  ansible.builtin.template:
+    src: agent-metrics.conf.j2
+    dest: /etc/nginx/sites-available/agent-metrics.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+  when: nginx_agent_metrics_enabled
+
+- name: Enable email agent metrics site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/agent-metrics.conf
+    dest: /etc/nginx/sites-enabled/agent-metrics.conf
+    state: link
+  notify: Reload nginx
+  when: nginx_agent_metrics_enabled
+
 - name: Ensure stream block is in nginx.conf
   ansible.builtin.blockinfile:
     path: /etc/nginx/nginx.conf
@@ -219,4 +332,11 @@
       - Upstream: http://{{ nginx_nats_upstream_host }}:{{ nats_http_port }}
       - TLS: {{ nginx_tls_dir }}/fullchain.pem
 
-      DNS required: {{ nginx_nats_hostname }} -> {{ ansible_host }}
+      Email Agent metrics HTTPS:
+      - External: https://{{ nginx_agent_metrics_hostname }}:{{ nginx_agent_metrics_port }}/metrics
+      - Upstream: http://{{ nginx_agent_metrics_upstream_host }}:{{ nginx_agent_metrics_upstream_port }}
+      - TLS: {{ nginx_agent_tls_dir }}/fullchain.pem
+
+      DNS required:
+      - {{ nginx_nats_hostname }} -> {{ ansible_host }}
+      - {{ nginx_agent_metrics_hostname }} -> {{ ansible_host }}

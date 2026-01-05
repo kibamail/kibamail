@@ -51,6 +51,7 @@ export interface EmailMessage {
   tenant_id: string;
   broadcast_id: string;
   contact_id: string;
+  pool: "marketing" | "transactional";
   recipient: EmailRecipient;
   sender: EmailSender;
   reply_to: EmailAddress;

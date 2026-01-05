@@ -5,15 +5,16 @@
  * using the ACME protocol.
  *
  * Features:
- * - Account creation and management
  * - CSR generation
  * - HTTP-01 challenge handling
  * - Certificate issuance
  */
 
 import * as acme from "acme-client";
-import type { Account } from "acme-client/types/rfc8555";
 import { env } from "@/env/schema";
+import { queueLogger } from "@/lib/queue";
+
+const logger = queueLogger.child({ module: "acme-certificate-tool" });
 
 /**
  * ACME client wrapper for Let's Encrypt certificate provisioning
@@ -27,6 +28,7 @@ export class AcmeCertificateTool {
    */
   forDomain(domain: string): this {
     this.domain = domain;
+    logger.debug({ domain }, "ACME tool configured for domain");
     return this;
   }
 
@@ -46,17 +48,15 @@ export class AcmeCertificateTool {
       throw new Error("Account key not set. Call setAccountKey() first.");
     }
 
+    logger.debug(
+      { directoryUrl: env.ACME_DIRECTORY_URL },
+      "Creating ACME client"
+    );
+
     return new acme.Client({
       directoryUrl: env.ACME_DIRECTORY_URL,
       accountKey: this.accountKey,
     });
-  }
-
-  /**
-   * Generate a new ACME account private key
-   */
-  async generateAccountKey(): Promise<Buffer> {
-    return acme.forge.createPrivateKey();
   }
 
   /**
@@ -69,30 +69,15 @@ export class AcmeCertificateTool {
       throw new Error("Domain not set. Call forDomain() first.");
     }
 
-    return acme.forge.createCsr({
+    logger.info(
+      { domain: this.domain },
+      "Creating Certificate Signing Request (CSR)"
+    );
+    const result = await acme.forge.createCsr({
       commonName: this.domain,
     });
-  }
-
-  /**
-   * Create a new ACME account with Let's Encrypt
-   *
-   * This should only be called once per installation.
-   * The account key should be stored securely for future use.
-   */
-  async createAccount(): Promise<{
-    accountKey: Buffer;
-    account: Account;
-  }> {
-    const accountKey = await this.generateAccountKey();
-    this.accountKey = accountKey;
-
-    const account = await this.client().createAccount({
-      termsOfServiceAgreed: true,
-      contact: [`mailto:${env.ACME_CONTACT_EMAIL}`],
-    });
-
-    return { accountKey, account };
+    logger.info({ domain: this.domain }, "CSR created successfully");
+    return result;
   }
 
   /**
@@ -100,9 +85,8 @@ export class AcmeCertificateTool {
    *
    * This handles the full ACME flow:
    * 1. Creates a CSR
-   * 2. Initiates the ACME order
-   * 3. Calls the challenge handlers for HTTP-01 validation
-   * 4. Returns the issued certificate
+   * 2. Initiates the ACME order with HTTP-01 challenge validation
+   * 3. Returns the issued certificate
    *
    * @param onChallengeCreate - Called when the challenge needs to be served
    * @param onChallengeRemove - Called when the challenge can be removed
@@ -111,13 +95,15 @@ export class AcmeCertificateTool {
   async issueCertificate(
     onChallengeCreate: (
       token: string,
-      keyAuthorization: string,
+      keyAuthorization: string
     ) => Promise<void>,
-    onChallengeRemove: (token: string) => Promise<void>,
+    onChallengeRemove: (token: string) => Promise<void>
   ): Promise<{
     certificate: string;
     privateKey: Buffer;
   }> {
+    const startTime = Date.now();
+
     if (!this.domain) {
       throw new Error("Domain not set. Call forDomain() first.");
     }
@@ -126,28 +112,69 @@ export class AcmeCertificateTool {
       throw new Error("Account key not set. Call setAccountKey() first.");
     }
 
-    // Create CSR
+    logger.info(
+      { domain: this.domain, directoryUrl: env.ACME_DIRECTORY_URL },
+      "Starting ACME certificate issuance process"
+    );
+
+    logger.info({ domain: this.domain }, "Step 1/3: Creating CSR");
     const [privateKey, csr] = await this.createCsr();
 
-    // Ensure account exists
-    await this.client().createAccount({
-      termsOfServiceAgreed: true,
-      contact: [`mailto:${env.ACME_CONTACT_EMAIL}`],
-    });
+    logger.info(
+      { domain: this.domain },
+      "Step 2/3: Initiating ACME order with HTTP-01 challenge"
+    );
 
-    // Issue certificate with auto challenge handling
+    let challengeCount = 0;
     const certificate = await this.client().auto({
       csr,
       termsOfServiceAgreed: true,
       skipChallengeVerification: true,
       email: env.ACME_CONTACT_EMAIL,
-      challengeCreateFn: async (_authz, challenge, keyAuthorization) => {
+      challengeCreateFn: async (authz, challenge, keyAuthorization) => {
+        challengeCount++;
+        logger.info(
+          {
+            domain: this.domain,
+            challengeType: challenge.type,
+            tokenPrefix: challenge.token.slice(0, 8),
+            identifier: authz.identifier.value,
+          },
+          "HTTP-01 challenge received - storing challenge token"
+        );
         await onChallengeCreate(challenge.token, keyAuthorization);
+        logger.info(
+          {
+            domain: this.domain,
+            tokenPrefix: challenge.token.slice(0, 8),
+          },
+          "Challenge token stored - waiting for Let's Encrypt validation"
+        );
       },
-      challengeRemoveFn: async (_authz, challenge, _keyAuthorization) => {
+      challengeRemoveFn: async (authz, challenge, _keyAuthorization) => {
+        logger.info(
+          {
+            domain: this.domain,
+            tokenPrefix: challenge.token.slice(0, 8),
+            identifier: authz.identifier.value,
+          },
+          "Challenge completed - removing challenge token"
+        );
         await onChallengeRemove(challenge.token);
       },
     });
+
+    const durationMs = Date.now() - startTime;
+    logger.info(
+      {
+        domain: this.domain,
+        durationMs,
+        durationSec: Math.round(durationMs / 1000),
+        challengeCount,
+        certificateLength: certificate.length,
+      },
+      "Step 3/3: Certificate issued successfully"
+    );
 
     return {
       certificate,

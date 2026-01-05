@@ -26,10 +26,15 @@ export const issueTrackingSsl: JobProcessor<
   "issue-tracking-ssl"
 > = async (data, jobId) => {
   const { domainId } = data;
+  const startTime = Date.now();
 
-  logger.info({ jobId, domainId }, "Starting SSL certificate issuance");
+  logger.info(
+    { jobId, domainId },
+    "=== SSL CERTIFICATE ISSUANCE JOB STARTED ===",
+  );
 
   // Fetch the domain
+  logger.info({ jobId, domainId }, "Fetching domain details from database");
   const domain = await prisma.sendingDomain.findUnique({
     where: { id: domainId },
     select: {
@@ -46,11 +51,26 @@ export const issueTrackingSsl: JobProcessor<
     return;
   }
 
+  const trackingDomain = `${domain.trackingSubDomain}.${domain.name}`;
+
+  logger.info(
+    {
+      jobId,
+      domainId,
+      domainName: domain.name,
+      trackingDomain,
+      trackingDomainVerifiedAt: domain.trackingDomainVerifiedAt?.toISOString(),
+      trackingDomainSslVerifiedAt:
+        domain.trackingDomainSslVerifiedAt?.toISOString(),
+    },
+    "Domain details retrieved",
+  );
+
   // Verify DNS is configured
   if (!domain.trackingDomainVerifiedAt) {
     logger.warn(
-      { jobId, domainId },
-      "Tracking domain DNS not verified, skipping SSL",
+      { jobId, domainId, trackingDomain },
+      "Tracking domain DNS not verified - SSL issuance requires DNS verification first. Skipping.",
     );
     return;
   }
@@ -62,41 +82,68 @@ export const issueTrackingSsl: JobProcessor<
   if (domain.trackingDomainSslVerifiedAt) {
     const certAgeMs = Date.now() - domain.trackingDomainSslVerifiedAt.getTime();
     const certAgeDays = certAgeMs / (1000 * 60 * 60 * 24);
+    const daysUntilExpiry = 90 - certAgeDays;
 
     if (certAgeDays < RENEWAL_THRESHOLD_DAYS) {
       logger.info(
-        { jobId, domainId, certAgeDays: Math.floor(certAgeDays) },
-        "SSL certificate still valid, skipping",
+        {
+          jobId,
+          domainId,
+          trackingDomain,
+          certAgeDays: Math.floor(certAgeDays),
+          daysUntilExpiry: Math.floor(daysUntilExpiry),
+          renewalThreshold: RENEWAL_THRESHOLD_DAYS,
+        },
+        "SSL certificate still valid (not yet due for renewal). Skipping.",
       );
       return;
     }
 
     logger.info(
-      { jobId, domainId, certAgeDays: Math.floor(certAgeDays) },
-      "SSL certificate due for renewal",
+      {
+        jobId,
+        domainId,
+        trackingDomain,
+        certAgeDays: Math.floor(certAgeDays),
+        daysUntilExpiry: Math.floor(daysUntilExpiry),
+        renewalThreshold: RENEWAL_THRESHOLD_DAYS,
+      },
+      "SSL certificate due for renewal - proceeding with certificate issuance",
+    );
+  } else {
+    logger.info(
+      { jobId, domainId, trackingDomain },
+      "No existing SSL certificate found - proceeding with initial certificate issuance",
     );
   }
 
-  const trackingDomain = `${domain.trackingSubDomain}.${domain.name}`;
-
-  logger.info({ jobId, trackingDomain }, "Issuing certificate for domain");
+  logger.info(
+    { jobId, domainId, trackingDomain },
+    "Initiating Let's Encrypt ACME certificate issuance",
+  );
 
   // Get the ACME account key from environment
+  logger.debug({ jobId, domainId }, "Loading ACME account key from environment");
   const accountKey = Buffer.from(env.ACME_ACCOUNT_KEY, "base64");
 
   const acmeTool = createAcmeTool();
 
   // Issue the certificate
   try {
+    logger.info(
+      { jobId, domainId, trackingDomain },
+      "Starting ACME certificate issuance via Let's Encrypt",
+    );
+
     const { certificate, privateKey } = await acmeTool
       .setAccountKey(accountKey)
       .forDomain(trackingDomain)
       .issueCertificate(
         // Challenge create callback
         async (token, keyAuthorization) => {
-          logger.debug(
-            { jobId, domainId, token: token.slice(0, 8) },
-            "Storing ACME challenge",
+          logger.info(
+            { jobId, domainId, trackingDomain, tokenPrefix: token.slice(0, 8) },
+            "Storing ACME HTTP-01 challenge in database",
           );
 
           await prisma.sendingDomain.update({
@@ -106,12 +153,23 @@ export const issueTrackingSsl: JobProcessor<
               trackingSslChallengeAuth: encrypt(keyAuthorization),
             },
           });
+
+          logger.info(
+            {
+              jobId,
+              domainId,
+              trackingDomain,
+              tokenPrefix: token.slice(0, 8),
+              challengeUrl: `http://${trackingDomain}/.well-known/acme-challenge/${token}`,
+            },
+            "Challenge stored - Let's Encrypt will now validate via HTTP-01",
+          );
         },
         // Challenge remove callback
         async (token) => {
-          logger.debug(
-            { jobId, domainId, token: token.slice(0, 8) },
-            "Clearing ACME challenge",
+          logger.info(
+            { jobId, domainId, trackingDomain, tokenPrefix: token.slice(0, 8) },
+            "Let's Encrypt validation complete - clearing challenge from database",
           );
 
           await prisma.sendingDomain.update({
@@ -121,10 +179,20 @@ export const issueTrackingSsl: JobProcessor<
               trackingSslChallengeAuth: null,
             },
           });
+
+          logger.debug(
+            { jobId, domainId, tokenPrefix: token.slice(0, 8) },
+            "Challenge cleared from database",
+          );
         },
       );
 
     // Store the certificate (encrypted)
+    logger.info(
+      { jobId, domainId, trackingDomain },
+      "Certificate received from Let's Encrypt - storing encrypted certificate in database",
+    );
+
     await prisma.sendingDomain.update({
       where: { id: domainId },
       data: {
@@ -137,17 +205,41 @@ export const issueTrackingSsl: JobProcessor<
       },
     });
 
+    const durationMs = Date.now() - startTime;
     logger.info(
-      { jobId, domainId, trackingDomain },
-      "SSL certificate issued and stored successfully",
+      {
+        jobId,
+        domainId,
+        trackingDomain,
+        durationMs,
+        durationSec: Math.round(durationMs / 1000),
+        certificateLength: certificate.length,
+      },
+      "=== SSL CERTIFICATE ISSUANCE JOB COMPLETED SUCCESSFULLY ===",
     );
   } catch (error) {
+    const durationMs = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
     logger.error(
-      { jobId, domainId, trackingDomain, error },
-      "Failed to issue SSL certificate",
+      {
+        jobId,
+        domainId,
+        trackingDomain,
+        durationMs,
+        error: errorMessage,
+        stack: errorStack,
+      },
+      "=== SSL CERTIFICATE ISSUANCE JOB FAILED ===",
     );
 
     // Clear any challenge data on failure
+    logger.info(
+      { jobId, domainId },
+      "Cleaning up challenge data after failure",
+    );
+
     await prisma.sendingDomain.update({
       where: { id: domainId },
       data: {

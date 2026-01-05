@@ -24,8 +24,14 @@ otel_signoz_endpoint: "https://ingest.monitor.kibamail.com"
 otel_signoz_insecure: false
 
 # Log collection via journald (systemd units to collect logs from)
+# Supports multiple log formats:
+# - email-agent: JSON logs (zerolog)
+# - kumomta: Plain text with timestamp prefix
+# - kumo-tsa-daemon: Plain text with timestamp prefix
 otel_collector_journald_units:
   - "email-agent"
+  - "kumomta"
+  - "kumo-tsa-daemon"
 
 # Service settings
 otel_collector_start_service: true

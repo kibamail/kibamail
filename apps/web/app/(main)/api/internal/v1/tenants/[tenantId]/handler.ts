@@ -8,6 +8,7 @@
 import { env } from "@/env/schema";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { NotFoundError } from "@/lib/api/errors";
+import { internalApi } from "@/lib/api/logger";
 import { responseOk } from "@/lib/api/responses";
 import { prisma } from "@/lib/db";
 import { decrypt } from "@/lib/sending-domains/dkim";
@@ -159,6 +160,9 @@ export async function getTenant(tenantId: string) {
  * ControlPlaneTenant Go struct.
  */
 export async function getTenantByDomain(domainName: string) {
+  const log = internalApi.dkim(domainName);
+  log.info("Searching for domain");
+
   const sendingDomain = await prisma.sendingDomain.findFirst({
     where: { name: domainName },
     select: {
@@ -181,6 +185,7 @@ export async function getTenantByDomain(domainName: string) {
   });
 
   if (!sendingDomain) {
+    log.info("Domain not found");
     throw new NotFoundError(
       `Domain "${domainName}" not found`,
       ErrorCode.SENDING_DOMAIN_NOT_FOUND,
@@ -188,15 +193,24 @@ export async function getTenantByDomain(domainName: string) {
   }
 
   let decryptedPrivateKey = "";
+  const hasDkimKey = !!sendingDomain.dkimPrivateKey;
+  const isDkimVerified = !!sendingDomain.dkimVerifiedAt;
+
   if (sendingDomain.dkimPrivateKey) {
     try {
       decryptedPrivateKey = decrypt(sendingDomain.dkimPrivateKey, env.APP_KEY);
-    } catch {
-      console.error(
-        `Failed to decrypt DKIM key for domain ${sendingDomain.name}`,
-      );
+    } catch (err) {
+      log.error("Failed to decrypt private key", err);
     }
   }
+
+  const selector = sendingDomain.dkimSubDomain?.replace("._domainkey", "") || null;
+  log.info("Domain found", {
+    workspaceId: sendingDomain.workspaceId,
+    hasDkimKey,
+    isDkimVerified,
+    selector,
+  });
 
   const returnPathDomain = sendingDomain.returnPathSubDomain
     ? `${sendingDomain.returnPathSubDomain}.${sendingDomain.name}`

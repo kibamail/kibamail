@@ -11,10 +11,18 @@ nginx_nats_hostname: "nats.{{ cluster_name }}.kbmta.net"
 nginx_nats_monitor_enabled: true
 nginx_nats_monitor_port: 8222
 
+# Email Agent metrics proxy configuration
+nginx_agent_metrics_enabled: true
+nginx_agent_metrics_port: 9191
+nginx_agent_metrics_hostname: "agent.{{ cluster_name }}.kbmta.net"
+nginx_agent_metrics_upstream_host: "127.0.0.1"
+nginx_agent_metrics_upstream_port: 9090
+
 # TLS certificate configuration (Let's Encrypt via Cloudflare DNS)
 nginx_tls_enabled: true
 nginx_tls_cert_email: "engineering@kibamail.com"
 nginx_tls_dir: "/etc/nginx/tls"
+nginx_agent_tls_dir: "/etc/nginx/tls-agent"
 
 # Proxy timeouts
 nginx_proxy_connect_timeout: "10s"

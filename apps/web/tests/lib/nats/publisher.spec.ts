@@ -55,6 +55,7 @@ function createTestEmailMessage(
     tenant_id: "test-workspace-123",
     broadcast_id: "test-broadcast-456",
     contact_id: "test-contact-789",
+    pool: "marketing" as const,
     recipient: {
       email: "recipient@example.com",
       name: "Test Recipient",

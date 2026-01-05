@@ -8,6 +8,7 @@ type EmailMessage struct {
 	TenantID    string             `json:"tenant_id"`    // Workspace/tenant ID
 	BroadcastID string             `json:"broadcast_id"` // Broadcast campaign ID
 	ContactID   string             `json:"contact_id"`   // Contact ID
+	Pool        string             `json:"pool"`         // Egress pool: "marketing" or "transactional"
 	Recipient   EmailRecipient     `json:"recipient"`    // Recipient details
 	Sender      EmailSender        `json:"sender"`       // Sender details
 	ReplyTo     *EmailAddress      `json:"reply_to"`     // Optional reply-to address

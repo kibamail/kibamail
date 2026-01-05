@@ -92,11 +92,16 @@ export const checkTrackingDns: JobProcessor<
 
     // CNAME is correctly configured
     logger.info(
-      { jobId, trackingDomain, cnameRecords },
-      "CNAME verified successfully",
+      { jobId, domainId, trackingDomain, cnameRecords, expectedCname },
+      "CNAME verified successfully - DNS is correctly configured",
     );
 
     // Update the domain record
+    logger.info(
+      { jobId, domainId, trackingDomain },
+      "Updating domain record with verification timestamp",
+    );
+
     await prisma.sendingDomain.update({
       where: { id: domainId },
       data: {
@@ -105,11 +110,20 @@ export const checkTrackingDns: JobProcessor<
     });
 
     // Queue SSL certificate issuance
+    logger.info(
+      { jobId, domainId, trackingDomain },
+      "=== TRIGGERING SSL CERTIFICATE ISSUANCE ===",
+    );
+    logger.info(
+      { jobId, domainId, trackingDomain },
+      "DNS verification complete - queuing SSL certificate issuance job",
+    );
+
     await queue("sending-domains").push("issue-tracking-ssl", { domainId });
 
     logger.info(
       { jobId, domainId, trackingDomain },
-      "DNS verified, SSL issuance job queued",
+      "SSL issuance job queued successfully - certificate will be issued via Let's Encrypt",
     );
   } catch (error) {
     // Handle DNS errors (ENOTFOUND, ENODATA, etc.)

@@ -71,9 +71,10 @@ export class WorkerWrapper<Q extends QueueName> {
           this.queueName,
           job.name,
           job.id as string,
+          job.data as Record<string, unknown>,
         );
 
-        jobLogger.info({ data: job.data }, "Processing job");
+        jobLogger.info("Processing job");
 
         try {
           const processor = this.config.processors[job.name as JobName<Q>];
@@ -122,6 +123,7 @@ export class WorkerWrapper<Q extends QueueName> {
         this.queueName,
         job.name,
         job.id as string,
+        job.data as Record<string, unknown>,
       );
       jobLogger.debug({ attemptsMade: job.attemptsMade }, "Job started");
     });
@@ -131,6 +133,7 @@ export class WorkerWrapper<Q extends QueueName> {
         this.queueName,
         job.name,
         job.id as string,
+        job.data as Record<string, unknown>,
       );
       jobLogger.info(
         {
@@ -153,6 +156,7 @@ export class WorkerWrapper<Q extends QueueName> {
         this.queueName,
         job.name,
         job.id as string,
+        job.data as Record<string, unknown>,
       );
 
       jobLogger.error(

@@ -67,3 +67,5 @@ otel_environment: "production"
 # Systemd units to collect logs from via journald
 otel_collector_journald_units:
   - "email-agent"
+  - "kumomta"
+  - "kumo-tsa-daemon"

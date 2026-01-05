@@ -258,6 +258,7 @@ export const sendDoubleOptIn: JobProcessor<
     tenant_id: workspaceId,
     broadcast_id: `doi-${formId}`, // Use "doi-" prefix to distinguish from broadcasts
     contact_id: contact.id,
+    pool: "marketing",
     recipient: {
       email: contact.email,
       name: recipientName,

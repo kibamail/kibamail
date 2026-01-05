@@ -21,6 +21,10 @@ spec:
         app.kubernetes.io/component: worker
         app.kubernetes.io/part-of: kibamail
         service.name: kibamail-workers
+      annotations:
+        signoz.io/scrape: "true"
+        signoz.io/port: "9090"
+        signoz.io/path: "/metrics"
     spec:
       affinity:
         podAntiAffinity:

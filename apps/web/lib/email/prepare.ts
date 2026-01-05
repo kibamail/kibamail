@@ -388,6 +388,7 @@ export async function convertToNatsMessages(
       tenant_id: prepared.workspaceId,
       broadcast_id: prepared.broadcastId,
       contact_id: prepared.contactId,
+      pool: "marketing",
       recipient: {
         email: prepared.recipientEmail,
         name: recipientName,

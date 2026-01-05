@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
@@ -67,7 +66,7 @@ func (h *DKIMHandler) GetDKIM(w http.ResponseWriter, r *http.Request) {
 
 	// 1. Check in-memory cache first (DKIM keys are sensitive, stored in memory only)
 	if config, found := h.cache.GetDKIMConfig(domainName); found {
-		h.logger.Debug().Str("domain", domainName).Msg("DKIM config found in cache")
+		h.logger.Info().Str("domain", domainName).Str("selector", config.Selector).Msg("DKIM config found in cache")
 		h.respondJSON(w, http.StatusOK, DKIMResponse{
 			Found:      true,
 			Domain:     config.Domain,
@@ -80,13 +79,13 @@ func (h *DKIMHandler) GetDKIM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 2. Cache miss - fetch from control plane
-	h.logger.Debug().Str("domain", domainName).Msg("DKIM cache miss, fetching from control plane")
+	h.logger.Info().Str("domain", domainName).Msg("DKIM cache miss, fetching from control plane")
 
 	tenant, err := h.api.GetTenantByDomain(ctx, domainName)
 	if err != nil {
 		if kiberrors.Is(err, kiberrors.ErrDomainNotFound) {
-			// Cache negative result for shorter time
-			h.cache.SetDKIMConfigWithTTL(domainName, &domain.DKIMConfig{Domain: domainName}, 5*time.Minute)
+			// Don't cache negative results - allow immediate pickup when domain is created
+			h.logger.Info().Str("domain", domainName).Msg("DKIM not found: domain does not exist in control plane")
 			h.respondJSON(w, http.StatusOK, DKIMResponse{
 				Found:  false,
 				Domain: domainName,
@@ -136,7 +135,7 @@ func (h *DKIMHandler) GetDKIM(w http.ResponseWriter, r *http.Request) {
 	if dkimConfig != nil {
 		// Cache valid DKIM config for 24 hours
 		h.cache.SetDKIMConfig(domainName, dkimConfig)
-		h.logger.Debug().Str("domain", domainName).Msg("DKIM config cached")
+		h.logger.Info().Str("domain", domainName).Str("selector", dkimConfig.Selector).Msg("DKIM config found and cached")
 
 		h.respondJSON(w, http.StatusOK, DKIMResponse{
 			Found:      true,
@@ -149,8 +148,8 @@ func (h *DKIMHandler) GetDKIM(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Domain found but no valid DKIM config
-	h.cache.SetDKIMConfigWithTTL(domainName, &domain.DKIMConfig{Domain: domainName}, 5*time.Minute)
+	// Domain found but no valid DKIM config - don't cache, allow immediate pickup when DKIM is verified
+	h.logger.Info().Str("domain", domainName).Msg("DKIM not found: domain exists but DKIM not verified or key missing")
 	h.respondJSON(w, http.StatusOK, DKIMResponse{
 		Found:  false,
 		Domain: domainName,
