@@ -279,14 +279,22 @@ func (c *ControlPlaneAPIClient) GetTenantByDomain(ctx context.Context, domainNam
 		defer c.metrics.ControlPlaneActiveReqs.Dec()
 	}
 
-	url := fmt.Sprintf("%s/api/internal/v1/tenants/by-domain/%s", c.baseURL, domainName)
+	url := fmt.Sprintf("%s/api/internal/v1/tenants/by-domain", c.baseURL)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	// Use POST with JSON body to avoid URL path issues with dots in domain names
+	reqBody := map[string]string{"domain": domainName}
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, kiberrors.Wrap(err, "failed to marshal request")
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, kiberrors.Wrap(err, "failed to create request")
 	}
 
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)
@@ -348,14 +356,22 @@ func (c *ControlPlaneAPIClient) ValidateBounceDomain(ctx context.Context, bounce
 		defer c.metrics.ControlPlaneActiveReqs.Dec()
 	}
 
-	url := fmt.Sprintf("%s/api/internal/v1/tenants/by-bounce-domain/%s", c.baseURL, bounceDomain)
+	url := fmt.Sprintf("%s/api/internal/v1/tenants/by-bounce-domain", c.baseURL)
 
-	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	// Use POST with JSON body to avoid URL path issues with dots in domain names
+	reqBody := map[string]string{"domain": bounceDomain}
+	bodyBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return nil, kiberrors.Wrap(err, "failed to marshal request")
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, kiberrors.Wrap(err, "failed to create request")
 	}
 
 	req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
 	resp, err := c.httpClient.Do(req)

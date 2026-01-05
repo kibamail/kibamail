@@ -365,34 +365,27 @@ jobs:
 
       - name: deploy web to kubernetes
         run: |
-          kubectl set image deployment/kibamail-control-plane \
-            -n kibamail-control-plane \
-            web=${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:${{ needs.build-web.outputs.image-tag }}
+          kubectl set image deployment/kibamail-web \
+            -n kibamail \
+            control-plane=${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:${{ needs.build-web.outputs.image-tag }}
 
       - name: patch initcontainers in web deployment
         run: |
-          kubectl patch deployment kibamail-control-plane \
-            -n kibamail-control-plane \
+          kubectl patch deployment kibamail-web \
+            -n kibamail \
             --type=json \
             -p='[
               {
                 "op": "replace",
                 "path": "/spec/template/spec/initContainers/0/image",
+                "value": "${{ env.REGISTRY }}/${{ env.MARKETING_IMAGE }}:${{ needs.build-marketing.outputs.image-tag }}"
+              },
+              {
+                "op": "replace",
+                "path": "/spec/template/spec/initContainers/1/image",
                 "value": "${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:prod-cli"
               }
             ]'
-
-      - name: deploy marketing to kubernetes
-        run: |
-          kubectl set image deployment/kibamail-marketing \
-            -n kibamail-marketing \
-            marketing=${{ env.REGISTRY }}/${{ env.MARKETING_IMAGE }}:${{ needs.build-marketing.outputs.image-tag }}
-
-      - name: deploy api to kubernetes
-        run: |
-          kubectl set image deployment/kibamail-api \
-            -n kibamail-api \
-            api=${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:${{ needs.build-web.outputs.image-tag }}
 
       - name: deploy workers to kubernetes
         run: |
@@ -415,21 +408,9 @@ jobs:
 
       - name: wait for web rollout
         run: |
-          kubectl rollout status deployment/kibamail-control-plane \
-            -n kibamail-control-plane \
-            --timeout=300s
-
-      - name: wait for marketing rollout
-        run: |
-          kubectl rollout status deployment/kibamail-marketing \
-            -n kibamail-marketing \
-            --timeout=300s
-
-      - name: wait for api rollout
-        run: |
-          kubectl rollout status deployment/kibamail-api \
-            -n kibamail-api \
-            --timeout=300s
+          kubectl rollout status deployment/kibamail-web \
+            -n kibamail \
+            --timeout=600s
 
       - name: wait for workers rollout
         run: |

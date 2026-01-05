@@ -5,30 +5,49 @@ metadata:
 spec:
   gatewayClassName: cilium
   listeners:
+    # HTTP listener for ACME challenges and health checks
     - name: http
       protocol: HTTP
       port: 30080
       allowedRoutes:
         namespaces:
           from: All
-    - name: https
-      protocol: HTTPS
+
+    # TLS Passthrough for *.kibamail.com (subdomains)
+    - name: tls-kibamail
+      protocol: TLS
       port: 30443
+      hostname: "*.kibamail.com"
       tls:
-        mode: Terminate
-        certificateRefs:
-          - name: kibamail-tls
+        mode: Passthrough
       allowedRoutes:
         namespaces:
           from: All
-    - name: https-tracking
-      protocol: HTTPS
+        kinds:
+          - kind: TLSRoute
+
+    # TLS Passthrough for kibamail.com (apex domain)
+    - name: tls-kibamail-apex
+      protocol: TLS
       port: 30443
-      hostname: e.kbmta.net
+      hostname: kibamail.com
       tls:
-        mode: Terminate
-        certificateRefs:
-          - name: tracking-tls
+        mode: Passthrough
       allowedRoutes:
         namespaces:
           from: All
+        kinds:
+          - kind: TLSRoute
+
+    # TLS Passthrough catch-all for customer tracking domains
+    # Any hostname not matching above goes to tracking for dynamic cert handling
+    - name: tls-tracking-catchall
+      protocol: TLS
+      port: 30443
+      tls:
+        mode: Passthrough
+      allowedRoutes:
+        namespaces:
+          from: All
+        kinds:
+          - kind: TLSRoute

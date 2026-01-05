@@ -1,13 +1,14 @@
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute patches for production logto hostnames
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: logto-main
 spec:
   hostnames:
     - auth.kibamail.com
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: logto-admin
 spec:

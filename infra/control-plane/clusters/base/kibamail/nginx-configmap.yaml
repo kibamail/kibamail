@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kibamail-web-nginx
+  namespace: kibamail
+data:
+  nginx.conf: |
+    worker_processes auto;
+    error_log /dev/stderr warn;
+    pid /tmp/nginx.pid;
+
+    events {
+        worker_connections 1024;
+        use epoll;
+        multi_accept on;
+    }
+
+    http {
+        include /etc/nginx/mime.types;
+        default_type application/octet-stream;
+
+        log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                        '$status $body_bytes_sent "$http_referer" '
+                        '"$http_user_agent" "$http_x_forwarded_for"';
+
+        access_log /dev/stdout main;
+
+        sendfile on;
+        tcp_nopush on;
+        tcp_nodelay on;
+        keepalive_timeout 65;
+        types_hash_max_size 2048;
+
+        gzip on;
+        gzip_vary on;
+        gzip_proxied any;
+        gzip_comp_level 6;
+        gzip_types text/plain text/css text/xml application/json application/javascript application/rss+xml application/atom+xml image/svg+xml;
+
+        # Upstreams
+        upstream control_plane {
+            server 127.0.0.1:3000;
+            keepalive 32;
+        }
+
+        # HTTPS Server for api.kibamail.com
+        # All traffic goes directly to control-plane with /api prefix
+        server {
+            listen 443 ssl;
+            server_name api.kibamail.com api.staging.kibamail.com;
+
+            ssl_certificate /etc/ssl/certs/tls.crt;
+            ssl_certificate_key /etc/ssl/certs/tls.key;
+
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+            ssl_prefer_server_ciphers on;
+            ssl_session_cache shared:SSL:10m;
+            ssl_session_timeout 10m;
+            ssl_session_tickets off;
+
+            add_header X-Content-Type-Options nosniff always;
+            add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+            # Rewrite root to /api for api.kibamail.com
+            location / {
+                rewrite ^/(.*)$ /api/$1 break;
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            location /nginx-health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+        }
+
+        # HTTPS Server for kibamail.com and www.kibamail.com
+        # Path-based routing between control-plane and marketing
+        server {
+            listen 443 ssl default_server;
+            server_name kibamail.com www.kibamail.com staging.kibamail.com www.staging.kibamail.com;
+
+            ssl_certificate /etc/ssl/certs/tls.crt;
+            ssl_certificate_key /etc/ssl/certs/tls.key;
+
+            ssl_protocols TLSv1.2 TLSv1.3;
+            ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+            ssl_prefer_server_ciphers on;
+            ssl_session_cache shared:SSL:10m;
+            ssl_session_timeout 10m;
+            ssl_session_tickets off;
+
+            add_header X-Content-Type-Options nosniff always;
+            add_header X-Frame-Options DENY always;
+            add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+            # Control plane routes (specific paths)
+            location /w {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            location /_kibamail-control-plane {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            location /api {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            location /healthz {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            location /p {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            location /callback {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
+            # Marketing (default route) - serve static files directly
+            # Includes /_next assets for marketing site
+            location / {
+                root /usr/share/nginx/marketing;
+                # SPA routing: try exact file, then .html, then /index.html, then fallback to index.html
+                try_files $uri $uri.html $uri/index.html /index.html;
+            }
+
+            # Health check
+            location /nginx-health {
+                access_log off;
+                return 200 "healthy\n";
+                add_header Content-Type text/plain;
+            }
+        }
+
+    }
+
+  proxy_params.conf: |
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto https;
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header Connection "";
+    proxy_connect_timeout 60s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;

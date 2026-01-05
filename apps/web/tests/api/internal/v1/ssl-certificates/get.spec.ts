@@ -1,7 +1,7 @@
 /**
  * Tests for Internal SSL Certificates Endpoint
  *
- * Tests GET /api/internal/v1/ssl-certificates/:hostname
+ * Tests POST /api/internal/v1/ssl-certificates
  * Used by OpenResty sidecar to fetch SSL certificates for TLS termination.
  */
 
@@ -31,7 +31,7 @@ vi.mock("@/env/schema", () => ({
   },
 }));
 
-import { GET } from "@/app/(main)/api/internal/v1/ssl-certificates/[hostname]/route";
+import { POST } from "@/app/(main)/api/internal/v1/ssl-certificates/route";
 
 const VALID_SERVICE_KEY = "test-internal-service-key-32chars!";
 
@@ -42,7 +42,7 @@ function createRequest(
   hostname: string,
   options?: { serviceKey?: string | null },
 ): NextRequest {
-  const url = `http://localhost:3000/api/internal/v1/ssl-certificates/${hostname}`;
+  const url = `http://localhost:3000/api/internal/v1/ssl-certificates`;
   const headers = new Headers();
 
   if (options?.serviceKey !== null) {
@@ -51,10 +51,12 @@ function createRequest(
       `Bearer ${options?.serviceKey ?? VALID_SERVICE_KEY}`,
     );
   }
+  headers.set("Content-Type", "application/json");
 
   return new NextRequest(url, {
-    method: "GET",
+    method: "POST",
     headers,
+    body: JSON.stringify({ hostname }),
   });
 }
 
@@ -108,13 +110,12 @@ afterAll(async () => {
   vi.restoreAllMocks();
 });
 
-describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
+describe("POST /api/internal/v1/ssl-certificates", () => {
   describe("authentication", () => {
     test("should reject request without Authorization header", async () => {
       const request = createRequest("e.example.com", { serviceKey: null });
-      const params = Promise.resolve({ hostname: "e.example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(401);
       const body = await response.json();
@@ -125,9 +126,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       const request = createRequest("e.example.com", {
         serviceKey: "wrong-key",
       });
-      const params = Promise.resolve({ hostname: "e.example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(401);
       const body = await response.json();
@@ -147,9 +147,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       );
 
       const request = createRequest("e.example.com");
-      const params = Promise.resolve({ hostname: "e.example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(200);
     });
@@ -158,9 +157,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
   describe("hostname validation", () => {
     test("should return 400 for invalid hostname format", async () => {
       const request = createRequest("invalid");
-      const params = Promise.resolve({ hostname: "invalid" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(400);
       const body = await response.json();
@@ -169,9 +167,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
 
     test("should return 400 for two-part hostname", async () => {
       const request = createRequest("example.com");
-      const params = Promise.resolve({ hostname: "example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(400);
     });
@@ -191,9 +188,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       );
 
       const request = createRequest("e.example.com");
-      const params = Promise.resolve({ hostname: "e.example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(200);
       const body = await response.json();
@@ -204,9 +200,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
 
     test("should return 404 for non-existent domain", async () => {
       const request = createRequest("e.nonexistent.com");
-      const params = Promise.resolve({ hostname: "e.nonexistent.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(404);
       const body = await response.json();
@@ -233,9 +228,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       testDomainId = domain.id;
 
       const request = createRequest("e.nocert.com");
-      const params = Promise.resolve({ hostname: "e.nocert.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(404);
     });
@@ -253,9 +247,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       );
 
       const request = createRequest("track.example.com");
-      const params = Promise.resolve({ hostname: "track.example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(200);
       const body = await response.json();
@@ -275,9 +268,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       );
 
       const request = createRequest("e.mail.example.com");
-      const params = Promise.resolve({ hostname: "e.mail.example.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(200);
       const body = await response.json();
@@ -308,9 +300,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       }
 
       const request = createRequest("e.decrypt.com");
-      const params = Promise.resolve({ hostname: "e.decrypt.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(200);
       const body = await response.json();
@@ -348,9 +339,8 @@ describe("GET /api/internal/v1/ssl-certificates/:hostname", () => {
       testDomainId = domain.id;
 
       const request = createRequest("e.expiry.com");
-      const params = Promise.resolve({ hostname: "e.expiry.com" });
 
-      const response = await GET(request, { params });
+      const response = await POST(request);
 
       expect(response.status).toBe(200);
       const body = await response.json();

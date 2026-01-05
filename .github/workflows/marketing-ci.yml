@@ -78,14 +78,21 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_STAGING }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
-      - name: Deploy to Kubernetes
+      - name: Deploy marketing init container
         run: |
-          kubectl set image deployment/kibamail-marketing \
-            -n kibamail-marketing \
-            marketing=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-tag }}
+          kubectl patch deployment kibamail-web \
+            -n kibamail \
+            --type=json \
+            -p='[
+              {
+                "op": "replace",
+                "path": "/spec/template/spec/initContainers/0/image",
+                "value": "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build.outputs.image-tag }}"
+              }
+            ]'
 
       - name: wait for rollout
         run: |
-          kubectl rollout status deployment/kibamail-marketing \
-            -n kibamail-marketing \
-            --timeout=300s
+          kubectl rollout status deployment/kibamail-web \
+            -n kibamail \
+            --timeout=600s

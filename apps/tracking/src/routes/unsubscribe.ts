@@ -14,6 +14,7 @@
 import { Hono } from "hono";
 import { dispatchUnsubscribe } from "../queue.js";
 import { unsubscribedHtml } from "../templates/confirm.js";
+import { unsubscribeLogger } from "../logger.js";
 
 export const unsubscribeRoute = new Hono();
 
@@ -26,10 +27,13 @@ export const unsubscribeRoute = new Hono();
 unsubscribeRoute.get("/:contactId/:broadcastId", async (c) => {
   const { contactId, broadcastId } = c.req.param();
 
+  const log = unsubscribeLogger({ contactId, broadcastId, source: "link" });
+  log.info("Unsubscribe via link");
+
   // Dispatch unsubscribe job with source=link
   dispatchUnsubscribe({ contactId, broadcastId, source: "link" }).catch(
     (err) => {
-      console.error("Failed to dispatch unsubscribe job:", err);
+      log.error({ err }, "Failed to dispatch unsubscribe job");
     }
   );
 
@@ -49,13 +53,16 @@ unsubscribeRoute.get("/:contactId/:broadcastId", async (c) => {
 unsubscribeRoute.post("/:contactId/:broadcastId", async (c) => {
   const { contactId, broadcastId } = c.req.param();
 
+  const log = unsubscribeLogger({ contactId, broadcastId, source: "list-unsubscribe" });
+  log.info("Unsubscribe via List-Unsubscribe header (RFC 8058)");
+
   // Dispatch unsubscribe job with source=list-unsubscribe
   dispatchUnsubscribe({
     contactId,
     broadcastId,
     source: "list-unsubscribe",
   }).catch((err) => {
-    console.error("Failed to dispatch unsubscribe job:", err);
+    log.error({ err }, "Failed to dispatch unsubscribe job");
   });
 
   // Return 200 immediately as required by RFC 8058

@@ -55,34 +55,13 @@ ENV NODE_ENV=production
 RUN pnpm --filter marketing build
 
 # ============================================
-# Stage 4: Production server (nginx)
+# Stage 4: Static files only (for init container use)
 # ============================================
-FROM nginx:alpine AS runner
-
-# Remove default nginx config and copy custom configuration
-RUN rm /etc/nginx/conf.d/default.conf
-
-# Copy custom nginx configuration
-COPY apps/marketing/nginx.conf /etc/nginx/conf.d/default.conf
+FROM alpine:latest AS runner
 
 # Copy static files from builder
-COPY --from=builder /app/apps/marketing/out /usr/share/nginx/html
+COPY --from=builder /app/apps/marketing/out /marketing-static
 
-# Set proper permissions for non-root execution
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chown -R nginx:nginx /var/cache/nginx && \
-    chown -R nginx:nginx /var/log/nginx && \
-    chown -R nginx:nginx /etc/nginx/conf.d && \
-    touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid
-
-# Switch to non-root user
-USER nginx
-
-EXPOSE 80
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
-
-CMD ["nginx", "-g", "daemon off;"]
+# Default command: copy files to a target directory
+# Usage: the init container will copy from /marketing-static to a shared volume
+CMD ["sh", "-c", "cp -r /marketing-static/* ${TARGET_DIR:-/target}"]

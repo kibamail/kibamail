@@ -11,9 +11,8 @@ resources:
   - outpost
   - logto
   - certificates
-  - kibamail-control-plane
-  - kibamail-marketing
-  - kibamail-api
+  # New consolidated kibamail namespace (replaces kibamail-control-plane, kibamail-marketing, kibamail-api)
+  - kibamail
   - kibamail-workers
   - kibamail-event-ingestor
   - kibamail-tracking

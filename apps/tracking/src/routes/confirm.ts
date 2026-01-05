@@ -10,6 +10,7 @@
 import { Hono } from "hono";
 import { dispatchConfirmation } from "../queue.js";
 import { thankYouHtml, errorHtml } from "../templates/confirm.js";
+import { confirmLogger, logger } from "../logger.js";
 
 export const confirmRoute = new Hono();
 
@@ -18,8 +19,11 @@ confirmRoute.get("/:formId/:token", async (c) => {
 
   // Validate token format (64 hex characters)
   if (!formId || !token || token.length !== 64) {
+    logger.warn({ formId, tokenLength: token?.length }, "Invalid confirmation token format");
     return c.html(errorHtml, 400);
   }
+
+  const log = confirmLogger({ formId });
 
   try {
     // Dispatch the confirmation job
@@ -28,9 +32,10 @@ confirmRoute.get("/:formId/:token", async (c) => {
       confirmationToken: token,
     });
 
+    log.info("Confirmation dispatched");
     return c.html(thankYouHtml);
   } catch (error) {
-    console.error("Failed to dispatch confirmation job:", error);
+    log.error({ err: error }, "Failed to dispatch confirmation job");
     return c.html(errorHtml, 500);
   }
 });

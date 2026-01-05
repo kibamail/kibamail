@@ -87,6 +87,8 @@ end
 -- =============================================================================
 
 -- Cache for tenant DKIM keys (24 hour TTL)
+-- NOTE: This function throws an error on cache miss/not found, which prevents
+-- memoize from caching negative results. Use pcall() when calling.
 local get_tenant_dkim_key = kumo.memoize(function(domain)
   local client = kumo.http.build_client {
     timeout = '10s',
@@ -95,13 +97,13 @@ local get_tenant_dkim_key = kumo.memoize(function(domain)
   local response = client:get(EMAIL_AGENT_URL .. '/api/v1/dkim/' .. domain):send()
 
   if response:status_code() ~= 200 then
-    return nil
+    error('DKIM lookup failed for domain: ' .. domain .. ' (status: ' .. response:status_code() .. ')')
   end
 
   local data = kumo.json_parse(response:text())
 
-  if not data or not data.private_key then
-    return nil
+  if not data or not data.found or not data.private_key then
+    error('DKIM not found or not verified for domain: ' .. domain)
   end
 
   -- Private key comes from email agent in plain text (PEM format)
@@ -446,10 +448,12 @@ kumo.on('smtp_server_message_received', function(msg)
   local sender_domain = from_header and from_header.domain or nil
 
   -- 1. TENANT DKIM SIGNING (if domain key available)
+  -- Use pcall() because get_tenant_dkim_key throws errors for not-found domains
+  -- (errors are not cached by memoize, allowing retry on next request)
   if sender_domain then
-    local tenant_dkim = get_tenant_dkim_key(sender_domain)
+    local ok, tenant_dkim = pcall(get_tenant_dkim_key, sender_domain)
 
-    if tenant_dkim and tenant_dkim.private_key then
+    if ok and tenant_dkim and tenant_dkim.private_key then
       local tenant_signer = kumo.dkim.rsa_sha256_signer {
         domain = tenant_dkim.domain,
         selector = tenant_dkim.selector,
@@ -505,10 +509,12 @@ kumo.on('http_message_generated', function(msg)
   local sender_domain = from_header and from_header.domain or nil
 
   -- 1. TENANT DKIM SIGNING
+  -- Use pcall() because get_tenant_dkim_key throws errors for not-found domains
+  -- (errors are not cached by memoize, allowing retry on next request)
   if sender_domain then
-    local tenant_dkim = get_tenant_dkim_key(sender_domain)
+    local ok, tenant_dkim = pcall(get_tenant_dkim_key, sender_domain)
 
-    if tenant_dkim and tenant_dkim.private_key then
+    if ok and tenant_dkim and tenant_dkim.private_key then
       local tenant_signer = kumo.dkim.rsa_sha256_signer {
         domain = tenant_dkim.domain,
         selector = tenant_dkim.selector,

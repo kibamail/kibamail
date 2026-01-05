@@ -1,171 +1,136 @@
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute for kibamail.com (apex domain)
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: kibamail-control-plane
+  name: kibamail-apex
 spec:
   parentRefs:
     - name: kibamail-gateway
-      sectionName: https
+      sectionName: tls-kibamail-apex
   hostnames:
-    - example.kibamail.com
+    - kibamail.com
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /w
-      backendRefs:
-        - name: kibamail-control-plane
-          namespace: kibamail-control-plane
-          port: 80
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /_kibamail-control-plane
-      backendRefs:
-        - name: kibamail-control-plane
-          namespace: kibamail-control-plane
-          port: 80
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /api
-      backendRefs:
-        - name: kibamail-control-plane
-          namespace: kibamail-control-plane
-          port: 80
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /healthz
-      backendRefs:
-        - name: kibamail-control-plane
-          namespace: kibamail-control-plane
-          port: 80
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /p
-      backendRefs:
-        - name: kibamail-control-plane
-          namespace: kibamail-control-plane
-          port: 80
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /callback
-      backendRefs:
-        - name: kibamail-control-plane
-          namespace: kibamail-control-plane
-          port: 80
+    - backendRefs:
+        - name: kibamail-web
+          namespace: kibamail
+          port: 443
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute for www.kibamail.com
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: kibamail-marketing
+  name: kibamail-www
 spec:
   parentRefs:
     - name: kibamail-gateway
-      sectionName: https
+      sectionName: tls-kibamail
   hostnames:
-    - example.kibamail.com
+    - www.kibamail.com
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
-        - name: kibamail-marketing
-          namespace: kibamail-marketing
-          port: 80
+    - backendRefs:
+        - name: kibamail-web
+          namespace: kibamail
+          port: 443
 ---
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: allow-gateway-to-control-plane
-  namespace: kibamail-control-plane
-spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: default
-  to:
-    - group: ""
-      kind: Service
----
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
-metadata:
-  name: allow-gateway-to-marketing
-  namespace: kibamail-marketing
-spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: default
-  to:
-    - group: ""
-      kind: Service
----
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute for api.kibamail.com
+# Routes to same kibamail-web service, nginx handles /api routing
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: kibamail-api
 spec:
   parentRefs:
     - name: kibamail-gateway
-      sectionName: https
+      sectionName: tls-kibamail
   hostnames:
-    - api.example.kibamail.com
+    - api.kibamail.com
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: /api
-      backendRefs:
-        - name: kibamail-api
-          namespace: kibamail-api
-          port: 3000
+    - backendRefs:
+        - name: kibamail-web
+          namespace: kibamail
+          port: 443
 ---
-apiVersion: gateway.networking.k8s.io/v1beta1
-kind: ReferenceGrant
+# TLSRoute for auth.kibamail.com
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: allow-gateway-to-api
-  namespace: kibamail-api
+  name: logto-main
 spec:
-  from:
-    - group: gateway.networking.k8s.io
-      kind: HTTPRoute
-      namespace: default
-  to:
-    - group: ""
-      kind: Service
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: tls-kibamail
+  hostnames:
+    - auth.kibamail.com
+  rules:
+    - backendRefs:
+        - name: logto
+          namespace: logto
+          port: 443
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute for admin.auth.kibamail.com
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: logto-admin
+spec:
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: tls-kibamail
+  hostnames:
+    - admin.auth.kibamail.com
+  rules:
+    - backendRefs:
+        - name: logto
+          namespace: logto
+          port: 443
+---
+# TLSRoute catch-all for customer tracking domains
+# Any hostname not matching specific routes goes here
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: kibamail-tracking
 spec:
   parentRefs:
     - name: kibamail-gateway
-      sectionName: https-tracking
-  hostnames:
-    - e.kbmta.net
+      sectionName: tls-tracking-catchall
   rules:
-    - matches:
-        - path:
-            type: PathPrefix
-            value: /
-      backendRefs:
+    - backendRefs:
         - name: kibamail-tracking
           namespace: kibamail-tracking
-          port: 3100
+          port: 443
 ---
+# ReferenceGrant: Allow TLSRoutes in default namespace to reference kibamail service
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-kibamail
+  namespace: kibamail
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: TLSRoute
+      namespace: default
+  to:
+    - group: ""
+      kind: Service
+---
+# ReferenceGrant: Allow TLSRoutes in default namespace to reference logto service
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  name: allow-gateway-to-logto
+  namespace: logto
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: TLSRoute
+      namespace: default
+  to:
+    - group: ""
+      kind: Service
+---
+# ReferenceGrant: Allow TLSRoutes in default namespace to reference tracking service
 apiVersion: gateway.networking.k8s.io/v1beta1
 kind: ReferenceGrant
 metadata:
@@ -174,7 +139,7 @@ metadata:
 spec:
   from:
     - group: gateway.networking.k8s.io
-      kind: HTTPRoute
+      kind: TLSRoute
       namespace: default
   to:
     - group: ""

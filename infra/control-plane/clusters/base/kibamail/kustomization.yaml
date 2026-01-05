@@ -1,9 +1,12 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: kibamail-marketing
+namespace: kibamail
 
 resources:
   - namespace.yaml
   - deployment.yaml
   - service.yaml
+  - secrets.yaml
+  - certificate.yaml
+  - nginx-configmap.yaml

@@ -63,7 +63,7 @@ spec:
               value: "0"
             # Internal API configuration (for ACME challenges)
             - name: INTERNAL_API_URL
-              value: "http://kibamail-api.kibamail-api.svc.cluster.local:3000"
+              value: "http://kibamail-web.kibamail.svc.cluster.local:3000"
             - name: INTERNAL_SERVICE_KEY
               valueFrom:
                 secretKeyRef:
@@ -105,7 +105,7 @@ spec:
               protocol: TCP
           env:
             - name: INTERNAL_API_URL
-              value: "http://kibamail-api.kibamail-api.svc.cluster.local:3000"
+              value: "http://kibamail-web.kibamail.svc.cluster.local:3000"
             - name: INTERNAL_SERVICE_KEY
               valueFrom:
                 secretKeyRef:

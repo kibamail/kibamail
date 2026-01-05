@@ -1,22 +1,23 @@
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute patches for production hostnames
+# Note: TLSRoutes use hostnames array, not single hostname like HTTPRoutes
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: kibamail-control-plane
+  name: kibamail-apex
 spec:
   hostnames:
     - kibamail.com
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: kibamail-marketing
+  name: kibamail-www
 spec:
   hostnames:
-    - kibamail.com
     - www.kibamail.com
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: kibamail-api
 spec:

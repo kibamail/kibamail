@@ -8,5 +8,5 @@ resources:
   - secrets.yaml
   - deployment.yaml
   - service.yaml
-  - routes.yaml
-  - reference-grant.yaml
+  - certificate.yaml
+  - nginx-configmap.yaml

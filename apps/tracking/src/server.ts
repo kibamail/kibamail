@@ -16,8 +16,8 @@
 
 import { Hono } from "hono";
 import { serve } from "@hono/node-server";
-import { logger } from "hono/logger";
 import { env } from "./env.js";
+import { logger } from "./logger.js";
 import { imageRoute } from "./routes/image.js";
 import { openRoute } from "./routes/open.js";
 import { clickRoute } from "./routes/click.js";
@@ -27,8 +27,25 @@ import { acmeChallengeRoute } from "./routes/acme-challenge.js";
 
 const app = new Hono();
 
-// Request logging
-app.use("*", logger());
+// Request logging middleware
+app.use("*", async (c, next) => {
+  const start = Date.now();
+  await next();
+  const duration = Date.now() - start;
+
+  // Skip logging for health checks
+  if (c.req.path === "/health") return;
+
+  logger.info({
+    method: c.req.method,
+    path: c.req.path,
+    status: c.res.status,
+    duration,
+    userAgent: c.req.header("User-Agent"),
+    ip: c.req.header("X-Forwarded-For") || c.req.header("X-Real-IP"),
+    host: c.req.header("Host"),
+  });
+});
 
 // Health check
 app.get("/health", (c) => c.json({ status: "ok" }));
@@ -48,21 +65,27 @@ app.notFound((c) => {
 
 // Error handler
 app.onError((err, c) => {
-  console.error("Server error:", err);
+  logger.error({ err, path: c.req.path, method: c.req.method }, "Server error");
   return c.text("Internal Server Error", 500);
 });
 
 // Start server
 const port = env.PORT;
 
-console.log(`Tracking server starting on http://localhost:${port}`);
-console.log(`Routes:`);
-console.log(`  - GET /i/{encoded} - Image proxy`);
-console.log(`  - GET /o/{encoded} - Open tracking pixel`);
-console.log(`  - GET /c/{encoded} - Click tracking redirect`);
-console.log(`  - GET /u/{contactId}/{broadcastId} - Unsubscribe`);
-console.log(`  - GET /confirm/{formId}/{token} - Double opt-in confirmation`);
-console.log(`  - GET /.well-known/acme-challenge/{token} - ACME HTTP-01 challenge`);
+logger.info({ port }, "Tracking server starting");
+logger.info(
+  {
+    routes: [
+      "GET /i/{encoded} - Image proxy",
+      "GET /o/{encoded} - Open tracking pixel",
+      "GET /c/{encoded} - Click tracking redirect",
+      "GET /u/{contactId}/{broadcastId} - Unsubscribe",
+      "GET /confirm/{formId}/{token} - Double opt-in confirmation",
+      "GET /.well-known/acme-challenge/{token} - ACME HTTP-01 challenge",
+    ],
+  },
+  "Available routes"
+);
 
 serve({
   fetch: app.fetch,

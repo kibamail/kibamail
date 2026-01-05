@@ -10,6 +10,7 @@
 
 import { Hono } from "hono";
 import { env } from "../env.js";
+import { acmeLogger } from "../logger.js";
 
 interface AcmeChallengeResponse {
   keyAuthorization?: string;
@@ -20,10 +21,13 @@ export const acmeChallengeRoute = new Hono();
 
 acmeChallengeRoute.get("/:token", async (c) => {
   const { token } = c.req.param();
+  const domain = c.req.header("Host") || "unknown";
 
   if (!token) {
     return c.text("Not Found", 404);
   }
+
+  const log = acmeLogger({ domain, token });
 
   try {
     // Fetch the challenge response from the internal API
@@ -37,24 +41,25 @@ acmeChallengeRoute.get("/:token", async (c) => {
     );
 
     if (!response.ok) {
-      console.error(
-        `ACME challenge lookup failed: ${response.status} ${response.statusText}`
-      );
+      log.warn({ status: response.status }, "ACME challenge lookup failed");
       return c.text("Not Found", 404);
     }
 
     const data = (await response.json()) as AcmeChallengeResponse;
 
     if (!data.keyAuthorization) {
+      log.warn("ACME challenge found but no keyAuthorization");
       return c.text("Not Found", 404);
     }
+
+    log.info("ACME challenge served");
 
     // Return the key authorization as plain text (ACME requirement)
     return c.text(data.keyAuthorization, 200, {
       "Content-Type": "text/plain",
     });
   } catch (error) {
-    console.error("Failed to fetch ACME challenge:", error);
+    log.error({ err: error }, "Failed to fetch ACME challenge");
     return c.text("Internal Server Error", 500);
   }
 });

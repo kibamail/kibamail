@@ -1,11 +1,22 @@
+# Certificate patch for kibamail namespace
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
   name: kibamail-tls
+  namespace: kibamail
 spec:
   dnsNames:
     - kibamail.com
     - www.kibamail.com
+    - api.kibamail.com
+---
+# Certificate patch for logto namespace
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: logto-tls
+  namespace: logto
+spec:
+  dnsNames:
     - auth.kibamail.com
     - admin.auth.kibamail.com
-    - api.kibamail.com

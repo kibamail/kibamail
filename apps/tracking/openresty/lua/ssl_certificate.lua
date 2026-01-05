@@ -48,12 +48,17 @@ local function fetch_cert_from_api(hostname)
     local httpc = http.new()
     httpc:set_timeout(config.API_TIMEOUT)
 
-    local url = config.INTERNAL_API_URL .. "/api/internal/v1/ssl-certificates/" .. hostname
+    local url = config.INTERNAL_API_URL .. "/api/internal/v1/ssl-certificates"
+
+    -- Use POST with JSON body to avoid URL path issues with dots in hostnames
+    local body = cjson.encode({ hostname = hostname })
 
     local res, err = httpc:request_uri(url, {
-        method = "GET",
+        method = "POST",
+        body = body,
         headers = {
             ["Authorization"] = "Bearer " .. config.INTERNAL_SERVICE_KEY,
+            ["Content-Type"] = "application/json",
             ["Accept"] = "application/json",
         },
         ssl_verify = false,

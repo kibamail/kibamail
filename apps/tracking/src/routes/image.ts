@@ -16,6 +16,7 @@
 import { Hono } from "hono";
 import { decodeImageUrl } from "@repo/tracking-utils";
 import { env } from "../env.js";
+import { imageLogger, logger } from "../logger.js";
 
 export const imageRoute = new Hono();
 
@@ -25,8 +26,12 @@ imageRoute.get("/:encoded", async (c) => {
   const originalUrl = decodeImageUrl(encoded, env.APP_KEY);
 
   if (!originalUrl) {
+    logger.warn({ encoded: encoded.substring(0, 20) }, "Invalid image URL payload");
     return c.text("Invalid or tampered image URL", 400);
   }
+
+  const originalHost = new URL(originalUrl).hostname;
+  const log = imageLogger({ originalHost });
 
   const response = await fetch(originalUrl, {
     headers: {
@@ -36,15 +41,18 @@ imageRoute.get("/:encoded", async (c) => {
   });
 
   if (!response.ok) {
+    log.warn({ upstreamStatus: response.status }, "Upstream image fetch failed");
     return c.text(`Upstream error: ${response.status}`, 502);
   }
 
   const imageBuffer = await response.arrayBuffer();
   const contentType = response.headers.get("Content-Type") || "image/png";
 
+  log.info({ contentType, size: imageBuffer.byteLength }, "Image proxied");
+
   return c.body(imageBuffer, 200, {
     "Content-Type": contentType,
     "Cache-Control": "public, max-age=31536000, immutable",
-    "X-Proxied-From": new URL(originalUrl).hostname,
+    "X-Proxied-From": originalHost,
   });
 });

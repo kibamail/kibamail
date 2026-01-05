@@ -11,11 +11,19 @@ spec:
   selector:
     app.kubernetes.io/name: logto
   ports:
-    - name: http-main
+    - name: https
+      port: 443
+      targetPort: https
+      protocol: TCP
+    - name: http
+      port: 80
+      targetPort: http
+      protocol: TCP
+    - name: internal-main
       port: 3001
       targetPort: http-main
       protocol: TCP
-    - name: http-admin
+    - name: internal-admin
       port: 3002
       targetPort: http-admin
       protocol: TCP

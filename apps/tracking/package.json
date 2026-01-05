@@ -20,6 +20,7 @@
     "@repo/tracking-utils": "workspace:*",
     "bullmq": "^5.63.2",
     "hono": "^4.6.0",
+    "pino": "^10.1.0",
     "zod": "^4.1.12"
   },
   "devDependencies": {

@@ -41,6 +41,54 @@ spec:
               done
               echo "PostgreSQL is ready"
       containers:
+        # nginx TLS sidecar
+        - name: nginx
+          image: nginx:1.27-alpine
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: https
+              containerPort: 443
+              protocol: TCP
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: tls-cert
+              mountPath: /etc/ssl/certs
+              readOnly: true
+            - name: nginx-tmp
+              mountPath: /tmp
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /nginx-health
+              port: 443
+              scheme: HTTPS
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /nginx-health
+              port: 443
+              scheme: HTTPS
+            initialDelaySeconds: 2
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+        # Logto application
         - name: logto
           image: svhd/logto:latest
           imagePullPolicy: IfNotPresent
@@ -118,3 +166,13 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 3
+
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: logto-nginx
+        - name: tls-cert
+          secret:
+            secretName: logto-tls
+        - name: nginx-tmp
+          emptyDir: {}
