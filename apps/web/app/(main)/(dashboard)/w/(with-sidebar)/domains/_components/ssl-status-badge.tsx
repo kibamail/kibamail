@@ -69,12 +69,19 @@ export function SslStatusBadge({
 
     if (showInfoTooltip) {
       return (
-        <Tooltip.Root>
-          <Tooltip.Trigger asChild>{badge}</Tooltip.Trigger>
-          <Tooltip.Content className="max-w-xs">
-            <p>{SSL_INFO_MESSAGE}</p>
-          </Tooltip.Content>
-        </Tooltip.Root>
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Badge variant="success" size="sm" className="cursor-help">
+                <Lock className="w-3 h-3" />
+                Secured
+              </Badge>
+            </Tooltip.Trigger>
+            <Tooltip.Content className="max-w-xs">
+              <p>{SSL_INFO_MESSAGE}</p>
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
       );
     }
 
@@ -85,20 +92,22 @@ export function SslStatusBadge({
   if (status === "failed") {
     return (
       <div className="flex items-center gap-2">
-        <Tooltip.Root>
-          <Tooltip.Trigger asChild>
-            <Badge variant="error" size="sm" className="cursor-help">
-              <WarningTriangle className="w-3 h-3" />
-              Failed
-            </Badge>
-          </Tooltip.Trigger>
-          <Tooltip.Content className="max-w-xs">
-            <p className="font-medium mb-1">SSL Certificate Failed</p>
-            <p className="text-kb-content-secondary">
-              {error || "An error occurred while issuing the SSL certificate."}
-            </p>
-          </Tooltip.Content>
-        </Tooltip.Root>
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Badge variant="error" size="sm" className="cursor-help">
+                <WarningTriangle className="w-3 h-3" />
+                Failed
+              </Badge>
+            </Tooltip.Trigger>
+            <Tooltip.Content className="max-w-xs">
+              <p className="font-medium mb-1">SSL Certificate Failed</p>
+              <p className="text-kb-content-secondary">
+                {error || "An error occurred while issuing the SSL certificate."}
+              </p>
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
         {onRetry && (
           <Button
             variant="secondary"
