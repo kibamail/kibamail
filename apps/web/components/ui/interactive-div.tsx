@@ -36,7 +36,9 @@ export function InteractiveDiv({
   stopPropagationOnly,
   "aria-label": ariaLabel,
 }: InteractiveDivProps) {
-  function onClickInternal(event: MouseEvent<HTMLButtonElement | HTMLDivElement>) {
+  function onClickInternal(
+    event: MouseEvent<HTMLButtonElement | HTMLDivElement>
+  ) {
     if (stopPropagationOnly) {
       event.stopPropagation();
       return;
@@ -60,9 +62,9 @@ export function InteractiveDiv({
       aria-label={ariaLabel}
       disabled={disabled}
       className={cn(
-        "appearance-none bg-transparent border-0 p-0 m-0 text-left w-auto",
+        "appearance-none bg-transparent border-0 p-0 m-0 text-left w-full",
         disabled && "cursor-not-allowed opacity-50",
-        className,
+        className
       )}
     >
       {children}
