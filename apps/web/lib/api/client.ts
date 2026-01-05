@@ -2494,6 +2494,27 @@ class DomainsApi extends HttpClient {
       sendingDomainVerifyResponseSchema,
     );
   }
+
+  /**
+   * Retry SSL certificate issuance for a sending domain
+   *
+   * @param domainId - ID of the domain to retry SSL for
+   * @returns Updated domain with new SSL status
+   *
+   * @example
+   * ```ts
+   * const domain = await internalApi.domains().retrySsl('domain_123')
+   * console.log(domain.sslStatus) // "pending"
+   * ```
+   */
+  async retrySsl(domainId: string): Promise<SendingDomainResponse> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/domains/${domainId}/retry-ssl`,
+      null,
+      sendingDomainResponseSchema,
+    );
+  }
 }
 
 /**

@@ -10,10 +10,13 @@ import { useToast } from "@kibamail/owly/toast";
 import { Check, MoreHoriz, Refresh, Trash, Xmark } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 import type { DomainListItem } from "@/app/(main)/(dashboard)/w/(with-sidebar)/domains/page";
+import { useDomainsPolling } from "@/hooks/use-domain-polling";
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
+import { SslStatusBadge, type SslStatus } from "./ssl-status-badge";
 
 function VerificationBadge({ verified }: { verified: boolean }) {
   return (
@@ -152,7 +155,83 @@ function OverallStatus({ domain }: { domain: DomainListItem }) {
   );
 }
 
-export function DomainsTable({ domains }: { domains: DomainListItem[] }) {
+interface SslStatusCellProps {
+  domain: DomainListItem;
+  onRetrySuccess: () => void;
+}
+
+function SslStatusCell({ domain, onRetrySuccess }: SslStatusCellProps) {
+  const router = useRouter();
+  const { success: toast, error: toastError } = useToast();
+
+  const retrySslMutation = useMutation({
+    mutationFn: async () => {
+      return await internalApi.domains().retrySsl(domain.id);
+    },
+    onSuccess: () => {
+      toast("SSL certificate issuance queued");
+      onRetrySuccess();
+      router.refresh();
+    },
+    onError: (error) => {
+      toastError(error.message || "Failed to retry SSL issuance");
+    },
+  });
+
+  const handleRetry = useCallback(() => {
+    retrySslMutation.mutate();
+  }, [retrySslMutation]);
+
+  return (
+    <SslStatusBadge
+      status={domain.sslIssuanceStatus as SslStatus}
+      error={domain.sslIssuanceError}
+      onRetry={domain.sslIssuanceStatus === "failed" ? handleRetry : undefined}
+      isRetrying={retrySslMutation.isPending}
+    />
+  );
+}
+
+export function DomainsTable({
+  domains: initialDomains,
+}: {
+  domains: DomainListItem[];
+}) {
+  const router = useRouter();
+
+  // Poll for domains that have SSL issuance in progress
+  const { data: polledData } = useDomainsPolling({
+    initialDomains,
+  });
+
+  // Merge polled data with initial data
+  const domains = useMemo(() => {
+    if (!polledData?.data) {
+      return initialDomains;
+    }
+
+    // Create a map of polled domains by ID
+    const polledMap = new Map(polledData.data.map((d) => [d.id, d]));
+
+    // Update initial domains with polled data where available
+    return initialDomains.map((domain) => {
+      const polled = polledMap.get(domain.id);
+      if (polled) {
+        return {
+          ...domain,
+          sslIssuanceStatus: polled.sslStatus,
+          sslIssuanceError: polled.sslError,
+        };
+      }
+      return domain;
+    });
+  }, [initialDomains, polledData]);
+
+  const handleRetrySuccess = useCallback(() => {
+    // Refresh to trigger polling
+    router.refresh();
+  }, [router]);
+
   if (domains.length === 0) {
     return (
       <EmptyCard.Root>
@@ -174,6 +253,7 @@ export function DomainsTable({ domains }: { domains: DomainListItem[] }) {
             <Table.Head className="w-[120px]">DKIM</Table.Head>
             <Table.Head className="w-[120px]">Return Path</Table.Head>
             <Table.Head className="w-[120px]">Tracking</Table.Head>
+            <Table.Head className="w-[120px]">SSL</Table.Head>
             <Table.Head className="w-[120px]">DMARC</Table.Head>
             <Table.Head className="w-[80px]">Actions</Table.Head>
           </Table.Row>
@@ -203,6 +283,12 @@ export function DomainsTable({ domains }: { domains: DomainListItem[] }) {
               <Table.Cell>
                 <VerificationBadge
                   verified={domain.trackingDomainVerifiedAt !== null}
+                />
+              </Table.Cell>
+              <Table.Cell>
+                <SslStatusCell
+                  domain={domain}
+                  onRetrySuccess={handleRetrySuccess}
                 />
               </Table.Cell>
               <Table.Cell>

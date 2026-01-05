@@ -11,9 +11,11 @@ import { notFound } from "next/navigation";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
 
+import type { SslStatus } from "../_components/ssl-status-badge";
 import { CopyableText } from "./_components/copyable-text";
 import { DnsRecordsSection } from "./_components/dns-records-section";
 import { DomainActionsDropdown } from "./_components/domain-actions-dropdown";
+import { SslStatusSection } from "./_components/ssl-status-section";
 import { TrackingToggle } from "./_components/tracking-toggle";
 import { VerifyDomainButton } from "./_components/verify-domain-button";
 
@@ -146,6 +148,13 @@ export default async function DomainDetailPage({
       </div>
 
       <DnsRecordsSection domain={domain} />
+
+      <SslStatusSection
+        domainId={domain.id}
+        initialStatus={domain.sslIssuanceStatus as SslStatus}
+        initialError={domain.sslIssuanceError}
+        trackingVerified={domain.trackingDomainVerifiedAt !== null}
+      />
     </DashboardLayoutStickyContentHeaderContainer>
   );
 }

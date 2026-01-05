@@ -106,6 +106,7 @@ export const checkTrackingDns: JobProcessor<
       where: { id: domainId },
       data: {
         trackingDomainVerifiedAt: new Date(),
+        sslIssuanceStatus: "pending",
       },
     });
 

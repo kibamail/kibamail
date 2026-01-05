@@ -1042,6 +1042,12 @@ model SendingDomain {
   trackingSslChallengeToken   String?
   /// ACME challenge key authorization (encrypted)
   trackingSslChallengeAuth    String?          @db.Text
+  /// SSL certificate issuance status: "pending" | "in_progress" | "completed" | "failed"
+  sslIssuanceStatus           String?
+  /// Error message when SSL issuance fails
+  sslIssuanceError            String?
+  /// When SSL issuance job started
+  sslIssuanceStartedAt        DateTime?
   /// Whether open tracking is enabled for this domain
   openTrackingEnabled         Boolean          @default(false)
   /// Whether click tracking is enabled for this domain

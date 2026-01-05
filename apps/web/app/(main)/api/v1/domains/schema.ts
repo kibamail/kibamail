@@ -72,6 +72,13 @@ const dnsVerificationSchema = z.object({
 });
 
 /**
+ * SSL Issuance Status Schema
+ */
+const sslStatusSchema = z
+  .enum(["pending", "in_progress", "completed", "failed"])
+  .nullable();
+
+/**
  * Sending Domain Response Schema
  */
 export const sendingDomainResponseSchema = z.object({
@@ -85,6 +92,8 @@ export const sendingDomainResponseSchema = z.object({
   clickTrackingEnabled: z.boolean(),
   dnsRecords: dnsRecordsSchema,
   createdAt: z.string(),
+  sslStatus: sslStatusSchema,
+  sslError: z.string().nullable(),
 });
 
 /**
@@ -111,6 +120,8 @@ export const sendingDomainVerifyResponseSchema = z.object({
   clickTrackingEnabled: z.boolean(),
   dnsRecords: dnsRecordsSchema,
   createdAt: z.string(),
+  sslStatus: sslStatusSchema,
+  sslError: z.string().nullable(),
   verification: dnsVerificationSchema,
 });
 

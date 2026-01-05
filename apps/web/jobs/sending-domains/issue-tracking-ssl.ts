@@ -122,6 +122,16 @@ export const issueTrackingSsl: JobProcessor<
     "Initiating Let's Encrypt ACME certificate issuance",
   );
 
+  // Mark SSL issuance as in progress
+  await prisma.sendingDomain.update({
+    where: { id: domainId },
+    data: {
+      sslIssuanceStatus: "in_progress",
+      sslIssuanceStartedAt: new Date(),
+      sslIssuanceError: null,
+    },
+  });
+
   // Get the ACME account key from environment
   logger.debug({ jobId, domainId }, "Loading ACME account key from environment");
   const accountKey = Buffer.from(env.ACME_ACCOUNT_KEY, "base64");
@@ -199,6 +209,8 @@ export const issueTrackingSsl: JobProcessor<
         trackingSslCertKey: encrypt(certificate),
         trackingSslCertSecret: encrypt(privateKey.toString("utf-8")),
         trackingDomainSslVerifiedAt: new Date(),
+        // Mark SSL issuance as completed
+        sslIssuanceStatus: "completed",
         // Clear challenge data
         trackingSslChallengeToken: null,
         trackingSslChallengeAuth: null,
@@ -234,15 +246,17 @@ export const issueTrackingSsl: JobProcessor<
       "=== SSL CERTIFICATE ISSUANCE JOB FAILED ===",
     );
 
-    // Clear any challenge data on failure
+    // Mark SSL issuance as failed and clear challenge data
     logger.info(
       { jobId, domainId },
-      "Cleaning up challenge data after failure",
+      "Marking SSL issuance as failed and cleaning up challenge data",
     );
 
     await prisma.sendingDomain.update({
       where: { id: domainId },
       data: {
+        sslIssuanceStatus: "failed",
+        sslIssuanceError: errorMessage,
         trackingSslChallengeToken: null,
         trackingSslChallengeAuth: null,
       },

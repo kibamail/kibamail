@@ -51,6 +51,8 @@ function formatSendingDomain(domain: {
   dmarcVerifiedAt: Date | null;
   openTrackingEnabled: boolean;
   clickTrackingEnabled: boolean;
+  sslIssuanceStatus: string | null;
+  sslIssuanceError: string | null;
   createdAt: Date;
 }) {
   const dnsRecords = getDnsRecords(
@@ -73,6 +75,13 @@ function formatSendingDomain(domain: {
     clickTrackingEnabled: domain.clickTrackingEnabled,
     dnsRecords,
     createdAt: domain.createdAt.toISOString(),
+    sslStatus: domain.sslIssuanceStatus as
+      | "pending"
+      | "in_progress"
+      | "completed"
+      | "failed"
+      | null,
+    sslError: domain.sslIssuanceError,
   };
 }
 
@@ -359,12 +368,17 @@ export async function verifySendingDomain(
     updateData.dmarcVerifiedAt = now;
   }
 
+  // Queue SSL certificate issuance if tracking domain was newly verified
+  if (trackingNewlyVerified) {
+    // Set SSL issuance status to pending before queuing the job
+    (updateData as Record<string, unknown>).sslIssuanceStatus = "pending";
+  }
+
   const updatedDomain = await prisma.sendingDomain.update({
     where: { id: domainId },
     data: updateData,
   });
 
-  // Queue SSL certificate issuance if tracking domain was newly verified
   if (trackingNewlyVerified) {
     await queue("sending-domains").push("issue-tracking-ssl", { domainId });
   }

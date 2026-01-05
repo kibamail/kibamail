@@ -27,6 +27,8 @@ async function getDomains(workspaceId: string) {
       dmarcVerifiedAt: true,
       openTrackingEnabled: true,
       clickTrackingEnabled: true,
+      sslIssuanceStatus: true,
+      sslIssuanceError: true,
       createdAt: true,
     },
   });
