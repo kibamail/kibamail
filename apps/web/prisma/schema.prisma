@@ -199,6 +199,7 @@ model Contact {
   suppressions     SuppressionList[]
   automationRuns   AutomationRun[]
   formSubmissions  FormSubmission[]
+  conversations    Conversation[]
 
   @@unique([workspaceId, email])
   @@index([workspaceId])
@@ -775,6 +776,17 @@ model Form {
   /// Double opt-in confirmation email ID
   doubleOptInEmailId String?
 
+  /// SEO page title for the public form page
+  seoTitle           String?          @db.VarChar(200)
+  /// SEO meta description for the public form page
+  seoDescription     String?          @db.VarChar(500)
+  /// SEO Open Graph image URL for social sharing
+  seoImageUrl        String?          @db.VarChar(2000)
+  /// Favicon URL for the public form page
+  seoFaviconUrl      String?          @db.VarChar(2000)
+  /// Custom URL slug for the public form page (e.g., forms.kibamail.com/my-form)
+  slug               String?          @db.VarChar(100)
+
   /// When this version was published (NULL if never published)
   publishedAt             DateTime?
   /// When the form was created
@@ -800,11 +812,13 @@ model Form {
 
   // Only enforce uniqueness for DRAFT and PUBLISHED status (allow multiple ARCHIVED)
   // This allows version rollback/rollforward without constraint violations
+  @@unique([workspaceId, slug], name: "forms_workspace_slug_unique")
   @@index([workspaceId, parentId, status], name: "forms_workspace_parent_status_idx")
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@index([workspaceId, deletedAt])
   @@index([parentId])
+  @@index([slug])
   @@map("forms")
 }
 
@@ -1062,12 +1076,18 @@ model SendingDomain {
   createdAt                   DateTime         @default(now())
   /// When the sending domain was last updated
   updatedAt                   DateTime         @updatedAt
+  /// Whether inbox (receiving replies) is enabled for this domain
+  inboxEnabled                Boolean          @default(true)
+  /// When inbox MX record was verified
+  inboxMxVerifiedAt           DateTime?
   /// Sender identities using this domain
   senderIdentities            SenderIdentity[]
   /// Broadcasts using this domain
   broadcasts                  Broadcast[]
   /// Events using this domain
   events                      Event[]
+  /// Conversations using this domain
+  conversations               Conversation[]
 
   @@unique([workspaceId, name])
   @@index([workspaceId])
@@ -1109,6 +1129,8 @@ model SenderIdentity {
   broadcastsAsReplyTo            Broadcast[]   @relation("BroadcastReplyTo")
   /// Events using this sender identity
   events                         Event[]
+  /// Conversations using this sender identity
+  conversations                  Conversation[]
 
   @@index([workspaceId])
 }
@@ -1431,5 +1453,201 @@ enum EmailType {
   TRANSACTIONAL // Double opt-in, password reset, etc.
   AUTOMATION // Emails in automation flows
   NOTIFICATION // System notifications
+}
+
+/// *
+///  * Conversation Schema
+///  *
+///  * Represents a two-way email conversation thread.
+///  * Created when an outbound email is sent (if inbox is enabled).
+///  * Can also be created for unsolicited inbound emails (orphan conversations).
+model Conversation {
+  /// Unique identifier for the conversation
+  id                String                 @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId       String
+  /// Contact ID (nullable for orphan conversations from unsolicited emails)
+  contactId         String?
+  /// Sender identity used for this conversation (nullable for orphan conversations)
+  senderIdentityId  String?
+  /// Sending domain for this conversation
+  sendingDomainId   String
+
+  /// Type of origin that started this conversation
+  originType        ConversationOriginType
+  /// ID of the origin (broadcast ID, email ID, automation ID, etc.) - null for unsolicited
+  originId          String?
+  /// The first outbound emailSendId that started this conversation - null for unsolicited
+  originEmailSendId String?                @unique
+
+  /// Conversation subject (from original email)
+  subject           String
+  /// When the last message was sent/received
+  lastMessageAt     DateTime
+  /// Total number of messages in conversation
+  messageCount      Int                    @default(1)
+  /// Number of unread messages
+  unreadCount       Int                    @default(0)
+  /// Conversation status
+  status            ConversationStatus     @default(OPEN)
+
+  /// When the conversation was created
+  createdAt         DateTime               @default(now())
+  /// When the conversation was last updated
+  updatedAt         DateTime               @updatedAt
+
+  /// Contact relation
+  contact           Contact?               @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  /// Sender identity relation
+  senderIdentity    SenderIdentity?        @relation(fields: [senderIdentityId], references: [id], onDelete: Cascade)
+  /// Sending domain relation
+  sendingDomain     SendingDomain          @relation(fields: [sendingDomainId], references: [id], onDelete: Cascade)
+  /// Messages in this conversation
+  messages          InboxMessage[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, lastMessageAt])
+  @@index([contactId])
+  @@index([senderIdentityId])
+  @@index([sendingDomainId])
+  @@map("conversations")
+}
+
+/// *
+///  * Inbox Message Schema
+///  *
+///  * Stores individual messages within a conversation.
+///  * Can be either inbound (reply from contact) or outbound (sent from platform).
+model InboxMessage {
+  /// Unique identifier for the message
+  id                   String             @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId          String
+  /// Conversation this message belongs to
+  conversationId       String
+
+  /// Message direction (inbound or outbound)
+  direction            MessageDirection
+  /// Email send ID for correlation
+  emailSendId          String
+  /// The emailSendId this message is replying to (for threading)
+  inReplyToEmailSendId String?
+
+  /// Sender email address
+  fromEmail            String
+  /// Sender name
+  fromName             String?
+  /// Recipient email address
+  toEmail              String
+  /// Recipient name
+  toName               String?
+
+  /// Email subject
+  subject              String
+  /// Plain text body
+  textBody             String?            @db.Text
+  /// HTML body
+  htmlBody             String?            @db.Text
+  /// Raw RFC822 email (for inbound debugging)
+  rawEmail             String?            @db.Text
+  /// S3 key for large content storage
+  contentS3Key         String?
+
+  /// RFC822 Message-ID header
+  messageId            String?
+  /// In-Reply-To header value
+  inReplyToHeader      String?
+  /// References header value
+  referencesHeader     String?            @db.Text
+
+  /// Message status
+  status               InboxMessageStatus @default(UNREAD)
+  /// When MTA received the message (inbound)
+  receivedAt           DateTime?
+  /// When the message was sent (outbound)
+  sentAt               DateTime?
+  /// When the message was read
+  readAt               DateTime?
+
+  /// When the message was created
+  createdAt            DateTime           @default(now())
+  /// When the message was last updated
+  updatedAt            DateTime           @updatedAt
+
+  /// Conversation relation
+  conversation         Conversation       @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  /// Attachments for this message
+  attachments          InboxAttachment[]
+
+  @@index([workspaceId])
+  @@index([conversationId])
+  @@index([emailSendId])
+  @@index([workspaceId, status])
+  @@index([conversationId, createdAt])
+  @@map("inbox_messages")
+}
+
+/// *
+///  * Inbox Attachment Schema
+///  *
+///  * Stores metadata for message attachments.
+///  * Actual files are stored in S3.
+model InboxAttachment {
+  /// Unique identifier for the attachment
+  id             String       @id @default(cuid())
+  /// Message this attachment belongs to
+  inboxMessageId String
+
+  /// Original filename
+  filename       String
+  /// MIME content type
+  contentType    String
+  /// File size in bytes
+  size           Int
+  /// S3 key for the file
+  s3Key          String
+  /// Content-ID for inline attachments (CID)
+  contentId      String?
+  /// Whether this is an inline attachment
+  isInline       Boolean      @default(false)
+
+  /// When the attachment was created
+  createdAt      DateTime     @default(now())
+
+  /// Message relation
+  message        InboxMessage @relation(fields: [inboxMessageId], references: [id], onDelete: Cascade)
+
+  @@index([inboxMessageId])
+  @@map("inbox_attachments")
+}
+
+/// Conversation origin type - what started the conversation
+enum ConversationOriginType {
+  BROADCAST // Started from a broadcast email
+  DOUBLE_OPT_IN // Started from a double opt-in confirmation
+  AUTOMATION // Started from an automation email
+  TRANSACTIONAL // Started from a transactional email
+  UNSOLICITED // Unsolicited inbound email (no matching outbound)
+}
+
+/// Conversation status
+enum ConversationStatus {
+  OPEN // Active conversation
+  CLOSED // Manually closed
+  ARCHIVED // Archived
+}
+
+/// Message direction
+enum MessageDirection {
+  INBOUND // Reply from contact
+  OUTBOUND // Sent from platform
+}
+
+/// Inbox message status
+enum InboxMessageStatus {
+  UNREAD // Not yet read
+  READ // Read by user
+  ARCHIVED // Archived
 }
 

@@ -31,6 +31,43 @@ export const createFormSchema = z.object({
   fields: formBuilderSchema.optional(),
 });
 
+/**
+ * SEO fields schema for form customization
+ */
+const seoFieldsSchema = z.object({
+  seoTitle: z
+    .string()
+    .max(200, "SEO title must be 200 characters or less")
+    .optional()
+    .nullable(),
+  seoDescription: z
+    .string()
+    .max(500, "SEO description must be 500 characters or less")
+    .optional()
+    .nullable(),
+  seoImageUrl: z
+    .string()
+    .url("Must be a valid URL")
+    .max(2000, "URL must be 2000 characters or less")
+    .optional()
+    .nullable(),
+  seoFaviconUrl: z
+    .string()
+    .url("Must be a valid URL")
+    .max(2000, "URL must be 2000 characters or less")
+    .optional()
+    .nullable(),
+  slug: z
+    .string()
+    .max(100, "Slug must be 100 characters or less")
+    .regex(
+      /^[a-z0-9-]+$/,
+      "Slug must be lowercase alphanumeric with hyphens only"
+    )
+    .optional()
+    .nullable(),
+});
+
 export const updateFormSchema = z.object({
   name: z
     .string()
@@ -49,6 +86,7 @@ export const updateFormSchema = z.object({
   fields: formBuilderSchema.optional(),
   settings: z.any().optional(),
   doubleOptInEmailId: z.string().optional().nullable(),
+  ...seoFieldsSchema.shape,
 });
 
 /**

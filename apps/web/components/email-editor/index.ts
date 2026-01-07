@@ -24,8 +24,6 @@ export type {
   ReadinessChecklistItem,
   ReadinessResponse,
   SaveDraftPayload,
-  SenderSelectActions,
-  SenderSelectState,
   TabConfig,
   TemplateDetails,
   TransformedSenderIdentity,

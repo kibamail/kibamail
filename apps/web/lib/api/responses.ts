@@ -62,7 +62,11 @@ export type ApiObjectType =
   | "dmarc_code_lookup"
   | "api_key_validation"
   | "email"
-  | "email_list";
+  | "email_list"
+  | "conversation"
+  | "conversation_list"
+  | "inbox_message"
+  | "inbox_message_list";
 
 /**
  * Standard API response structure (for external API v1)

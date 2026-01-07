@@ -82,6 +82,33 @@ export type QueueJobs = {
       source: "link" | "list-unsubscribe";
     };
   };
+  // Inbox queue for processing inbound emails and sending replies
+  inbox: {
+    "process-inbound-email": {
+      /** The emailSendId token from the plus-addressed recipient */
+      token: string;
+      /** S3 key where the raw email is stored */
+      s3Key: string;
+      /** Sender email address */
+      sender: string;
+      /** Full recipient email address */
+      recipient: string;
+      /** Workspace ID */
+      workspaceId: string;
+      /** Sending domain ID */
+      sendingDomainId: string;
+      /** ISO timestamp when the email was received */
+      receivedAt: string;
+    };
+    "send-reply": {
+      /** Conversation ID to reply to */
+      conversationId: string;
+      /** HTML content of the reply */
+      replyContent: string;
+      /** Optional subject override */
+      replySubject?: string;
+    };
+  };
 };
 
 /**

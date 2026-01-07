@@ -6,6 +6,7 @@ import {
   SelectField,
   Switch,
   TextField,
+  TextareaField,
 } from "@kibamail/owly";
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
@@ -16,6 +17,7 @@ import { useState } from "react";
 import { internalApi } from "@/lib/api/client";
 import { ContentFieldEditor } from "./content-field-editor";
 import { useFormBuilder } from "./form-builder-context";
+import { SeoImageUploader } from "./seo-image-uploader";
 
 function SettingsSection({
   title,
@@ -27,7 +29,7 @@ function SettingsSection({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-b border-kb-border-primary pb-8">
+    <div>
       <div className="mb-6">
         <h3 className="text-base font-semibold text-kb-content-primary">
           {title}
@@ -41,6 +43,10 @@ function SettingsSection({
       <div className="space-y-6">{children}</div>
     </div>
   );
+}
+
+function SectionDivider() {
+  return <div className="w-full h-px bg-kb-border-tertiary my-8" />;
 }
 
 function SettingsField({
@@ -75,7 +81,7 @@ function SuccessMessageEditor({
   onChange: (content: JSONContent) => void;
 }) {
   return (
-    <div className="rounded-lg border border-kb-border-primary bg-kb-bg-primary overflow-hidden">
+    <div className="rounded-lg border border-kb-border-tertiary bg-kb-bg-primary overflow-hidden">
       <ContentFieldEditor
         content={content}
         onChange={onChange}
@@ -226,17 +232,17 @@ function SuccessActionSettings() {
             </TextField.Root>
           </div>
 
-          <div className="flex items-center gap-3">
+          <label htmlFor="" className="flex items-center gap-3 cursor-pointer">
             <Checkbox
               checked={successAction.openInNewTab}
               onCheckedChange={(checked) =>
                 onOpenInNewTabChange(checked === true)
               }
             />
-            <span className="text-sm text-kb-content-secondary cursor-pointer">
+            <span className="text-sm text-kb-content-secondary">
               Open in new tab
             </span>
-          </div>
+          </label>
         </>
       )}
     </SettingsSection>
@@ -330,11 +336,11 @@ function DoubleOptInSettings() {
 
         {doubleOptIn.enabled && (
           <div className="space-y-4">
-            <div className="rounded-lg border border-kb-border-primary bg-kb-bg-secondary p-4">
+            <div className="rounded-lg border border-kb-border-tertiary bg-kb-bg-secondary p-4">
               <p className="text-sm text-kb-content-secondary">
                 When someone submits this form, they will receive a confirmation
-                email. They must click the confirmation link to be added to your
-                list.
+                email. They must click the confirmation link or reply to the
+                email to be added to your list.
               </p>
             </div>
 
@@ -347,8 +353,8 @@ function DoubleOptInSettings() {
               {isCreatingEmail
                 ? "Creating..."
                 : doubleOptInEmailId
-                  ? "Edit Confirmation Email"
-                  : "Create Confirmation Email"}
+                ? "Edit Confirmation Email"
+                : "Create Confirmation Email"}
             </Button>
           </div>
         )}
@@ -357,11 +363,111 @@ function DoubleOptInSettings() {
   );
 }
 
+function SeoSettings() {
+  const { formId, formName, seo, updateSeo } = useFormBuilder();
+
+  return (
+    <SettingsSection
+      title="SEO & Sharing"
+      description="Configure how your form appears in search results and social media"
+    >
+      {/* SEO Title */}
+      <div className="space-y-2">
+        <TextField.Root
+          value={seo.seoTitle ?? ""}
+          onChange={(e) => updateSeo({ seoTitle: e.target.value || null })}
+          placeholder={formName}
+          maxLength={200}
+        >
+          <TextField.Label>Page Title</TextField.Label>
+          <TextField.Hint>
+            Displayed in browser tabs and search results. Leave empty to use
+            form name.
+          </TextField.Hint>
+        </TextField.Root>
+      </div>
+
+      {/* SEO Description */}
+      <div className="space-y-2">
+        <TextareaField.Root
+          value={seo.seoDescription ?? ""}
+          onChange={(e) =>
+            updateSeo({ seoDescription: e.target.value || null })
+          }
+          placeholder="Describe your form for search engines..."
+          maxLength={500}
+        >
+          <TextareaField.Label>Meta Description</TextareaField.Label>
+          <TextareaField.Hint>
+            Shown in search results and social media previews
+          </TextareaField.Hint>
+        </TextareaField.Root>
+      </div>
+
+      {/* OG Image Upload */}
+      <SettingsField
+        label="Social Share Image"
+        description="Recommended: 1200×630px (PNG, JPG, WebP, max 2MB)"
+      >
+        <SeoImageUploader
+          formId={formId}
+          currentImage={seo.seoImageUrl}
+          onUploadComplete={(url) => updateSeo({ seoImageUrl: url })}
+          onRemove={() => updateSeo({ seoImageUrl: null })}
+          uploadEndpoint="seo-image"
+          accept="image/jpeg,image/png,image/webp"
+          maxSize={2 * 1024 * 1024}
+        />
+      </SettingsField>
+
+      {/* Favicon Upload */}
+      <SettingsField
+        label="Favicon"
+        description="Browser tab icon (ICO, PNG, SVG, max 500KB)"
+      >
+        <SeoImageUploader
+          formId={formId}
+          currentImage={seo.seoFaviconUrl}
+          onUploadComplete={(url) => updateSeo({ seoFaviconUrl: url })}
+          onRemove={() => updateSeo({ seoFaviconUrl: null })}
+          uploadEndpoint="favicon"
+          accept="image/x-icon,image/png,image/svg+xml"
+          maxSize={500 * 1024}
+          previewSize="small"
+        />
+      </SettingsField>
+
+      {/* Custom Slug */}
+      <div className="space-y-2">
+        <TextField.Root
+          value={seo.slug ?? ""}
+          onChange={(e) =>
+            updateSeo({
+              slug:
+                e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") || null,
+            })
+          }
+          placeholder="my-form-slug"
+          maxLength={100}
+        >
+          <TextField.Label>Custom url slug</TextField.Label>
+          <TextField.Slot side="left">
+            <span className="text-sm text-kb-content-tertiary">
+              forms.kibamail.com/
+            </span>
+          </TextField.Slot>
+          <TextField.Hint>Create a memorable url for your form</TextField.Hint>
+        </TextField.Root>
+      </div>
+    </SettingsSection>
+  );
+}
+
 export function FormSettingsTab() {
   return (
     <div className="h-full w-full bg-kb-bg-primary overflow-y-auto">
-      <div className="max-w-2xl mx-auto px-8 py-10 space-y-8">
-        <div className="pb-6 border-b border-kb-border-primary">
+      <div className="max-w-2xl mx-auto px-8 py-10">
+        <div>
           <h2 className="text-xl font-semibold text-kb-content-primary">
             Form Settings
           </h2>
@@ -370,8 +476,12 @@ export function FormSettingsTab() {
           </p>
         </div>
 
+        <SectionDivider />
         <SuccessActionSettings />
+        <SectionDivider />
         <DoubleOptInSettings />
+        <SectionDivider />
+        <SeoSettings />
       </div>
     </div>
   );

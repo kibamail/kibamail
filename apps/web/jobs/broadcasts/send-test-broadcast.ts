@@ -10,17 +10,17 @@
  * 2. Renders the email template with personalization
  * 3. Applies tracking (link rewriting, open pixel)
  * 4. Uploads content to S3
- * 5. Publishes email message to NATS for MTA injection
+ * 5. Injects email directly to MTA via HTTP
  */
 
 import { prisma } from "@/lib/db";
 import {
-  convertToNatsMessages,
+  convertToMtaMessages,
   type EmailBroadcast,
   type EmailContact,
   prepareEmailBatch,
 } from "@/lib/email";
-import { getNatsOptions, publishEmailBatch } from "@/lib/nats";
+import { getMtaOptions, injectEmailBatch } from "@/lib/mta";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
 
@@ -90,9 +90,10 @@ export const sendTestBroadcast: JobProcessor<
     lastName: null,
   }));
 
-  // Build reply-to email: use replyToIdentity if set, otherwise default to senderIdentity
+  // Build reply-to parts: use replyToIdentity if set, otherwise default to senderIdentity
   const replyToIdentity = broadcast.replyToIdentity ?? broadcast.senderIdentity;
-  const replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain?.name}`;
+  const replyToLocalPart = replyToIdentity.email;
+  const replyToDomain = replyToIdentity.sendingDomain?.name ?? broadcast.sendingDomain.name;
 
   // Prepare the broadcast data for email preparation
   const emailBroadcast: EmailBroadcast = {
@@ -112,7 +113,9 @@ export const sendTestBroadcast: JobProcessor<
     sendingDomain: broadcast.sendingDomain,
     trackOpens: broadcast.trackOpens,
     trackClicks: broadcast.trackClicks,
-    replyToEmail,
+    replyToLocalPart,
+    replyToDomain,
+    inboxEnabled: broadcast.sendingDomain.inboxEnabled,
   };
 
   // Prepare all test emails
@@ -127,14 +130,12 @@ export const sendTestBroadcast: JobProcessor<
     "Prepared test emails",
   );
 
-  // Upload email content to S3 and convert to NATS message format
-  const natsMessages = await convertToNatsMessages(preparedEmails);
+  // Convert to MTA message format
+  const mtaMessages = convertToMtaMessages(preparedEmails);
 
-  // Publish to NATS for MTA injection
-  const natsOptions = getNatsOptions();
-  const acks = await publishEmailBatch(natsOptions, natsMessages);
-
-  const duplicates = acks.filter((a) => a.duplicate).length;
+  // Inject directly to MTA via HTTP
+  const mtaOptions = getMtaOptions();
+  const result = await injectEmailBatch(mtaOptions, mtaMessages);
 
   logger.info(
     {
@@ -142,9 +143,19 @@ export const sendTestBroadcast: JobProcessor<
       broadcastId,
       testEmailCount: testEmails.length,
       preparedCount: preparedEmails.length,
-      publishedCount: acks.length,
-      duplicates,
+      injectedCount: result.successful,
+      duplicates: result.duplicates,
+      failed: result.failed,
     },
-    "Test broadcast sent - emails published to NATS",
+    "Test broadcast sent - emails injected to MTA",
   );
+
+  // If any emails failed, throw an error
+  if (result.failed > 0) {
+    const failedEmails = result.results
+      .filter((r) => !r.success)
+      .map((r) => r.error)
+      .slice(0, 3);
+    throw new Error(`Some test emails failed to inject: ${failedEmails.join(", ")}`);
+  }
 };

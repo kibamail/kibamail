@@ -11,7 +11,6 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/kibamail
   WORKER_IMAGE_NAME: ${{ github.repository_owner }}/kibamail-worker
-  EVENT_INGESTOR_IMAGE_NAME: ${{ github.repository_owner }}/kibamail-event-ingestor
   TRACKING_IMAGE_NAME: ${{ github.repository_owner }}/kibamail-tracking
   TRACKING_TLS_IMAGE_NAME: ${{ github.repository_owner }}/kibamail-tracking-tls
 
@@ -42,7 +41,6 @@ jobs:
         working-directory: apps/web
         run: |
           docker compose -f docker-compose.ci.yml up --wait
-          docker wait ci-nats-init
 
       - name: build shared packages
         run: |
@@ -96,9 +94,7 @@ jobs:
           S3_PUBLIC_URL: http://localhost:9000/test-bucket
           APP_KEY: TestAppKeyForDevelopmentOnly32ch
           INTERNAL_SERVICE_KEY: TestServiceKeyForDevelopment32
-          NATS_URL: tls://localhost:4222
-          NATS_USER: control_plane
-          NATS_PASSWORD: control_plane_dev_password
+          MTA_INJECTION_URL: http://localhost:8000
         run: pnpm test
 
   build-runner:
@@ -250,54 +246,6 @@ jobs:
         id: get-tag
         run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
 
-  build-event-ingestor:
-    name: build event ingestor image
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    outputs:
-      image-tag: ${{ steps.get-tag.outputs.tag }}
-
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-
-      - name: set up docker buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: log in to container registry
-        if: github.event_name == 'push'
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.EVENT_INGESTOR_IMAGE_NAME }}
-          tags: |
-            type=sha,prefix=
-            type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
-
-      - name: build and push
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/web/Dockerfile.event-ingestor
-          push: ${{ github.event_name == 'push' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: get image tag for deployment
-        id: get-tag
-        run: echo "tag=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
-
   build-tracking:
     name: build tracking image
     runs-on: ubuntu-latest
@@ -396,7 +344,7 @@ jobs:
 
   deploy-staging:
     name: deploy to staging
-    needs: [test, build-runner, build-cli, build-worker, build-event-ingestor, build-tracking, build-tracking-tls]
+    needs: [test, build-runner, build-cli, build-worker, build-tracking, build-tracking-tls]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment: staging
@@ -438,12 +386,6 @@ jobs:
             -n kibamail-workers \
             worker=${{ env.REGISTRY }}/${{ env.WORKER_IMAGE_NAME }}:${{ needs.build-worker.outputs.image-tag }}
 
-      - name: deploy event ingestor to kubernetes
-        run: |
-          kubectl set image deployment/kibamail-event-ingestor \
-            -n kibamail-event-ingestor \
-            event-ingestor=${{ env.REGISTRY }}/${{ env.EVENT_INGESTOR_IMAGE_NAME }}:${{ needs.build-event-ingestor.outputs.image-tag }}
-
       - name: deploy tracking to kubernetes
         run: |
           kubectl set image deployment/kibamail-tracking \
@@ -461,12 +403,6 @@ jobs:
         run: |
           kubectl rollout status deployment/kibamail-workers \
             -n kibamail-workers \
-            --timeout=300s
-
-      - name: wait for event ingestor rollout
-        run: |
-          kubectl rollout status deployment/kibamail-event-ingestor \
-            -n kibamail-event-ingestor \
             --timeout=300s
 
       - name: wait for tracking rollout

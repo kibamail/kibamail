@@ -3,7 +3,6 @@
 import { Computer, Laptop, Refresh, SmartphoneDevice } from "iconoir-react";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useFormBuilder } from "./form-builder-context";
 
 type DeviceMode = "desktop" | "tablet" | "mobile";
 
@@ -15,10 +14,10 @@ const DEVICE_SIZES: Record<DeviceMode, { width: string }> = {
 
 interface FormLivePreviewProps {
   isActive?: boolean;
+  rootFormId: string;
 }
 
-export function FormLivePreview({ isActive }: FormLivePreviewProps) {
-  const { formId } = useFormBuilder();
+export function FormLivePreview({ isActive, rootFormId }: FormLivePreviewProps) {
   const [deviceMode, setDeviceMode] = useState<DeviceMode>("desktop");
   const [refreshKey, setRefreshKey] = useState(Date.now());
 
@@ -106,7 +105,7 @@ export function FormLivePreview({ isActive }: FormLivePreviewProps) {
         >
           <iframe
             key={refreshKey}
-            src={`/p/forms/${formId}?t=${refreshKey}`}
+            src={`/p/forms/${rootFormId}?t=${refreshKey}`}
             className="w-full h-full border-0"
             title="Form Preview"
           />

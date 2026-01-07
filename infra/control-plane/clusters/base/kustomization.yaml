@@ -14,7 +14,6 @@ resources:
   # New consolidated kibamail namespace (replaces kibamail-control-plane, kibamail-marketing, kibamail-api)
   - kibamail
   - kibamail-workers
-  - kibamail-event-ingestor
   - kibamail-tracking
   - deployment-rbac
   - signoz-infra

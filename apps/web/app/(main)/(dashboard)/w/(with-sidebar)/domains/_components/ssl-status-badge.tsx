@@ -11,7 +11,12 @@ import {
   WarningTriangle,
 } from "iconoir-react";
 
-export type SslStatus = "pending" | "in_progress" | "completed" | "failed" | null;
+export type SslStatus =
+  | "pending"
+  | "in_progress"
+  | "completed"
+  | "failed"
+  | null;
 
 interface SslStatusBadgeProps {
   status: SslStatus;
@@ -33,9 +38,7 @@ export function SslStatusBadge({
 }: SslStatusBadgeProps) {
   // Not started - tracking DNS not verified yet
   if (status === null) {
-    return (
-      <span className="text-kb-content-tertiary text-sm">—</span>
-    );
+    return <span className="text-kb-content-tertiary text-sm">—</span>;
   }
 
   // Pending - job queued but not started
@@ -73,7 +76,7 @@ export function SslStatusBadge({
           <Tooltip.Root>
             <Tooltip.Trigger>
               <Badge variant="success" size="sm" className="cursor-help">
-                <Lock className="w-3 h-3" />
+                <Lock className="w-4 h-4" />
                 Secured
               </Badge>
             </Tooltip.Trigger>
@@ -96,14 +99,15 @@ export function SslStatusBadge({
           <Tooltip.Root>
             <Tooltip.Trigger>
               <Badge variant="error" size="sm" className="cursor-help">
-                <WarningTriangle className="w-3 h-3" />
+                <WarningTriangle className="w-4 h-4" />
                 Failed
               </Badge>
             </Tooltip.Trigger>
             <Tooltip.Content className="max-w-xs">
               <p className="font-medium mb-1">SSL Certificate Failed</p>
               <p className="text-kb-content-secondary">
-                {error || "An error occurred while issuing the SSL certificate."}
+                {error ||
+                  "An error occurred while issuing the SSL certificate."}
               </p>
             </Tooltip.Content>
           </Tooltip.Root>
@@ -140,15 +144,13 @@ export function SslInfoSection({
   isRetrying,
 }: SslStatusBadgeProps) {
   return (
-    <div className="rounded-lg border border-kb-border bg-kb-surface p-4">
+    <div className="rounded-lg border border-kb-border-tertiary bg-kb-bg-secondary p-4">
       <div className="flex items-start gap-3">
-        <div className="rounded-full bg-kb-surface-secondary p-2">
+        <div className="rounded-full bg-kb-bg-secondary p-2">
           <Lock className="w-4 h-4 text-kb-content-secondary" />
         </div>
         <div className="flex-1">
-          <h3 className="font-medium text-kb-content mb-1">
-            SSL Certificate
-          </h3>
+          <h3 className="font-medium text-kb-content mb-1">SSL Certificate</h3>
           <p className="text-sm text-kb-content-secondary mb-3">
             {SSL_INFO_MESSAGE}
           </p>

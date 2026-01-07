@@ -9,6 +9,7 @@ spec:
     - kibamail.com
     - www.kibamail.com
     - api.kibamail.com
+    - forms.kibamail.com
 ---
 # Certificate patch for logto namespace
 apiVersion: cert-manager.io/v1

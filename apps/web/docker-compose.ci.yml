@@ -29,35 +29,3 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
-
-  nats:
-    image: nats:2.10-alpine
-    container_name: ci-nats
-    ports:
-      - "4222:4222"
-      - "8222:8222"
-    volumes:
-      - ./docker/nats/nats-server.conf:/etc/nats/nats-server.conf:ro
-      - ./docker/nats/certs:/etc/nats/certs:ro
-    command: ["-c", "/etc/nats/nats-server.conf"]
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8222/healthz"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  nats-init:
-    image: natsio/nats-box:0.14.3
-    container_name: ci-nats-init
-    depends_on:
-      nats:
-        condition: service_healthy
-    volumes:
-      - ./docker/nats/init-streams.sh:/init-streams.sh:ro
-      - ./docker/nats/certs:/etc/nats/certs:ro
-    environment:
-      NATS_URL: "tls://nats:4222"
-      NATS_USER: "admin"
-      NATS_PASSWORD: "admin_dev_password"
-      NATS_CA: "/etc/nats/certs/ca.pem"
-    entrypoint: ["/bin/sh", "/init-streams.sh"]

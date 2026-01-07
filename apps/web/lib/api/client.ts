@@ -146,6 +146,11 @@ import {
  */
 export interface UpdateFormClientInput extends Partial<CreateFormRequest> {
   doubleOptInEmailId?: string | null;
+  seoTitle?: string | null;
+  seoDescription?: string | null;
+  seoImageUrl?: string | null;
+  seoFaviconUrl?: string | null;
+  slug?: string | null;
 }
 
 import {
@@ -1597,6 +1602,108 @@ class FormsApi extends HttpClient {
       formResponseSchema,
     );
   }
+
+  /**
+   * Upload SEO asset (image or favicon) for a form
+   *
+   * @param formId - ID of the form
+   * @param assetType - Type of asset ('seo-image' or 'favicon')
+   * @param file - The file to upload
+   * @returns Upload result with URL
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.forms().uploadSeoAsset('form_123', 'seo-image', file)
+   * console.log(result.url) // URL of uploaded image
+   * ```
+   */
+  async uploadSeoAsset(
+    formId: string,
+    assetType: "seo-image" | "favicon",
+    file: File,
+  ): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(
+      `/api/internal/v1/forms/${formId}/${assetType}`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `Failed to upload ${assetType}`);
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete SEO asset (image or favicon) from a form
+   *
+   * @param formId - ID of the form
+   * @param assetType - Type of asset ('seo-image' or 'favicon')
+   *
+   * @example
+   * ```ts
+   * await internalApi.forms().deleteSeoAsset('form_123', 'seo-image')
+   * ```
+   */
+  async deleteSeoAsset(
+    formId: string,
+    assetType: "seo-image" | "favicon",
+  ): Promise<void> {
+    const response = await fetch(
+      `/api/internal/v1/forms/${formId}/${assetType}`,
+      {
+        method: "DELETE",
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || `Failed to delete ${assetType}`);
+    }
+  }
+
+  /**
+   * Upload a content image for use in form content blocks or success messages
+   *
+   * @param formId - ID of the form
+   * @param file - The image file to upload
+   * @returns Upload result with URL
+   *
+   * @example
+   * ```ts
+   * const result = await internalApi.forms().uploadContentImage('form_123', file)
+   * console.log(result.url) // URL of uploaded image
+   * ```
+   */
+  async uploadContentImage(
+    formId: string,
+    file: File,
+  ): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    const response = await fetch(
+      `/api/internal/v1/forms/${formId}/content-image`,
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to upload content image");
+    }
+
+    return response.json();
+  }
 }
 
 /**
@@ -1875,6 +1982,132 @@ class SenderIdentitiesApi extends HttpClient {
       const errorData = await response.json();
       throw new ApiClientError(
         errorData.error?.message || "Failed to fetch sender identities",
+        response.status,
+        errorData,
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Create a new sender identity
+   *
+   * @param data - The sender identity data
+   * @returns Created sender identity
+   *
+   * @example
+   * ```ts
+   * const identity = await internalApi.senderIdentities().create({
+   *   name: "Newsletter Team",
+   *   email: "newsletter",
+   *   sendingDomainId: "domain-id"
+   * })
+   * ```
+   */
+  async create(data: {
+    name: string;
+    email: string;
+    sendingDomainId: string;
+  }): Promise<{
+    object: string;
+    id: string;
+    name: string;
+    email: string;
+    localPart: string;
+    domain: string;
+    domainId: string;
+    replyToEmail: string | null;
+    verified: boolean;
+    createdAt: string;
+  }> {
+    const response = await fetch("/api/internal/v1/sender-identities", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiClientError(
+        errorData.error?.message || "Failed to create sender identity",
+        response.status,
+        errorData,
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Update a sender identity
+   *
+   * @param id - The sender identity ID
+   * @param data - The update data
+   * @returns Updated sender identity
+   *
+   * @example
+   * ```ts
+   * const identity = await internalApi.senderIdentities().update("id", {
+   *   name: "Updated Name",
+   *   replyToEmail: "reply@example.com"
+   * })
+   * ```
+   */
+  async update(
+    id: string,
+    data: { name?: string; replyToEmail?: string | null },
+  ): Promise<{
+    object: string;
+    id: string;
+    name: string;
+    email: string;
+    localPart: string;
+    domain: string;
+    domainId: string;
+    replyToEmail: string | null;
+    verified: boolean;
+    createdAt: string;
+  }> {
+    const response = await fetch(`/api/internal/v1/sender-identities/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiClientError(
+        errorData.error?.message || "Failed to update sender identity",
+        response.status,
+        errorData,
+      );
+    }
+
+    return response.json();
+  }
+
+  /**
+   * Delete a sender identity
+   *
+   * @param id - The sender identity ID
+   * @returns Deletion confirmation
+   *
+   * @example
+   * ```ts
+   * await internalApi.senderIdentities().delete("id")
+   * ```
+   */
+  async delete(id: string): Promise<{ object: string; deleted: boolean }> {
+    const response = await fetch(`/api/internal/v1/sender-identities/${id}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new ApiClientError(
+        errorData.error?.message || "Failed to delete sender identity",
         response.status,
         errorData,
       );

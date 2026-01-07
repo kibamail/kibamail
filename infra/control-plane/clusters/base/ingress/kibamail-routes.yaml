@@ -50,6 +50,23 @@ spec:
           namespace: kibamail
           port: 443
 ---
+# TLSRoute for forms.kibamail.com
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: kibamail-forms
+spec:
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: tls-kibamail
+  hostnames:
+    - forms.kibamail.com
+  rules:
+    - backendRefs:
+        - name: kibamail-web
+          namespace: kibamail
+          port: 443
+---
 # TLSRoute for auth.kibamail.com
 apiVersion: gateway.networking.k8s.io/v1alpha2
 kind: TLSRoute

@@ -72,20 +72,3 @@ spec:
               value: "true"
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               value: ""
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: kibamail-event-ingestor
-  namespace: kibamail-event-ingestor
-spec:
-  template:
-    spec:
-      containers:
-        - name: event-ingestor
-          env:
-            # Disable OTel in staging
-            - name: OTEL_SDK_DISABLED
-              value: "true"
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: ""

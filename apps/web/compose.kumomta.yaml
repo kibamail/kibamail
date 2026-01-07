@@ -1,0 +1,365 @@
+# =============================================================================
+# KumoMTA Integration Testing Environment
+# =============================================================================
+#
+# This Docker Compose setup provides MTA testing infrastructure:
+#
+# - DNSMasq for intercepting all MX lookups -> routes to mailpit
+# - Mailpit for catching all outbound email
+# - KumoMTA with TSA daemon
+# - 6 SOCKS5 proxies for multi-IP simulation (like Helsinki production)
+# - Connects to REAL control plane running on host
+# - Redis for TSA
+#
+# Network Architecture (172.30.0.0/16):
+#   172.30.0.2  - dnsmasq (DNS server)
+#   172.30.0.3  - redis
+#   172.30.0.5  - mailpit (catches all outbound email)
+#   172.30.0.10 - kumomta (MTA + TSA daemon)
+#   172.30.0.41 - socks5-proxy-mktg-1 (marketing IP 1)
+#   172.30.0.42 - socks5-proxy-mktg-2 (marketing IP 2)
+#   172.30.0.43 - socks5-proxy-mktg-3 (marketing IP 3)
+#   172.30.0.51 - socks5-proxy-trx-1 (transactional IP 1)
+#   172.30.0.52 - socks5-proxy-trx-2 (transactional IP 2)
+#   172.30.0.53 - socks5-proxy-trx-3 (transactional IP 3)
+#
+# Prerequisites:
+#   - Control plane running on host at http://localhost:18092
+#   - Test domain: picoklos.kibamail.xyz (verified with DKIM)
+#
+# Usage:
+#   docker compose -f compose.kumomta.yaml up -d
+#   # Inject test email via HTTP API
+#   curl -X POST http://localhost:8000/api/inject/v1 ...
+#   # Check mailpit for received emails
+#   curl http://localhost:8025/api/v1/messages
+#
+# =============================================================================
+
+name: kibamail-mta-test
+
+networks:
+  mta-test:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.30.0.0/16
+          gateway: 172.30.0.1
+
+volumes:
+  redis-data:
+  minio-data:
+
+services:
+  # ===========================================================================
+  # MinIO - S3-compatible storage for email content
+  # ===========================================================================
+  minio:
+    image: minio/minio:latest
+    container_name: kbmta-test-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: test-access-key
+      MINIO_ROOT_PASSWORD: test-secret-key
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Console UI
+    volumes:
+      - minio-data:/data
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.4
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # ===========================================================================
+  # MinIO bucket initialization
+  # ===========================================================================
+  minio-init:
+    image: minio/mc:latest
+    container_name: kbmta-test-minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set local http://minio:9000 test-access-key test-secret-key;
+      mc mb local/test-public-bucket --ignore-existing;
+      mc mb local/test-private-bucket --ignore-existing;
+      mc anonymous set public local/test-public-bucket;
+      echo 'Buckets created successfully';
+      exit 0;
+      "
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.6
+
+  # ===========================================================================
+  # DNS Server - Intercepts ALL MX lookups and routes to mailpit
+  # ===========================================================================
+  dnsmasq:
+    image: strm/dnsmasq:latest
+    container_name: kbmta-test-dns
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - ./mta-testing/dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf:ro
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.2
+    healthcheck:
+      test: ["CMD", "sh", "-c", "nslookup gmail.com 127.0.0.1 || true"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 3s
+
+  # ===========================================================================
+  # Redis - For TSA daemon state
+  # ===========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: kbmta-test-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "16380:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.3
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # Mailpit - Catches ALL outbound email
+  # ===========================================================================
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: kbmta-test-mailpit
+    environment:
+      MP_MAX_MESSAGES: 10000
+      MP_SMTP_DISABLE_RDNS: "true"
+      MP_SMTP_BIND_ADDR: "0.0.0.0:25"
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+      MP_UI_BIND_ADDR: "0.0.0.0:8025"
+    ports:
+      - "8025:8025"   # Web UI
+      - "1025:25"     # SMTP (exposed for debugging)
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.5
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:8025/api/v1/info"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # SOCKS5 Proxies - Marketing Pool (simulating 37.27.167.41-43)
+  # ===========================================================================
+  socks5-proxy-mktg-1:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-proxy-mktg-1
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:5000"]
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.41
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/5000' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  socks5-proxy-mktg-2:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-proxy-mktg-2
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:5000"]
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.42
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/5000' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  socks5-proxy-mktg-3:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-proxy-mktg-3
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:5000"]
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.43
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/5000' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # SOCKS5 Proxies - Transactional Pool (simulating 135.181.10.1-3)
+  # ===========================================================================
+  socks5-proxy-trx-1:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-proxy-trx-1
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:5000"]
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.51
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/5000' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  socks5-proxy-trx-2:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-proxy-trx-2
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:5000"]
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.52
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/5000' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  socks5-proxy-trx-3:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-proxy-trx-3
+    entrypoint: ["/opt/kumomta/sbin/proxy-server", "--listen", "0.0.0.0:5000"]
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.53
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/5000' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # ===========================================================================
+  # KumoMTA - The MTA under test (with TSA daemon)
+  # ===========================================================================
+  kumomta:
+    image: ghcr.io/kumocorp/kumomta:latest
+    container_name: kbmta-test-mta
+    entrypoint: ["/opt/kumomta/scripts/start-kumomta.sh"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      # Connect to REAL control plane running on host
+      CONTROL_PLANE_URL: "http://host.docker.internal:18092"
+      INTERNAL_SERVICE_KEY: "TestServiceKeyForDevelopmentOnly32ch"
+      WEBHOOK_URL: "http://host.docker.internal:18092/api/internal/v1/mta-events"
+      MTA_HOSTNAME: "mail.kbmta.net"
+      # Trusted hosts for HTTP injection (host machine + docker network)
+      TRUSTED_HOSTS: "127.0.0.1,::1,0.0.0.0/0"
+      # TSA configuration
+      REDIS_URL: "redis://redis:6379/0"
+      TSA_LISTEN_PORT: "8008"
+    ports:
+      - "2525:25"    # SMTP inbound (avoid conflict with host port 25)
+      - "5587:587"   # SMTP submission
+      - "8000:8000"  # HTTP API
+    volumes:
+      # Startup script
+      - ./mta-testing/scripts/start-kumomta.sh:/opt/kumomta/scripts/start-kumomta.sh:ro
+      # PRODUCTION init.lua policy
+      - ../mta/kumomta/policy/init.lua:/opt/kumomta/etc/policy/init.lua:ro
+      # PRODUCTION TSA daemon configuration
+      - ../mta/kumomta/policy/tsa_init.lua:/opt/kumomta/etc/policy/tsa_init.lua:ro
+      # Test sources.toml (with marketing + transactional pools for local testing)
+      - ./mta-testing/config/sources.test.toml:/opt/kumomta/etc/policy/sources.toml:ro
+      # Shaping configuration
+      - ./mta-testing/config/shaping.toml:/opt/kumomta/etc/policy/shaping.toml:ro
+      # TLS certificates
+      - ./mta-testing/certs:/opt/kumomta/etc/tls:ro
+      # MTA DKIM keys
+      - ./mta-testing/certs/dkim:/opt/kumomta/etc/dkim:ro
+    tmpfs:
+      - /var/spool/kumomta
+      - /var/log/kumomta
+    networks:
+      mta-test:
+        ipv4_address: 172.30.0.10
+    dns: 172.30.0.2
+    depends_on:
+      dnsmasq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+      socks5-proxy-mktg-1:
+        condition: service_healthy
+      socks5-proxy-mktg-2:
+        condition: service_healthy
+      socks5-proxy-mktg-3:
+        condition: service_healthy
+      socks5-proxy-trx-1:
+        condition: service_healthy
+      socks5-proxy-trx-2:
+        condition: service_healthy
+      socks5-proxy-trx-3:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kumomta/sbin/kcli queue-summary >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s

@@ -46,7 +46,7 @@ email_agent_s3_region: "auto"
 email_agent_s3_bucket: "production-kibamail-com-private"
 
 # Control plane API
-email_agent_control_api_base_url: "https://api.kibamail.com" # TODO: Set control plane URL
+email_agent_control_api_base_url: "https://kibamail.com"
 #
 # Secret variables (prompted interactively when running deploy-email-agent.yml):
 # - email_agent_s3_access_key_id: S3 access key

@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queue, queueLogger } from "@/lib/queue";
-import { verifyDnsRecords } from "@/lib/sending-domains/dns";
+import { verifyDnsRecords, verifyInboxMxRecord } from "@/lib/sending-domains/dns";
 
 const logger = queueLogger.child({ job: "check-verification" });
 
@@ -13,13 +13,21 @@ function isDomainFullyVerified(domain: {
   returnPathDomainVerifiedAt: Date | null;
   trackingDomainVerifiedAt: Date | null;
   dmarcVerifiedAt: Date | null;
+  inboxEnabled: boolean;
+  inboxMxVerifiedAt: Date | null;
 }): boolean {
-  return (
+  const coreVerified =
     domain.dkimVerifiedAt !== null &&
     domain.returnPathDomainVerifiedAt !== null &&
     domain.trackingDomainVerifiedAt !== null &&
-    domain.dmarcVerifiedAt !== null
-  );
+    domain.dmarcVerifiedAt !== null;
+
+  // If inbox is enabled, also require MX verification
+  if (domain.inboxEnabled) {
+    return coreVerified && domain.inboxMxVerifiedAt !== null;
+  }
+
+  return coreVerified;
 }
 
 export const checkVerification: JobProcessor<
@@ -68,6 +76,7 @@ export const checkVerification: JobProcessor<
     returnPathDomainVerifiedAt?: Date;
     trackingDomainVerifiedAt?: Date;
     dmarcVerifiedAt?: Date;
+    inboxMxVerifiedAt?: Date;
   } = {
     recordsLastVerifiedAt: now,
   };
@@ -96,6 +105,20 @@ export const checkVerification: JobProcessor<
   if (verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
     updateData.dmarcVerifiedAt = now;
     logger.info({ jobId, domainId }, "DMARC record verified");
+  }
+
+  // Verify MX record for inbox-enabled domains
+  if (domain.inboxEnabled && !domain.inboxMxVerifiedAt) {
+    const mxResult = await verifyInboxMxRecord(domain.name);
+    if (mxResult.configured) {
+      updateData.inboxMxVerifiedAt = now;
+      logger.info({ jobId, domainId }, "Inbox MX record verified");
+    } else {
+      logger.debug(
+        { jobId, domainId, expected: mxResult.expected, found: mxResult.found },
+        "Inbox MX record not configured",
+      );
+    }
   }
 
   const updatedDomain = await prisma.sendingDomain.update({

@@ -73,19 +73,6 @@ export type EditorDetails<T extends EmailEditorMode> = T extends "broadcast"
 
 export type Domain = Pick<SendingDomain, "id" | "name">;
 
-export interface SenderSelectState {
-  localPart: string;
-  domainId: string;
-  isAddingNew: boolean;
-}
-
-export interface SenderSelectActions {
-  onLocalPartChange: (value: string) => void;
-  onDomainIdChange: (id: string) => void;
-  onIsAddingNewChange: (value: boolean) => void;
-  onDomainCreated?: (domain: CreatedDomain) => void;
-}
-
 /**
  * Tab configuration varies by mode
  */

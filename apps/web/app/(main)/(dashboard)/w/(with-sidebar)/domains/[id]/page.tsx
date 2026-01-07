@@ -1,11 +1,4 @@
-import {
-  DashboardLayoutStickyContentHeaderContainer,
-  DashboardLayoutStickyDetailHeader,
-  DashboardLayoutStickyDetailHeaderDescription,
-  DashboardLayoutStickyDetailHeaderTitle,
-} from "@kibamail/owly/dashboard-layout";
 import dayjs from "dayjs";
-import { Globe } from "iconoir-react";
 import { notFound } from "next/navigation";
 
 import { getSession } from "@/lib/auth/get-session";
@@ -14,10 +7,8 @@ import { prisma } from "@/lib/db";
 import type { SslStatus } from "../_components/ssl-status-badge";
 import { CopyableText } from "./_components/copyable-text";
 import { DnsRecordsSection } from "./_components/dns-records-section";
-import { DomainActionsDropdown } from "./_components/domain-actions-dropdown";
 import { SslStatusSection } from "./_components/ssl-status-section";
 import { TrackingToggle } from "./_components/tracking-toggle";
-import { VerifyDomainButton } from "./_components/verify-domain-button";
 
 interface DomainDetailPageProps {
   params: Promise<{
@@ -48,54 +39,36 @@ export default async function DomainDetailPage({
     notFound();
   }
 
+  const dkimVerified = Boolean(domain.dkimVerifiedAt);
+  const returnPathVerified = Boolean(domain.returnPathDomainVerifiedAt);
+  const trackingVerified = Boolean(domain.trackingDomainVerifiedAt);
+  const dmarcVerified = Boolean(domain.dmarcVerifiedAt);
+  const inboxMxVerified = Boolean(domain.inboxMxVerifiedAt);
+
   const isFullyVerified =
-    domain.dkimVerifiedAt !== null &&
-    domain.returnPathDomainVerifiedAt !== null &&
-    domain.trackingDomainVerifiedAt !== null;
+    dkimVerified &&
+    returnPathVerified &&
+    trackingVerified &&
+    dmarcVerified &&
+    inboxMxVerified;
 
   const verifiedCount = [
-    domain.dkimVerifiedAt !== null,
-    domain.returnPathDomainVerifiedAt !== null,
-    domain.trackingDomainVerifiedAt !== null,
+    dkimVerified,
+    returnPathVerified,
+    trackingVerified,
+    dmarcVerified,
+    inboxMxVerified,
   ].filter(Boolean).length;
 
   return (
-    <DashboardLayoutStickyContentHeaderContainer className="mt-8">
-      <DashboardLayoutStickyDetailHeader>
-        <div className="flex items-center gap-4 flex-1">
-          <div className="w-14 h-14 rounded-full bg-kb-background-secondary flex items-center justify-center">
-            <Globe className="w-7 h-7 text-kb-content-tertiary" />
-          </div>
-
-          <div className="flex flex-col flex-1">
-            <DashboardLayoutStickyDetailHeaderDescription>
-              Sending Domain
-            </DashboardLayoutStickyDetailHeaderDescription>
-            <DashboardLayoutStickyDetailHeaderTitle>
-              {domain.name}
-            </DashboardLayoutStickyDetailHeaderTitle>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <VerifyDomainButton
-              domainId={domain.id}
-              isFullyVerified={isFullyVerified}
-            />
-            <DomainActionsDropdown
-              domainId={domain.id}
-              domainName={domain.name}
-            />
-          </div>
-        </div>
-      </DashboardLayoutStickyDetailHeader>
-
+    <div className="py-6">
       <div className="grid grid-cols-4 gap-6 mb-8">
         <div>
           <div className="text-xs font-medium text-kb-content-tertiary uppercase mb-2">
             Status
           </div>
           <div className="text-sm text-kb-content-primary">
-            {isFullyVerified ? "Ready to send" : `${verifiedCount}/3 verified`}
+            {isFullyVerified ? "Ready to send" : `${verifiedCount}/5 verified`}
           </div>
         </div>
 
@@ -155,6 +128,6 @@ export default async function DomainDetailPage({
         initialError={domain.sslIssuanceError}
         trackingVerified={domain.trackingDomainVerifiedAt !== null}
       />
-    </DashboardLayoutStickyContentHeaderContainer>
+    </div>
   );
 }

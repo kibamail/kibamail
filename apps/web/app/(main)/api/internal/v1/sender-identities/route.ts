@@ -5,13 +5,19 @@
  *
  * Supported Methods:
  * - GET    List all sender identities
+ * - POST   Create a new sender identity
  */
 
 import type { NextRequest } from "next/server";
 
 import { withErrorHandling, withSession } from "@/lib/api/requests";
-import { responseOk } from "@/lib/api/responses";
+import {
+  responseBadRequest,
+  responseNotFound,
+  responseOk,
+} from "@/lib/api/responses";
 import { prisma } from "@/lib/db";
+import { createSenderIdentitySchema } from "./schema";
 
 /**
  * Format sender identity for API response
@@ -68,5 +74,73 @@ export async function GET(request: NextRequest) {
         "sender_identity_list",
       );
     }),
+  );
+}
+
+/**
+ * POST /api/internal/v1/sender-identities
+ *
+ * Create a new sender identity
+ * Requires: manage:broadcasts permission
+ */
+export async function POST(request: NextRequest) {
+  return withErrorHandling(request, () =>
+    withSession(
+      request,
+      async (session) => {
+        if (!session.currentOrganization) {
+          throw new Error("No active workspace found");
+        }
+
+        const workspaceId = session.currentOrganization.id;
+        const body = await request.json();
+
+        // Validate request body
+        const parsed = createSenderIdentitySchema.safeParse(body);
+        if (!parsed.success) {
+          return responseBadRequest(
+            parsed.error.issues[0]?.message || "Invalid request body",
+          );
+        }
+
+        const { name, email, sendingDomainId } = parsed.data;
+
+        // Verify the sending domain exists, belongs to workspace, and is verified
+        const sendingDomain = await prisma.sendingDomain.findFirst({
+          where: {
+            id: sendingDomainId,
+            workspaceId,
+          },
+        });
+
+        if (!sendingDomain) {
+          return responseNotFound("Sending domain not found");
+        }
+
+        if (!sendingDomain.dkimVerifiedAt) {
+          return responseBadRequest(
+            "Sending domain must be verified before creating sender identities",
+          );
+        }
+
+        // Create the sender identity (auto-verified since domain is verified)
+        const senderIdentity = await prisma.senderIdentity.create({
+          data: {
+            workspaceId,
+            sendingDomainId,
+            name,
+            email,
+            emailVerifiedAt: new Date(), // Auto-verify since domain is verified
+          },
+          include: {
+            sendingDomain: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
+        return responseOk(formatSenderIdentity(senderIdentity), "sender_identity");
+      },
+    ),
   );
 }

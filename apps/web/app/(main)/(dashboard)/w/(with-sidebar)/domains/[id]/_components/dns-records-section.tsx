@@ -87,6 +87,90 @@ function DnsRecordRow({ type, hostname, value, verified }: DnsRecordRowProps) {
   );
 }
 
+interface MxRecordRowProps {
+  hostname: string;
+  priority: number;
+  value: string;
+  verified: boolean;
+}
+
+function MxRecordRow({ hostname, priority, value, verified }: MxRecordRowProps) {
+  const { success: toast } = useToast();
+
+  async function copyToClipboard(text: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Copied to clipboard");
+    } catch (error) {
+      console.error("Failed to copy:", error);
+    }
+  }
+
+  return (
+    <tr className="border-b border-kb-border-tertiary last:border-b-0">
+      <td className="py-4 pr-4 align-top">
+        <span className="text-xs font-medium text-kb-content-tertiary uppercase">
+          MX
+        </span>
+      </td>
+      <td className="py-4 pr-4 align-top max-w-[200px]">
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Button
+                variant="tertiary"
+                size="sm"
+                className="flex items-start gap-2 text-left p-1 -m-1 max-w-full"
+                onClick={() => copyToClipboard(hostname)}
+              >
+                <Copy className="w-4 h-4 text-kb-content-tertiary flex-shrink-0 mt-0.5" />
+                <span className="font-mono text-sm text-kb-content-tertiary truncate">
+                  {hostname}
+                </span>
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content side="top" className="max-w-sm">
+              <p className="font-mono text-xs break-all">{hostname}</p>
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </td>
+      <td className="py-4 pr-4 align-top">
+        <span className="font-mono text-sm text-kb-content-tertiary">
+          {priority}
+        </span>
+      </td>
+      <td className="py-4 pr-4 align-top max-w-[300px]">
+        <Tooltip.Provider>
+          <Tooltip.Root>
+            <Tooltip.Trigger>
+              <Button
+                variant="tertiary"
+                size="sm"
+                className="flex items-start gap-2 text-left p-1 -m-1 max-w-full"
+                onClick={() => copyToClipboard(value)}
+              >
+                <Copy className="w-4 h-4 text-kb-content-tertiary flex-shrink-0 mt-0.5" />
+                <span className="font-mono text-sm text-kb-content-tertiary truncate">
+                  {value}
+                </span>
+              </Button>
+            </Tooltip.Trigger>
+            <Tooltip.Content side="top" className="max-w-md">
+              <p className="font-mono text-xs break-all">{value}</p>
+            </Tooltip.Content>
+          </Tooltip.Root>
+        </Tooltip.Provider>
+      </td>
+      <td className="py-4 text-right align-top">
+        <Badge variant={verified ? "success" : "warning"} size="sm">
+          {verified ? "Verified" : "Pending"}
+        </Badge>
+      </td>
+    </tr>
+  );
+}
+
 interface DnsRecordsSectionProps {
   domain: SendingDomain;
 }
@@ -108,6 +192,24 @@ function getDnsHostname(subdomain: string, domainName: string): string {
   // Get all parts except the last two (the root domain)
   const subdomainPart = parts.slice(0, -2).join(".");
   return `${subdomain}.${subdomainPart}`;
+}
+
+/**
+ * Get the MX hostname for DNS record display.
+ * For MX records, the hostname is the subdomain portion of the domain.
+ *
+ * Example:
+ * - domain: "kakari.kibamail.xyz" -> hostname: "kakari"
+ * - domain: "kibamail.xyz" -> hostname: "@"
+ */
+function getMxHostname(domainName: string): string {
+  const parts = domainName.split(".");
+  if (parts.length <= 2) {
+    // Root domain, use @
+    return "@";
+  }
+  // Get all parts except the last two (the root domain)
+  return parts.slice(0, -2).join(".");
 }
 
 function cleanupPublicKey(publicKey: string): string {
@@ -159,7 +261,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               type="CNAME"
               hostname={getDnsHostname(domain.returnPathSubDomain, domain.name)}
               value={domain.returnPathDomainCnameValue}
-              verified={domain.returnPathDomainVerifiedAt !== null}
+              verified={Boolean(domain.returnPathDomainVerifiedAt)}
             />
           </tbody>
         </table>
@@ -197,7 +299,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               type="TXT"
               hostname={getDnsHostname(domain.dkimSubDomain, domain.name)}
               value={dkimValue}
-              verified={domain.dkimVerifiedAt !== null}
+              verified={Boolean(domain.dkimVerifiedAt)}
             />
           </tbody>
         </table>
@@ -235,7 +337,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               type="CNAME"
               hostname={getDnsHostname(domain.trackingSubDomain, domain.name)}
               value={domain.trackingDomainCnameValue}
-              verified={domain.trackingDomainVerifiedAt !== null}
+              verified={Boolean(domain.trackingDomainVerifiedAt)}
             />
           </tbody>
         </table>
@@ -272,7 +374,48 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               type="TXT"
               hostname={getDnsHostname("_dmarc", domain.name)}
               value={buildDmarcPolicy(domain.dmarcReportingCode)}
-              verified={domain.dmarcVerifiedAt !== null}
+              verified={Boolean(domain.dmarcVerifiedAt)}
+            />
+          </tbody>
+        </table>
+      </div>
+
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <h3 className="text-sm font-medium text-kb-content-secondary">
+            MX Record (Inbox)
+          </h3>
+          <span className="text-sm text-kb-content-tertiary">
+            Receive email replies directly to your domain for two-way
+            conversations.
+          </span>
+        </div>
+        <table className="w-full">
+          <thead>
+            <tr className="border-b border-kb-border-tertiary">
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase w-24">
+                Type
+              </th>
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase w-48">
+                Host Name
+              </th>
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase w-24">
+                Priority
+              </th>
+              <th className="py-3 text-left text-xs font-medium text-kb-content-tertiary uppercase">
+                Value
+              </th>
+              <th className="py-3 text-right text-xs font-medium text-kb-content-tertiary uppercase w-24">
+                Status
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <MxRecordRow
+              hostname={getMxHostname(domain.name)}
+              priority={10}
+              value="mail.kbmta.net"
+              verified={Boolean(domain.inboxMxVerifiedAt)}
             />
           </tbody>
         </table>

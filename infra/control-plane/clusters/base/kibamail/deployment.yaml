@@ -338,32 +338,12 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: ACME_ACCOUNT_KEY
-            # NATS Configuration
-            - name: NATS_URL
+            # MTA Direct Injection Configuration
+            - name: MTA_INJECTION_URL
               valueFrom:
-                secretKeyRef:
-                  name: control-plane-nats
-                  key: NATS_URL
-            - name: NATS_NKEY_SEED
-              valueFrom:
-                secretKeyRef:
-                  name: control-plane-nats
-                  key: NATS_NKEY_SEED
-            - name: NATS_TLS_CA
-              valueFrom:
-                secretKeyRef:
-                  name: control-plane-nats
-                  key: NATS_TLS_CA
-            - name: NATS_TLS_CERT
-              valueFrom:
-                secretKeyRef:
-                  name: control-plane-nats
-                  key: NATS_TLS_CERT
-            - name: NATS_TLS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: control-plane-nats
-                  key: NATS_TLS_KEY
+                configMapKeyRef:
+                  name: kibamail-config
+                  key: MTA_INJECTION_URL
           resources:
             requests:
               cpu: 100m

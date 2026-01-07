@@ -70,6 +70,14 @@ function createNewPage(): FormPage {
   } as FormPage;
 }
 
+export interface FormSeoData {
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageUrl: string | null;
+  seoFaviconUrl: string | null;
+  slug: string | null;
+}
+
 interface FormBuilderContextValue {
   // Form data
   formId: string;
@@ -77,6 +85,8 @@ interface FormBuilderContextValue {
   schema: FormBuilderSchema;
   doubleOptInEmailId: string | null;
   setDoubleOptInEmailId: (id: string | null) => void;
+  seo: FormSeoData;
+  updateSeo: (updates: Partial<FormSeoData>) => void;
 
   // Selection state
   selectedPageIndex: number;
@@ -178,11 +188,20 @@ interface FormBuilderContextValue {
 
 const FormBuilderContext = createContext<FormBuilderContextValue | null>(null);
 
+const DEFAULT_SEO: FormSeoData = {
+  seoTitle: null,
+  seoDescription: null,
+  seoImageUrl: null,
+  seoFaviconUrl: null,
+  slug: null,
+};
+
 interface FormBuilderProviderProps {
   formId: string;
   formName: string;
   initialSchema: FormBuilderSchema | null;
   initialDoubleOptInEmailId: string | null;
+  initialSeo: FormSeoData | null;
   children: ReactNode;
 }
 
@@ -191,11 +210,13 @@ export function FormBuilderProvider({
   formName: initialFormName,
   initialSchema,
   initialDoubleOptInEmailId,
+  initialSeo,
   children,
 }: FormBuilderProviderProps) {
   const [doubleOptInEmailId, setDoubleOptInEmailId] = useState<string | null>(
     initialDoubleOptInEmailId,
   );
+  const [seo, setSeo] = useState<FormSeoData>(initialSeo ?? DEFAULT_SEO);
   const [schema, setSchema] = useState<FormBuilderSchema>(() => {
     if (initialSchema && initialSchema.pages?.length > 0) {
       // Ensure settings and styling exist
@@ -767,6 +788,11 @@ export function FormBuilderProvider({
     [],
   );
 
+  // SEO operations
+  const updateSeo = useCallback((updates: Partial<FormSeoData>) => {
+    setSeo((prev) => ({ ...prev, ...updates }));
+  }, []);
+
   // Utility functions
   const clearSelection = useCallback(() => {
     setSelectedSectionId(null);
@@ -796,6 +822,8 @@ export function FormBuilderProvider({
         schema,
         doubleOptInEmailId,
         setDoubleOptInEmailId,
+        seo,
+        updateSeo,
         selectedPageIndex,
         selectedSectionId,
         selectedFieldId,

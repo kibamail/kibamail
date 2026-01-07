@@ -5,12 +5,10 @@ import { SectionHeader } from "@/components/email-editor/details-sections/shared
 import type {
   Domain,
   EmailDetails,
-  SenderSelectActions,
-  SenderSelectState,
   TransformedSenderIdentity,
 } from "@/components/email-editor/types";
 import { ReplyToSelect } from "@/components/reply-to-select";
-import { SenderSelect } from "@/components/sender-select";
+import { SenderSelect, type CreatedDomain } from "@/components/sender-select";
 
 interface SenderDetailsSectionProps {
   senderIdentityId?: string;
@@ -18,8 +16,8 @@ interface SenderDetailsSectionProps {
   senderIdentities: TransformedSenderIdentity[];
   domains: Domain[];
   onChange: (updates: Partial<EmailDetails>) => void;
-  senderState: SenderSelectState;
-  senderActions: SenderSelectActions;
+  onSenderIdentityCreated?: (identity: TransformedSenderIdentity) => void;
+  onDomainCreated?: (domain: CreatedDomain) => void;
   readonly?: boolean;
 }
 
@@ -29,8 +27,8 @@ export function SenderDetailsSection({
   senderIdentities,
   domains,
   onChange,
-  senderState,
-  senderActions,
+  onSenderIdentityCreated,
+  onDomainCreated,
   readonly = false,
 }: SenderDetailsSectionProps) {
   const onSenderChange = useCallback(
@@ -71,13 +69,8 @@ export function SenderDetailsSection({
           domains={domains}
           value={senderIdentityId}
           onChange={onSenderChange}
-          onDomainCreated={senderActions.onDomainCreated}
-          localPart={senderState.localPart}
-          onLocalPartChange={senderActions.onLocalPartChange}
-          domainId={senderState.domainId}
-          onDomainIdChange={senderActions.onDomainIdChange}
-          isAddingNew={senderState.isAddingNew}
-          onIsAddingNewChange={senderActions.onIsAddingNewChange}
+          onSenderIdentityCreated={onSenderIdentityCreated}
+          onDomainCreated={onDomainCreated}
           disabled={readonly}
         />
 

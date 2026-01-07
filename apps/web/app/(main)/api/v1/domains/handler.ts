@@ -29,6 +29,7 @@ import {
   DNS_CONFIG,
   getDnsRecords,
   verifyDnsRecords,
+  verifyInboxMxRecord,
 } from "@/lib/sending-domains/dns";
 import { createSendingDomainSchema, updateSendingDomainSchema } from "./schema";
 
@@ -49,6 +50,8 @@ function formatSendingDomain(domain: {
   trackingDomainVerifiedAt: Date | null;
   dmarcReportingCode: string;
   dmarcVerifiedAt: Date | null;
+  inboxEnabled: boolean;
+  inboxMxVerifiedAt: Date | null;
   openTrackingEnabled: boolean;
   clickTrackingEnabled: boolean;
   sslIssuanceStatus: string | null;
@@ -71,6 +74,8 @@ function formatSendingDomain(domain: {
     returnPathVerified: domain.returnPathDomainVerifiedAt !== null,
     trackingVerified: domain.trackingDomainVerifiedAt !== null,
     dmarcVerified: domain.dmarcVerifiedAt !== null,
+    inboxEnabled: domain.inboxEnabled,
+    inboxMxVerified: domain.inboxMxVerifiedAt !== null,
     openTrackingEnabled: domain.openTrackingEnabled,
     clickTrackingEnabled: domain.clickTrackingEnabled,
     dnsRecords,
@@ -321,17 +326,20 @@ export async function verifySendingDomain(
     );
   }
 
-  // Verify DNS records
-  const verificationResult = await verifyDnsRecords(
-    domain.name,
-    domain.dkimSubDomain,
-    domain.dkimPublicKey,
-    domain.returnPathSubDomain,
-    domain.trackingSubDomain,
-    domain.returnPathDomainCnameValue,
-    domain.trackingDomainCnameValue,
-    domain.dmarcReportingCode,
-  );
+  // Verify DNS records (including MX for inbox)
+  const [verificationResult, mxVerificationResult] = await Promise.all([
+    verifyDnsRecords(
+      domain.name,
+      domain.dkimSubDomain,
+      domain.dkimPublicKey,
+      domain.returnPathSubDomain,
+      domain.trackingSubDomain,
+      domain.returnPathDomainCnameValue,
+      domain.trackingDomainCnameValue,
+      domain.dmarcReportingCode,
+    ),
+    verifyInboxMxRecord(domain.name),
+  ]);
 
   // Update verification timestamps
   const now = new Date();
@@ -341,6 +349,7 @@ export async function verifySendingDomain(
     returnPathDomainVerifiedAt?: Date;
     trackingDomainVerifiedAt?: Date;
     dmarcVerifiedAt?: Date;
+    inboxMxVerifiedAt?: Date;
   } = {
     recordsLastVerifiedAt: now,
   };
@@ -366,6 +375,11 @@ export async function verifySendingDomain(
 
   if (verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
     updateData.dmarcVerifiedAt = now;
+  }
+
+  // Verify MX record for inbox
+  if (mxVerificationResult.configured && !domain.inboxMxVerifiedAt) {
+    updateData.inboxMxVerifiedAt = now;
   }
 
   // Determine if we should trigger SSL issuance:
@@ -397,7 +411,10 @@ export async function verifySendingDomain(
   return responseOk(
     {
       ...formatSendingDomain(updatedDomain),
-      verification: verificationResult,
+      verification: {
+        ...verificationResult,
+        mx: mxVerificationResult,
+      },
     },
     "sending_domain",
   );

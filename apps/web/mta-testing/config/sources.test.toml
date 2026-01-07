@@ -1,0 +1,107 @@
+# =============================================================================
+# Kibamail Egress Source Configuration - TEST ENVIRONMENT
+# =============================================================================
+#
+# This mirrors the Helsinki production setup with:
+# - Marketing pool: 3 IPs (mktg-mta-1, mktg-mta-2, mktg-mta-3)
+# - Transactional pool: 3 IPs (trx-mta-1, trx-mta-2, trx-mta-3)
+#
+# Each source routes through a dedicated SOCKS5 proxy container.
+# DNS routes all MX lookups to mailpit (172.30.0.5).
+#
+# Network mapping (simulating production IPs):
+#   172.30.0.41 -> simulates 37.27.167.41 (mktg-mta-1)
+#   172.30.0.42 -> simulates 37.27.167.42 (mktg-mta-2)
+#   172.30.0.43 -> simulates 37.27.167.43 (mktg-mta-3)
+#   172.30.0.51 -> simulates 135.181.10.1 (trx-mta-1)
+#   172.30.0.52 -> simulates 135.181.10.2 (trx-mta-2)
+#   172.30.0.53 -> simulates 135.181.10.3 (trx-mta-3)
+#
+# =============================================================================
+
+# =============================================================================
+# MARKETING EGRESS SOURCES
+# =============================================================================
+
+[source."mktg-mta-1"]
+socks5_proxy_server = "172.30.0.41:5000"
+socks5_proxy_source_address = "172.30.0.41"
+ehlo_domain = "mktg-mta-1.kbmta.net"
+
+[source."mktg-mta-2"]
+socks5_proxy_server = "172.30.0.42:5000"
+socks5_proxy_source_address = "172.30.0.42"
+ehlo_domain = "mktg-mta-2.kbmta.net"
+
+[source."mktg-mta-3"]
+socks5_proxy_server = "172.30.0.43:5000"
+socks5_proxy_source_address = "172.30.0.43"
+ehlo_domain = "mktg-mta-3.kbmta.net"
+
+# =============================================================================
+# TRANSACTIONAL EGRESS SOURCES
+# =============================================================================
+
+[source."trx-mta-1"]
+socks5_proxy_server = "172.30.0.51:5000"
+socks5_proxy_source_address = "172.30.0.51"
+ehlo_domain = "trx-mta-1.kbmta.net"
+
+[source."trx-mta-2"]
+socks5_proxy_server = "172.30.0.52:5000"
+socks5_proxy_source_address = "172.30.0.52"
+ehlo_domain = "trx-mta-2.kbmta.net"
+
+[source."trx-mta-3"]
+socks5_proxy_server = "172.30.0.53:5000"
+socks5_proxy_source_address = "172.30.0.53"
+ehlo_domain = "trx-mta-3.kbmta.net"
+
+# =============================================================================
+# EGRESS POOLS
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Marketing Pool - Campaign and marketing emails
+# -----------------------------------------------------------------------------
+
+[pool."marketing"]
+
+[pool."marketing"."mktg-mta-1"]
+weight = 1
+
+[pool."marketing"."mktg-mta-2"]
+weight = 1
+
+[pool."marketing"."mktg-mta-3"]
+weight = 1
+
+# -----------------------------------------------------------------------------
+# Transactional Pool - Password resets, receipts, etc.
+# -----------------------------------------------------------------------------
+
+[pool."transactional"]
+
+[pool."transactional"."trx-mta-1"]
+weight = 1
+
+[pool."transactional"."trx-mta-2"]
+weight = 1
+
+[pool."transactional"."trx-mta-3"]
+weight = 1
+
+# -----------------------------------------------------------------------------
+# Default Pool - Fallback (uses marketing sources)
+# -----------------------------------------------------------------------------
+
+[pool."default"]
+
+[pool."default"."mktg-mta-1"]
+weight = 1
+
+[pool."default"."mktg-mta-2"]
+weight = 1
+
+[pool."default"."mktg-mta-3"]
+weight = 1

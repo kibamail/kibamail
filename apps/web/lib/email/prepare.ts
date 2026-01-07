@@ -13,13 +13,10 @@ import {
   type BroadcastDocument,
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
-import type { EmailMessage } from "@/lib/nats";
-import { queueLogger } from "@/lib/queue";
-import { uploadPrivateFile } from "@/lib/storage/private-storage";
+import type { EmailMessage } from "@/lib/mta";
 import { generateMessageIdForDomain } from "./message-id";
+import { htmlToPlainText } from "./html-to-text";
 import { applyTracking } from "./tracking";
-
-const logger = queueLogger.child({ module: "email-prepare" });
 
 /**
  * Contact data needed for email personalization
@@ -50,7 +47,12 @@ export interface EmailBroadcast {
   sendingDomain: SendingDomain;
   trackOpens?: boolean | null;
   trackClicks?: boolean | null;
-  replyToEmail: string;
+  /** Reply-to local part (e.g., "frantz" in frantz@domain.com) */
+  replyToLocalPart: string;
+  /** Reply-to domain (e.g., "domain.com") */
+  replyToDomain: string;
+  /** Whether inbox is enabled for this sending domain */
+  inboxEnabled: boolean;
 }
 
 /**
@@ -80,7 +82,7 @@ export interface PreparedEmail {
   subject: string;
   previewText: string;
   htmlBody: string;
-  textBody?: string;
+  textBody: string;
 
   // Headers
   headers: Record<string, string>;
@@ -107,6 +109,30 @@ function _buildFromAddress(
     return `${senderIdentity.name} <${email}>`;
   }
   return email;
+}
+
+/**
+ * Build the reply-to email address
+ *
+ * When inbox is enabled, uses plus-addressing to include the emailSendId
+ * for tracking replies: sender+emailSendId@domain.com
+ *
+ * @param localPart - Reply-to local part (e.g., "frantz")
+ * @param domain - Reply-to domain (e.g., "domain.com")
+ * @param emailSendId - Unique email send ID for correlation
+ * @param inboxEnabled - Whether inbox is enabled for the sending domain
+ * @returns Reply-to email address
+ */
+function buildReplyToAddress(
+  localPart: string,
+  domain: string,
+  emailSendId: string,
+  inboxEnabled: boolean,
+): string {
+  if (inboxEnabled) {
+    return `${localPart}+${emailSendId}@${domain}`;
+  }
+  return `${localPart}@${domain}`;
 }
 
 /**
@@ -217,13 +243,15 @@ async function prepareEmail(
     openTracking: trackOpens,
   });
 
-  // Prepare plain text version
-  let textBody: string | undefined;
+  // Prepare plain text version (use provided text or auto-generate from HTML)
+  let textBody: string;
   if (broadcast.emailContent.contentText) {
     textBody = substituteVariables(
       broadcast.emailContent.contentText,
       variables,
     );
+  } else {
+    textBody = htmlToPlainText(trackingResult.html);
   }
 
   // Build envelope sender for bounce handling
@@ -240,6 +268,14 @@ async function prepareEmail(
   const previewText = broadcast.emailContent.previewText
     ? substituteVariables(broadcast.emailContent.previewText, variables)
     : "";
+
+  // Build reply-to with inbox tracking if enabled
+  const replyTo = buildReplyToAddress(
+    broadcast.replyToLocalPart,
+    broadcast.replyToDomain,
+    emailSendId,
+    broadcast.inboxEnabled,
+  );
 
   return {
     // Identifiers
@@ -259,7 +295,7 @@ async function prepareEmail(
     senderName: broadcast.senderIdentity.name ?? "",
     senderDomain: domain,
     envelopeSender,
-    replyTo: broadcast.replyToEmail,
+    replyTo,
 
     // Content
     subject,
@@ -299,82 +335,18 @@ export async function prepareEmailBatch(
 }
 
 /**
- * Convert prepared emails to NATS message format
+ * Convert prepared emails to MTA injection message format
  *
- * Uploads email content to S3 and creates the message payload
- * expected by the email-agent.
+ * Creates the message payload expected by the MTA HTTP injection endpoint.
+ * Content is passed directly without intermediate storage.
  *
  * @param preparedEmails - Array of prepared emails
- * @returns Array of NATS email messages ready for publishing
+ * @returns Array of email messages ready for injection
  */
-export async function convertToNatsMessages(
+export function convertToMtaMessages(
   preparedEmails: PreparedEmail[],
-): Promise<EmailMessage[]> {
-  const messages: EmailMessage[] = [];
-
-  for (const prepared of preparedEmails) {
-    // Upload HTML content to S3
-    const contentKey = `emails/${prepared.workspaceId}/${prepared.broadcastId}/${prepared.emailSendId}`;
-    const htmlKey = `${contentKey}/content.html`;
-
-    logger.info(
-      {
-        emailSendId: prepared.emailSendId,
-        broadcastId: prepared.broadcastId,
-        htmlKey,
-        contentLength: prepared.htmlBody.length,
-      },
-      "Uploading email HTML content to S3",
-    );
-
-    try {
-      const uploadResult = await uploadPrivateFile(
-        htmlKey,
-        prepared.htmlBody,
-        "text/html",
-      );
-      logger.info(
-        {
-          emailSendId: prepared.emailSendId,
-          htmlKey,
-          etag: uploadResult.etag,
-        },
-        "Email HTML content uploaded to S3",
-      );
-    } catch (error) {
-      logger.error(
-        {
-          emailSendId: prepared.emailSendId,
-          htmlKey,
-          error: error instanceof Error ? error.message : String(error),
-        },
-        "Failed to upload email HTML content to S3",
-      );
-      throw error;
-    }
-
-    // Upload plain text if available
-    if (prepared.textBody) {
-      const textKey = `${contentKey}/content.txt`;
-      try {
-        await uploadPrivateFile(textKey, prepared.textBody, "text/plain");
-        logger.debug(
-          { emailSendId: prepared.emailSendId, textKey },
-          "Email text content uploaded to S3",
-        );
-      } catch (error) {
-        logger.error(
-          {
-            emailSendId: prepared.emailSendId,
-            textKey,
-            error: error instanceof Error ? error.message : String(error),
-          },
-          "Failed to upload email text content to S3",
-        );
-        throw error;
-      }
-    }
-
+): EmailMessage[] {
+  return preparedEmails.map((prepared) => {
     // Build recipient name from first and last name
     const recipientName = [
       prepared.recipientFirstName,
@@ -383,12 +355,12 @@ export async function convertToNatsMessages(
       .filter(Boolean)
       .join(" ");
 
-    messages.push({
+    return {
       id: prepared.emailSendId,
       tenant_id: prepared.workspaceId,
       broadcast_id: prepared.broadcastId,
       contact_id: prepared.contactId,
-      pool: "marketing",
+      pool: "marketing" as const,
       recipient: {
         email: prepared.recipientEmail,
         name: recipientName,
@@ -404,7 +376,8 @@ export async function convertToNatsMessages(
       },
       subject: prepared.subject,
       preview_text: prepared.previewText,
-      content_key: contentKey,
+      html_body: prepared.htmlBody,
+      text_body: prepared.textBody,
       attachments: [],
       headers: prepared.headers,
       metadata: {
@@ -413,8 +386,6 @@ export async function convertToNatsMessages(
       },
       track_opens: prepared.trackOpens,
       track_clicks: prepared.trackClicks,
-    });
-  }
-
-  return messages;
+    };
+  });
 }

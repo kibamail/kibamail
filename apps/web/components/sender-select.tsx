@@ -1,14 +1,16 @@
 "use client";
 
 import * as Alert from "@kibamail/owly/alert";
-import * as Popover from "@kibamail/owly/popover";
 import * as Select from "@kibamail/owly/select-field";
 import { Text } from "@kibamail/owly/text";
-import * as TextField from "@kibamail/owly/text-field";
 import type { SendingDomain } from "@prisma/client";
 import { WarningTriangle } from "iconoir-react";
-import { useId, useState } from "react";
+import { useState } from "react";
 import { CreateDomainModal, type CreatedDomain } from "./create-domain-modal";
+import {
+  CreateSenderIdentityModal,
+  type VerifiedDomain,
+} from "./create-sender-identity-modal";
 
 export type { CreatedDomain };
 
@@ -19,7 +21,9 @@ export interface TransformedSenderIdentity {
   localPart: string;
   domain: string;
   domainId: string;
+  replyToEmail?: string | null;
   verified: boolean;
+  createdAt?: string;
 }
 
 interface SenderSelectProps {
@@ -27,16 +31,18 @@ interface SenderSelectProps {
   domains: Pick<SendingDomain, "id" | "name">[];
   value?: string;
   onChange: (senderIdentityId: string | undefined) => void;
+  onSenderIdentityCreated?: (identity: TransformedSenderIdentity) => void;
+  onDomainCreated?: (domain: CreatedDomain) => void;
+  label?: string;
+  labelHelp?: string;
+  disabled?: boolean;
+  // Legacy props - kept for backwards compatibility but no longer used for inline creation
   localPart?: string;
   onLocalPartChange?: (value: string) => void;
   domainId?: string;
   onDomainIdChange?: (id: string) => void;
   isAddingNew?: boolean;
   onIsAddingNewChange?: (value: boolean) => void;
-  onDomainCreated?: (domain: CreatedDomain) => void;
-  label?: string;
-  labelHelp?: string;
-  disabled?: boolean;
 }
 
 export function SenderSelect({
@@ -44,70 +50,40 @@ export function SenderSelect({
   domains,
   value,
   onChange,
-  localPart: controlledLocalPart,
-  onLocalPartChange,
-  domainId: controlledDomainId,
-  onDomainIdChange,
-  isAddingNew: controlledIsAddingNew,
-  onIsAddingNewChange,
+  onSenderIdentityCreated,
   onDomainCreated,
   label = "From",
   labelHelp,
   disabled = false,
 }: SenderSelectProps) {
-  const [internalIsAddingNew, setInternalIsAddingNew] = useState(false);
-  const [internalLocalPart, setInternalLocalPart] = useState("");
-  const [internalDomainId, setInternalDomainId] = useState(
-    domains[0]?.id || "",
-  );
-  const [domainPopoverOpen, setDomainPopoverOpen] = useState(false);
   const [createDomainModalOpen, setCreateDomainModalOpen] = useState(false);
-  const localPartFieldId = useId();
-
-  const isAddingNew = controlledIsAddingNew ?? internalIsAddingNew;
-  const localPart = controlledLocalPart ?? internalLocalPart;
-  const domainId = controlledDomainId ?? internalDomainId;
+  const [createSenderModalOpen, setCreateSenderModalOpen] = useState(false);
 
   const hasSenderIdentities = senderIdentities.length > 0;
   const hasDomains = domains.length > 0;
 
-  function setIsAddingNew(val: boolean) {
-    if (onIsAddingNewChange) {
-      onIsAddingNewChange(val);
-    } else {
-      setInternalIsAddingNew(val);
-    }
-  }
-
-  function setLocalPart(val: string) {
-    if (onLocalPartChange) {
-      onLocalPartChange(val);
-    } else {
-      setInternalLocalPart(val);
-    }
-  }
-
-  function setDomainId(val: string) {
-    if (onDomainIdChange) {
-      onDomainIdChange(val);
-    } else {
-      setInternalDomainId(val);
-    }
-  }
+  // Filter to only verified domains (domains with name means they're visible/usable)
+  const verifiedDomains: VerifiedDomain[] = domains.map((d) => ({
+    id: d.id,
+    name: d.name,
+  }));
 
   function onSenderSelect(selectedValue: string) {
     if (selectedValue === "__add_new__") {
-      setIsAddingNew(true);
-      onChange(undefined);
+      setCreateSenderModalOpen(true);
     } else {
-      setIsAddingNew(false);
       onChange(selectedValue);
     }
   }
 
   function onDomainCreatedInternal(domain: CreatedDomain) {
-    setDomainId(domain.id);
     onDomainCreated?.(domain);
+  }
+
+  function onSenderCreated(identity: TransformedSenderIdentity) {
+    // Select the newly created sender identity
+    onChange(identity.id);
+    onSenderIdentityCreated?.(identity);
   }
 
   if (!hasDomains) {
@@ -140,8 +116,8 @@ export function SenderSelect({
     );
   }
 
-  if (hasSenderIdentities && !isAddingNew) {
-    return (
+  return (
+    <>
       <Select.Root
         value={value}
         onValueChange={onSenderSelect}
@@ -150,107 +126,49 @@ export function SenderSelect({
         <Select.Label help={labelHelp}>{label}</Select.Label>
         <Select.Trigger placeholder="Select sender" />
         <Select.Content className="z-50">
-          {senderIdentities.map((identity) => (
-            <Select.Item key={identity.id} value={identity.id}>
-              <span>{identity.email}</span>
-            </Select.Item>
-          ))}
+          {hasSenderIdentities ? (
+            senderIdentities.map((identity) => (
+              <Select.Item key={identity.id} value={identity.id}>
+                <div className="flex flex-col">
+                  <span>{identity.name}</span>
+                  <span className="text-xs text-kb-content-tertiary">
+                    {identity.email}
+                  </span>
+                </div>
+              </Select.Item>
+            ))
+          ) : (
+            <div className="px-3 py-2 text-sm text-kb-content-tertiary">
+              No sender identities yet
+            </div>
+          )}
+          <Select.Separator />
           <Select.Item value="__add_new__">
             <span className="text-kb-content-secondary">+ Add new sender</span>
           </Select.Item>
         </Select.Content>
       </Select.Root>
-    );
-  }
-
-  return (
-    <TextField.Root
-      id={localPartFieldId}
-      value={localPart}
-      onChange={(event) => setLocalPart(event.target.value)}
-      placeholder="newsletter"
-      disabled={disabled}
-    >
-      <TextField.Label>
-        {label === "From" ? "From email" : label}
-      </TextField.Label>
-      <TextField.Slot side="right">
-        <Popover.Root
-          open={domainPopoverOpen}
-          onOpenChange={setDomainPopoverOpen}
-        >
-          <Popover.Trigger asChild>
-            <button
-              type="button"
-              className="text-kb-content-secondary hover:text-kb-content-primary cursor-pointer text-sm"
-            >
-              @{domains.find((d) => d.id === domainId)?.name || "Select domain"}
-            </button>
-          </Popover.Trigger>
-          <Popover.Content
-            align="end"
-            className="w-48 -ml-2 bg-kb-surface-primary border border-kb-stroke-secondary rounded-lg shadow-lg p-1"
-          >
-            {domains.map((domain) => (
-              <button
-                key={domain.id}
-                type="button"
-                onClick={() => {
-                  setDomainId(domain.id);
-                  setDomainPopoverOpen(false);
-                }}
-                className="flex items-center w-full px-3 py-2 text-sm text-kb-content-primary hover:bg-kb-surface-secondary rounded cursor-pointer"
-              >
-                {domain.name}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => {
-                setDomainPopoverOpen(false);
-                setCreateDomainModalOpen(true);
-              }}
-              className="flex items-center w-full px-3 py-2 text-sm text-kb-content-secondary hover:bg-kb-surface-secondary rounded cursor-pointer"
-            >
-              + Add new domain
-            </button>
-          </Popover.Content>
-        </Popover.Root>
-      </TextField.Slot>
-      <CreateDomainModal
-        open={createDomainModalOpen}
-        onOpenChange={setCreateDomainModalOpen}
-        onSuccess={onDomainCreatedInternal}
+      <CreateSenderIdentityModal
+        open={createSenderModalOpen}
+        onOpenChange={setCreateSenderModalOpen}
+        domains={verifiedDomains}
+        onSuccess={onSenderCreated}
       />
-    </TextField.Root>
+    </>
   );
 }
 
 export function getEmailFromSenderSelect({
   senderIdentities,
-  domains,
   senderIdentityId,
-  localPart,
-  domainId,
-  isAddingNew,
 }: {
   senderIdentities: TransformedSenderIdentity[];
-  domains: Pick<SendingDomain, "id" | "name">[];
+  domains?: Pick<SendingDomain, "id" | "name">[];
   senderIdentityId?: string;
   localPart?: string;
   domainId?: string;
-  isAddingNew: boolean;
+  isAddingNew?: boolean;
 }): string | undefined {
-  if (isAddingNew || senderIdentities.length === 0) {
-    if (domains.length > 0 && localPart && domainId) {
-      const selectedDomain = domains.find((d) => d.id === domainId);
-      if (selectedDomain && localPart.trim()) {
-        return `${localPart.trim()}@${selectedDomain.name}`;
-      }
-    }
-    return undefined;
-  }
-
   if (senderIdentityId) {
     const selectedIdentity = senderIdentities.find(
       (si) => si.id === senderIdentityId,

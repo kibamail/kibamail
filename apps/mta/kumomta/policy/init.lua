@@ -3,12 +3,13 @@
 
   This policy implements:
   - 2-fold DKIM signing (MTA + Tenant)
-  - SMTP credential validation via Email Agent
-  - Listener domain validation via Email Agent (for bounces/FBL)
-  - DMARC aggregate report reception and forwarding to Email Agent
+  - SMTP credential validation via Control Plane
+  - Listener domain validation via Control Plane (for bounces/FBL)
+  - DMARC aggregate report reception and forwarding to Control Plane
+  - Inbox message reception and forwarding to Control Plane
   - Marketing pool with round-robin IP distribution
   - TSA integration with Redis
-  - Webhook logging to Email Agent
+  - Webhook logging to Control Plane
 ]]
 
 local kumo = require 'kumo'
@@ -18,9 +19,25 @@ local utils = require 'policy-extras.policy_utils'
 -- ENVIRONMENT CONFIGURATION (all required, no defaults)
 -- =============================================================================
 
-local EMAIL_AGENT_URL = os.getenv('EMAIL_AGENT_URL')
 local WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 local MTA_HOSTNAME = os.getenv('MTA_HOSTNAME')
+local CONTROL_PLANE_URL = os.getenv('CONTROL_PLANE_URL')
+local INTERNAL_SERVICE_KEY = os.getenv('INTERNAL_SERVICE_KEY')
+local TRUSTED_HOSTS = os.getenv('TRUSTED_HOSTS') or '127.0.0.1,::1'
+
+-- Parse comma-separated trusted hosts into a table
+local function parse_trusted_hosts(hosts_str)
+  local hosts = {}
+  for host in string.gmatch(hosts_str, '([^,]+)') do
+    local trimmed = host:match('^%s*(.-)%s*$')  -- Trim whitespace
+    if trimmed and trimmed ~= '' then
+      table.insert(hosts, trimmed)
+    end
+  end
+  return hosts
+end
+
+local trusted_hosts_list = parse_trusted_hosts(TRUSTED_HOSTS)
 
 -- TLS certificates (standard location)
 local TLS_CERT_PATH = '/opt/kumomta/etc/tls/fullchain.pem'
@@ -28,7 +45,8 @@ local TLS_KEY_PATH = '/opt/kumomta/etc/tls/privkey.pem'
 
 -- Validate required environment variables
 local required_envs = {
-  'EMAIL_AGENT_URL',
+  'CONTROL_PLANE_URL',
+  'INTERNAL_SERVICE_KEY',
   'WEBHOOK_URL',
   'MTA_HOSTNAME',
 }
@@ -89,12 +107,17 @@ end
 -- Cache for tenant DKIM keys (24 hour TTL)
 -- NOTE: This function throws an error on cache miss/not found, which prevents
 -- memoize from caching negative results. Use pcall() when calling.
+-- Uses existing endpoint: POST /api/internal/v1/tenants/by-domain
 local get_tenant_dkim_key = kumo.memoize(function(domain)
   local client = kumo.http.build_client {
     timeout = '10s',
   }
 
-  local response = client:get(EMAIL_AGENT_URL .. '/api/v1/dkim/' .. domain):send()
+  local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/tenants/by-domain')
+    :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
+    :header('Content-Type', 'application/json')
+    :body(kumo.json_encode({ domain = domain }))
+    :send()
 
   if response:status_code() ~= 200 then
     error('DKIM lookup failed for domain: ' .. domain .. ' (status: ' .. response:status_code() .. ')')
@@ -102,16 +125,31 @@ local get_tenant_dkim_key = kumo.memoize(function(domain)
 
   local data = kumo.json_parse(response:text())
 
-  if not data or not data.found or not data.private_key then
-    error('DKIM not found or not verified for domain: ' .. domain)
+  -- Response format: { id, sending_domains: [{ dkim_private_key, dkim_sub_domain, dkim_verified_at, ... }] }
+  if not data or not data.sending_domains or #data.sending_domains == 0 then
+    error('DKIM not found for domain: ' .. domain)
   end
 
-  -- Private key comes from email agent in plain text (PEM format)
+  local sd = data.sending_domains[1]
+
+  -- Only return DKIM if it's verified and has a private key
+  if not sd.dkim_private_key or sd.dkim_private_key == '' then
+    error('DKIM not configured for domain: ' .. domain)
+  end
+
+  if not sd.dkim_verified_at then
+    error('DKIM not verified for domain: ' .. domain)
+  end
+
+  -- Extract selector from dkim_sub_domain (e.g., "kibamail._domainkey" -> "kibamail")
+  local selector = sd.dkim_sub_domain and sd.dkim_sub_domain:gsub('%._domainkey$', '') or 'kibamail'
+
+  -- Private key comes from control plane in plain text (PEM format)
   return {
-    domain = data.domain,
-    selector = data.selector or 'kibamail',
-    private_key = data.private_key,
-    algorithm = data.algorithm or 'rsa-sha256',
+    domain = sd.name,
+    selector = selector,
+    private_key = sd.dkim_private_key,
+    algorithm = 'rsa-sha256',
   }
 end, {
   name = 'tenant_dkim_cache',
@@ -120,19 +158,24 @@ end, {
 })
 
 -- Cache for listener domain validation (24 hour TTL)
--- Validates if a domain is a known tenant bounce domain via Email Agent
+-- Validates if a domain is a known tenant bounce domain via Control Plane
+-- Uses existing endpoint: POST /api/internal/v1/tenants/by-bounce-domain
 local validate_listener_domain = kumo.memoize(function(domain)
   local client = kumo.http.build_client {
     timeout = '5s',
   }
 
-  local response = client:get(EMAIL_AGENT_URL .. '/api/v1/domains/validate-listener/' .. domain):send()
+  local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/tenants/by-bounce-domain')
+    :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
+    :header('Content-Type', 'application/json')
+    :body(kumo.json_encode({ domain = domain }))
+    :send()
 
   if response:status_code() ~= 200 then
     return false
   end
 
-  -- Parse JSON response and check valid field
+  -- Response format: { valid: true, workspace_id, sending_domain }
   local data = kumo.json_parse(response:text())
   return data and data.valid == true
 end, {
@@ -141,13 +184,62 @@ end, {
   capacity = 10000,
 })
 
--- Validate credentials via Email Agent (no caching - always verify)
+-- Cache for inbox domain validation (24 hour TTL)
+-- Validates if a domain has inbox enabled and MX verified via Control Plane
+-- Uses existing endpoint: POST /api/internal/v1/sending-domains/validate-inbox/:domain
+local validate_inbox_domain = kumo.memoize(function(domain)
+  if not CONTROL_PLANE_URL or CONTROL_PLANE_URL == '' then
+    return { valid = false }
+  end
+
+  local client = kumo.http.build_client {
+    timeout = '5s',
+  }
+
+  local ok, response = pcall(function()
+    return client:post(CONTROL_PLANE_URL .. '/api/internal/v1/sending-domains/validate-inbox/' .. domain)
+      :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
+      :header('Content-Type', 'application/json')
+      :body('{}')
+      :send()
+  end)
+
+  if not ok then
+    kumo.log_warn('Inbox domain validation failed for ' .. domain .. ': ' .. tostring(response))
+    return { valid = false }
+  end
+
+  if response:status_code() ~= 200 then
+    return { valid = false }
+  end
+
+  -- Parse JSON response
+  local data = kumo.json_parse(response:text())
+  if data and data.valid then
+    return {
+      valid = true,
+      workspace_id = data.workspace_id,
+      sending_domain_id = data.sending_domain_id,
+    }
+  end
+
+  return { valid = false }
+end, {
+  name = 'inbox_domain_cache',
+  ttl = '24 hours',
+  capacity = 10000,
+})
+
+-- Validate credentials via Control Plane (no caching - always verify)
+-- Uses endpoint: POST /api/internal/v1/mta/auth/validate
+-- This endpoint accepts raw password and hashes it internally
 local function validate_credentials(username, password)
   local client = kumo.http.build_client {
     timeout = '10s',
   }
 
-  local response = client:post(EMAIL_AGENT_URL .. '/api/v1/auth/validate')
+  local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/mta/auth/validate')
+    :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
     :header('Content-Type', 'application/json')
     :body(kumo.json_encode({
       username = username,
@@ -226,20 +318,20 @@ kumo.on('init', function()
   -- HTTP LISTENERS
   -- ==========================================================================
 
-  -- HTTP API (accessible from Docker network for health checks)
+  -- HTTP API (accessible from trusted hosts - configurable via TRUSTED_HOSTS env var)
   kumo.start_http_listener {
     listen = '0.0.0.0:8000',
-    trusted_hosts = { '127.0.0.1', '::1', '172.28.0.0/16' },
+    trusted_hosts = trusted_hosts_list,
   }
 
   -- ==========================================================================
-  -- WEBHOOK LOGGING TO EMAIL AGENT
+  -- WEBHOOK LOGGING TO CONTROL PLANE
   -- ==========================================================================
 
   -- Configure log hook for event tracking
   -- Events are sent to the configured WEBHOOK_URL via custom protocol handler
   kumo.configure_log_hook {
-    name = 'email_agent_webhook',
+    name = 'control_plane_webhook',
     headers = { 'Subject', 'X-Kibamail-Broadcast-Id', 'X-Kibamail-Contact-Id', 'X-Kibamail-Workspace-Id' },
   }
 end)
@@ -249,7 +341,7 @@ end)
 -- =============================================================================
 
 kumo.on('get_queue_config', function(domain, tenant, campaign, routing_domain)
-  -- DMARC reports - forward to email agent via custom handler
+  -- DMARC reports - forward to control plane via custom handler
   if domain == 'dmarc.kbmta.net' then
     return kumo.make_queue_config {
       protocol = {
@@ -279,7 +371,7 @@ kumo.on('get_egress_path_config', shaper.get_egress_path_config)
 -- DMARC REPORT HANDLER
 -- =============================================================================
 
--- Custom handler to forward DMARC aggregate reports to Email Agent
+-- Custom handler to forward DMARC aggregate reports to Control Plane
 -- Reports arrive as emails with gzipped XML attachments from providers like
 -- Google, Microsoft, Yahoo, etc.
 kumo.on('make.dmarc_report_handler', function(domain, tenant, campaign)
@@ -296,12 +388,13 @@ kumo.on('make.dmarc_report_handler', function(domain, tenant, campaign)
       -- Get raw message data (RFC822 format with headers and attachments)
       local raw_message = message:get_data()
 
-      -- Forward to Email Agent for parsing and processing
+      -- Forward to Control Plane for parsing and processing
       local client = kumo.http.build_client {
         timeout = '30s',
       }
 
-      local response = client:post(EMAIL_AGENT_URL .. '/api/v1/dmarc/reports')
+      local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/mta/dmarc/reports')
+        :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
         :header('Content-Type', 'message/rfc822')
         :header('X-Dmarc-Recipient', recipient)
         :header('X-Dmarc-Sender', sender)
@@ -344,7 +437,7 @@ kumo.on('smtp_server_auth_plain', function(authz, authc, password, conn_meta)
     return false
   end
 
-  -- Validate credentials via Email Agent (always verify, no caching)
+  -- Validate credentials via Control Plane (always verify, no caching)
   local auth_result = validate_credentials(authc, password)
 
   if not auth_result or not auth_result.valid then
@@ -373,8 +466,21 @@ kumo.on('get_listener_domain', function(domain, listener, conn_meta)
     }
   end
 
-  -- Validate domain against Email Agent (cached for 24 hours)
-  -- Email Agent checks if this is a known tenant bounce domain
+  -- Check if this is an inbox-enabled domain (MX points to our MTA)
+  -- This allows receiving replies to outbound emails
+  local inbox_info = validate_inbox_domain(domain)
+  if inbox_info.valid then
+    -- Store inbox metadata for use in smtp_server_message_received
+    conn_meta:set('inbox_domain', 'true')
+    conn_meta:set('inbox_workspace_id', inbox_info.workspace_id or '')
+    conn_meta:set('inbox_sending_domain_id', inbox_info.sending_domain_id or '')
+    return kumo.make_listener_domain {
+      relay_to = true,  -- Accept and queue for delivery (to inbox handler)
+    }
+  end
+
+  -- Validate domain against Control Plane (cached for 24 hours)
+  -- Control Plane checks if this is a known tenant bounce domain
   -- Example: kb.hq.kibamail.xyz -> validates tenant owns hq.kibamail.xyz
   if validate_listener_domain(domain) then
     return kumo.make_listener_domain {
@@ -416,6 +522,78 @@ kumo.on('smtp_server_message_received', function(msg)
     local workspace_id = conn_meta:get('workspace_id') or ''
     if workspace_id ~= '' then
       msg:set_meta('workspace_id', workspace_id)
+    end
+
+    -- ==========================================================================
+    -- INBOX MESSAGE HANDLING
+    -- ==========================================================================
+    -- Check if this is an inbox message (reply to outbound email)
+    local inbox_domain = conn_meta:get('inbox_domain') or ''
+    if inbox_domain == 'true' then
+      if not CONTROL_PLANE_URL or CONTROL_PLANE_URL == '' then
+        kumo.log_error('CONTROL_PLANE_URL not configured, rejecting inbox message')
+        kumo.reject(550, '5.7.1 Inbox processing not configured')
+        return
+      end
+
+      local inbox_workspace_id = conn_meta:get('inbox_workspace_id') or ''
+      local inbox_sending_domain_id = conn_meta:get('inbox_sending_domain_id') or ''
+
+      -- Extract envelope information
+      local recipient_obj = msg:recipient()
+      local sender_obj = msg:sender()
+      local recipient = recipient_obj and recipient_obj.email or 'unknown'
+      local sender = sender_obj and sender_obj.email or 'unknown'
+      local recipient_domain = recipient_obj and recipient_obj.domain or 'unknown'
+
+      -- Parse plus-addressed token from recipient
+      -- Format: localpart+token@domain -> token is the emailSendId
+      local local_part = recipient:match('([^@]+)@')
+      local token = ''
+      if local_part then
+        local _, parsed_token = local_part:match('([^+]+)%+(.+)')
+        token = parsed_token or ''
+      end
+
+      -- Get raw message data (RFC822 format)
+      local raw_message = msg:get_data()
+
+      -- Forward to Control Plane
+      local forward_ok, forward_err = pcall(function()
+        local client = kumo.http.build_client {
+          timeout = '30s',
+        }
+
+        local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/webhooks/inbox/receive')
+          :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
+          :header('Content-Type', 'message/rfc822')
+          :header('X-Inbox-Token', token)
+          :header('X-Inbox-Recipient', recipient)
+          :header('X-Inbox-Sender', sender)
+          :header('X-Inbox-Domain', recipient_domain)
+          :header('X-Workspace-Id', inbox_workspace_id)
+          :header('X-Sending-Domain-Id', inbox_sending_domain_id)
+          :body(raw_message)
+          :send()
+
+        local status = response:status_code()
+
+        if status >= 200 and status < 300 then
+          kumo.log_info('Inbox message forwarded: to=' .. recipient .. ' from=' .. sender .. ' token=' .. token)
+        else
+          kumo.log_error('Inbox forward failed: to=' .. recipient .. ' status=' .. tostring(status))
+          error('Control Plane returned status ' .. tostring(status))
+        end
+      end)
+
+      if not forward_ok then
+        kumo.log_error('Inbox forward error: ' .. tostring(forward_err))
+        kumo.reject(451, '4.7.1 Temporary failure processing message')
+        return
+      end
+
+      -- Message handled, don't queue for delivery
+      return
     end
   end
 
@@ -484,6 +662,26 @@ end)
 -- =============================================================================
 
 kumo.on('http_message_generated', function(msg)
+  -- Build custom Received header (replacing KumoMTA's auto-generated one)
+  local from_header = msg:from_header()
+  local sender_domain = from_header and from_header.domain or 'unknown'
+  local recipient = msg:recipient()
+  local recipient_email = recipient and recipient.email or 'unknown'
+  local msg_id = msg:id()
+  local timestamp = os.date('!%a, %d %b %Y %H:%M:%S +0000')
+
+  local custom_received = string.format(
+    'from %s by mail.kbmta.net with ESMTP id %s for <%s>; %s',
+    sender_domain,
+    msg_id,
+    recipient_email,
+    timestamp
+  )
+
+  -- Remove auto-generated Received header and add our custom one
+  msg:remove_all_named_headers('Received')
+  msg:prepend_header('Received', custom_received)
+
   -- Apply same processing as SMTP messages
   msg:check_fix_conformance(
     'MISSING_DATE_HEADER|MISSING_MESSAGE_ID_HEADER|MISSING_MIME_VERSION',
@@ -498,6 +696,19 @@ kumo.on('http_message_generated', function(msg)
     'X-Kibamail-Email-Send-Id',
     'X-Kibamail-Pool',
   }
+
+  -- Remove all internal X-Kibamail-* headers that should not be sent to recipients
+  msg:remove_all_named_headers('X-Kibamail-Pool')
+  msg:remove_all_named_headers('X-Kibamail-Broadcast-Id')
+  msg:remove_all_named_headers('X-Kibamail-Contact-Id')
+  msg:remove_all_named_headers('X-Kibamail-Workspace-Id')
+  msg:remove_all_named_headers('X-Kibamail-Email-Send-Id')
+  msg:remove_all_named_headers('X-Kibamail-Broadcast')
+  msg:remove_all_named_headers('X-Kibamail-Contact')
+  msg:remove_all_named_headers('X-Kibamail-Message')
+  msg:remove_all_named_headers('X-Kibamail-Meta-envelope_sender')
+  msg:remove_all_named_headers('X-Kibamail-Meta-message_id')
+  msg:remove_all_named_headers('X-Kibamail-Tenant')
 
   -- Read pool from header (set by control plane)
   -- Valid values: 'marketing', 'transactional'
@@ -540,16 +751,9 @@ end)
 -- =============================================================================
 -- HTTP AUTHENTICATION
 -- =============================================================================
-
-kumo.on('http_server_validate_auth_basic', function(user, password)
-  if password == '' then
-    return false
-  end
-
-  local auth_result = validate_credentials(user, password)
-
-  return auth_result and auth_result.valid
-end)
+-- HTTP injection does not require authentication.
+-- Security is provided by trusted_hosts configuration.
+-- Only SMTP submission (port 587) requires authentication.
 
 -- =============================================================================
 -- LOGGING CONFIGURATION

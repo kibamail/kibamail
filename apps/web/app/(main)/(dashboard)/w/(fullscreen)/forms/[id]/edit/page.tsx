@@ -13,6 +13,14 @@ export interface FormVersion {
   createdAt: Date;
 }
 
+interface FormSeoData {
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageUrl: string | null;
+  seoFaviconUrl: string | null;
+  slug: string | null;
+}
+
 interface FormWithVersions {
   id: string;
   name: string;
@@ -25,6 +33,7 @@ interface FormWithVersions {
   rootFormId: string;
   versions: FormVersion[];
   isLiveVersion: boolean;
+  seo: FormSeoData;
 }
 
 async function getFormWithVersions(
@@ -48,6 +57,11 @@ async function getFormWithVersions(
       doubleOptInEmailId: true,
       publishedAt: true,
       createdAt: true,
+      seoTitle: true,
+      seoDescription: true,
+      seoImageUrl: true,
+      seoFaviconUrl: true,
+      slug: true,
     },
   });
 
@@ -97,6 +111,13 @@ async function getFormWithVersions(
     rootFormId,
     versions: allVersions,
     isLiveVersion,
+    seo: {
+      seoTitle: form.seoTitle,
+      seoDescription: form.seoDescription,
+      seoImageUrl: form.seoImageUrl,
+      seoFaviconUrl: form.seoFaviconUrl,
+      slug: form.slug,
+    },
   };
 }
 
@@ -131,6 +152,7 @@ export default async function FormPage({
       isLiveVersion={form.isLiveVersion}
       initialSchema={initialSchema}
       doubleOptInEmailId={form.doubleOptInEmailId}
+      initialSeo={form.seo}
     />
   );
 }

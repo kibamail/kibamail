@@ -2432,7 +2432,7 @@
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;
-  gap: var(--sp-lg);
+  row-gap: var(--sp-lg);
   align-items: center;
 }
 .kb-dashboard-layout-sticky-detail-header-icon {

@@ -1,6 +1,12 @@
 "use client";
 
-import { SelectField } from "@kibamail/owly";
+import {
+  Checkbox,
+  SelectField,
+  TextField,
+  TextareaField,
+} from "@kibamail/owly";
+import { Button } from "@kibamail/owly/button";
 import { useQuery } from "@tanstack/react-query";
 import {
   Calendar,
@@ -17,7 +23,6 @@ import {
   Xmark,
 } from "iconoir-react";
 import { internalApi } from "@/lib/api/client";
-import { cn } from "@/lib/utils";
 import { SUBMIT_BUTTON_ID, useFormBuilder } from "./form-builder-context";
 import {
   type ButtonPosition,
@@ -60,6 +65,40 @@ function getPropertyIcon(
 // Field types that don't require contact property mapping (presentational fields)
 const PRESENTATION_FIELD_TYPES = ["content", "hidden"] as const;
 
+// Section header component for consistency
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
+      {children}
+    </h3>
+  );
+}
+
+// Panel header component
+function PanelHeader({
+  title,
+  subtitle,
+  onClose,
+}: {
+  title: string;
+  subtitle: string;
+  onClose: () => void;
+}) {
+  return (
+    <div className="p-4 border-b border-kb-border-tertiary flex items-center justify-between">
+      <div>
+        <h2 className="text-sm font-semibold text-kb-content-primary">
+          {title}
+        </h2>
+        <p className="text-xs text-kb-content-tertiary mt-0.5">{subtitle}</p>
+      </div>
+      <Button variant="tertiary" size="sm" onClick={onClose}>
+        <Xmark className="w-4 h-4" />
+      </Button>
+    </div>
+  );
+}
+
 export function FieldPropertiesPanel() {
   const {
     schema,
@@ -95,172 +134,101 @@ export function FieldPropertiesPanel() {
     const submitButton = schema.settings.submitButton;
     return (
       <div className="w-[320px] h-full bg-kb-surface-secondary border-l border-kb-border-tertiary flex flex-col shrink-0">
-        {/* Header */}
-        <div className="p-4 border-b border-kb-border-tertiary flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-kb-content-primary">
-              Submit Button
-            </h2>
-            <p className="text-xs text-kb-content-tertiary mt-0.5">
-              Form submission button
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={clearSelection}
-            className="p-1.5 rounded-md hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors"
-          >
-            <Xmark className="w-4 h-4" />
-          </button>
-        </div>
+        <PanelHeader
+          title="Submit Button"
+          subtitle="Form submission button"
+          onClose={clearSelection}
+        />
 
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-5">
+        <div className="flex-1 overflow-y-auto p-4 space-y-6">
           {/* Basic Settings */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-              Basic Settings
-            </h3>
+          <div className="space-y-4">
+            <SectionHeader>Basic Settings</SectionHeader>
 
-            {/* Label */}
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-kb-content-primary">
-                Label
-              </p>
-              <input
-                type="text"
-                value={submitButton.text}
-                onChange={(event) =>
-                  updateSubmitButton({ text: event.target.value })
-                }
-                className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-              />
-            </div>
+            <TextField.Root
+              value={submitButton.text}
+              onChange={(event) =>
+                updateSubmitButton({ text: event.target.value })
+              }
+            >
+              <TextField.Label>Label</TextField.Label>
+            </TextField.Root>
 
-            {/* Loading Text */}
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-kb-content-primary">
-                Loading Text
-              </p>
-              <input
-                type="text"
-                value={submitButton.loadingText}
-                onChange={(event) =>
-                  updateSubmitButton({ loadingText: event.target.value })
-                }
-                placeholder="Submitting..."
-                className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-              />
-            </div>
+            <TextField.Root
+              value={submitButton.loadingText}
+              onChange={(event) =>
+                updateSubmitButton({ loadingText: event.target.value })
+              }
+              placeholder="Submitting..."
+            >
+              <TextField.Label>Loading Text</TextField.Label>
+              <TextField.Hint>
+                Text shown while form is being submitted
+              </TextField.Hint>
+            </TextField.Root>
           </div>
 
           {/* Appearance */}
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-              Appearance
-            </h3>
+          <div className="space-y-4">
+            <SectionHeader>Appearance</SectionHeader>
 
-            {/* Full Width */}
             <label className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={submitButton.fullWidth}
-                onChange={(event) =>
-                  updateSubmitButton({ fullWidth: event.target.checked })
+                onCheckedChange={(checked) =>
+                  updateSubmitButton({ fullWidth: checked === true })
                 }
-                className="w-4 h-4 rounded border-kb-border-secondary text-kb-primary focus:ring-kb-primary/20"
               />
-              <span className="text-sm text-kb-content-primary">
-                Full width
-              </span>
+              <span className="text-sm text-kb-content-primary">Full width</span>
             </label>
 
-            {/* Position */}
             {!submitButton.fullWidth && (
-              <div className="space-y-1.5">
-                <p className="text-sm font-medium text-kb-content-primary">
-                  Position
-                </p>
-                <div className="grid grid-cols-3 gap-1">
-                  {(["left", "center", "right"] as ButtonPosition[]).map(
-                    (position) => (
-                      <button
-                        key={position}
-                        type="button"
-                        onClick={() => updateSubmitButton({ position })}
-                        className={cn(
-                          "px-2 py-1.5 rounded text-xs font-medium capitalize transition-colors",
-                          submitButton.position === position
-                            ? "bg-kb-primary text-white"
-                            : "bg-kb-surface-primary border border-kb-border-secondary text-kb-content-secondary hover:border-kb-border-primary",
-                        )}
-                      >
-                        {position}
-                      </button>
-                    ),
-                  )}
-                </div>
-              </div>
+              <SelectField.Root
+                value={submitButton.position}
+                onValueChange={(value) =>
+                  updateSubmitButton({ position: value as ButtonPosition })
+                }
+              >
+                <SelectField.Label>Position</SelectField.Label>
+                <SelectField.Trigger placeholder="Select position" />
+                <SelectField.Content>
+                  <SelectField.Item value="left">Left</SelectField.Item>
+                  <SelectField.Item value="center">Center</SelectField.Item>
+                  <SelectField.Item value="right">Right</SelectField.Item>
+                </SelectField.Content>
+              </SelectField.Root>
             )}
 
-            {/* Variant */}
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-kb-content-primary">
-                Style
-              </p>
-              <div className="grid grid-cols-2 gap-1">
-                {(
-                  [
-                    "default",
-                    "secondary",
-                    "outline",
-                    "ghost",
-                  ] as ButtonVariant[]
-                ).map((variant) => (
-                  <button
-                    key={variant}
-                    type="button"
-                    onClick={() => updateSubmitButton({ variant })}
-                    className={cn(
-                      "px-2 py-1.5 rounded text-xs font-medium capitalize transition-colors",
-                      submitButton.variant === variant
-                        ? "bg-kb-primary text-white"
-                        : "bg-kb-surface-primary border border-kb-border-secondary text-kb-content-secondary hover:border-kb-border-primary",
-                    )}
-                  >
-                    {variant}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <SelectField.Root
+              value={submitButton.variant}
+              onValueChange={(value) =>
+                updateSubmitButton({ variant: value as ButtonVariant })
+              }
+            >
+              <SelectField.Label>Style</SelectField.Label>
+              <SelectField.Trigger placeholder="Select style" />
+              <SelectField.Content>
+                <SelectField.Item value="default">Default</SelectField.Item>
+                <SelectField.Item value="secondary">Secondary</SelectField.Item>
+                <SelectField.Item value="outline">Outline</SelectField.Item>
+                <SelectField.Item value="ghost">Ghost</SelectField.Item>
+              </SelectField.Content>
+            </SelectField.Root>
 
-            {/* Size */}
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-kb-content-primary">
-                Size
-              </p>
-              <div className="grid grid-cols-3 gap-1">
-                {(["sm", "default", "lg"] as ButtonSize[]).map((size) => (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => updateSubmitButton({ size })}
-                    className={cn(
-                      "px-2 py-1.5 rounded text-xs font-medium transition-colors",
-                      submitButton.size === size
-                        ? "bg-kb-primary text-white"
-                        : "bg-kb-surface-primary border border-kb-border-secondary text-kb-content-secondary hover:border-kb-border-primary",
-                    )}
-                  >
-                    {size === "sm"
-                      ? "Small"
-                      : size === "default"
-                        ? "Medium"
-                        : "Large"}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <SelectField.Root
+              value={submitButton.size}
+              onValueChange={(value) =>
+                updateSubmitButton({ size: value as ButtonSize })
+              }
+            >
+              <SelectField.Label>Size</SelectField.Label>
+              <SelectField.Trigger placeholder="Select size" />
+              <SelectField.Content>
+                <SelectField.Item value="sm">Small</SelectField.Item>
+                <SelectField.Item value="default">Medium</SelectField.Item>
+                <SelectField.Item value="lg">Large</SelectField.Item>
+              </SelectField.Content>
+            </SelectField.Root>
           </div>
         </div>
       </div>
@@ -280,125 +248,80 @@ export function FieldPropertiesPanel() {
 
   return (
     <div className="w-[320px] h-full bg-kb-surface-secondary border-l border-kb-border-tertiary flex flex-col shrink-0">
-      {/* Header */}
-      <div className="p-4 border-b border-kb-border-tertiary flex items-center justify-between">
-        <div>
-          <h2 className="text-sm font-semibold text-kb-content-primary">
-            Field Properties
-          </h2>
-          <p className="text-xs text-kb-content-tertiary mt-0.5">
-            {fieldConfig.label}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={clearSelection}
-          className="p-1.5 rounded-md hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors"
-        >
-          <Xmark className="w-4 h-4" />
-        </button>
-      </div>
+      <PanelHeader
+        title="Field Properties"
+        subtitle={fieldConfig.label}
+        onClose={clearSelection}
+      />
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-5">
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Basic Settings */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-            Basic Settings
-          </h3>
+        <div className="space-y-4">
+          <SectionHeader>Basic Settings</SectionHeader>
 
-          {/* Label */}
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-kb-content-primary">Label</p>
-            <input
-              type="text"
-              value={field.label}
-              onChange={(event) => onUpdate({ label: event.target.value })}
-              className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-            />
-          </div>
+          <TextField.Root
+            value={field.label}
+            onChange={(event) => onUpdate({ label: event.target.value })}
+          >
+            <TextField.Label>Label</TextField.Label>
+          </TextField.Root>
 
-          {/* Field Name */}
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-kb-content-primary">
-              Field Name
-            </p>
-            <input
-              type="text"
-              value={field.name}
-              onChange={(event) => onUpdate({ name: event.target.value })}
-              className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm font-mono focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-            />
-            <p className="text-xs text-kb-content-tertiary">
-              Used for data submission
-            </p>
-          </div>
+          <TextField.Root
+            value={field.name}
+            onChange={(event) => onUpdate({ name: event.target.value })}
+            className="font-mono"
+          >
+            <TextField.Label>Field Name</TextField.Label>
+            <TextField.Hint>Used for data submission</TextField.Hint>
+          </TextField.Root>
 
-          {/* Placeholder */}
           {fieldConfig.supportsPlaceholder && (
-            <div className="space-y-1.5">
-              <p className="text-sm font-medium text-kb-content-primary">
-                Placeholder
-              </p>
-              <input
-                type="text"
-                value={field.placeholder ?? ""}
-                onChange={(event) =>
-                  onUpdate({ placeholder: event.target.value })
-                }
-                placeholder="Enter placeholder text..."
-                className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-              />
-            </div>
+            <TextField.Root
+              value={field.placeholder ?? ""}
+              onChange={(event) => onUpdate({ placeholder: event.target.value })}
+              placeholder="Enter placeholder text..."
+            >
+              <TextField.Label>Placeholder</TextField.Label>
+            </TextField.Root>
           )}
 
-          {/* Description */}
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-kb-content-primary">
-              Description
-            </p>
-            <textarea
-              value={field.description ?? ""}
-              onChange={(event) =>
-                onUpdate({ description: event.target.value })
-              }
-              placeholder="Help text for users..."
-              rows={2}
-              className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm resize-none focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-            />
-          </div>
+          <TextareaField.Root
+            value={field.description ?? ""}
+            onChange={(event) => onUpdate({ description: event.target.value })}
+            placeholder="Help text for users..."
+            rows={2}
+          >
+            <TextareaField.Label>Description</TextareaField.Label>
+          </TextareaField.Root>
         </div>
 
         {/* Options (for select, radio, etc.) */}
         {fieldConfig.supportsOptions && field.options && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-                Options
-              </h3>
-              <button
-                type="button"
+              <SectionHeader>Options</SectionHeader>
+              <Button
+                variant="tertiary"
+                size="sm"
                 onClick={() =>
                   addFieldOption(pageIndex, sectionId, selectedFieldId)
                 }
-                className="p-1 rounded-md hover:bg-kb-surface-tertiary text-kb-content-tertiary hover:text-kb-content-primary transition-colors"
               >
                 <Plus className="w-4 h-4" />
-              </button>
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              {field.options.map((option, _index) => (
+            <div className="space-y-3">
+              {field.options.map((option) => (
                 <div
                   key={option.id}
-                  className="flex items-start gap-2 p-2 rounded-md bg-kb-surface-primary border border-kb-border-tertiary"
+                  className="flex items-start gap-2 p-3 rounded-lg bg-kb-surface-primary border border-kb-border-tertiary"
                 >
                   <div className="pt-2 cursor-grab text-kb-content-tertiary">
                     <Menu className="w-4 h-4" />
                   </div>
                   <div className="flex-1 space-y-2">
-                    <input
-                      type="text"
+                    <TextField.Root
                       value={option.label}
                       onChange={(event) =>
                         updateFieldOption(
@@ -410,10 +333,8 @@ export function FieldPropertiesPanel() {
                         )
                       }
                       placeholder="Label"
-                      className="w-full px-2 py-1.5 rounded border border-kb-border-secondary bg-kb-surface-secondary text-kb-content-primary text-sm focus:outline-none focus:ring-1 focus:ring-kb-primary/20 focus:border-kb-primary"
                     />
-                    <input
-                      type="text"
+                    <TextField.Root
                       value={option.value}
                       onChange={(event) =>
                         updateFieldOption(
@@ -425,11 +346,10 @@ export function FieldPropertiesPanel() {
                         )
                       }
                       placeholder="Value"
-                      className="w-full px-2 py-1.5 rounded border border-kb-border-secondary bg-kb-surface-secondary text-kb-content-primary text-sm font-mono focus:outline-none focus:ring-1 focus:ring-kb-primary/20 focus:border-kb-primary"
+                      className="font-mono"
                     />
                     {field.type === "choice_card" && (
-                      <input
-                        type="text"
+                      <TextField.Root
                         value={option.description ?? ""}
                         onChange={(event) =>
                           updateFieldOption(
@@ -441,12 +361,12 @@ export function FieldPropertiesPanel() {
                           )
                         }
                         placeholder="Description (optional)"
-                        className="w-full px-2 py-1.5 rounded border border-kb-border-secondary bg-kb-surface-secondary text-kb-content-primary text-sm focus:outline-none focus:ring-1 focus:ring-kb-primary/20 focus:border-kb-primary"
                       />
                     )}
                   </div>
-                  <button
-                    type="button"
+                  <Button
+                    variant="tertiary"
+                    size="sm"
                     onClick={() =>
                       removeFieldOption(
                         pageIndex,
@@ -456,10 +376,10 @@ export function FieldPropertiesPanel() {
                       )
                     }
                     disabled={(field.options?.length ?? 0) <= 1}
-                    className="pt-2 p-1 rounded-md hover:bg-red-50 text-kb-content-tertiary hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-kb-content-tertiary"
+                    className="text-kb-content-tertiary hover:text-kb-content-negative"
                   >
                     <Trash className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -467,39 +387,29 @@ export function FieldPropertiesPanel() {
         )}
 
         {/* Validation */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-            Validation
-          </h3>
+        <div className="space-y-4">
+          <SectionHeader>Validation</SectionHeader>
 
-          {/* Required */}
           <label className="flex items-center gap-3 cursor-pointer">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={field.validation?.required ?? false}
-              onChange={(event) =>
+              onCheckedChange={(checked) =>
                 onUpdate({
                   validation: {
                     ...field.validation,
-                    required: event.target.checked,
+                    required: checked === true,
                   },
                 })
               }
-              className="w-4 h-4 rounded border-kb-border-secondary text-kb-primary focus:ring-kb-primary/20"
             />
             <span className="text-sm text-kb-content-primary">
               Required field
             </span>
           </label>
 
-          {/* Required Message */}
           {field.validation?.required && (
-            <div className="space-y-1.5 ml-7">
-              <p className="text-sm font-medium text-kb-content-primary">
-                Error Message
-              </p>
-              <input
-                type="text"
+            <div className="ml-7">
+              <TextField.Root
                 value={field.validation?.requiredMessage ?? ""}
                 onChange={(event) =>
                   onUpdate({
@@ -510,94 +420,62 @@ export function FieldPropertiesPanel() {
                   })
                 }
                 placeholder="This field is required"
-                className="w-full px-3 py-2 rounded-md border border-kb-border-secondary bg-kb-surface-primary text-kb-content-primary text-sm focus:outline-none focus:ring-2 focus:ring-kb-primary/20 focus:border-kb-primary"
-              />
+              >
+                <TextField.Label>Error Message</TextField.Label>
+              </TextField.Root>
             </div>
           )}
         </div>
 
         {/* Appearance */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-            Appearance
-          </h3>
+        <div className="space-y-4">
+          <SectionHeader>Appearance</SectionHeader>
 
-          {/* Width */}
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-kb-content-primary">Width</p>
-            <div className="grid grid-cols-4 gap-1">
-              {(["full", "half", "third", "quarter"] as FieldWidth[]).map(
-                (width) => (
-                  <button
-                    key={width}
-                    type="button"
-                    onClick={() =>
-                      onUpdate({
-                        appearance: { ...field.appearance, width },
-                      })
-                    }
-                    className={cn(
-                      "px-2 py-1.5 rounded text-xs font-medium transition-colors",
-                      field.appearance.width === width
-                        ? "bg-kb-primary text-white"
-                        : "bg-kb-surface-primary border border-kb-border-secondary text-kb-content-secondary hover:border-kb-border-primary",
-                    )}
-                  >
-                    {width === "full"
-                      ? "Full"
-                      : width === "half"
-                        ? "1/2"
-                        : width === "third"
-                          ? "1/3"
-                          : "1/4"}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
+          <SelectField.Root
+            value={field.appearance.width}
+            onValueChange={(value) =>
+              onUpdate({
+                appearance: { ...field.appearance, width: value as FieldWidth },
+              })
+            }
+          >
+            <SelectField.Label>Width</SelectField.Label>
+            <SelectField.Trigger placeholder="Select width" />
+            <SelectField.Content>
+              <SelectField.Item value="full">Full</SelectField.Item>
+              <SelectField.Item value="half">Half (1/2)</SelectField.Item>
+              <SelectField.Item value="third">Third (1/3)</SelectField.Item>
+              <SelectField.Item value="quarter">Quarter (1/4)</SelectField.Item>
+            </SelectField.Content>
+          </SelectField.Root>
 
-          {/* Label Position */}
-          <div className="space-y-1.5">
-            <p className="text-sm font-medium text-kb-content-primary">
-              Label Position
-            </p>
-            <div className="grid grid-cols-3 gap-1">
-              {(["top", "left", "hidden"] as LabelPosition[]).map(
-                (position) => (
-                  <button
-                    key={position}
-                    type="button"
-                    onClick={() =>
-                      onUpdate({
-                        appearance: {
-                          ...field.appearance,
-                          labelPosition: position,
-                        },
-                      })
-                    }
-                    className={cn(
-                      "px-2 py-1.5 rounded text-xs font-medium capitalize transition-colors",
-                      field.appearance.labelPosition === position
-                        ? "bg-kb-primary text-white"
-                        : "bg-kb-surface-primary border border-kb-border-secondary text-kb-content-secondary hover:border-kb-border-primary",
-                    )}
-                  >
-                    {position}
-                  </button>
-                ),
-              )}
-            </div>
-          </div>
+          <SelectField.Root
+            value={field.appearance.labelPosition}
+            onValueChange={(value) =>
+              onUpdate({
+                appearance: {
+                  ...field.appearance,
+                  labelPosition: value as LabelPosition,
+                },
+              })
+            }
+          >
+            <SelectField.Label>Label Position</SelectField.Label>
+            <SelectField.Trigger placeholder="Select position" />
+            <SelectField.Content>
+              <SelectField.Item value="top">Top</SelectField.Item>
+              <SelectField.Item value="left">Left</SelectField.Item>
+              <SelectField.Item value="hidden">Hidden</SelectField.Item>
+            </SelectField.Content>
+          </SelectField.Root>
         </div>
 
         {/* Contact Property Mapping - only for input fields, not presentation fields */}
         {!PRESENTATION_FIELD_TYPES.includes(
           field.type as (typeof PRESENTATION_FIELD_TYPES)[number],
         ) && (
-          <div className="space-y-3">
-            <h3 className="text-xs font-semibold text-kb-content-secondary uppercase tracking-wide">
-              Contact Property
-            </h3>
+          <div className="space-y-4">
+            <SectionHeader>Contact Property</SectionHeader>
             <p className="text-xs text-kb-content-tertiary">
               Map this field to a contact property to save submission data
             </p>
@@ -678,19 +556,17 @@ export function FieldPropertiesPanel() {
               </SelectField.Content>
 
               {!field.contactProperty && (
-                <SelectField.Hint>
-                  Required for form publishing
-                </SelectField.Hint>
+                <SelectField.Hint>Required for form publishing</SelectField.Hint>
               )}
             </SelectField.Root>
 
             {field.contactProperty && (
-              <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-kb-surface-primary border border-kb-border-tertiary">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-kb-surface-primary border border-kb-border-tertiary">
                 {field.contactProperty.type === "standard"
                   ? (() => {
                       const Icon =
-                        STANDARD_PROPERTY_INFO[field.contactProperty.id]
-                          ?.icon ?? TextIcon;
+                        STANDARD_PROPERTY_INFO[field.contactProperty.id]?.icon ??
+                        TextIcon;
                       return (
                         <Icon className="w-4 h-4 text-kb-content-secondary" />
                       );

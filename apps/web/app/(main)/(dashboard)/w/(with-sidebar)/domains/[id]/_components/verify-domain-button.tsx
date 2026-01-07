@@ -25,7 +25,9 @@ export function VerifyDomainButton({
       return await internalApi.domains().verify(domainId);
     },
     onSuccess: (data) => {
-      if (data.verification.allVerified) {
+      const allVerified =
+        data.verification.allVerified && data.verification.mx?.configured;
+      if (allVerified) {
         toast("All DNS records verified successfully!");
       } else {
         const verified = [
@@ -33,8 +35,9 @@ export function VerifyDomainButton({
           data.verification.returnPath.configured,
           data.verification.tracking.configured,
           data.verification.dmarc.configured,
+          data.verification.mx?.configured,
         ].filter(Boolean).length;
-        toast(`${verified}/4 DNS records verified`);
+        toast(`${verified}/5 DNS records verified`);
       }
       router.refresh();
     },

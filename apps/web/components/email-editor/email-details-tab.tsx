@@ -3,6 +3,7 @@
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
+import type { CreatedDomain } from "@/components/sender-select";
 import {
   EmailSubjectSection,
   RecipientsSection,
@@ -17,8 +18,6 @@ import type {
   EditorDetails,
   EmailDetails,
   EmailEditorMode,
-  SenderSelectActions,
-  SenderSelectState,
   TransformedSenderIdentity,
 } from "./types";
 
@@ -32,8 +31,8 @@ interface EmailDetailsTabProps<T extends EmailEditorMode> {
   onChange: (updates: Partial<EditorDetails<T>>) => void;
   onSave: () => void;
   isSaving: boolean;
-  senderState: SenderSelectState;
-  senderActions: SenderSelectActions;
+  onSenderIdentityCreated?: (identity: TransformedSenderIdentity) => void;
+  onDomainCreated?: (domain: CreatedDomain) => void;
   readonly?: boolean;
 }
 
@@ -45,8 +44,8 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
   onChange,
   onSave,
   isSaving,
-  senderState,
-  senderActions,
+  onSenderIdentityCreated,
+  onDomainCreated,
   readonly = false,
 }: EmailDetailsTabProps<T>) {
   // Type assertion for broadcast-specific details
@@ -77,8 +76,8 @@ export function EmailDetailsTab<T extends EmailEditorMode>({
           senderIdentities={senderIdentities}
           domains={domains}
           onChange={onBaseChange}
-          senderState={senderState}
-          senderActions={senderActions}
+          onSenderIdentityCreated={onSenderIdentityCreated}
+          onDomainCreated={onDomainCreated}
           readonly={readonly}
         />
 

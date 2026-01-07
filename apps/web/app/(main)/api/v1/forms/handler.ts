@@ -160,6 +160,11 @@ export async function getForm(workspaceId: string, formId: string) {
       version: form.version,
       fields: form.fields,
       settings: form.settings,
+      seoTitle: form.seoTitle,
+      seoDescription: form.seoDescription,
+      seoImageUrl: form.seoImageUrl,
+      seoFaviconUrl: form.seoFaviconUrl,
+      slug: form.slug,
       publishedAt: form.publishedAt?.toISOString() || null,
       createdAt: form.createdAt.toISOString(),
       updatedAt: form.updatedAt.toISOString(),
@@ -252,6 +257,24 @@ export async function updateForm(
   }
 
   const data = await validateRequestBody(updateFormSchema, request);
+
+  // Validate slug uniqueness within the workspace if slug is being updated
+  if (data.slug !== undefined && data.slug !== null && data.slug !== "") {
+    const existingFormWithSlug = await prisma.form.findFirst({
+      where: {
+        workspaceId,
+        slug: data.slug,
+        id: { not: formId },
+      },
+    });
+
+    if (existingFormWithSlug) {
+      throw new ConflictError(
+        `A form with the slug "${data.slug}" already exists in this workspace`,
+        ErrorCode.FORM_SLUG_CONFLICT,
+      );
+    }
+  }
 
   const updatedForm = await prisma.form.update({
     where: {

@@ -9,6 +9,8 @@ import { processImport } from "./contact-imports/process-import";
 import { unsubscribe } from "./contacts/unsubscribe";
 import { confirmDoubleOptIn } from "./forms/confirm-double-opt-in";
 import { sendDoubleOptIn } from "./forms/send-double-opt-in";
+import { processInboundEmail } from "./inbox/process-inbound-email";
+import { sendReply } from "./inbox/send-reply";
 import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
@@ -71,6 +73,14 @@ configureWorker("contacts", {
   concurrency: 5,
 });
 
+configureWorker("inbox", {
+  processors: {
+    "process-inbound-email": processInboundEmail,
+    "send-reply": sendReply,
+  },
+  concurrency: 5,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -82,6 +92,7 @@ const queues = [
   "broadcasts",
   "forms",
   "contacts",
+  "inbox",
 ] as const;
 
 for (const queueName of queues) {
@@ -137,6 +148,11 @@ logger.info(
         queue: "contacts",
         jobs: ["unsubscribe"],
         concurrency: 100,
+      },
+      {
+        queue: "inbox",
+        jobs: ["process-inbound-email", "send-reply"],
+        concurrency: 5,
       },
     ],
   },

@@ -8,8 +8,7 @@
  * 1. Validates the contact is still UNCONFIRMED
  * 2. Fetches the email template configured for the form
  * 3. Renders the email with personalization and confirmation URL
- * 4. Uploads content to S3
- * 5. Publishes email message to NATS for MTA injection
+ * 4. Injects email directly to MTA via HTTP
  */
 
 import {
@@ -17,11 +16,12 @@ import {
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
+import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { generateMessageIdForDomain } from "@/lib/email/message-id";
-import { type EmailMessage, getNatsOptions, publishEmail } from "@/lib/nats";
+import { type EmailMessage, getMtaOptions, injectEmail } from "@/lib/mta";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
-import { uploadPrivateFile } from "@/lib/storage/private-storage";
+import { ConversationOriginType, MessageDirection } from "@prisma/client";
 
 const logger = queueLogger.child({ job: "send-double-opt-in" });
 
@@ -218,30 +218,33 @@ export const sendDoubleOptIn: JobProcessor<
     ? substituteVariables(email.previewText, variables)
     : "";
 
-  // Upload HTML content to S3
-  const contentKey = `emails/${workspaceId}/double-opt-in/${formId}/${emailSendId}`;
-  const htmlKey = `${contentKey}/content.html`;
-
-  await uploadPrivateFile(htmlKey, htmlBody, "text/html");
-
   // Build envelope sender for bounce handling
   const envelopeSender = `bounces+${emailSendId}@${sendingDomain.returnPathSubDomain}.${domain}`;
 
-  // Build reply-to email
-  let replyToEmail: string;
+  // Build reply-to email with inbox tracking if enabled
+  let replyToLocalPart: string;
+  let replyToDomain: string;
   if (email.replyToIdentityId) {
     const replyToIdentity = await prisma.senderIdentity.findUnique({
       where: { id: email.replyToIdentityId },
       include: { sendingDomain: true },
     });
     if (replyToIdentity?.sendingDomain) {
-      replyToEmail = `${replyToIdentity.email}@${replyToIdentity.sendingDomain.name}`;
+      replyToLocalPart = replyToIdentity.email;
+      replyToDomain = replyToIdentity.sendingDomain.name;
     } else {
-      replyToEmail = `${senderIdentity.email}@${domain}`;
+      replyToLocalPart = senderIdentity.email;
+      replyToDomain = domain;
     }
   } else {
-    replyToEmail = `${senderIdentity.email}@${domain}`;
+    replyToLocalPart = senderIdentity.email;
+    replyToDomain = domain;
   }
+
+  // Build reply-to address with inbox tracking (plus-addressing) if enabled
+  const replyToEmail = sendingDomain.inboxEnabled
+    ? `${replyToLocalPart}+${emailSendId}@${replyToDomain}`
+    : `${replyToLocalPart}@${replyToDomain}`;
 
   // Build recipient name
   const recipientName = [contact.firstName, contact.lastName]
@@ -252,8 +255,8 @@ export const sendDoubleOptIn: JobProcessor<
   // Uses the contact's unsubscribe endpoint - will delete unconfirmed contact
   const unsubscribeUrl = `https://${trackingDomain}/u/${contact.id}/doi-${formId}`;
 
-  // Build NATS message
-  const natsMessage: EmailMessage = {
+  // Build MTA message
+  const mtaMessage: EmailMessage = {
     id: emailSendId,
     tenant_id: workspaceId,
     broadcast_id: `doi-${formId}`, // Use "doi-" prefix to distinguish from broadcasts
@@ -274,7 +277,8 @@ export const sendDoubleOptIn: JobProcessor<
     },
     subject,
     preview_text: previewText,
-    content_key: contentKey,
+    html_body: htmlBody,
+    text_body: htmlToPlainText(htmlBody),
     attachments: [],
     headers: {
       "List-Unsubscribe": `<${unsubscribeUrl}>`,
@@ -290,9 +294,24 @@ export const sendDoubleOptIn: JobProcessor<
     track_clicks: email.trackClicks,
   };
 
-  // Publish to NATS
-  const natsOptions = getNatsOptions();
-  const ack = await publishEmail(natsOptions, natsMessage);
+  // Inject directly to MTA via HTTP
+  const mtaOptions = getMtaOptions();
+  const result = await injectEmail(mtaOptions, mtaMessage);
+
+  if (!result.success) {
+    logger.error(
+      {
+        jobId,
+        contactId,
+        formId,
+        emailId,
+        emailSendId,
+        error: result.error,
+      },
+      "Failed to inject double opt-in email to MTA",
+    );
+    throw new Error(`Failed to inject email: ${result.error}`);
+  }
 
   logger.info(
     {
@@ -301,10 +320,67 @@ export const sendDoubleOptIn: JobProcessor<
       formId,
       emailId,
       emailSendId,
-      stream: ack.stream,
-      seq: ack.seq,
-      duplicate: ack.duplicate,
+      duplicate: result.duplicate,
     },
-    "Double opt-in email published to NATS",
+    "Double opt-in email injected to MTA",
   );
+
+  // Create conversation for inbox (only if inbox is enabled)
+  if (sendingDomain.inboxEnabled) {
+    try {
+      // Create conversation and outbound message in a transaction
+      await prisma.$transaction(async (tx) => {
+        const conversation = await tx.conversation.create({
+          data: {
+            workspaceId,
+            contactId: contact.id,
+            senderIdentityId: senderIdentity.id,
+            sendingDomainId: sendingDomain.id,
+            originType: ConversationOriginType.DOUBLE_OPT_IN,
+            originId: formId,
+            originEmailSendId: emailSendId,
+            subject,
+            lastMessageAt: new Date(),
+            messageCount: 1,
+            unreadCount: 0,
+            status: "OPEN",
+          },
+        });
+
+        await tx.inboxMessage.create({
+          data: {
+            workspaceId,
+            conversationId: conversation.id,
+            direction: MessageDirection.OUTBOUND,
+            emailSendId,
+            fromEmail: `${senderIdentity.email}@${domain}`,
+            fromName: senderIdentity.name,
+            toEmail: contact.email,
+            toName: recipientName || null,
+            subject,
+            htmlBody,
+            messageId,
+            status: "READ",
+            sentAt: new Date(),
+          },
+        });
+      });
+
+      logger.debug(
+        { jobId, contactId, emailSendId },
+        "Created conversation for double opt-in email",
+      );
+    } catch (error) {
+      // Log but don't fail the job - email was already sent
+      logger.error(
+        {
+          jobId,
+          contactId,
+          formId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Failed to create conversation for inbox",
+      );
+    }
+  }
 };

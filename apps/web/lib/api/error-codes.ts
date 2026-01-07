@@ -69,6 +69,7 @@ export enum ErrorCode {
   FORM_NO_FIELDS = "FORM_NO_FIELDS",
   FORM_MISSING_EMAIL_FIELD = "FORM_MISSING_EMAIL_FIELD",
   FORM_UNMAPPED_FIELDS = "FORM_UNMAPPED_FIELDS",
+  FORM_SLUG_CONFLICT = "FORM_SLUG_CONFLICT",
 
   // ============================================================================
   // CONTACT ERRORS
@@ -114,6 +115,12 @@ export enum ErrorCode {
   BROADCAST_NOT_FOUND = "BROADCAST_NOT_FOUND",
   BROADCAST_INVALID_FROM_DOMAIN = "BROADCAST_INVALID_FROM_DOMAIN",
   BROADCAST_NOT_EDITABLE = "BROADCAST_NOT_EDITABLE",
+
+  // ============================================================================
+  // INBOX/CONVERSATION ERRORS
+  // ============================================================================
+  ConversationNotFound = "CONVERSATION_NOT_FOUND",
+  MessageNotFound = "MESSAGE_NOT_FOUND",
 
   // ============================================================================
   // VALIDATION ERRORS (422)

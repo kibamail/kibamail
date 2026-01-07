@@ -32,3 +32,18 @@ export {
   createTestWorkspace,
   type TestWorkspace,
 } from "./workspace";
+
+// Mailpit utilities (for MTA integration tests)
+export {
+  createMailpitClient,
+  emailAssertions,
+  MailpitClient,
+  skipIfMailpitUnavailable,
+  type MailpitAddress,
+  type MailpitAttachment,
+  type MailpitClientOptions,
+  type MailpitHeaders,
+  type MailpitMessage,
+  type MailpitMessagesResponse,
+  type MailpitMessageSummary,
+} from "./mailpit";

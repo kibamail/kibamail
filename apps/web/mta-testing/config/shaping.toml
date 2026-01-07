@@ -1,0 +1,25 @@
+# =============================================================================
+# Kibamail Traffic Shaping - Test Environment
+# =============================================================================
+#
+# Relaxed shaping rules for testing. In production, these would be much
+# stricter based on ISP requirements.
+#
+# =============================================================================
+
+[default]
+# Use OpenSSL for TLS (reads system CA store)
+tls_prefer_openssl = true
+
+# Relaxed limits for testing
+connection_limit = 100
+max_connection_rate = "1000/min"
+max_deliveries_per_connection = 1000
+max_message_rate = "1000/s"
+idle_timeout = "60s"
+
+# TLS settings - opportunistic for test environment
+enable_tls = "Opportunistic"
+
+# Relaxed retry settings
+max_ready = 100000

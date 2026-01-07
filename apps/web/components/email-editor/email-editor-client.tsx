@@ -7,7 +7,10 @@ import { Settings, StatUp, Xmark } from "iconoir-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getEmailFromSenderSelect } from "@/components/sender-select";
+import {
+  getEmailFromSenderSelect,
+  type TransformedSenderIdentity,
+} from "@/components/sender-select";
 import { ContentEditor, type ContentEditorRef } from "./content-editor";
 import { EmailDetailsTab } from "./email-details-tab";
 import { EmailPreview } from "./email-preview";
@@ -21,8 +24,6 @@ import {
   type EmailEditorProps,
   getDefaultLabels,
   getTabsForMode,
-  type SenderSelectActions,
-  type SenderSelectState,
 } from "./types";
 
 interface EmailEditorClientProps<T extends EmailEditorMode>
@@ -79,16 +80,19 @@ export function EmailEditorClient<T extends EmailEditorMode>({
 
   const [details, setDetails] = useState<EditorDetails<T>>(initialDetails);
   const [addedDomains, setAddedDomains] = useState<CreatedDomain[]>([]);
+  const [addedSenderIdentities, setAddedSenderIdentities] = useState<
+    TransformedSenderIdentity[]
+  >([]);
   const [testEmailModalOpen, setTestEmailModalOpen] = useState(false);
-  const [senderLocalPart, setSenderLocalPart] = useState("");
-  const [senderDomainId, setSenderDomainId] = useState(domains[0]?.id || "");
-  const [isAddingNewSender, setIsAddingNewSender] = useState(
-    !initialDetails.senderIdentityId && senderIdentities.length === 0,
-  );
 
   const allDomains = useMemo(
     () => [...domains, ...addedDomains],
     [domains, addedDomains],
+  );
+
+  const allSenderIdentities = useMemo(
+    () => [...senderIdentities, ...addedSenderIdentities],
+    [senderIdentities, addedSenderIdentities],
   );
 
   const onDetailsChange = useCallback(
@@ -101,10 +105,10 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           updates.senderIdentityId !== undefined &&
           updates.senderIdentityId !== prev.senderIdentityId
         ) {
-          const prevSender = senderIdentities.find(
+          const prevSender = allSenderIdentities.find(
             (s) => s.id === prev.senderIdentityId,
           );
-          const nextSender = senderIdentities.find(
+          const nextSender = allSenderIdentities.find(
             (s) => s.id === updates.senderIdentityId,
           );
 
@@ -116,37 +120,27 @@ export function EmailEditorClient<T extends EmailEditorMode>({
         return next;
       });
     },
-    [senderIdentities],
+    [allSenderIdentities],
   );
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {
     setAddedDomains((prev) => [...prev, domain]);
   }, []);
 
-  const senderState: SenderSelectState = {
-    localPart: senderLocalPart,
-    domainId: senderDomainId,
-    isAddingNew: isAddingNewSender,
-  };
-
-  const senderActions: SenderSelectActions = {
-    onLocalPartChange: setSenderLocalPart,
-    onDomainIdChange: setSenderDomainId,
-    onIsAddingNewChange: setIsAddingNewSender,
-    onDomainCreated,
-  };
+  const onSenderIdentityCreated = useCallback(
+    (identity: TransformedSenderIdentity) => {
+      setAddedSenderIdentities((prev) => [...prev, identity]);
+    },
+    [],
+  );
 
   const getSavePayload = useCallback(() => {
     const content = editorRef.current?.getContent();
     const styles = editorRef.current?.getStyles();
 
     const senderEmail = getEmailFromSenderSelect({
-      senderIdentities,
-      domains: allDomains,
+      senderIdentities: allSenderIdentities,
       senderIdentityId: details.senderIdentityId,
-      localPart: senderLocalPart,
-      domainId: senderDomainId,
-      isAddingNew: isAddingNewSender || senderIdentities.length === 0,
     });
 
     return {
@@ -159,14 +153,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
       details,
       senderEmail,
     };
-  }, [
-    details,
-    senderIdentities,
-    allDomains,
-    senderLocalPart,
-    senderDomainId,
-    isAddingNewSender,
-  ]);
+  }, [details, allSenderIdentities]);
 
   const saveDraftMutation = useMutation({
     mutationFn: async () => {
@@ -302,13 +289,13 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           <EmailDetailsTab
             mode={mode}
             details={details}
-            senderIdentities={senderIdentities}
+            senderIdentities={allSenderIdentities}
             domains={allDomains}
             onChange={onDetailsChange}
             onSave={onSaveDraft}
             isSaving={saveDraftMutation.isPending}
-            senderState={senderState}
-            senderActions={senderActions}
+            onSenderIdentityCreated={onSenderIdentityCreated}
+            onDomainCreated={onDomainCreated}
             readonly={isReadonly}
           />
         </div>

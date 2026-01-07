@@ -25,6 +25,14 @@ type EditorTab = "create" | "settings" | "preview" | "analytics";
 
 const VALID_TABS: EditorTab[] = ["create", "settings", "preview", "analytics"];
 
+export interface FormSeoData {
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageUrl: string | null;
+  seoFaviconUrl: string | null;
+  slug: string | null;
+}
+
 interface FormBuilderClientProps {
   formId: string;
   formName: string;
@@ -35,6 +43,7 @@ interface FormBuilderClientProps {
   isLiveVersion: boolean;
   initialSchema: FormBuilderSchema | null;
   doubleOptInEmailId?: string | null;
+  initialSeo?: FormSeoData;
 }
 
 interface FormBuilderContentProps {
@@ -54,7 +63,7 @@ function FormBuilderContent({
   versions,
   isLiveVersion,
 }: FormBuilderContentProps) {
-  const { schema, selectedFieldId, formName } = useFormBuilder();
+  const { schema, selectedFieldId, formName, seo } = useFormBuilder();
   const queryClient = useQueryClient();
   const isDraft = formStatus === "DRAFT";
   const { success: toast, error: toastError } = useToast();
@@ -85,6 +94,11 @@ function FormBuilderContent({
       return internalApi.forms().update(formId, {
         name: formName,
         fields: schema,
+        seoTitle: seo.seoTitle,
+        seoDescription: seo.seoDescription,
+        seoImageUrl: seo.seoImageUrl,
+        seoFaviconUrl: seo.seoFaviconUrl,
+        slug: seo.slug,
       });
     },
     onSuccess: () => {
@@ -229,7 +243,7 @@ function FormBuilderContent({
               : "invisible pointer-events-none"
           }`}
         >
-          <FormLivePreview isActive={activeTab === "preview"} />
+          <FormLivePreview isActive={activeTab === "preview"} rootFormId={rootFormId} />
         </div>
 
         {/* Analytics tab */}
@@ -257,6 +271,7 @@ export function FormBuilderClient({
   isLiveVersion,
   initialSchema,
   doubleOptInEmailId,
+  initialSeo,
 }: FormBuilderClientProps) {
   return (
     <FormBuilderProvider
@@ -264,6 +279,7 @@ export function FormBuilderClient({
       formName={formName}
       initialSchema={initialSchema}
       initialDoubleOptInEmailId={doubleOptInEmailId ?? null}
+      initialSeo={initialSeo ?? null}
     >
       <FormBuilderContent
         formId={formId}

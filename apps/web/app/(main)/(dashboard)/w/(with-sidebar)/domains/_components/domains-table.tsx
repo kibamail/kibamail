@@ -5,27 +5,19 @@ import { Button } from "@kibamail/owly/button";
 import { ConfirmDialog } from "@kibamail/owly/dialog";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
+import * as Popover from "@kibamail/owly/popover";
 import * as Table from "@kibamail/owly/table";
 import { useToast } from "@kibamail/owly/toast";
-import { Check, MoreHoriz, Refresh, Trash, Xmark } from "iconoir-react";
+import { Check, MoreHoriz, NavArrowDown, Refresh, Trash, Xmark } from "iconoir-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { DomainListItem } from "@/app/(main)/(dashboard)/w/(with-sidebar)/domains/page";
 import { useDomainsPolling } from "@/hooks/use-domain-polling";
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
-import { SslStatusBadge, type SslStatus } from "./ssl-status-badge";
-
-function VerificationBadge({ verified }: { verified: boolean }) {
-  return (
-    <Badge variant={verified ? "success" : "neutral"} size="sm">
-      {verified ? <Check className="w-3 h-3" /> : <Xmark className="w-3 h-3" />}
-      {verified ? "Verified" : "Pending"}
-    </Badge>
-  );
-}
+import type { SslStatus } from "./ssl-status-badge";
 
 function DomainActionsDropdown({ domain }: { domain: DomainListItem }) {
   const router = useRouter();
@@ -37,7 +29,9 @@ function DomainActionsDropdown({ domain }: { domain: DomainListItem }) {
       return await internalApi.domains().verify(domain.id);
     },
     onSuccess: (data) => {
-      if (data.verification.allVerified) {
+      const allVerified =
+        data.verification.allVerified && data.verification.mx?.configured;
+      if (allVerified) {
         toast("All DNS records verified successfully!");
       } else {
         const verified = [
@@ -45,8 +39,9 @@ function DomainActionsDropdown({ domain }: { domain: DomainListItem }) {
           data.verification.returnPath.configured,
           data.verification.tracking.configured,
           data.verification.dmarc.configured,
+          data.verification.mx?.configured,
         ].filter(Boolean).length;
-        toast(`${verified}/4 DNS records verified`);
+        toast(`${verified}/5 DNS records verified`);
       }
       router.refresh();
     },
@@ -125,70 +120,126 @@ function DomainActionsDropdown({ domain }: { domain: DomainListItem }) {
   );
 }
 
-function OverallStatus({ domain }: { domain: DomainListItem }) {
-  const dkimVerified = domain.dkimVerifiedAt !== null;
-  const returnPathVerified = domain.returnPathDomainVerifiedAt !== null;
-  const trackingVerified = domain.trackingDomainVerifiedAt !== null;
-  const dmarcVerified = domain.dmarcVerifiedAt !== null;
-  const allVerified =
-    dkimVerified && returnPathVerified && trackingVerified && dmarcVerified;
+function VerificationBadge({ verified }: { verified: boolean }) {
+  return (
+    <Badge variant={verified ? "success" : "neutral"} size="sm">
+      {verified ? <Check className="w-3 h-3" /> : <Xmark className="w-3 h-3" />}
+      {verified ? "Verified" : "Pending"}
+    </Badge>
+  );
+}
 
-  if (allVerified) {
-    return (
-      <Badge variant="success" size="sm">
-        Ready to send
-      </Badge>
-    );
+function SslBadge({ status }: { status: SslStatus | null }) {
+  switch (status) {
+    case "completed":
+      return (
+        <Badge variant="success" size="sm">
+          <Check className="w-3 h-3" />
+          Secured
+        </Badge>
+      );
+    case "in_progress":
+      return (
+        <Badge variant="info" size="sm">
+          <Refresh className="w-3 h-3 animate-spin" />
+          Securing
+        </Badge>
+      );
+    case "pending":
+      return (
+        <Badge variant="neutral" size="sm">
+          <Refresh className="w-3 h-3" />
+          Queued
+        </Badge>
+      );
+    case "failed":
+      return (
+        <Badge variant="error" size="sm">
+          <Xmark className="w-3 h-3" />
+          Failed
+        </Badge>
+      );
+    default:
+      return (
+        <Badge variant="neutral" size="sm">
+          <Xmark className="w-3 h-3" />
+          Pending
+        </Badge>
+      );
   }
+}
+
+function getSslStatusVerified(status: SslStatus | null): boolean {
+  return status === "completed";
+}
+
+function StatusDropdown({ domain }: { domain: DomainListItem }) {
+  const dkimVerified = Boolean(domain.dkimVerifiedAt);
+  const returnPathVerified = Boolean(domain.returnPathDomainVerifiedAt);
+  const trackingVerified = Boolean(domain.trackingDomainVerifiedAt);
+  const dmarcVerified = Boolean(domain.dmarcVerifiedAt);
+  const inboxMxVerified = Boolean(domain.inboxMxVerifiedAt);
+  const sslStatus = domain.sslIssuanceStatus as SslStatus;
+  const sslVerified = getSslStatusVerified(sslStatus);
+
+  const allVerified =
+    dkimVerified &&
+    returnPathVerified &&
+    trackingVerified &&
+    dmarcVerified &&
+    inboxMxVerified &&
+    sslVerified;
 
   const verifiedCount = [
     dkimVerified,
     returnPathVerified,
     trackingVerified,
     dmarcVerified,
+    inboxMxVerified,
+    sslVerified,
   ].filter(Boolean).length;
 
-  return (
-    <Badge variant="warning" size="sm">
-      {verifiedCount}/4 verified
-    </Badge>
-  );
-}
-
-interface SslStatusCellProps {
-  domain: DomainListItem;
-  onRetrySuccess: () => void;
-}
-
-function SslStatusCell({ domain, onRetrySuccess }: SslStatusCellProps) {
-  const router = useRouter();
-  const { success: toast, error: toastError } = useToast();
-
-  const retrySslMutation = useMutation({
-    mutationFn: async () => {
-      return await internalApi.domains().retrySsl(domain.id);
-    },
-    onSuccess: () => {
-      toast("SSL certificate issuance queued");
-      onRetrySuccess();
-      router.refresh();
-    },
-    onError: (error) => {
-      toastError(error.message || "Failed to retry SSL issuance");
-    },
-  });
-
-  const handleRetry = useCallback(() => {
-    retrySslMutation.mutate();
-  }, [retrySslMutation]);
+  const statuses = [
+    { label: "DKIM", verified: dkimVerified },
+    { label: "Return Path", verified: returnPathVerified },
+    { label: "Tracking", verified: trackingVerified },
+    { label: "DMARC", verified: dmarcVerified },
+    { label: "MX (Inbox)", verified: inboxMxVerified },
+  ];
 
   return (
-    <SslStatusBadge
-      status={domain.sslIssuanceStatus as SslStatus}
-      error={domain.sslIssuanceError}
-      onRetry={domain.sslIssuanceStatus === "failed" ? handleRetry : undefined}
-      isRetrying={retrySslMutation.isPending}
-    />
+    <Popover.Root>
+      <Popover.Trigger asChild>
+        <button
+          type="button"
+          className="flex items-center gap-1.5 text-left"
+        >
+          <Badge variant={allVerified ? "success" : "warning"} size="sm">
+            {allVerified ? "Ready to send" : `${verifiedCount}/6 verified`}
+          </Badge>
+          <NavArrowDown className="w-3.5 h-3.5 text-kb-content-tertiary" />
+        </button>
+      </Popover.Trigger>
+      <Popover.Content align="start" className="w-64 p-0">
+        <div className="py-2">
+          {statuses.map((status) => (
+            <div
+              key={status.label}
+              className="flex items-center justify-between px-3 py-2"
+            >
+              <span className="text-sm text-kb-content-secondary">
+                {status.label}
+              </span>
+              <VerificationBadge verified={status.verified} />
+            </div>
+          ))}
+          <div className="flex items-center justify-between px-3 py-2">
+            <span className="text-sm text-kb-content-secondary">SSL</span>
+            <SslBadge status={sslStatus} />
+          </div>
+        </div>
+      </Popover.Content>
+    </Popover.Root>
   );
 }
 
@@ -197,8 +248,6 @@ export function DomainsTable({
 }: {
   domains: DomainListItem[];
 }) {
-  const router = useRouter();
-
   // Poll for domains that have SSL issuance in progress
   const { data: polledData } = useDomainsPolling({
     initialDomains,
@@ -227,11 +276,6 @@ export function DomainsTable({
     });
   }, [initialDomains, polledData]);
 
-  const handleRetrySuccess = useCallback(() => {
-    // Refresh to trigger polling
-    router.refresh();
-  }, [router]);
-
   if (domains.length === 0) {
     return (
       <EmptyCard.Root>
@@ -249,12 +293,7 @@ export function DomainsTable({
         <Table.Header>
           <Table.Row>
             <Table.Head>Domain</Table.Head>
-            <Table.Head className="w-[140px]">Status</Table.Head>
-            <Table.Head className="w-[120px]">DKIM</Table.Head>
-            <Table.Head className="w-[120px]">Return Path</Table.Head>
-            <Table.Head className="w-[120px]">Tracking</Table.Head>
-            <Table.Head className="w-[120px]">SSL</Table.Head>
-            <Table.Head className="w-[120px]">DMARC</Table.Head>
+            <Table.Head className="w-[180px]">Status</Table.Head>
             <Table.Head className="w-[80px]">Actions</Table.Head>
           </Table.Row>
         </Table.Header>
@@ -270,29 +309,7 @@ export function DomainsTable({
                 </Link>
               </Table.Cell>
               <Table.Cell>
-                <OverallStatus domain={domain} />
-              </Table.Cell>
-              <Table.Cell>
-                <VerificationBadge verified={domain.dkimVerifiedAt !== null} />
-              </Table.Cell>
-              <Table.Cell>
-                <VerificationBadge
-                  verified={domain.returnPathDomainVerifiedAt !== null}
-                />
-              </Table.Cell>
-              <Table.Cell>
-                <VerificationBadge
-                  verified={domain.trackingDomainVerifiedAt !== null}
-                />
-              </Table.Cell>
-              <Table.Cell>
-                <SslStatusCell
-                  domain={domain}
-                  onRetrySuccess={handleRetrySuccess}
-                />
-              </Table.Cell>
-              <Table.Cell>
-                <VerificationBadge verified={domain.dmarcVerifiedAt !== null} />
+                <StatusDropdown domain={domain} />
               </Table.Cell>
               <Table.Cell>
                 <DomainActionsDropdown domain={domain} />

@@ -17,6 +17,10 @@ export const DNS_CONFIG = {
   trackingHost: "e.kbmta.net",
   trackingSubdomain: "e",
   dmarcSubdomain: "_dmarc",
+  /** MX host for inbox-enabled domains */
+  inboxMxHost: process.env.INBOX_MX_HOST || "mail.kbmta.net",
+  /** MX priority for inbox */
+  inboxMxPriority: 10,
 };
 
 /**
@@ -99,6 +103,7 @@ export function getDnsRecords(
     returnPath: getReturnPathRecord(domain, returnPathSubdomain),
     tracking: getTrackingRecord(domain, trackingSubdomain),
     dmarc: getDmarcRecord(domain, dmarcReportingCode),
+    mx: getInboxMxRecord(domain),
   };
 }
 
@@ -214,5 +219,90 @@ export async function verifyDnsRecords(
       returnPathConfigured &&
       trackingConfigured &&
       dmarcConfigured,
+  };
+}
+
+/**
+ * MX verification result
+ */
+export interface MxVerificationResult {
+  configured: boolean;
+  expected: string;
+  found: Array<{ priority: number; exchange: string }>;
+}
+
+/**
+ * Verify MX record for inbox-enabled domain
+ *
+ * Checks if the domain has an MX record pointing to our MTA.
+ * The MX record should have the expected exchange host.
+ *
+ * @param domain - The domain to verify
+ * @returns MX verification result
+ */
+export async function verifyInboxMxRecord(
+  domain: string,
+): Promise<MxVerificationResult> {
+  const expectedMx = DNS_CONFIG.inboxMxHost;
+
+  try {
+    const mxRecords = await dns.resolveMx(domain);
+
+    // Check if any MX record matches our expected host
+    // We accept both exact match and subdomain match (e.g., mta.kibamail.com matches *.kibamail.com)
+    const configured = mxRecords.some((mx) => {
+      const exchange = mx.exchange.toLowerCase();
+      const expected = expectedMx.toLowerCase();
+      return (
+        exchange === expected ||
+        exchange === `${expected}.` ||
+        exchange.endsWith(`.${expected}`) ||
+        exchange.endsWith(`.${expected}.`)
+      );
+    });
+
+    return {
+      configured,
+      expected: expectedMx,
+      found: mxRecords,
+    };
+  } catch {
+    return {
+      configured: false,
+      expected: expectedMx,
+      found: [],
+    };
+  }
+}
+
+/**
+ * Get the MX hostname for a domain.
+ * For MX records, the hostname is the subdomain portion of the domain.
+ *
+ * Example:
+ * - domain: "kakari.kibamail.xyz" -> hostname: "kakari"
+ * - domain: "kibamail.xyz" -> hostname: "@"
+ */
+function getMxHostname(domainName: string): string {
+  const parts = domainName.split(".");
+  if (parts.length <= 2) {
+    // Root domain, use @
+    return "@";
+  }
+  // Get all parts except the last two (the root domain)
+  return parts.slice(0, -2).join(".");
+}
+
+/**
+ * Get MX record configuration for inbox-enabled domain
+ *
+ * Returns the MX record that users should add to their DNS.
+ */
+export function getInboxMxRecord(domain: string) {
+  return {
+    type: "MX" as const,
+    hostname: getMxHostname(domain),
+    priority: DNS_CONFIG.inboxMxPriority,
+    value: DNS_CONFIG.inboxMxHost,
   };
 }
