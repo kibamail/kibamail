@@ -14,5 +14,4 @@ patches:
   - path: logto-routes-patch.yaml
   - path: logto-deployment-patch.yaml
   - path: postgres-objectstore-patch.yaml
-  - path: storageclass-patch.yaml
   - path: outpost-deployment-patch.yaml
