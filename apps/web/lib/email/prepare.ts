@@ -9,6 +9,7 @@
  */
 
 import type { SenderIdentity, SendingDomain } from "@prisma/client";
+import type { ContactPropertyValue } from "@/lib/contacts/properties";
 import {
   type BroadcastDocument,
   type BroadcastStyles,
@@ -27,6 +28,7 @@ export interface EmailContact {
   email: string;
   firstName?: string | null;
   lastName?: string | null;
+  properties?: Record<string, ContactPropertyValue>;
 }
 
 /**
@@ -142,16 +144,18 @@ function buildReplyToAddress(
  *
  * @param contact - The contact
  * @param broadcast - The broadcast
+ * @param customProperties - Optional custom contact properties for personalization
  * @returns Variables map for template substitution
  */
 function buildVariables(
   contact: EmailContact,
   broadcast: EmailBroadcast,
+  customProperties?: Record<string, ContactPropertyValue>,
 ): Record<string, string> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
 
-  return {
+  const variables: Record<string, string> = {
     email: contact.email,
     firstName: contact.firstName || "",
     first_name: contact.firstName || "",
@@ -161,6 +165,14 @@ function buildVariables(
     preferences_url: `https://${trackingDomain}/p/${contact.id}`,
     view_in_browser_url: `https://${trackingDomain}/v/${broadcast.id}/${contact.id}`,
   };
+
+  if (customProperties) {
+    for (const [key, value] of Object.entries(customProperties)) {
+      variables[`contact.${key}`] = value != null ? String(value) : "";
+    }
+  }
+
+  return variables;
 }
 
 /**
@@ -197,7 +209,7 @@ function substituteVariables(
   variables: Record<string, string>,
 ): string {
   return text.replace(/\{\{(\w+(?:\.\w+)*)\}\}/g, (match, varName) => {
-    return variables[varName] ?? match;
+    return variables[varName] ?? "";
   });
 }
 
@@ -217,7 +229,7 @@ async function prepareEmail(
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
 
   const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);
-  const variables = buildVariables(contact, broadcast);
+  const variables = buildVariables(contact, broadcast, contact.properties);
 
   // Tracking settings
   const trackOpens = broadcast.trackOpens ?? true;

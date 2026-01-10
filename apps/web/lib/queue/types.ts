@@ -48,6 +48,13 @@ export type QueueJobs = {
       broadcastId: string;
       batchId: string;
       contactIds: string[];
+      contacts?: Array<{
+        id: string;
+        email: string;
+        firstName: string | null;
+        lastName: string | null;
+        properties: Record<string, string | number | Date | null>;
+      }>;
     };
     "send-test-broadcast": {
       broadcastId: string;
@@ -109,6 +116,39 @@ export type QueueJobs = {
       replyContent: string;
       /** Optional subject override */
       replySubject?: string;
+    };
+  };
+  // Emails queue for transactional email sending
+  emails: {
+    "send-transactional": {
+      /** Unique ID for this email send */
+      emailSendId: string;
+      /** Workspace ID */
+      workspaceId: string;
+      /** Sender identity ID */
+      senderIdentityId: string;
+      /** Sending domain ID */
+      sendingDomainId: string;
+      /** Optional reply-to email */
+      replyToEmail?: string;
+      /** Recipient email(s) - single or array */
+      to: string | string[];
+      /** Email subject */
+      subject: string;
+      /** HTML body */
+      htmlBody: string;
+      /** Plain text body (optional) */
+      textBody?: string;
+      /** Attachments uploaded to S3 */
+      attachments?: Array<{
+        s3_key: string;
+        file_name: string;
+        content_type: string;
+      }>;
+      /** Custom metadata for tracking */
+      metadata?: Record<string, string>;
+      /** Whether inbox is enabled for sending domain */
+      inboxEnabled: boolean;
     };
   };
 };

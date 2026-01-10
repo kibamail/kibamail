@@ -132,3 +132,43 @@ export type CreateBroadcastRequest = z.infer<typeof createBroadcastSchema>;
 export type UpdateBroadcastRequest = z.infer<typeof updateBroadcastSchema>;
 export type BroadcastResponse = z.infer<typeof broadcastResponseSchema>;
 export type BroadcastListResponse = z.infer<typeof broadcastListResponseSchema>;
+
+/**
+ * Recipients Schema
+ * Defines how recipients can be specified for a broadcast
+ */
+const recipientsSchema = z.object({
+  contacts: z.array(z.string()).optional(),
+  emails: z.array(z.string().email()).optional(),
+  segment: z.string().optional(),
+  topic: z.string().optional(),
+}).refine(
+  (data) => Object.values(data).some((v) => v !== undefined),
+  { message: "At least one recipient mode is required" }
+);
+
+/**
+ * Email Content Schema for Create and Send
+ * Requires subject and html - no editor-based content allowed
+ */
+const emailContentCreateAndSendSchema = z.object({
+  subject: z.string().min(1, "Subject is required").max(255, "Subject must be 255 characters or less"),
+  html: z.string().min(1, "HTML content is required"),
+  text: z.string().optional(),
+  previewText: z.string().max(255, "Preview text must be 255 characters or less").optional(),
+});
+
+/**
+ * Create and Send Broadcast Request Schema
+ * Creates a broadcast with raw HTML/text content and sends it immediately or at scheduled time
+ */
+export const createAndSendBroadcastSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255, "Name must be 255 characters or less"),
+  from: emailFromSchema.optional(),
+  replyTo: z.email("Invalid reply-to email format").optional(),
+  emailContent: emailContentCreateAndSendSchema,
+  recipients: recipientsSchema,
+  sendAt: z.string().datetime("Invalid datetime format").optional(),
+});
+
+export type CreateAndSendBroadcastRequest = z.infer<typeof createAndSendBroadcastSchema>;

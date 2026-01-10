@@ -108,6 +108,7 @@ export enum ErrorCode {
   // ============================================================================
   SENDING_DOMAIN_NOT_FOUND = "SENDING_DOMAIN_NOT_FOUND",
   SENDING_DOMAIN_ALREADY_EXISTS = "SENDING_DOMAIN_ALREADY_EXISTS",
+  SENDING_DOMAIN_NOT_VERIFIED = "SENDING_DOMAIN_NOT_VERIFIED",
 
   // ============================================================================
   // BROADCAST ERRORS
@@ -133,6 +134,8 @@ export enum ErrorCode {
   FIELD_TOO_SHORT = "FIELD_TOO_SHORT",
   INVALID_JSON = "INVALID_JSON",
   INVALID_FIELD_TYPE = "INVALID_FIELD_TYPE",
+  INVALID_ATTACHMENT_FORMAT = "INVALID_ATTACHMENT_FORMAT",
+  ATTACHMENT_TOO_LARGE = "ATTACHMENT_TOO_LARGE",
 
   // ============================================================================
   // RATE LIMITING (429)

@@ -9,6 +9,23 @@ import type { Broadcast } from "@prisma/client";
 import type { ConditionInput } from "@/app/(main)/api/v1/segments/schema";
 import { prisma } from "@/lib/db";
 import { conditionsToPrismaWhere } from "@/lib/segments/conditions-to-prisma";
+import { buildContactProperties } from "@/lib/contacts/properties";
+import type { ContactPropertyValue } from "@/lib/contacts/properties";
+
+export interface RecipientContact {
+  id: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  properties: Record<string, ContactPropertyValue>;
+}
+
+export type BatchJobContact = RecipientContact;
+
+export interface RecipientResolution {
+  contactIds: string[];
+  contacts: RecipientContact[];
+}
 
 /**
  * Fetch all contact IDs for a broadcast's audience
@@ -114,4 +131,47 @@ export async function fetchBroadcastRecipientIds(
   });
 
   return contacts.map((c) => c.id);
+}
+
+/**
+ * Fetch all contacts for a broadcast's audience with their custom properties
+ *
+ * This creates a snapshot of the recipients at the time of calling,
+ * including full contact data for personalization.
+ *
+ * @param workspaceId - The workspace ID
+ * @param broadcast - The broadcast with topicId and segmentId
+ * @returns Object containing contact IDs and full contact data with properties
+ */
+export async function fetchBroadcastRecipients(
+  workspaceId: string,
+  broadcast: Pick<Broadcast, "topicId" | "segmentId">,
+): Promise<RecipientResolution> {
+  const contactIds = await fetchBroadcastRecipientIds(workspaceId, broadcast);
+
+  if (contactIds.length === 0) {
+    return { contactIds: [], contacts: [] };
+  }
+
+  const propertyDefs = await prisma.contactProperty.findMany({
+    where: { workspaceId },
+    select: { name: true, slot: true },
+  });
+
+  const contacts = await prisma.contact.findMany({
+    where: { id: { in: contactIds }, status: "SUBSCRIBED" },
+  });
+
+  const contactsWithProperties: RecipientContact[] = contacts.map((contact) => ({
+    id: contact.id,
+    email: contact.email,
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    properties: buildContactProperties(contact, propertyDefs),
+  }));
+
+  return {
+    contactIds: contactsWithProperties.map((c) => c.id),
+    contacts: contactsWithProperties,
+  };
 }

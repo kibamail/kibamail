@@ -116,7 +116,7 @@ export class UnauthorizedError extends ApiError {
  * throw new ForbiddenError('Access denied', ErrorCode.ACCESS_DENIED)
  * ```
  */
-class _ForbiddenError extends ApiError {
+export class ForbiddenError extends ApiError {
   constructor(
     message = "Access denied",
     errorCode: ErrorCode = ErrorCode.ACCESS_DENIED,

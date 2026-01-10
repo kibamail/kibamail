@@ -31,10 +31,15 @@ import {
   checkBroadcastReadiness,
   getReadinessErrors,
 } from "@/lib/broadcasts/readiness";
+import { resolveRecipients } from "@/lib/broadcasts/recipient-resolver";
 import { prisma } from "@/lib/db";
 import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { queue } from "@/lib/queue";
-import { createBroadcastSchema, updateBroadcastSchema } from "./schema";
+import {
+  createAndSendBroadcastSchema,
+  createBroadcastSchema,
+  updateBroadcastSchema,
+} from "./schema";
 
 /**
  * Prepare email content data with auto-generated plain text.
@@ -649,4 +654,111 @@ export async function sendBroadcast(workspaceId: string, broadcastId: string) {
   await queue("broadcasts").push("send-broadcast", { broadcastId }, { delay });
 
   return responseOk(formatBroadcast(updatedBroadcast), "broadcast");
+}
+
+/**
+ * POST /api/v1/broadcasts/create-and-send
+ *
+ * Create and immediately send a broadcast with raw HTML/text content.
+ * Bypasses the JSON-based email editor.
+ *
+ * @param workspaceId - The workspace ID from API key
+ * @param request - Next.js request with broadcast data
+ */
+export async function createAndSendBroadcast(
+  workspaceId: string,
+  request: NextRequest,
+) {
+  const data = await validateRequestBody(
+    createAndSendBroadcastSchema,
+    request,
+  );
+
+  const sendAt = data.sendAt ? new Date(data.sendAt) : null;
+  if (sendAt && sendAt <= new Date()) {
+    throw new BadRequestError(
+      "sendAt must be in the future",
+      ErrorCode.INVALID_PARAMETER,
+    );
+  }
+
+  const { contactIds, contacts } = await resolveRecipients(
+    workspaceId,
+    data.recipients,
+  );
+
+  if (contactIds.length === 0) {
+    throw new BadRequestError(
+      "No valid recipients found",
+      ErrorCode.INVALID_PARAMETER,
+    );
+  }
+
+  let senderIdentityId: string | undefined;
+  let sendingDomainId: string | undefined;
+  let replyToIdentityId: string | undefined;
+
+  if (data.from) {
+    const sendingDomain = await validateFromDomain(workspaceId, data.from);
+    const senderIdentity = await getOrCreateSenderIdentity(
+      workspaceId,
+      data.from,
+      sendingDomain.id,
+    );
+
+    senderIdentityId = senderIdentity.id;
+    sendingDomainId = sendingDomain.id;
+
+    if (data.replyTo) {
+      replyToIdentityId = senderIdentity.id;
+      if (data.replyTo !== senderIdentity.replyToEmail) {
+        await prisma.senderIdentity.update({
+          where: { id: senderIdentity.id },
+          data: { replyToEmail: data.replyTo },
+        });
+      }
+    }
+  }
+
+  const emailContent = await prisma.emailContent.create({
+    data: {
+      subject: data.emailContent.subject,
+      contentText: data.emailContent.text ?? null,
+      contentHtml: data.emailContent.html,
+      previewText: data.emailContent.previewText ?? null,
+    },
+  });
+
+  const broadcast = await prisma.broadcast.create({
+    data: {
+      workspaceId,
+      name: data.name,
+      senderIdentityId,
+      sendingDomainId,
+      replyToIdentityId,
+      emailContentId: emailContent.id,
+      segmentId: data.recipients.segment ?? null,
+      topicId: data.recipients.topic ?? null,
+      sendAt,
+      status: "DRAFT",
+    },
+    include: {
+      emailContent: true,
+      senderIdentity: {
+        include: {
+          sendingDomain: {
+            select: { name: true },
+          },
+        },
+      },
+    },
+  });
+
+  if (sendAt) {
+    await sendBroadcast(workspaceId, broadcast.id);
+  } else {
+    await queue("broadcasts").push("send-broadcast", { broadcastId: broadcast.id });
+  }
+
+  return responseCreated(formatBroadcast(broadcast), "broadcast");
 }

@@ -9,7 +9,9 @@
  */
 
 import { scheduleBroadcast } from "@/lib/broadcasts/batch-scheduler";
-import { fetchBroadcastRecipientIds } from "@/lib/broadcasts/recipient-fetcher";
+import {
+  fetchBroadcastRecipients,
+} from "@/lib/broadcasts/recipient-fetcher";
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queue, queueLogger } from "@/lib/queue";
@@ -76,8 +78,8 @@ export const sendBroadcast: JobProcessor<
     data: { status: "SENDING" },
   });
 
-  // Snapshot recipient contact IDs
-  const contactIds = await fetchBroadcastRecipientIds(
+  // Snapshot recipient contact IDs and full contact data
+  const { contactIds, contacts } = await fetchBroadcastRecipients(
     broadcast.workspaceId,
     broadcast,
   );
@@ -113,17 +115,23 @@ export const sendBroadcast: JobProcessor<
 
   // Dispatch batch jobs
   const batchQueue = queue("broadcasts");
-  const batchJobs = schedule.batches.map((batch) => ({
-    name: "send-broadcast-batch" as const,
-    data: {
-      broadcastId,
-      batchId: batch.batchId,
-      contactIds: batch.contactIds,
-    },
-    options: {
-      delay: batch.delayMs,
-    },
-  }));
+  const batchJobs = schedule.batches.map((batch) => {
+    const batchContactIds = batch.contactIds;
+    const batchContacts = contacts.filter((c) => batchContactIds.includes(c.id));
+
+    return {
+      name: "send-broadcast-batch" as const,
+      data: {
+        broadcastId,
+        batchId: batch.batchId,
+        contactIds: batchContactIds,
+        contacts: batchContacts,
+      },
+      options: {
+        delay: batch.delayMs,
+      },
+    };
+  });
 
   await batchQueue.pushBulk(batchJobs);
 

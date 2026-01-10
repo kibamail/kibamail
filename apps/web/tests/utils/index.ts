@@ -14,6 +14,7 @@ export {
   type CreatedApiKey,
   createFullAccessApiKey,
   createReadOnlyApiKey,
+  createApiKeyWithoutSmtpSend,
   createTestApiKey,
 } from "./api-keys";
 

@@ -126,6 +126,7 @@ export async function createFullAccessApiKey(
       "write:broadcasts",
       "update:broadcasts",
       "delete:broadcasts",
+      "smtp:send",
     ],
   });
 }
@@ -142,6 +143,29 @@ export async function createReadOnlyApiKey(
   return createTestApiKey({
     workspaceId,
     name: "Read Only Test Key",
+    scopes: [
+      "read:api-keys",
+      "read:contacts",
+      "read:tags",
+      "read:topics",
+      "read:segments",
+      "read:suppression-list",
+    ],
+  });
+}
+
+/**
+ * Create an API key without smtp:send scope for testing
+ *
+ * @param workspaceId - Workspace ID
+ * @returns Created API key without smtp:send scope
+ */
+export async function createApiKeyWithoutSmtpSend(
+  workspaceId: string,
+): Promise<CreatedApiKey> {
+  return createTestApiKey({
+    workspaceId,
+    name: "No SMTP Send Test Key",
     scopes: [
       "read:api-keys",
       "read:contacts",

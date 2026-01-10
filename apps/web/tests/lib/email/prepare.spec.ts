@@ -385,4 +385,177 @@ describe("prepareEmailBatch", () => {
       }
     });
   });
+
+  describe("custom property variables", () => {
+    test("should substitute custom property variables in HTML", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Welcome {{contact.company}}",
+          contentHtml: "<p>Hello {{first_name}} from {{contact.company}}!</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "john@example.com",
+          firstName: "John",
+          properties: { company: "Acme Inc" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result).toHaveLength(1);
+      expect(result[0].subject).toBe("Welcome Acme Inc");
+      expect(result[0].htmlBody).toContain("Hello John from Acme Inc!");
+    });
+
+    test("should substitute custom property variables in subject", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Your bonus at {{contact.company}}",
+          contentHtml: "<p>Congratulations!</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "employee@example.com",
+          properties: { company: "TechCorp" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Your bonus at TechCorp");
+    });
+
+    test("should handle missing custom properties as empty string", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Welcome",
+          contentHtml: "<p>Company: {{contact.company}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "new@example.com",
+          properties: {},
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].htmlBody).toContain("Company:");
+      expect(result[0].htmlBody).not.toContain("{{contact.company}}");
+    });
+
+    test("should substitute multiple custom properties", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Update for {{first_name}}",
+          contentHtml: "<p>{{first_name}} {{last_name}} works at {{contact.company}} as {{contact.job_title}}.</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "jane@example.com",
+          firstName: "Jane",
+          lastName: "Doe",
+          properties: {
+            company: "Global Corp",
+            job_title: "Senior Engineer",
+          },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].htmlBody).toContain("Jane Doe works at Global Corp as Senior Engineer.");
+    });
+
+    test("should preserve standard variables alongside custom properties", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Hello {{first_name}}",
+          contentHtml: "<p>Welcome {{first_name}}!</p><p>Your company: {{contact.company}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          firstName: "Alice",
+          properties: { company: "Wonderland Inc" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Hello Alice");
+      expect(result[0].htmlBody).toContain("Welcome Alice!");
+      expect(result[0].htmlBody).toContain("Your company: Wonderland Inc");
+    });
+
+    test("should handle numeric custom properties", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Your order #{{contact.order_id}}",
+          contentHtml: "<p>Order total: ${{contact.total}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "customer@example.com",
+          properties: {
+            order_id: 12345,
+            total: 99.99,
+          },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Your order #12345");
+      expect(result[0].htmlBody).toContain("Order total: $99.99");
+    });
+
+    test("should handle null custom property values", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Info",
+          contentHtml: "<p>Phone: {{contact.phone}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "test@example.com",
+          properties: { phone: null as unknown as string },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].htmlBody).toContain("Phone:");
+      expect(result[0].htmlBody).not.toContain("{{contact.phone}}");
+    });
+  });
 });

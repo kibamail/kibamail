@@ -23,6 +23,7 @@ import { getMtaOptions, injectEmailBatch } from "@/lib/mta";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
 import { ConversationOriginType, MessageDirection } from "@prisma/client";
+import type { BatchJobContact } from "@/lib/broadcasts/recipient-fetcher";
 
 const logger = queueLogger.child({ job: "send-broadcast-batch" });
 
@@ -134,7 +135,7 @@ export const sendBroadcastBatch: JobProcessor<
   "broadcasts",
   "send-broadcast-batch"
 > = async (data, jobId) => {
-  const { broadcastId, batchId, contactIds } = data;
+  const { broadcastId, batchId, contactIds, contacts: passedContacts } = data;
 
   logger.info(
     { jobId, broadcastId, batchId, contactCount: contactIds.length },
@@ -196,19 +197,29 @@ export const sendBroadcastBatch: JobProcessor<
     );
   }
 
-  // Fetch contact details for this batch
-  const contacts = await prisma.contact.findMany({
-    where: {
-      id: { in: contactIds },
-      status: "SUBSCRIBED", // Double-check they're still subscribed
-    },
-    select: {
-      id: true,
-      email: true,
-      firstName: true,
-      lastName: true,
-    },
-  });
+  // Use passed contacts or fetch from database
+  let contacts: BatchJobContact[];
+
+  if (passedContacts && passedContacts.length > 0) {
+    // Use the pre-fetched contacts with properties
+    contacts = passedContacts;
+  } else {
+    // Fallback to fetching from database (legacy behavior)
+    const dbContacts = await prisma.contact.findMany({
+      where: {
+        id: { in: contactIds },
+        status: "SUBSCRIBED",
+      },
+    });
+
+    contacts = dbContacts.map((c) => ({
+      id: c.id,
+      email: c.email,
+      firstName: c.firstName,
+      lastName: c.lastName,
+      properties: {},
+    }));
+  }
 
   // Some contacts may have unsubscribed since scheduling
   const skippedCount = contactIds.length - contacts.length;

@@ -11,6 +11,7 @@ import { confirmDoubleOptIn } from "./forms/confirm-double-opt-in";
 import { sendDoubleOptIn } from "./forms/send-double-opt-in";
 import { processInboundEmail } from "./inbox/process-inbound-email";
 import { sendReply } from "./inbox/send-reply";
+import { sendTransactional } from "./emails/send-transactional";
 import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
@@ -81,6 +82,13 @@ configureWorker("inbox", {
   concurrency: 5,
 });
 
+configureWorker("emails", {
+  processors: {
+    "send-transactional": sendTransactional,
+  },
+  concurrency: 50,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -93,6 +101,7 @@ const queues = [
   "forms",
   "contacts",
   "inbox",
+  "emails",
 ] as const;
 
 for (const queueName of queues) {
@@ -153,6 +162,11 @@ logger.info(
         queue: "inbox",
         jobs: ["process-inbound-email", "send-reply"],
         concurrency: 5,
+      },
+      {
+        queue: "emails",
+        jobs: ["send-transactional"],
+        concurrency: 50,
       },
     ],
   },
