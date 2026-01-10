@@ -11,6 +11,7 @@
  * 4. Injects email directly to MTA via HTTP
  */
 
+import type { BroadcastStyles } from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
 import {
   convertToMtaMessages,
@@ -241,6 +242,7 @@ export const sendBroadcastBatch: JobProcessor<
       contentJson: broadcast.emailContent.contentJson,
       contentHtml: broadcast.emailContent.contentHtml,
       contentText: broadcast.emailContent.contentText,
+      styles: broadcast.emailContent.styles as BroadcastStyles | null,
     },
     senderIdentity: {
       ...broadcast.senderIdentity,

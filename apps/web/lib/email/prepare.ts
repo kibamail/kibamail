@@ -11,6 +11,7 @@
 import type { SenderIdentity, SendingDomain } from "@prisma/client";
 import {
   type BroadcastDocument,
+  type BroadcastStyles,
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import type { EmailMessage } from "@/lib/mta";
@@ -40,6 +41,7 @@ export interface EmailBroadcast {
     contentJson?: unknown;
     contentHtml?: string | null;
     contentText?: string | null;
+    styles?: BroadcastStyles | null;
   };
   senderIdentity: SenderIdentity & {
     sendingDomain: SendingDomain;
@@ -224,9 +226,13 @@ async function prepareEmail(
   // Render HTML content
   let htmlBody: string;
   if (broadcast.emailContent.contentJson) {
+    // Get styles from email content (if stored)
+    const styles = broadcast.emailContent.styles ?? {};
+
     htmlBody = await renderBroadcastToHtml(
       broadcast.emailContent.contentJson as BroadcastDocument,
       { variables },
+      styles,
     );
   } else if (broadcast.emailContent.contentHtml) {
     htmlBody = substituteVariables(

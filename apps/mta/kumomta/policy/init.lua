@@ -555,6 +555,17 @@ kumo.on('smtp_server_message_received', function(msg)
         token = parsed_token or ''
       end
 
+      -- Generate request ID for tracing: inb-{timestamp}-{sender_prefix}-{recipient_prefix}-{random}
+      -- This ID flows from MTA -> Control Plane -> Job for end-to-end tracing
+      local sender_prefix = sender:match('([^@]+)'):sub(1, 4):gsub('[^%w]', '')
+      local recipient_prefix = recipient:match('([^@]+)'):sub(1, 4):gsub('[^%w]', '')
+      local request_id = string.format('inb-%d-%s-%s-%s',
+        os.time(),
+        sender_prefix:lower(),
+        recipient_prefix:lower(),
+        kumo.uuid():sub(1, 8)
+      )
+
       -- Get raw message data (RFC822 format)
       local raw_message = msg:get_data()
 
@@ -567,6 +578,7 @@ kumo.on('smtp_server_message_received', function(msg)
         local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/webhooks/inbox/receive')
           :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
           :header('Content-Type', 'message/rfc822')
+          :header('X-Inbox-Request-Id', request_id)
           :header('X-Inbox-Token', token)
           :header('X-Inbox-Recipient', recipient)
           :header('X-Inbox-Sender', sender)
@@ -579,15 +591,15 @@ kumo.on('smtp_server_message_received', function(msg)
         local status = response:status_code()
 
         if status >= 200 and status < 300 then
-          kumo.log_info('Inbox message forwarded: to=' .. recipient .. ' from=' .. sender .. ' token=' .. token)
+          kumo.log_info('Inbox message forwarded: request_id=' .. request_id .. ' to=' .. recipient .. ' from=' .. sender .. ' token=' .. token)
         else
-          kumo.log_error('Inbox forward failed: to=' .. recipient .. ' status=' .. tostring(status))
+          kumo.log_error('Inbox forward failed: request_id=' .. request_id .. ' to=' .. recipient .. ' status=' .. tostring(status))
           error('Control Plane returned status ' .. tostring(status))
         end
       end)
 
       if not forward_ok then
-        kumo.log_error('Inbox forward error: ' .. tostring(forward_err))
+        kumo.log_error('Inbox forward error: request_id=' .. request_id .. ' error=' .. tostring(forward_err))
         kumo.reject(451, '4.7.1 Temporary failure processing message')
         return
       end

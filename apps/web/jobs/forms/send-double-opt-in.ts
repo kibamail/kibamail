@@ -13,6 +13,7 @@
 
 import {
   type BroadcastDocument,
+  type BroadcastStyles,
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
@@ -201,11 +202,15 @@ export const sendDoubleOptIn: JobProcessor<
   // Render HTML content
   let htmlBody: string;
   try {
+    // Get styles from email template (if stored)
+    const styles = (email.styles as BroadcastStyles) ?? {};
+
     htmlBody = await renderBroadcastToHtml(
       email.content as unknown as BroadcastDocument,
       {
         variables,
       },
+      styles,
     );
   } catch (error) {
     logger.error({ jobId, emailId, error }, "Failed to render email content");

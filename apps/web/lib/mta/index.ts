@@ -1,7 +1,7 @@
 /**
  * MTA Direct Injection Library
  *
- * Provides direct HTTP injection to the MTA, replacing NATS-based publishing.
+ * Provides direct HTTP injection to the MTA
  *
  * Usage:
  * ```typescript

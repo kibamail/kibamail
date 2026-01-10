@@ -530,4 +530,268 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "DRAFT version already exists",
     );
   });
+
+  test("should copy SEO settings when creating a new version", async () => {
+    // Create a root form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "SEO Test Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key,
+    );
+
+    const createResponse = await POST(createRequest);
+    const rootForm = await createResponse.json();
+
+    // Generate unique slug for this test
+    const uniqueSlug = `seo-test-slug-${Date.now()}`;
+
+    // Update root form with SEO settings and publish
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: {
+        seoTitle: "My Form Title",
+        seoDescription: "This is a description for SEO purposes",
+        seoImageUrl: "https://example.com/og-image.png",
+        seoFaviconUrl: "https://example.com/favicon.ico",
+        slug: uniqueSlug,
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        publishedVersionId: rootForm.id,
+      },
+    });
+
+    // Create a new version
+    const versionRequest = post(
+      `/forms/${rootForm.id}/versions`,
+      {},
+      fullAccessApiKey.key,
+    );
+
+    const versionResponse = await CREATE_VERSION(versionRequest, {
+      params: Promise.resolve({ formId: rootForm.id }),
+    });
+    const version = await versionResponse.json();
+
+    expect(versionResponse.status).toBe(201);
+
+    // Verify SEO settings were copied to the new version
+    const newVersion = await prisma.form.findUnique({
+      where: { id: version.id },
+    });
+
+    expect(newVersion).not.toBeNull();
+    expect(newVersion?.seoTitle).toBe("My Form Title");
+    expect(newVersion?.seoDescription).toBe(
+      "This is a description for SEO purposes",
+    );
+    expect(newVersion?.seoImageUrl).toBe("https://example.com/og-image.png");
+    expect(newVersion?.seoFaviconUrl).toBe("https://example.com/favicon.ico");
+    // Note: slug is NOT copied due to unique constraint - it stays with published version
+    // and will be transferred when the draft is published
+    expect(newVersion?.slug).toBeNull();
+  });
+
+  test("should copy confirmation email reference when creating a new version", async () => {
+    // Create a confirmation email first
+    const confirmationEmail = await prisma.email.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        name: "Confirmation Email",
+        subject: "Please confirm your subscription",
+        previewText: "Click to confirm",
+        content: {
+          type: "doc",
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Please confirm your email" }],
+            },
+          ],
+        },
+        type: "TRANSACTIONAL",
+        trackOpens: true,
+        trackClicks: true,
+      },
+    });
+
+    // Create a root form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Double Opt-In Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key,
+    );
+
+    const createResponse = await POST(createRequest);
+    const rootForm = await createResponse.json();
+
+    // Update root form with confirmation email and publish it
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: {
+        doubleOptInEmailId: confirmationEmail.id,
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        publishedVersionId: rootForm.id,
+      },
+    });
+
+    // Create a new version
+    const versionRequest = post(
+      `/forms/${rootForm.id}/versions`,
+      {},
+      fullAccessApiKey.key,
+    );
+
+    const versionResponse = await CREATE_VERSION(versionRequest, {
+      params: Promise.resolve({ formId: rootForm.id }),
+    });
+    const version = await versionResponse.json();
+
+    expect(versionResponse.status).toBe(201);
+
+    // Verify confirmation email reference was copied to the new version
+    const newVersion = await prisma.form.findUnique({
+      where: { id: version.id },
+    });
+
+    expect(newVersion).not.toBeNull();
+    expect(newVersion?.doubleOptInEmailId).toBe(confirmationEmail.id);
+  });
+
+  test("should copy both SEO settings and confirmation email when creating a new version", async () => {
+    // Create a confirmation email
+    const confirmationEmail = await prisma.email.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        name: "Full Copy Test Email",
+        subject: "Confirm your subscription",
+        type: "TRANSACTIONAL",
+        trackOpens: true,
+        trackClicks: true,
+      },
+    });
+
+    // Create a root form
+    const createRequest = post(
+      "/forms",
+      {
+        name: "Full Copy Test Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key,
+    );
+
+    const createResponse = await POST(createRequest);
+    const rootForm = await createResponse.json();
+
+    // Generate unique slug for this test
+    const uniqueSlug = `full-test-slug-${Date.now()}`;
+
+    // Update root form with all settings and publish
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: {
+        seoTitle: "Full Test Title",
+        seoDescription: "Full test description",
+        seoImageUrl: "https://example.com/full-og.png",
+        seoFaviconUrl: "https://example.com/full-favicon.ico",
+        slug: uniqueSlug,
+        doubleOptInEmailId: confirmationEmail.id,
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        publishedVersionId: rootForm.id,
+      },
+    });
+
+    // Create a new version
+    const versionRequest = post(
+      `/forms/${rootForm.id}/versions`,
+      {},
+      fullAccessApiKey.key,
+    );
+
+    const versionResponse = await CREATE_VERSION(versionRequest, {
+      params: Promise.resolve({ formId: rootForm.id }),
+    });
+    const version = await versionResponse.json();
+
+    expect(versionResponse.status).toBe(201);
+
+    // Verify all settings were copied
+    const newVersion = await prisma.form.findUnique({
+      where: { id: version.id },
+    });
+
+    expect(newVersion).not.toBeNull();
+    // SEO settings
+    expect(newVersion?.seoTitle).toBe("Full Test Title");
+    expect(newVersion?.seoDescription).toBe("Full test description");
+    expect(newVersion?.seoImageUrl).toBe("https://example.com/full-og.png");
+    expect(newVersion?.seoFaviconUrl).toBe(
+      "https://example.com/full-favicon.ico",
+    );
+    // Note: slug is NOT copied due to unique constraint - it stays with published version
+    // and will be transferred when the draft is published
+    expect(newVersion?.slug).toBeNull();
+    // Confirmation email
+    expect(newVersion?.doubleOptInEmailId).toBe(confirmationEmail.id);
+  });
+
+  test("should handle null SEO settings when creating a new version", async () => {
+    // Create a root form without SEO settings
+    const createRequest = post(
+      "/forms",
+      {
+        name: "No SEO Form",
+        fields: validFormFields,
+      },
+      fullAccessApiKey.key,
+    );
+
+    const createResponse = await POST(createRequest);
+    const rootForm = await createResponse.json();
+
+    // Publish root form without SEO settings
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: {
+        status: "PUBLISHED",
+        publishedAt: new Date(),
+        publishedVersionId: rootForm.id,
+      },
+    });
+
+    // Create a new version
+    const versionRequest = post(
+      `/forms/${rootForm.id}/versions`,
+      {},
+      fullAccessApiKey.key,
+    );
+
+    const versionResponse = await CREATE_VERSION(versionRequest, {
+      params: Promise.resolve({ formId: rootForm.id }),
+    });
+    const version = await versionResponse.json();
+
+    expect(versionResponse.status).toBe(201);
+
+    // Verify null values are preserved (not copied as undefined)
+    const newVersion = await prisma.form.findUnique({
+      where: { id: version.id },
+    });
+
+    expect(newVersion).not.toBeNull();
+    expect(newVersion?.seoTitle).toBeNull();
+    expect(newVersion?.seoDescription).toBeNull();
+    expect(newVersion?.seoImageUrl).toBeNull();
+    expect(newVersion?.seoFaviconUrl).toBeNull();
+    expect(newVersion?.slug).toBeNull();
+    expect(newVersion?.doubleOptInEmailId).toBeNull();
+  });
 });

@@ -23,10 +23,6 @@ sending_ip_range_end: 110
 redis_host: "192.168.56.11"
 redis_port: 6379
 
-# NATS configuration (runs on first MTA node)
-nats_host: "192.168.56.11"
-nats_port: 4222
-
 # geerlingguy.security role configuration
 security_ssh_port: 22
 security_ssh_password_authentication: "no"

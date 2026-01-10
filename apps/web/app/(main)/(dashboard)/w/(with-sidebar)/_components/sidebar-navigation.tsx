@@ -9,6 +9,7 @@ import {
   Globe,
   HomeAltSlimHoriz,
   Mail,
+  MailIn,
   NetworkReverse,
   SendDiagonal,
   Settings,
@@ -38,6 +39,7 @@ export function SidebarNavigation() {
     pathname.startsWith("/w/properties");
   const isTemplatesActive = pathname.startsWith("/w/templates");
   const isEmailsActive = pathname.startsWith("/w/emails");
+  const isInboxActive = pathname.startsWith("/w/inbox");
   const isDashboardActive =
     !isSettingsActive &&
     !isAutomationsActive &&
@@ -46,7 +48,8 @@ export function SidebarNavigation() {
     !isBroadcastsActive &&
     !isDomainsActive &&
     !isTemplatesActive &&
-    !isEmailsActive;
+    !isEmailsActive &&
+    !isInboxActive;
 
   return (
     <>
@@ -84,6 +87,12 @@ export function SidebarNavigation() {
           <Link href="/w/automations">
             <NetworkReverse />
             Automations
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isInboxActive}>
+          <Link href="/w/inbox">
+            <MailIn />
+            Inbox
           </Link>
         </DashboardLayoutSidebarItem>
       </DashboardLayoutSidebarGroup>

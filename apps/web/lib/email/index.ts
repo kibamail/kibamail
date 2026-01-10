@@ -11,6 +11,3 @@ export {
   type PreparedEmail,
   prepareEmailBatch,
 } from "./prepare";
-
-// Alias for backward compatibility during NATS migration
-export { convertToMtaMessages as convertToNatsMessages } from "./prepare";

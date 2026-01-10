@@ -444,6 +444,16 @@ export async function createFormVersion(
       fields: (data.fields ?? sourceForm.fields) as never,
       settings: sourceForm.settings as never,
       status: "DRAFT",
+      // Copy confirmation email reference
+      doubleOptInEmailId: sourceForm.doubleOptInEmailId,
+      // Copy SEO settings (except slug which has a unique constraint)
+      // The slug will be inherited when the draft is published
+      seoTitle: sourceForm.seoTitle,
+      seoDescription: sourceForm.seoDescription,
+      seoImageUrl: sourceForm.seoImageUrl,
+      seoFaviconUrl: sourceForm.seoFaviconUrl,
+      // Note: slug is NOT copied because of unique constraint on (workspaceId, slug)
+      // The published version's slug will be transferred when this draft is published
     },
   });
 

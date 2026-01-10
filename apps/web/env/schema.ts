@@ -184,7 +184,7 @@ export const env = createEnv({
       .url("DATABASE_URL must be a valid URL")
       .refine(
         (url) => url.startsWith("postgresql://"),
-        "DATABASE_URL must be a PostgreSQL connection string",
+        "DATABASE_URL must be a PostgreSQL connection string"
       ),
 
     // ============================================================================
@@ -342,7 +342,7 @@ export const env = createEnv({
       .preprocess(
         (val) =>
           val ?? (process.env.NODE_ENV === "production" ? "true" : "false"),
-        z.string().transform((val) => val === "true"),
+        z.string().transform((val) => val === "true")
       )
       .describe("Whether to only send cookies over HTTPS"),
 
@@ -818,7 +818,6 @@ export const env = createEnv({
     // MTA DIRECT INJECTION CONFIGURATION
     // ============================================================================
     // Configuration for direct HTTP injection to the MTA (KumoMTA).
-    // This replaces the NATS-based message queue for email delivery.
     // The control plane sends emails directly to the MTA via HTTP.
 
     /**

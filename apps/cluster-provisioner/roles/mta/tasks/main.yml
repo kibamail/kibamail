@@ -2,10 +2,8 @@
 #
 # Sets up an MTA node with:
 # - Redis (for TSA shared state) - first node only
-# - NATS (for control plane communication) - first node only
 # - KumoMTA (email sending)
 # - TSA daemon (traffic shaping)
-# - Email Agent (Go application)
 #
 # For now, only Redis is configured. Other components will be added.
 #

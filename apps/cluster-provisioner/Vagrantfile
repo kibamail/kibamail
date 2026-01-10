@@ -5,7 +5,7 @@
 #
 # This Vagrantfile creates a 4-machine cluster for testing:
 # - 1 proxy machine (KumoProxy with IP binding)
-# - 3 MTA nodes (KumoMTA, TSA, NATS, Redis, Email Agent)
+# - 3 MTA nodes (KumoMTA, TSA, Redis, Email Agent)
 #
 # Network: 192.168.56.0/24 (VirtualBox host-only)
 # - proxy:    192.168.56.10

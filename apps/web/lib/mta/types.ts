@@ -2,7 +2,6 @@
  * MTA Direct Injection Types
  *
  * These types define the message format for direct HTTP injection to the MTA.
- * They mirror the existing NATS types for compatibility during migration.
  */
 
 /**

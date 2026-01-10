@@ -51,6 +51,7 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   // Extract headers set by MTA
+  const requestId = request.headers.get("X-Inbox-Request-Id") || "";
   const token = request.headers.get("X-Inbox-Token") || "";
   const recipient = request.headers.get("X-Inbox-Recipient");
   const sender = request.headers.get("X-Inbox-Sender");
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
   // Validate required headers
   if (!recipient || !sender || !workspaceId || !sendingDomainId) {
     logger.warn(
-      { token, recipient, sender, workspaceId, sendingDomainId },
+      { requestId, token, recipient, sender, workspaceId, sendingDomainId },
       "Missing required headers in inbox webhook",
     );
     return NextResponse.json(
@@ -70,7 +71,7 @@ export async function POST(request: NextRequest) {
   }
 
   logger.info(
-    { token, recipient, sender, workspaceId },
+    { requestId, token, recipient, sender, workspaceId },
     "Received inbound email",
   );
 
@@ -86,9 +87,9 @@ export async function POST(request: NextRequest) {
   // Upload raw email to S3
   try {
     await uploadPrivateFile(s3Key, rawEmail, "message/rfc822");
-    logger.debug({ s3Key, size: emailSize }, "Raw email uploaded to S3");
+    logger.debug({ requestId, s3Key, size: emailSize }, "Raw email uploaded to S3");
   } catch (error) {
-    logger.error({ error, s3Key }, "Failed to upload raw email to S3");
+    logger.error({ requestId, error, s3Key }, "Failed to upload raw email to S3");
     return NextResponse.json(
       { error: "Failed to store email" },
       { status: 500 },
@@ -98,6 +99,7 @@ export async function POST(request: NextRequest) {
   // Queue the email for async processing
   try {
     await queue("inbox").push("process-inbound-email", {
+      requestId,
       token,
       s3Key,
       sender,
@@ -106,9 +108,9 @@ export async function POST(request: NextRequest) {
       sendingDomainId,
       receivedAt: new Date().toISOString(),
     });
-    logger.debug({ messageId, token }, "Inbound email queued for processing");
+    logger.debug({ requestId, messageId, token }, "Inbound email queued for processing");
   } catch (error) {
-    logger.error({ error, messageId }, "Failed to queue inbound email");
+    logger.error({ requestId, error, messageId }, "Failed to queue inbound email");
     // Don't fail the request - email is safely stored in S3
     // We can reprocess later
   }
@@ -117,6 +119,7 @@ export async function POST(request: NextRequest) {
 
   logger.info(
     {
+      requestId,
       messageId,
       s3Key,
       sender,

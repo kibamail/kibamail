@@ -1,6 +1,6 @@
 # MTA Node Variables
 #
-# Configuration specific to MTA nodes running KumoMTA, TSA, NATS, Redis, and Email Agent.
+# Configuration specific to MTA nodes running KumoMTA, TSA, and Redis.
 #
 ---
 # geerlingguy.redis configuration
@@ -9,21 +9,6 @@ redis_port: 6379
 redis_databases: 16
 redis_maxmemory: "256mb"
 redis_maxmemory_policy: "allkeys-lru"
-
-# NATS configuration
-nats_version: "2.10.24"
-nats_listen_ip: "0.0.0.0"
-nats_client_port: 4222
-nats_cluster_port: 6222
-nats_monitor_port: 8222
-nats_jetstream_enabled: true
-nats_jetstream_store_dir: "/var/lib/nats/jetstream"
-nats_jetstream_max_memory: "256M"
-nats_jetstream_max_file: "1G"
-
-# TLS for NATS (control plane connects externally)
-nats_tls_enabled: true
-nats_tls_cert_dir: "/etc/nats/tls"
 
 # KumoMTA configuration
 # Version is frozen in roles/kumomta/defaults/main.yml

@@ -4,8 +4,7 @@
 # - Base system configuration
 # - Security hardening
 # - Redis (for TSA shared state)
-# - NATS (for control plane communication)
-# - Nginx (TCP proxy for NATS external access)
+# - Nginx
 # - KumoMTA (installed but not started)
 #
 # Usage:
@@ -27,7 +26,6 @@
           - Host: {{ ansible_host }}
           - Node index: {{ mta_node_index }}
           - Redis port: {{ redis_port }}
-          - NATS port: {{ nats_client_port }}
 
   roles:
     - role: common
@@ -38,9 +36,6 @@
 
     - role: geerlingguy.redis
       tags: [redis]
-
-    - role: nats
-      tags: [nats]
 
     - role: nginx
       tags: [nginx]
@@ -58,17 +53,8 @@
           MTA node provisioned successfully.
 
           Redis: {{ redis_bind_interface }}:{{ redis_port }}
-          NATS (internal): {{ nats_listen_address }}:{{ nats_client_port }}
-          NATS (external): nats.{{ cluster_name }}.kbmta.net:{{ nginx_nats_listen_port }}
           KumoMTA: Installed (not started - requires configuration)
 
-          Credentials stored in: {{ inventory_dir }}/credentials/nats/
-
-          DNS required:
-          - nats.{{ cluster_name }}.kbmta.net -> {{ ansible_host }}
-
           Next steps:
-          - Add DNS record for nats.{{ cluster_name }}.kbmta.net
           - Configure KumoMTA policy
           - Start KumoMTA and TSA daemon
-          - Deploy Email Agent

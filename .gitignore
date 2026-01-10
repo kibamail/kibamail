@@ -30,8 +30,6 @@ dist/
 # misc
 .DS_Store
 *.pem
-# Allow NATS dev certificates (self-signed, not secrets)
-!apps/web/docker/nats/certs/*.pem
 
 # debug
 npm-debug.log*

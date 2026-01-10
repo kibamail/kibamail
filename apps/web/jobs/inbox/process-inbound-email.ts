@@ -29,6 +29,7 @@ export const processInboundEmail: JobProcessor<
   "process-inbound-email"
 > = async (data, jobId) => {
   const {
+    requestId,
     token,
     s3Key,
     sender,
@@ -39,14 +40,14 @@ export const processInboundEmail: JobProcessor<
   } = data;
 
   logger.info(
-    { jobId, token: token || "(unsolicited)", sender, recipient },
+    { requestId, jobId, token: token || "(unsolicited)", sender, recipient },
     "Processing inbound email",
   );
 
   // 1. Download and parse the raw email from S3
   const rawEmailResult = await downloadPrivateFile(s3Key);
   if (!rawEmailResult.body) {
-    logger.error({ jobId, s3Key }, "Failed to download raw email from S3");
+    logger.error({ requestId, jobId, s3Key }, "Failed to download raw email from S3");
     throw new Error(`Raw email not found at ${s3Key}`);
   }
 
@@ -56,6 +57,7 @@ export const processInboundEmail: JobProcessor<
 
   logger.debug(
     {
+      requestId,
       jobId,
       subject: parsed.subject,
       fromEmail: parsed.fromEmail,
@@ -88,12 +90,12 @@ export const processInboundEmail: JobProcessor<
     if (originalMessage) {
       conversationId = originalMessage.conversationId;
       logger.debug(
-        { jobId, token, conversationId },
+        { requestId, jobId, token, conversationId },
         "Found matching conversation for token",
       );
     } else {
       logger.warn(
-        { jobId, token },
+        { requestId, jobId, token },
         "No matching outbound message found for token - treating as unsolicited",
       );
       isUnsolicited = true;
@@ -125,7 +127,7 @@ export const processInboundEmail: JobProcessor<
     });
 
     logger.debug(
-      { jobId, filename: att.filename, s3Key: attS3Key },
+      { requestId, jobId, filename: att.filename, s3Key: attS3Key },
       "Attachment uploaded",
     );
   }
@@ -161,7 +163,7 @@ export const processInboundEmail: JobProcessor<
 
       finalConversationId = newConversation.id;
       logger.info(
-        { jobId, conversationId: finalConversationId, isUnsolicited: true },
+        { requestId, jobId, conversationId: finalConversationId, isUnsolicited: true },
         "Created orphan conversation for unsolicited email",
       );
     } else {
@@ -221,11 +223,13 @@ export const processInboundEmail: JobProcessor<
 
   logger.info(
     {
+      requestId,
       jobId,
       messageId: result.messageId,
       conversationId: result.conversationId,
       isUnsolicited: result.isUnsolicited,
       attachmentCount: attachmentRecords.length,
+      s3Key,
     },
     "Inbound email processed",
   );

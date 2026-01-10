@@ -51,6 +51,8 @@ async function createTestDomainInDb(
     returnPathDomainVerifiedAt: Date | null;
     trackingDomainVerifiedAt: Date | null;
     dmarcVerifiedAt: Date | null;
+    inboxEnabled: boolean;
+    inboxMxVerifiedAt: Date | null;
   }> = {},
 ) {
   const domain = await prisma.sendingDomain.create({
@@ -69,6 +71,8 @@ async function createTestDomainInDb(
       returnPathDomainVerifiedAt: overrides.returnPathDomainVerifiedAt ?? null,
       trackingDomainVerifiedAt: overrides.trackingDomainVerifiedAt ?? null,
       dmarcVerifiedAt: overrides.dmarcVerifiedAt ?? null,
+      inboxEnabled: overrides.inboxEnabled ?? false,
+      inboxMxVerifiedAt: overrides.inboxMxVerifiedAt ?? null,
     },
   });
   testDomainId = domain.id;

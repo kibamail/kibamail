@@ -5,9 +5,8 @@
  * - Validates contact status before sending
  * - Fetches email template and sender identity
  * - Builds confirmation URL with token
- * - Publishes email to NATS
+ * - Injects email to MTA via HTTP
  *
- * These tests use real Redis/NATS - no mocking of core services.
  */
 
 import {
@@ -17,7 +16,23 @@ import {
   describe,
   expect,
   test,
+  vi,
 } from "vitest";
+import type { injectEmail as InjectEmailFn } from "@/lib/mta";
+
+// Hoist the mock function so it can be used in vi.mock
+const { mockInjectEmail } = vi.hoisted(() => ({
+  mockInjectEmail: vi.fn<typeof InjectEmailFn>(),
+}));
+
+vi.mock("@/lib/mta", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/mta")>();
+  return {
+    ...actual,
+    injectEmail: mockInjectEmail,
+  };
+});
+
 import { sendDoubleOptIn } from "@/jobs/forms/send-double-opt-in";
 import { prisma } from "@/lib/db";
 import { DEFAULT_FORM_SETTINGS } from "@/lib/form-builder/schema";
@@ -70,7 +85,7 @@ async function createTestSendingDomain(workspaceId: string) {
 
 async function createTestSenderIdentity(
   workspaceId: string,
-  sendingDomainId: string,
+  sendingDomainId: string
 ) {
   return prisma.senderIdentity.create({
     data: {
@@ -84,7 +99,7 @@ async function createTestSenderIdentity(
 
 async function createTestEmail(
   workspaceId: string,
-  senderIdentityId: string | null = null,
+  senderIdentityId: string | null = null
 ) {
   return prisma.email.create({
     data: {
@@ -137,7 +152,7 @@ async function createTestEmail(
 
 async function createTestForm(
   workspaceId: string,
-  doubleOptInEmailId: string | null,
+  doubleOptInEmailId: string | null
 ) {
   const settings = {
     ...DEFAULT_FORM_SETTINGS,
@@ -162,7 +177,7 @@ async function createTestForm(
 async function createUnconfirmedContact(
   workspaceId: string,
   email: string,
-  confirmationToken: string,
+  confirmationToken: string
 ) {
   return prisma.contact.create({
     data: {
@@ -182,9 +197,18 @@ beforeAll(() => {
 
 afterAll(async () => {
   await cleanupWorkspace(testWorkspace.id);
+  vi.restoreAllMocks();
 });
 
 beforeEach(async () => {
+  // Reset mocks
+  vi.clearAllMocks();
+  mockInjectEmail.mockResolvedValue({
+    id: "test-email-id",
+    success: true,
+    duplicate: false,
+  });
+
   // Clean up test data before each test
   await prisma.formSubmission.deleteMany({
     where: { workspaceId: testWorkspace.id },
@@ -207,101 +231,219 @@ beforeEach(async () => {
 });
 
 describe("sendDoubleOptIn job", () => {
-  /**
-   * Tests that require infrastructure (S3, NATS)
-   * These tests verify the full email sending flow and require:
-   * - S3/MinIO running on port 9000
-   * - NATS running with TLS
-   *
-   * Set RUN_INFRASTRUCTURE_TESTS=true to run these tests.
-   */
-  describe.skipIf(process.env.RUN_INFRASTRUCTURE_TESTS !== "true")(
-    "successful email sending (requires infrastructure)",
-    () => {
-      test("should publish double opt-in email to NATS for UNCONFIRMED contact", async () => {
-        // Setup: Create sending infrastructure
-        const sendingDomain = await createTestSendingDomain(testWorkspace.id);
-        const senderIdentity = await createTestSenderIdentity(
-          testWorkspace.id,
-          sendingDomain.id,
-        );
+  describe("successful email sending", () => {
+    test("should inject double opt-in email to MTA for UNCONFIRMED contact", async () => {
+      // Setup: Create sending infrastructure
+      const sendingDomain = await createTestSendingDomain(testWorkspace.id);
+      const senderIdentity = await createTestSenderIdentity(
+        testWorkspace.id,
+        sendingDomain.id
+      );
 
-        // Setup: Create email template with sender identity
-        const email = await createTestEmail(
-          testWorkspace.id,
-          senderIdentity.id,
-        );
+      // Setup: Create email template with sender identity
+      const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
 
-        // Setup: Create form with double opt-in enabled
-        const form = await createTestForm(testWorkspace.id, email.id);
+      // Setup: Create form with double opt-in enabled
+      const form = await createTestForm(testWorkspace.id, email.id);
 
-        // Setup: Create unconfirmed contact with token
-        const confirmationToken = "a".repeat(64);
-        const contact = await createUnconfirmedContact(
-          testWorkspace.id,
-          `doi-test-${Date.now()}@example.com`,
-          confirmationToken,
-        );
+      // Setup: Create unconfirmed contact with token
+      const confirmationToken = "a".repeat(64);
+      const contactEmail = `doi-test-${Date.now()}@example.com`;
+      const contact = await createUnconfirmedContact(
+        testWorkspace.id,
+        contactEmail,
+        confirmationToken
+      );
 
-        // Execute the job
-        await sendDoubleOptIn(
+      // Execute the job
+      await sendDoubleOptIn(
+        {
+          contactId: contact.id,
+          formId: form.id,
+          emailId: email.id,
+          workspaceId: testWorkspace.id,
+        },
+        "test-job-success"
+      );
+
+      // Verify MTA injection was called
+      expect(mockInjectEmail).toHaveBeenCalledTimes(1);
+
+      // Verify the email message structure
+      const [, mtaMessage] = mockInjectEmail.mock.calls[0];
+      expect(mtaMessage.recipient.email).toBe(contactEmail);
+      expect(mtaMessage.sender.email).toBe(senderIdentity.email);
+      expect(mtaMessage.sender.name).toBe(senderIdentity.name);
+      expect(mtaMessage.sender.domain).toBe(sendingDomain.name);
+      expect(mtaMessage.subject).toContain("confirm your subscription");
+      expect(mtaMessage.html_body).toContain(confirmationToken);
+      expect(mtaMessage.metadata.email_type).toBe("double-opt-in");
+      expect(mtaMessage.metadata.form_id).toBe(form.id);
+    });
+
+    test("should use default sender identity when email has no sender configured", async () => {
+      // Setup: Create sending infrastructure
+      const sendingDomain = await createTestSendingDomain(testWorkspace.id);
+      const defaultSender = await createTestSenderIdentity(
+        testWorkspace.id,
+        sendingDomain.id
+      );
+
+      // Setup: Create email template WITHOUT sender identity
+      const email = await createTestEmail(testWorkspace.id, null);
+
+      // Setup: Create form
+      const form = await createTestForm(testWorkspace.id, email.id);
+
+      // Setup: Create unconfirmed contact
+      const confirmationToken = "b".repeat(64);
+      const contactEmail = `doi-fallback-${Date.now()}@example.com`;
+      const contact = await createUnconfirmedContact(
+        testWorkspace.id,
+        contactEmail,
+        confirmationToken
+      );
+
+      // Execute - should use workspace's default sender identity
+      await sendDoubleOptIn(
+        {
+          contactId: contact.id,
+          formId: form.id,
+          emailId: email.id,
+          workspaceId: testWorkspace.id,
+        },
+        "test-job-fallback-sender"
+      );
+
+      // Verify MTA injection was called with the default sender
+      expect(mockInjectEmail).toHaveBeenCalledTimes(1);
+
+      const [, mtaMessage] = mockInjectEmail.mock.calls[0];
+      expect(mtaMessage.recipient.email).toBe(contactEmail);
+      expect(mtaMessage.sender.email).toBe(defaultSender.email);
+      expect(mtaMessage.sender.name).toBe(defaultSender.name);
+    });
+
+    test("should build correct confirmation URL with tracking domain", async () => {
+      // Setup: Create sending infrastructure
+      const sendingDomain = await createTestSendingDomain(testWorkspace.id);
+      const senderIdentity = await createTestSenderIdentity(
+        testWorkspace.id,
+        sendingDomain.id
+      );
+
+      // Setup: Create email template
+      const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
+
+      // Setup: Create form
+      const form = await createTestForm(testWorkspace.id, email.id);
+
+      // Setup: Create unconfirmed contact
+      const confirmationToken = "c".repeat(64);
+      const contact = await createUnconfirmedContact(
+        testWorkspace.id,
+        `doi-url-${Date.now()}@example.com`,
+        confirmationToken
+      );
+
+      // Execute
+      await sendDoubleOptIn(
+        {
+          contactId: contact.id,
+          formId: form.id,
+          emailId: email.id,
+          workspaceId: testWorkspace.id,
+        },
+        "test-job-url"
+      );
+
+      // Verify confirmation URL is built correctly
+      const [, mtaMessage] = mockInjectEmail.mock.calls[0];
+      const expectedTrackingDomain = `${sendingDomain.trackingSubDomain}.${sendingDomain.name}`;
+      const expectedConfirmUrl = `https://${expectedTrackingDomain}/confirm/${form.id}/${confirmationToken}`;
+      expect(mtaMessage.html_body).toContain(expectedConfirmUrl);
+    });
+
+    test("should include List-Unsubscribe headers", async () => {
+      // Setup
+      const sendingDomain = await createTestSendingDomain(testWorkspace.id);
+      const senderIdentity = await createTestSenderIdentity(
+        testWorkspace.id,
+        sendingDomain.id
+      );
+      const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
+      const form = await createTestForm(testWorkspace.id, email.id);
+      const confirmationToken = "d".repeat(64);
+      const contact = await createUnconfirmedContact(
+        testWorkspace.id,
+        `doi-headers-${Date.now()}@example.com`,
+        confirmationToken
+      );
+
+      // Execute
+      await sendDoubleOptIn(
+        {
+          contactId: contact.id,
+          formId: form.id,
+          emailId: email.id,
+          workspaceId: testWorkspace.id,
+        },
+        "test-job-headers"
+      );
+
+      // Verify headers
+      const [, mtaMessage] = mockInjectEmail.mock.calls[0];
+      expect(mtaMessage.headers["List-Unsubscribe"]).toBeDefined();
+      expect(mtaMessage.headers["List-Unsubscribe"]).toContain(contact.id);
+      expect(mtaMessage.headers["List-Unsubscribe-Post"]).toBe(
+        "List-Unsubscribe=One-Click"
+      );
+    });
+
+    test("should throw error when MTA injection fails", async () => {
+      // Setup MTA to fail
+      mockInjectEmail.mockResolvedValue({
+        id: "test-email-id",
+        success: false,
+        duplicate: false,
+        error: "Connection refused",
+      });
+
+      const sendingDomain = await createTestSendingDomain(testWorkspace.id);
+      const senderIdentity = await createTestSenderIdentity(
+        testWorkspace.id,
+        sendingDomain.id
+      );
+      const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
+      const form = await createTestForm(testWorkspace.id, email.id);
+      const confirmationToken = "e".repeat(64);
+      const contact = await createUnconfirmedContact(
+        testWorkspace.id,
+        `doi-fail-${Date.now()}@example.com`,
+        confirmationToken
+      );
+
+      // Execute and expect error
+      await expect(
+        sendDoubleOptIn(
           {
             contactId: contact.id,
             formId: form.id,
             emailId: email.id,
             workspaceId: testWorkspace.id,
           },
-          "test-job-success",
-        );
-
-        // Job should complete without error - email published to NATS
-        // In a real integration test with NATS, we would verify the message was received
-      });
-
-      test("should use default sender identity when email has no sender configured", async () => {
-        // Setup: Create sending infrastructure
-        const sendingDomain = await createTestSendingDomain(testWorkspace.id);
-        const _senderIdentity = await createTestSenderIdentity(
-          testWorkspace.id,
-          sendingDomain.id,
-        );
-
-        // Setup: Create email template WITHOUT sender identity
-        const email = await createTestEmail(testWorkspace.id, null);
-
-        // Setup: Create form
-        const form = await createTestForm(testWorkspace.id, email.id);
-
-        // Setup: Create unconfirmed contact
-        const confirmationToken = "b".repeat(64);
-        const contact = await createUnconfirmedContact(
-          testWorkspace.id,
-          `doi-fallback-${Date.now()}@example.com`,
-          confirmationToken,
-        );
-
-        // Execute - should use workspace's default sender identity
-        await sendDoubleOptIn(
-          {
-            contactId: contact.id,
-            formId: form.id,
-            emailId: email.id,
-            workspaceId: testWorkspace.id,
-          },
-          "test-job-fallback-sender",
-        );
-
-        // Job should complete without error
-      });
-    },
-  );
+          "test-job-mta-fail"
+        )
+      ).rejects.toThrow("Failed to inject email: Connection refused");
+    });
+  });
 
   describe("validation and skipping", () => {
     test("should skip if contact not found", async () => {
       const sendingDomain = await createTestSendingDomain(testWorkspace.id);
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        sendingDomain.id,
+        sendingDomain.id
       );
       const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
       const form = await createTestForm(testWorkspace.id, email.id);
@@ -314,7 +456,7 @@ describe("sendDoubleOptIn job", () => {
           emailId: email.id,
           workspaceId: testWorkspace.id,
         },
-        "test-job-no-contact",
+        "test-job-no-contact"
       );
 
       // Should complete without error (skipped)
@@ -324,7 +466,7 @@ describe("sendDoubleOptIn job", () => {
       const sendingDomain = await createTestSendingDomain(testWorkspace.id);
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        sendingDomain.id,
+        sendingDomain.id
       );
       const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
       const form = await createTestForm(testWorkspace.id, email.id);
@@ -348,7 +490,7 @@ describe("sendDoubleOptIn job", () => {
           emailId: email.id,
           workspaceId: testWorkspace.id,
         },
-        "test-job-already-subscribed",
+        "test-job-already-subscribed"
       );
 
       // Should complete without error (skipped)
@@ -358,7 +500,7 @@ describe("sendDoubleOptIn job", () => {
       const sendingDomain = await createTestSendingDomain(testWorkspace.id);
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        sendingDomain.id,
+        sendingDomain.id
       );
       const email = await createTestEmail(testWorkspace.id, senderIdentity.id);
       const form = await createTestForm(testWorkspace.id, email.id);
@@ -383,7 +525,7 @@ describe("sendDoubleOptIn job", () => {
           emailId: email.id,
           workspaceId: testWorkspace.id,
         },
-        "test-job-no-token",
+        "test-job-no-token"
       );
 
       // Should complete without error (skipped)
@@ -400,7 +542,7 @@ describe("sendDoubleOptIn job", () => {
       const contact = await createUnconfirmedContact(
         testWorkspace.id,
         `no-email-template-${Date.now()}@example.com`,
-        confirmationToken,
+        confirmationToken
       );
 
       await expect(
@@ -411,8 +553,8 @@ describe("sendDoubleOptIn job", () => {
             emailId: "non-existent-email-id",
             workspaceId: testWorkspace.id,
           },
-          "test-job-no-email",
-        ),
+          "test-job-no-email"
+        )
       ).rejects.toThrow("Email template non-existent-email-id not found");
     });
 
@@ -420,7 +562,7 @@ describe("sendDoubleOptIn job", () => {
       const sendingDomain = await createTestSendingDomain(testWorkspace.id);
       const senderIdentity = await createTestSenderIdentity(
         testWorkspace.id,
-        sendingDomain.id,
+        sendingDomain.id
       );
 
       // Create email without subject
@@ -440,7 +582,7 @@ describe("sendDoubleOptIn job", () => {
       const contact = await createUnconfirmedContact(
         testWorkspace.id,
         `no-subject-${Date.now()}@example.com`,
-        confirmationToken,
+        confirmationToken
       );
 
       await expect(
@@ -451,8 +593,8 @@ describe("sendDoubleOptIn job", () => {
             emailId: email.id,
             workspaceId: testWorkspace.id,
           },
-          "test-job-no-subject",
-        ),
+          "test-job-no-subject"
+        )
       ).rejects.toThrow(`Email template ${email.id} has no subject`);
     });
 
@@ -474,7 +616,7 @@ describe("sendDoubleOptIn job", () => {
       const contact = await createUnconfirmedContact(
         testWorkspace.id,
         `no-sender-${Date.now()}@example.com`,
-        confirmationToken,
+        confirmationToken
       );
 
       await expect(
@@ -485,10 +627,10 @@ describe("sendDoubleOptIn job", () => {
             emailId: email.id,
             workspaceId: testWorkspace.id,
           },
-          "test-job-no-sender",
-        ),
+          "test-job-no-sender"
+        )
       ).rejects.toThrow(
-        `No sender identity available for workspace ${testWorkspace.id}`,
+        `No sender identity available for workspace ${testWorkspace.id}`
       );
     });
   });
