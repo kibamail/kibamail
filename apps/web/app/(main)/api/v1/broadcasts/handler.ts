@@ -582,7 +582,7 @@ export async function deleteBroadcast(
  * Performs readiness checks before scheduling.
  * Only DRAFT broadcasts can be sent.
  */
-export async function sendBroadcast(workspaceId: string, broadcastId: string) {
+export async function scheduleBroadcast(workspaceId: string, broadcastId: string) {
   const broadcast = await prisma.broadcast.findFirst({
     where: {
       id: broadcastId,
@@ -674,8 +674,8 @@ export async function createAndSendBroadcast(
     request,
   );
 
-  const sendAt = data.sendAt ? new Date(data.sendAt) : null;
-  if (sendAt && sendAt <= new Date()) {
+  const sendAt = new Date(data.sendAt);
+  if (sendAt <= new Date()) {
     throw new BadRequestError(
       "sendAt must be in the future",
       ErrorCode.INVALID_PARAMETER,
@@ -755,10 +755,10 @@ export async function createAndSendBroadcast(
   });
 
   if (sendAt) {
-    await sendBroadcast(workspaceId, broadcast.id);
+    await scheduleBroadcast(workspaceId, broadcast.id);
   } else {
     await queue("broadcasts").push("send-broadcast", { broadcastId: broadcast.id });
   }
 
-  return responseCreated(formatBroadcast(broadcast), "broadcast");
+  return responseCreated({ id: broadcast.id }, "broadcast");
 }

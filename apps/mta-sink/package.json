@@ -1,0 +1,22 @@
+{
+  "name": "kibamail-mta-sink",
+  "version": "1.0.0",
+  "description": "MTA sink service for staging environment",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc && node --watch dist/index.js"
+  },
+  "keywords": [],
+  "license": "MIT",
+  "dependencies": {
+    "hono": "^4.6.0",
+    "pino": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/pino": "^7.0.0",
+    "typescript": "^5.5.0"
+  }
+}

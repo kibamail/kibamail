@@ -30,13 +30,16 @@ export interface EmailAddress {
 }
 
 /**
- * Email attachment stored in S3
+ * Email attachment for MTA injection
+ * Supports both S3 keys (for MTA to fetch) and inline base64 data
  */
 export interface EmailAttachment {
-  s3_key: string;
+  s3_key?: string;
   file_name: string;
   content_type: string;
   content_id?: string;
+  data?: string;
+  base64?: boolean;
 }
 
 /**
@@ -71,7 +74,6 @@ export interface EmailMessage {
 export interface InjectionResult {
   id: string;
   success: boolean;
-  duplicate: boolean;
   error?: string;
 }
 
@@ -82,7 +84,6 @@ export interface BatchInjectionResult {
   total: number;
   successful: number;
   failed: number;
-  duplicates: number;
   results: InjectionResult[];
 }
 

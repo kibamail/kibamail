@@ -16,6 +16,14 @@ const transactionalAttachmentSchema = z.object({
 });
 
 /**
+ * Transactional Email Reply-To Schema
+ */
+const replyToSchema = z.object({
+  email: z.string().email("Invalid reply-to email format"),
+  name: z.string().max(255, "Reply-To name must be 255 characters or less").optional(),
+});
+
+/**
  * Send Transactional Email Request Schema
  */
 export const sendTransactionalEmailSchema = z.object({
@@ -28,10 +36,15 @@ export const sendTransactionalEmailSchema = z.object({
     z.string().email("Invalid to email format"),
     z.array(z.string().email("Invalid to email format")).min(1, "At least one recipient required"),
   ]),
+  replyTo: replyToSchema.optional(),
   subject: z
     .string()
     .min(1, "Subject is required")
     .max(500, "Subject must be 500 characters or less"),
+  previewText: z
+    .string()
+    .max(150, "Preview text must be 150 characters or less")
+    .optional(),
   html: z
     .string()
     .min(1, "HTML body is required")
@@ -49,3 +62,4 @@ export const sendTransactionalEmailSchema = z.object({
  */
 export type SendTransactionalEmailRequest = z.infer<typeof sendTransactionalEmailSchema>;
 export type TransactionalAttachment = z.infer<typeof transactionalAttachmentSchema>;
+export type ReplyTo = z.infer<typeof replyToSchema>;

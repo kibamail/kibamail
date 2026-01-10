@@ -160,7 +160,8 @@ const emailContentCreateAndSendSchema = z.object({
 
 /**
  * Create and Send Broadcast Request Schema
- * Creates a broadcast with raw HTML/text content and sends it immediately or at scheduled time
+ * Creates a broadcast with raw HTML/text content and schedules it for a future time
+ * sendAt is required to prevent accidental immediate sends
  */
 export const createAndSendBroadcastSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name must be 255 characters or less"),
@@ -168,7 +169,7 @@ export const createAndSendBroadcastSchema = z.object({
   replyTo: z.email("Invalid reply-to email format").optional(),
   emailContent: emailContentCreateAndSendSchema,
   recipients: recipientsSchema,
-  sendAt: z.string().datetime("Invalid datetime format").optional(),
+  sendAt: z.string().datetime(),
 });
 
 export type CreateAndSendBroadcastRequest = z.infer<typeof createAndSendBroadcastSchema>;

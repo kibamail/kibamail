@@ -146,7 +146,6 @@ export const sendTestBroadcast: JobProcessor<
       testEmailCount: testEmails.length,
       preparedCount: preparedEmails.length,
       injectedCount: result.successful,
-      duplicates: result.duplicates,
       failed: result.failed,
     },
     "Test broadcast sent - emails injected to MTA",

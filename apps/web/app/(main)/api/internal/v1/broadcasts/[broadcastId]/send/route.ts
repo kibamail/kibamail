@@ -11,7 +11,7 @@
 
 import type { NextRequest } from "next/server";
 
-import { sendBroadcast } from "@/app/(main)/api/v1/broadcasts/handler";
+import { scheduleBroadcast } from "@/app/(main)/api/v1/broadcasts/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
 
 interface RouteParams {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (!session.currentOrganization) {
         throw new Error("No active workspace found");
       }
-      return sendBroadcast(session.currentOrganization.id, broadcastId);
+      return scheduleBroadcast(session.currentOrganization.id, broadcastId);
     }),
   );
 }

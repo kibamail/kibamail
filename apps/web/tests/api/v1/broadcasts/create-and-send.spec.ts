@@ -85,8 +85,8 @@ afterAll(async () => {
 });
 
 describe("POST /api/v1/broadcasts/create-and-send", () => {
-  describe("Basic creation and immediate sending", () => {
-    test("should create and immediately send broadcast to contacts by ID", async () => {
+  describe("Basic creation and scheduling", () => {
+    test("should create and schedule broadcast to contacts by ID", async () => {
       const domain = await createVerifiedDomain(
         fullAccessApiKey,
         "create-and-send.example.com",
@@ -102,11 +102,12 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         from: `news@${domain.name}`,
         emailContent: {
           subject: "Hello {{firstName}}!",
-          html: "<p>Hi {{firstName}}, welcome to our service!</p>",
+          html: "<p>Hi {{firstName}}, welcome to our service!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
         },
         recipients: {
           contacts: contacts.map((c) => c.id),
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -116,14 +117,9 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(response.status).toBe(201);
       expect(responseData.object).toBe("broadcast");
       expect(responseData.id).toBeDefined();
-      expect(responseData.name).toBe("Create and Send Test");
-      expect(responseData.emailContent.subject).toBe("Hello {{firstName}}!");
-      expect(responseData.emailContent.html).toBe(
-        "<p>Hi {{firstName}}, welcome to our service!</p>",
-      );
     });
 
-    test("should create and send broadcast to emails (upserts contacts)", async () => {
+    test("should create and schedule broadcast to emails (upserts contacts)", async () => {
       const domain = await createVerifiedDomain(
         fullAccessApiKey,
         "email-upsert.example.com",
@@ -134,11 +130,12 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         from: `team@${domain.name}`,
         emailContent: {
           subject: "Welcome {{email}}!",
-          html: "<p>Thanks for joining, {{email}}!</p>",
+          html: "<p>Thanks for joining, {{email}}!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
         },
         recipients: {
           emails: ["new1@email-upsert.com", "new2@email-upsert.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -158,7 +155,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(createdContacts.length).toBe(2);
     });
 
-    test("should create and send broadcast to segment", async () => {
+    test("should create and schedule broadcast to segment", async () => {
       const domain = await createVerifiedDomain(
         fullAccessApiKey,
         "segment-broadcast.example.com",
@@ -183,11 +180,12 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         from: `updates@${domain.name}`,
         emailContent: {
           subject: "Segment Update",
-          html: "<p>Hello segment contacts!</p>",
+          html: "<p>Hello segment contacts!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
         },
         recipients: {
           segment: segment.id,
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -195,10 +193,10 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(201);
-      expect(responseData.segmentId).toBe(segment.id);
+      expect(responseData.object).toBe("broadcast");
     });
 
-    test("should create and send broadcast to topic", async () => {
+    test("should create and schedule broadcast to topic", async () => {
       const domain = await createVerifiedDomain(
         fullAccessApiKey,
         "topic-broadcast.example.com",
@@ -223,11 +221,12 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         from: `announce@${domain.name}`,
         emailContent: {
           subject: "New Announcement",
-          html: "<p>Check out our latest news!</p>",
+          html: "<p>Check out our latest news!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
         },
         recipients: {
           topic: topic.id,
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -235,7 +234,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(201);
-      expect(responseData.topicId).toBe(topic.id);
+      expect(responseData.object).toBe("broadcast");
     });
   });
 
@@ -273,7 +272,8 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       }
 
       expect(response.status).toBe(201);
-      expect(responseData.sendAt).toBeDefined();
+      expect(responseData.object).toBe("broadcast");
+      expect(responseData.id).toBeDefined();
     });
 
     test("should reject broadcast with past sendAt", async () => {
@@ -303,6 +303,32 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(responseData.error.code).toBe(ErrorCode.INVALID_PARAMETER);
       expect(responseData.error.message).toContain("future");
     });
+
+    test("should reject broadcast without sendAt", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "no-sendat.example.com",
+      );
+
+      const broadcastData = {
+        name: "No SendAt Broadcast",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Test Email",
+          html: "<p>This should fail</p>",
+        },
+        recipients: {
+          emails: ["no-sendat@test.com"],
+        },
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(422);
+      expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    });
   });
 
   describe("Reply-to handling", () => {
@@ -322,11 +348,12 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         replyTo: "support@replyto.example.com",
         emailContent: {
           subject: "Reply To Test",
-          html: "<p>Test email with reply-to</p>",
+          html: "<p>Test email with reply-to</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
         },
         recipients: {
           contacts: contacts.map((c) => c.id),
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -334,7 +361,8 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(201);
-      expect(responseData.replyTo).toBe("support@replyto.example.com");
+      expect(responseData.object).toBe("broadcast");
+      expect(responseData.id).toBeDefined();
     });
   });
 
@@ -353,6 +381,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
           html: "<p>Test</p>",
         },
         recipients: {},
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -379,6 +408,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["not-an-email"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -404,6 +434,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["test@no-subject.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -429,6 +460,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["test@no-html.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -455,6 +487,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           segment: "non-existent-segment-id",
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -481,6 +514,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           topic: "non-existent-topic-id",
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -507,6 +541,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           contacts: [],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -540,6 +575,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["test@scope.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, readOnlyApiKey.key);
@@ -560,6 +596,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["test@noauth.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, "");
@@ -585,12 +622,13 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         from: `news@${domain.name}`,
         emailContent: {
           subject: "Text Content Test",
-          html: "<p>HTML version</p>",
+          html: "<p>HTML version</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
           text: "Plain text version",
         },
         recipients: {
           contacts: contacts.map((c) => c.id),
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -598,7 +636,8 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(201);
-      expect(responseData.emailContent.text).toBe("Plain text version");
+      expect(responseData.object).toBe("broadcast");
+      expect(responseData.id).toBeDefined();
     });
 
     test("should create broadcast with optional previewText", async () => {
@@ -616,12 +655,13 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         from: `news@${domain.name}`,
         emailContent: {
           subject: "Preview Text Test",
-          html: "<p>Main content</p>",
+          html: "<p>Main content</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
           previewText: "This shows in the inbox preview",
         },
         recipients: {
           contacts: contacts.map((c) => c.id),
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -629,9 +669,8 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       const responseData = await response.json();
 
       expect(response.status).toBe(201);
-      expect(responseData.emailContent.previewText).toBe(
-        "This shows in the inbox preview",
-      );
+      expect(responseData.object).toBe("broadcast");
+      expect(responseData.id).toBeDefined();
     });
   });
 
@@ -650,6 +689,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["test@no-name.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
@@ -675,6 +715,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
         recipients: {
           emails: ["test@empty-name.com"],
         },
+        sendAt: getFutureDate(1),
       };
 
       const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);

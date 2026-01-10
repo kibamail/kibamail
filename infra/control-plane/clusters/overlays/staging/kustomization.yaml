@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base
+  - mta-sink.yaml
 
 patches:
   - path: certificate-patch.yaml

@@ -325,7 +325,6 @@ export const sendDoubleOptIn: JobProcessor<
       formId,
       emailId,
       emailSendId,
-      duplicate: result.duplicate,
     },
     "Double opt-in email injected to MTA",
   );

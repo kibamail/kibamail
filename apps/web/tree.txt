@@ -1,0 +1,1507 @@
+.
+├── Dockerfile
+├── Dockerfile.worker
+├── README.md
+├── app
+│   ├── (main)
+│   │   ├── (auth)
+│   │   │   ├── actions
+│   │   │   │   ├── create-default-workspace.ts
+│   │   │   │   └── sign-out.ts
+│   │   │   └── callback
+│   │   │       └── route.ts
+│   │   ├── (dashboard)
+│   │   │   ├── invitations
+│   │   │   │   ├── _components
+│   │   │   │   │   └── invitation-card.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   └── page.tsx
+│   │   │   └── w
+│   │   │       ├── (fullscreen)
+│   │   │       │   ├── broadcasts
+│   │   │       │   │   └── [id]
+│   │   │       │   │       └── page.tsx
+│   │   │       │   ├── flows
+│   │   │       │   │   └── [id]
+│   │   │       │   │       ├── _components
+│   │   │       │   │       │   ├── add-node-card.tsx
+│   │   │       │   │       │   ├── canvas
+│   │   │       │   │       │   │   ├── flow-toolbar.tsx
+│   │   │       │   │       │   │   ├── flow.css
+│   │   │       │   │       │   │   └── flow.tsx
+│   │   │       │   │       │   ├── configurations
+│   │   │       │   │       │   │   ├── event-triggered-config.tsx
+│   │   │       │   │       │   │   ├── form-filled-config.tsx
+│   │   │       │   │       │   │   ├── if-else-config.tsx
+│   │   │       │   │       │   │   ├── percentage-split-configuration.tsx
+│   │   │       │   │       │   │   ├── time-delay-config.tsx
+│   │   │       │   │       │   │   ├── topic-config.tsx
+│   │   │       │   │       │   │   ├── trigger-conditions-config.tsx
+│   │   │       │   │       │   │   ├── trigger-configuration.tsx
+│   │   │       │   │       │   │   ├── update-contact-config.tsx
+│   │   │       │   │       │   │   └── webhook-config.tsx
+│   │   │       │   │       │   ├── edges
+│   │   │       │   │       │   │   ├── conditional-edges.tsx
+│   │   │       │   │       │   │   ├── custom-edge.tsx
+│   │   │       │   │       │   │   └── index.tsx
+│   │   │       │   │       │   ├── flow-composer-sidebar.tsx
+│   │   │       │   │       │   ├── flow-editor-client.tsx
+│   │   │       │   │       │   ├── flow-editor-context.tsx
+│   │   │       │   │       │   ├── nodes
+│   │   │       │   │       │   │   ├── action-nodes.tsx
+│   │   │       │   │       │   │   ├── base-flow-node.tsx
+│   │   │       │   │       │   │   ├── empty-node.tsx
+│   │   │       │   │       │   │   ├── index.tsx
+│   │   │       │   │       │   │   ├── rule-nodes.tsx
+│   │   │       │   │       │   │   └── trigger-nodes.tsx
+│   │   │       │   │       │   ├── publish-automation-modal.tsx
+│   │   │       │   │       │   └── rename-automation-modal.tsx
+│   │   │       │   │       ├── _hooks
+│   │   │       │   │       │   ├── use-flow-auto-save.ts
+│   │   │       │   │       │   └── use-if-else-field-definitions.ts
+│   │   │       │   │       ├── _utils
+│   │   │       │   │       │   ├── conditions-transformer.ts
+│   │   │       │   │       │   └── dagre-layout.ts
+│   │   │       │   │       ├── layout.tsx
+│   │   │       │   │       ├── page.tsx
+│   │   │       │   │       ├── state
+│   │   │       │   │       │   └── flow-store.ts
+│   │   │       │   │       └── types
+│   │   │       │   │           └── node-types.ts
+│   │   │       │   ├── forms
+│   │   │       │   │   └── [id]
+│   │   │       │   │       ├── edit
+│   │   │       │   │       │   ├── _components
+│   │   │       │   │       │   │   └── form-builder
+│   │   │       │   │       │   │       ├── canvas-field-renderer.tsx
+│   │   │       │   │       │   │       ├── content-field-editor.tsx
+│   │   │       │   │       │   │       ├── field-properties-panel.tsx
+│   │   │       │   │       │   │       ├── fields-sidebar.tsx
+│   │   │       │   │       │   │       ├── form-builder-client.tsx
+│   │   │       │   │       │   │       ├── form-builder-context.tsx
+│   │   │       │   │       │   │       ├── form-canvas.tsx
+│   │   │       │   │       │   │       ├── form-live-preview.tsx
+│   │   │       │   │       │   │       ├── form-settings-tab.tsx
+│   │   │       │   │       │   │       ├── form-version-dropdown.tsx
+│   │   │       │   │       │   │       ├── index.ts
+│   │   │       │   │       │   │       ├── seo-image-uploader.tsx
+│   │   │       │   │       │   │       ├── spacing-input.tsx
+│   │   │       │   │       │   │       └── types.ts
+│   │   │       │   │       │   └── page.tsx
+│   │   │       │   │       └── email
+│   │   │       │   │           └── [emailId]
+│   │   │       │   │               ├── _components
+│   │   │       │   │               │   ├── double-opt-in-details-tab.tsx
+│   │   │       │   │               │   ├── double-opt-in-email-editor-client.tsx
+│   │   │       │   │               │   ├── double-opt-in-email-editor.tsx
+│   │   │       │   │               │   └── double-opt-in-preview.tsx
+│   │   │       │   │               └── page.tsx
+│   │   │       │   ├── inbox
+│   │   │       │   │   ├── _components
+│   │   │       │   │   │   ├── conversation-list.tsx
+│   │   │       │   │   │   ├── conversation-thread.tsx
+│   │   │       │   │   │   ├── inbox-client.tsx
+│   │   │       │   │   │   └── sample-data.ts
+│   │   │       │   │   └── page.tsx
+│   │   │       │   └── layout.tsx
+│   │   │       ├── (with-sidebar)
+│   │   │       │   ├── (audience)
+│   │   │       │   │   ├── _components
+│   │   │       │   │   │   ├── audience-tabs-container.tsx
+│   │   │       │   │   │   └── audience-tabs.tsx
+│   │   │       │   │   ├── contacts
+│   │   │       │   │   │   ├── [id]
+│   │   │       │   │   │   │   ├── _components
+│   │   │       │   │   │   │   │   ├── contact-actions-dropdown.tsx
+│   │   │       │   │   │   │   │   ├── contact-activity-feed.tsx
+│   │   │       │   │   │   │   │   └── copyable-id.tsx
+│   │   │       │   │   │   │   └── page.tsx
+│   │   │       │   │   │   ├── _components
+│   │   │       │   │   │   │   ├── contact-columns-manager.tsx
+│   │   │       │   │   │   │   ├── contact-columns-selector.tsx
+│   │   │       │   │   │   │   ├── contact-status-filter.tsx
+│   │   │       │   │   │   │   ├── contacts-pagination.tsx
+│   │   │       │   │   │   │   ├── contacts-search.tsx
+│   │   │       │   │   │   │   ├── contacts-table.tsx
+│   │   │       │   │   │   │   ├── create-contact-button.tsx
+│   │   │       │   │   │   │   ├── create-contact-modal.tsx
+│   │   │       │   │   │   │   ├── create-contact-property-button.tsx
+│   │   │       │   │   │   │   ├── create-contact-property-modal.tsx
+│   │   │       │   │   │   │   └── import-contacts
+│   │   │       │   │   │   │       ├── components
+│   │   │       │   │   │   │       │   ├── checkbox-field.tsx
+│   │   │       │   │   │   │       │   └── file-upload-dropbox.tsx
+│   │   │       │   │   │   │       ├── hooks
+│   │   │       │   │   │   │       │   └── use-file-upload.ts
+│   │   │       │   │   │   │       ├── import-contacts-button.tsx
+│   │   │       │   │   │   │       ├── import-contacts-dialog.tsx
+│   │   │       │   │   │   │       ├── index.ts
+│   │   │       │   │   │   │       ├── steps
+│   │   │       │   │   │   │       │   ├── step-four-processing.tsx
+│   │   │       │   │   │   │       │   ├── step-one-upload-csv.tsx
+│   │   │       │   │   │   │       │   ├── step-three-import-settings.tsx
+│   │   │       │   │   │   │       │   └── step-two-match-headers.tsx
+│   │   │       │   │   │   │       └── store
+│   │   │       │   │   │   │           └── import-contacts-store.ts
+│   │   │       │   │   │   └── page.tsx
+│   │   │       │   │   ├── layout.tsx
+│   │   │       │   │   ├── properties
+│   │   │       │   │   │   ├── _components
+│   │   │       │   │   │   │   └── properties-table.tsx
+│   │   │       │   │   │   └── page.tsx
+│   │   │       │   │   ├── segments
+│   │   │       │   │   │   ├── _components
+│   │   │       │   │   │   │   ├── create-segment-button.tsx
+│   │   │       │   │   │   │   ├── create-segment-modal.tsx
+│   │   │       │   │   │   │   └── segments-table.tsx
+│   │   │       │   │   │   ├── _hooks
+│   │   │       │   │   │   │   └── use-segment-field-definitions.ts
+│   │   │       │   │   │   ├── _utils
+│   │   │       │   │   │   │   └── filter-to-condition-converter.ts
+│   │   │       │   │   │   └── page.tsx
+│   │   │       │   │   └── topics
+│   │   │       │   │       ├── _components
+│   │   │       │   │       │   ├── create-topic-button.tsx
+│   │   │       │   │       │   ├── create-topic-modal.tsx
+│   │   │       │   │       │   └── topics-table.tsx
+│   │   │       │   │       └── page.tsx
+│   │   │       │   ├── _components
+│   │   │       │   │   ├── profile
+│   │   │       │   │   │   └── user-dropdown.tsx
+│   │   │       │   │   ├── search-input.tsx
+│   │   │       │   │   ├── sidebar-navigation.tsx
+│   │   │       │   │   ├── stats-card.tsx
+│   │   │       │   │   └── workspaces
+│   │   │       │   │       ├── create-workspace.tsx
+│   │   │       │   │       └── invite-members.tsx
+│   │   │       │   ├── automations
+│   │   │       │   │   ├── _components
+│   │   │       │   │   │   ├── automations-table.tsx
+│   │   │       │   │   │   └── create-automation-button.tsx
+│   │   │       │   │   └── page.tsx
+│   │   │       │   ├── broadcasts
+│   │   │       │   │   ├── _components
+│   │   │       │   │   │   ├── broadcasts-table.tsx
+│   │   │       │   │   │   ├── create-broadcast-button.tsx
+│   │   │       │   │   │   └── create-broadcast-modal.tsx
+│   │   │       │   │   └── page.tsx
+│   │   │       │   ├── domains
+│   │   │       │   │   ├── [id]
+│   │   │       │   │   │   ├── _components
+│   │   │       │   │   │   │   ├── copyable-text.tsx
+│   │   │       │   │   │   │   ├── dns-records-section.tsx
+│   │   │       │   │   │   │   ├── domain-actions-dropdown.tsx
+│   │   │       │   │   │   │   ├── domain-layout-client.tsx
+│   │   │       │   │   │   │   ├── domain-tabs-container.tsx
+│   │   │       │   │   │   │   ├── domain-tabs.tsx
+│   │   │       │   │   │   │   ├── ssl-status-section.tsx
+│   │   │       │   │   │   │   ├── tracking-toggle.tsx
+│   │   │       │   │   │   │   └── verify-domain-button.tsx
+│   │   │       │   │   │   ├── layout.tsx
+│   │   │       │   │   │   ├── page.tsx
+│   │   │       │   │   │   └── senders
+│   │   │       │   │   │       ├── _components
+│   │   │       │   │   │       │   └── sender-identities-table.tsx
+│   │   │       │   │   │       └── page.tsx
+│   │   │       │   │   ├── _components
+│   │   │       │   │   │   ├── create-domain-button.tsx
+│   │   │       │   │   │   ├── domains-table.tsx
+│   │   │       │   │   │   └── ssl-status-badge.tsx
+│   │   │       │   │   └── page.tsx
+│   │   │       │   ├── flows
+│   │   │       │   │   ├── layout.tsx
+│   │   │       │   │   └── page.tsx
+│   │   │       │   ├── forms
+│   │   │       │   │   ├── _components
+│   │   │       │   │   │   ├── create-form-button.tsx
+│   │   │       │   │   │   ├── create-form-modal.tsx
+│   │   │       │   │   │   ├── edit-form-button.tsx
+│   │   │       │   │   │   ├── forms-table.tsx
+│   │   │       │   │   │   └── select-template-modal.tsx
+│   │   │       │   │   └── page.tsx
+│   │   │       │   ├── layout.tsx
+│   │   │       │   ├── logs
+│   │   │       │   │   └── page.tsx
+│   │   │       │   ├── page.tsx
+│   │   │       │   └── settings
+│   │   │       │       ├── _components
+│   │   │       │       │   ├── settings-tabs-container.tsx
+│   │   │       │       │   └── settings-tabs.tsx
+│   │   │       │       ├── api-keys
+│   │   │       │       │   ├── _components
+│   │   │       │       │   │   ├── api-key-created-modal.tsx
+│   │   │       │       │   │   ├── api-keys-table.tsx
+│   │   │       │       │   │   ├── create-api-key-button.tsx
+│   │   │       │       │   │   └── create-api-key-modal.tsx
+│   │   │       │       │   └── page.tsx
+│   │   │       │       ├── billing
+│   │   │       │       │   └── page.tsx
+│   │   │       │       ├── layout.tsx
+│   │   │       │       ├── page.tsx
+│   │   │       │       ├── usage
+│   │   │       │       │   └── page.tsx
+│   │   │       │       ├── webhooks
+│   │   │       │       │   ├── [id]
+│   │   │       │       │   │   └── page.tsx
+│   │   │       │       │   ├── _components
+│   │   │       │       │   │   ├── create-webhook-button-wrapper.tsx
+│   │   │       │       │   │   ├── create-webhook-button.tsx
+│   │   │       │       │   │   ├── create-webhook-dialog.tsx
+│   │   │       │       │   │   ├── event-details-modal.tsx
+│   │   │       │       │   │   ├── webhook-actions-dropdown.tsx
+│   │   │       │       │   │   ├── webhook-detail-client.tsx
+│   │   │       │       │   │   ├── webhook-events-filter.tsx
+│   │   │       │       │   │   ├── webhook-events-table.tsx
+│   │   │       │       │   │   ├── webhook-status-filter.tsx
+│   │   │       │       │   │   ├── webhooks-layout-client.tsx
+│   │   │       │       │   │   ├── webhooks-page-client.tsx
+│   │   │       │       │   │   └── webhooks-table.tsx
+│   │   │       │       │   ├── layout.tsx
+│   │   │       │       │   └── page.tsx
+│   │   │       │       └── workspace
+│   │   │       │           ├── _components
+│   │   │       │           │   ├── delete-workspace-card.tsx
+│   │   │       │           │   ├── invitation-actions-dropdown.tsx
+│   │   │       │           │   ├── member-actions-dropdown.tsx
+│   │   │       │           │   ├── team-members-table.tsx
+│   │   │       │           │   ├── workspace-profile-card.tsx
+│   │   │       │           │   └── workspace-settings.tsx
+│   │   │       │           └── page.tsx
+│   │   │       └── layout.tsx
+│   │   ├── api
+│   │   │   ├── auth
+│   │   │   │   └── signin
+│   │   │   │       └── route.ts
+│   │   │   ├── healthz
+│   │   │   │   └── route.ts
+│   │   │   ├── internal
+│   │   │   │   └── v1
+│   │   │   │       ├── acme-challenges
+│   │   │   │       │   └── [token]
+│   │   │   │       │       └── route.ts
+│   │   │   │       ├── api-keys
+│   │   │   │       │   ├── [id]
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── handler.ts
+│   │   │   │       │   ├── route.ts
+│   │   │   │       │   └── schema.ts
+│   │   │   │       ├── automations
+│   │   │   │       │   ├── [automationId]
+│   │   │   │       │   │   ├── archive
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── publish
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── rollback
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── route.ts
+│   │   │   │       │   │   └── versions
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── broadcasts
+│   │   │   │       │   ├── [broadcastId]
+│   │   │   │       │   │   ├── duplicate
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── files
+│   │   │   │       │   │   │   ├── handler.ts
+│   │   │   │       │   │   │   ├── route.ts
+│   │   │   │       │   │   │   └── schema.ts
+│   │   │   │       │   │   ├── preview
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── readiness
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── route.ts
+│   │   │   │       │   │   ├── send
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   └── send-test
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── contact-imports
+│   │   │   │       │   ├── [id]
+│   │   │   │       │   │   ├── handler.ts
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── handler.ts
+│   │   │   │       │   ├── route.ts
+│   │   │   │       │   └── schema.ts
+│   │   │   │       ├── contact-properties
+│   │   │   │       │   ├── [contactPropertyId]
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── contacts
+│   │   │   │       │   ├── [id]
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── domains
+│   │   │   │       │   ├── [domainId]
+│   │   │   │       │   │   ├── retry-ssl
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── route.ts
+│   │   │   │       │   │   └── verify
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── emails
+│   │   │   │       │   ├── [emailId]
+│   │   │   │       │   │   ├── preview
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── handler.ts
+│   │   │   │       │   ├── route.ts
+│   │   │   │       │   └── schema.ts
+│   │   │   │       ├── forms
+│   │   │   │       │   ├── [formId]
+│   │   │   │       │   │   ├── content-image
+│   │   │   │       │   │   │   ├── handler.ts
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── favicon
+│   │   │   │       │   │   │   ├── handler.ts
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── publish
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── route.ts
+│   │   │   │       │   │   ├── seo-image
+│   │   │   │       │   │   │   ├── handler.ts
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── submissions
+│   │   │   │       │   │   │   ├── handler.ts
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── versions
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   └── views
+│   │   │   │       │   │       ├── handler.ts
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── invitations
+│   │   │   │       │   └── [id]
+│   │   │   │       │       ├── handler.ts
+│   │   │   │       │       ├── route.ts
+│   │   │   │       │       └── status
+│   │   │   │       │           ├── handler.ts
+│   │   │   │       │           ├── route.ts
+│   │   │   │       │           └── schema.ts
+│   │   │   │       ├── logs
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── mta
+│   │   │   │       │   ├── auth
+│   │   │   │       │   │   └── validate
+│   │   │   │       │   │       ├── handler.ts
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   ├── dkim
+│   │   │   │       │   │   └── [domain]
+│   │   │   │       │   └── dmarc
+│   │   │   │       │       └── reports
+│   │   │   │       │           ├── handler.ts
+│   │   │   │       │           └── route.ts
+│   │   │   │       ├── mta-events
+│   │   │   │       │   ├── handler.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── segments
+│   │   │   │       │   ├── [segmentId]
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── sender-identities
+│   │   │   │       │   ├── [id]
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── route.ts
+│   │   │   │       │   └── schema.ts
+│   │   │   │       ├── sending-domains
+│   │   │   │       │   └── validate-inbox
+│   │   │   │       │       └── [domain]
+│   │   │   │       │           └── route.ts
+│   │   │   │       ├── ssl-certificates
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── table-preferences
+│   │   │   │       │   ├── handler.ts
+│   │   │   │       │   ├── route.ts
+│   │   │   │       │   └── schema.ts
+│   │   │   │       ├── tenants
+│   │   │   │       │   ├── [tenantId]
+│   │   │   │       │   │   ├── handler.ts
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── by-bounce-domain
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── by-dmarc-code
+│   │   │   │       │   │   └── [code]
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   ├── by-domain
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   └── validate-api-key
+│   │   │   │       │       └── route.ts
+│   │   │   │       ├── topics
+│   │   │   │       │   ├── [topicId]
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   └── route.ts
+│   │   │   │       ├── webhooks
+│   │   │   │       │   ├── [id]
+│   │   │   │       │   │   ├── disable
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── enable
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   ├── events
+│   │   │   │       │   │   │   ├── [eventId]
+│   │   │   │       │   │   │   │   └── deliveries
+│   │   │   │       │   │   │   │       ├── handler.ts
+│   │   │   │       │   │   │   │       └── route.ts
+│   │   │   │       │   │   │   ├── handler.ts
+│   │   │   │       │   │   │   └── route.ts
+│   │   │   │       │   │   └── route.ts
+│   │   │   │       │   ├── handler.ts
+│   │   │   │       │   ├── inbox
+│   │   │   │       │   │   └── receive
+│   │   │   │       │   │       └── route.ts
+│   │   │   │       │   ├── route.ts
+│   │   │   │       │   └── schema.ts
+│   │   │   │       └── workspaces
+│   │   │   │           ├── [id]
+│   │   │   │           │   ├── activate
+│   │   │   │           │   │   ├── handler.ts
+│   │   │   │           │   │   ├── route.ts
+│   │   │   │           │   │   └── schema.ts
+│   │   │   │           │   ├── handler.ts
+│   │   │   │           │   ├── logo
+│   │   │   │           │   │   ├── handler.ts
+│   │   │   │           │   │   ├── route.ts
+│   │   │   │           │   │   └── schema.ts
+│   │   │   │           │   ├── members
+│   │   │   │           │   │   ├── [memberId]
+│   │   │   │           │   │   │   └── role
+│   │   │   │           │   │   │       └── route.ts
+│   │   │   │           │   │   ├── handler.ts
+│   │   │   │           │   │   ├── route.ts
+│   │   │   │           │   │   └── schema.ts
+│   │   │   │           │   ├── route.ts
+│   │   │   │           │   └── schema.ts
+│   │   │   │           ├── handler.ts
+│   │   │   │           ├── route.ts
+│   │   │   │           └── schema.ts
+│   │   │   └── v1
+│   │   │       ├── api-keys
+│   │   │       │   ├── [keyId]
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── handlers
+│   │   │       │   │   ├── create-api-key.ts
+│   │   │       │   │   ├── delete-api-key.ts
+│   │   │       │   │   └── list-api-keys.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   └── schema.ts
+│   │   │       ├── automations
+│   │   │       │   ├── [automationId]
+│   │   │       │   │   ├── archive
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   ├── publish
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   ├── route.ts
+│   │   │       │   │   └── versions
+│   │   │       │   │       └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   └── schema.ts
+│   │   │       ├── broadcasts
+│   │   │       │   ├── [broadcastId]
+│   │   │       │   │   ├── route.ts
+│   │   │       │   │   └── send
+│   │   │       │   │       └── route.ts
+│   │   │       │   ├── create-and-send
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   └── schema.ts
+│   │   │       ├── contact-properties
+│   │   │       │   ├── [contactPropertyId]
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   └── schema.ts
+│   │   │       ├── contacts
+│   │   │       │   ├── [contactId]
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   ├── schema.ts
+│   │   │       │   └── search
+│   │   │       │       └── route.ts
+│   │   │       ├── domains
+│   │   │       │   ├── [domainId]
+│   │   │       │   │   ├── route.ts
+│   │   │       │   │   └── verify
+│   │   │       │   │       └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   └── schema.ts
+│   │   │       ├── emails
+│   │   │       │   └── send
+│   │   │       │       ├── handler.ts
+│   │   │       │       ├── route.ts
+│   │   │       │       └── schema.ts
+│   │   │       ├── forms
+│   │   │       │   ├── [formId]
+│   │   │       │   │   ├── publish
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   ├── route.ts
+│   │   │       │   │   ├── submissions
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   └── versions
+│   │   │       │   │       └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   ├── schema.ts
+│   │   │       │   └── submissions-handler.ts
+│   │   │       ├── inbox
+│   │   │       │   ├── conversations
+│   │   │       │   │   ├── [conversationId]
+│   │   │       │   │   │   ├── reply
+│   │   │       │   │   │   │   └── route.ts
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── schema.ts
+│   │   │       │   └── stats
+│   │   │       │       └── route.ts
+│   │   │       ├── segments
+│   │   │       │   ├── [segmentId]
+│   │   │       │   │   ├── contacts
+│   │   │       │   │   │   └── route.ts
+│   │   │       │   │   └── route.ts
+│   │   │       │   ├── handler.ts
+│   │   │       │   ├── route.ts
+│   │   │       │   └── schema.ts
+│   │   │       └── topics
+│   │   │           ├── [topicId]
+│   │   │           │   ├── contacts
+│   │   │           │   │   └── route.ts
+│   │   │           │   └── route.ts
+│   │   │           ├── handler.ts
+│   │   │           ├── route.ts
+│   │   │           └── schema.ts
+│   │   ├── healthz
+│   │   │   └── route.ts
+│   │   ├── layout.tsx
+│   │   └── page.tsx
+│   ├── (public)
+│   │   ├── layout.tsx
+│   │   └── p
+│   │       └── forms
+│   │           └── [id]
+│   │               ├── _components
+│   │               │   └── form-page-client.tsx
+│   │               └── page.tsx
+│   ├── favicon.ico
+│   ├── forms.css
+│   └── globals.css
+├── auth
+│   ├── logto.ts
+│   └── logto.types.ts
+├── biome.json
+├── components
+│   ├── create-domain-modal.tsx
+│   ├── create-sender-identity-modal.tsx
+│   ├── edit-sender-identity-modal.tsx
+│   ├── email-editor
+│   │   ├── adapters
+│   │   │   ├── broadcast-adapter.tsx
+│   │   │   └── index.ts
+│   │   ├── content-editor.tsx
+│   │   ├── details-sections
+│   │   │   ├── email-subject-section.tsx
+│   │   │   ├── index.ts
+│   │   │   ├── recipients-section.tsx
+│   │   │   ├── send-time-section.tsx
+│   │   │   ├── sender-details-section.tsx
+│   │   │   ├── shared.tsx
+│   │   │   ├── tracking-section.tsx
+│   │   │   └── use-send-time.ts
+│   │   ├── email-details-tab.tsx
+│   │   ├── email-editor-client.tsx
+│   │   ├── email-preview.tsx
+│   │   ├── index.ts
+│   │   ├── publish-button.tsx
+│   │   ├── send-test-email-modal.tsx
+│   │   └── types.ts
+│   ├── reply-to-select.tsx
+│   ├── sender-select.tsx
+│   └── ui
+│       ├── button.tsx
+│       ├── checkbox.tsx
+│       ├── collapsible.tsx
+│       ├── field.tsx
+│       ├── input.tsx
+│       ├── interactive-div.tsx
+│       ├── label.tsx
+│       ├── progress.tsx
+│       ├── radio-group.tsx
+│       ├── select.tsx
+│       ├── separator.tsx
+│       ├── slider.tsx
+│       └── textarea.tsx
+├── components.json
+├── compose.kumomta.yaml
+├── config
+│   ├── api.ts
+│   ├── logto.ts
+│   ├── rbac.ts
+│   └── warmup.ts
+├── data
+│   ├── rabbitmq
+│   │   └── mnesia
+│   │       ├── rabbit@6524e723311c
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@6524e723311c
+│   │       │   │       ├── 00000002.wal
+│   │       │   │       ├── RABBITLZ3RHQXY1SST
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@6524e723311c
+│   │       │   │       ├── 00000002.wal
+│   │       │   │       ├── 2F_OUT2I9Y1YIY6H6Q
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUT4N73C7QQ8VYS
+│   │       │   │       │   ├── 00000002.segment
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       │       └── 0000000000000002_000000000000006D
+│   │       │   │       │           └── snapshot.dat
+│   │       │   │       ├── 2F_OUTF08P5LQAXN7A
+│   │       │   │       │   ├── 00000002.segment
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       │       └── 0000000000000002_0000000000000061
+│   │       │   │       │           └── snapshot.dat
+│   │       │   │       ├── 2F_OUTL4F8V9VGSFNE
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   └── schema.DAT
+│   │       ├── rabbit@6524e723311c-feature_flags
+│   │       ├── rabbit@672127dcf23a
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@672127dcf23a
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── RABBITSEAQ54XUFKZ5
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   └── 0.rdq
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   └── 0.rdq
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@672127dcf23a
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── 2F_OUT0D4V5JP5T2A3
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTW43H46OX5DFH
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTX209N04YIF8N
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTX7Z1CTUK8ZPA
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_exchange.DCL
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_durable_route.DCL
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCL
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user.DCL
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_user_permission.DCL
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   ├── rabbit_vhost.DCL
+│   │       │   └── schema.DAT
+│   │       ├── rabbit@672127dcf23a-feature_flags
+│   │       ├── rabbit@672127dcf23a.pid
+│   │       ├── rabbit@6da42a822365
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@6da42a822365
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── RABBIT673ORJBHAARR
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@6da42a822365
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── 2F_OUT26V2AQT9DHZN
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUT7RJ3HUSU0GTE
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTNYM64MKSECWX
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTV8BUTI8O8YP9
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_exchange.DCL
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_durable_route.DCL
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCL
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user.DCL
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_user_permission.DCL
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   ├── rabbit_vhost.DCL
+│   │       │   └── schema.DAT
+│   │       ├── rabbit@6da42a822365-feature_flags
+│   │       ├── rabbit@b55ef7219f5f
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@b55ef7219f5f
+│   │       │   │       ├── 00000002.wal
+│   │       │   │       ├── RABBIT3K7WHNLDT5GO
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@b55ef7219f5f
+│   │       │   │       ├── 00000002.wal
+│   │       │   │       ├── 2F_OUT3ICZ7BBOVAWT
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUT557Z05G2IFJ7
+│   │       │   │       │   ├── 00000002.segment
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       │       └── 0000000000000002_0000000000000068
+│   │       │   │       │           └── snapshot.dat
+│   │       │   │       ├── 2F_OUTHL0DYEY7ORV5
+│   │       │   │       │   ├── 00000002.segment
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       │       └── 0000000000000002_000000000000006D
+│   │       │   │       │           └── snapshot.dat
+│   │       │   │       ├── 2F_OUTPXKO3H7ALKUQ
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   └── schema.DAT
+│   │       ├── rabbit@b55ef7219f5f-feature_flags
+│   │       ├── rabbit@d710640df635
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@d710640df635
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── RABBITQ20D3GJ3D1ET
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@d710640df635
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── 2F_OUT599FS0NZ9C3C
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUT8TQCBYLE3RMX
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTDE9FTS533Z1M
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTZ7IXKQGT096D
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_exchange.DCL
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_durable_route.DCL
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCL
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user.DCL
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_user_permission.DCL
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   ├── rabbit_vhost.DCL
+│   │       │   └── schema.DAT
+│   │       ├── rabbit@d710640df635-feature_flags
+│   │       ├── rabbit@e6426011ea11
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@e6426011ea11
+│   │       │   │       ├── 00000004.wal
+│   │       │   │       ├── RABBIT7AJ18GT2K4IM
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   ├── checkpoints
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   └── 0.rdq
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   └── 0.rdq
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@e6426011ea11
+│   │       │   │       ├── 00000004.wal
+│   │       │   │       ├── 2F_OUT1WCSJ5DOKJZF
+│   │       │   │       │   ├── 00000003.segment
+│   │       │   │       │   ├── checkpoints
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       │       └── 0000000000000003_0000000000000010
+│   │       │   │       │           └── snapshot.dat
+│   │       │   │       ├── 2F_OUT562HR18XP5UI
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   ├── checkpoints
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       ├── 2F_OUT8EJSXLBHOI3M
+│   │       │   │       │   ├── 00000003.segment
+│   │       │   │       │   ├── checkpoints
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       │       └── 0000000000000003_0000000000000010
+│   │       │   │       │           └── snapshot.dat
+│   │       │   │       ├── 2F_OUTA1TBRNJJ7LMX
+│   │       │   │       │   ├── 00000001.segment
+│   │       │   │       │   ├── checkpoints
+│   │       │   │       │   ├── config
+│   │       │   │       │   └── snapshots
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   └── schema.DAT
+│   │       ├── rabbit@e6426011ea11-feature_flags
+│   │       ├── rabbit@e6426011ea11-plugins-expand
+│   │       ├── rabbit@e6426011ea11.pid
+│   │       ├── rabbit@f17fe9eb93b3
+│   │       │   ├── DECISION_TAB.LOG
+│   │       │   ├── LATEST.LOG
+│   │       │   ├── cluster_nodes.config
+│   │       │   ├── coordination
+│   │       │   │   └── rabbit@f17fe9eb93b3
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── RABBIT4VSLNRRA5MQ5
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── msg_stores
+│   │       │   │   └── vhosts
+│   │       │   │       └── 628WB79CIFDYO9LJI6DKMI09L
+│   │       │   │           ├── msg_store_persistent
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           ├── msg_store_transient
+│   │       │   │           │   ├── 0.rdq
+│   │       │   │           │   ├── clean.dot
+│   │       │   │           │   ├── file_summary.ets
+│   │       │   │           │   └── msg_store_index.ets
+│   │       │   │           └── recovery.dets
+│   │       │   ├── node-type.txt
+│   │       │   ├── nodes_running_at_shutdown
+│   │       │   ├── quorum
+│   │       │   │   └── rabbit@f17fe9eb93b3
+│   │       │   │       ├── 00000001.wal
+│   │       │   │       ├── 2F_OUT8O3QXBIWXJIC
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUT92CT5DDUIA57
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTBNF8XPIXSUV1
+│   │       │   │       │   └── config
+│   │       │   │       ├── 2F_OUTSQ00JD555SDA
+│   │       │   │       │   └── config
+│   │       │   │       ├── meta.dets
+│   │       │   │       └── names.dets
+│   │       │   ├── rabbit_durable_exchange.DCD
+│   │       │   ├── rabbit_durable_exchange.DCL
+│   │       │   ├── rabbit_durable_queue.DCD
+│   │       │   ├── rabbit_durable_queue.DCL
+│   │       │   ├── rabbit_durable_route.DCD
+│   │       │   ├── rabbit_durable_route.DCL
+│   │       │   ├── rabbit_runtime_parameters.DCD
+│   │       │   ├── rabbit_runtime_parameters.DCL
+│   │       │   ├── rabbit_serial
+│   │       │   ├── rabbit_topic_permission.DCD
+│   │       │   ├── rabbit_user.DCD
+│   │       │   ├── rabbit_user.DCL
+│   │       │   ├── rabbit_user_permission.DCD
+│   │       │   ├── rabbit_user_permission.DCL
+│   │       │   ├── rabbit_vhost.DCD
+│   │       │   ├── rabbit_vhost.DCL
+│   │       │   └── schema.DAT
+│   │       └── rabbit@f17fe9eb93b3-feature_flags
+│   └── redis
+│       └── dump.rdb
+├── dist
+│   └── worker.js
+├── docker
+│   ├── README.md
+│   └── init-databases.sh
+├── docker-compose.ci.yml
+├── docker-compose.yml
+├── docs
+│   ├── api-examples
+│   │   └── contacts-pagination.md
+│   └── kumomta-webhooks
+│       ├── README.md
+│       ├── admin-bounce.json
+│       ├── batch-example.json
+│       ├── bounce-examples.json
+│       ├── bounce.json
+│       ├── delivery.json
+│       ├── expiration.json
+│       ├── feedback-examples.json
+│       ├── feedback.json
+│       ├── oob.json
+│       ├── provider-responses.json
+│       ├── reception.json
+│       ├── rejection.json
+│       ├── transient-failure-examples.json
+│       └── transient-failure.json
+├── env
+│   └── schema.ts
+├── form-templates
+│   ├── contact-form.ts
+│   ├── event-registration.ts
+│   ├── feedback-form.ts
+│   ├── full-signup.ts
+│   ├── index.ts
+│   ├── newsletter-signup.ts
+│   ├── types.ts
+│   ├── waitlist.ts
+│   └── webinar-registration.ts
+├── garage
+│   ├── config
+│   │   └── garage.toml
+│   ├── data
+│   │   └── garage-marker
+│   └── meta
+│       ├── data_layout
+│       ├── db.lmdb
+│       │   ├── data.mdb
+│       │   └── lock.mdb
+│       ├── lifecycle_worker_state
+│       ├── node_key
+│       ├── node_key.pub
+│       ├── peer_list
+│       ├── scrub_info
+│       └── snapshots
+│           ├── 2025-12-18T12:25:36Z
+│           │   └── data.mdb
+│           └── 2025-12-18T19:44:53Z
+│               └── data.mdb
+├── hooks
+│   ├── use-domain-polling.ts
+│   ├── use-mutation.ts
+│   ├── use-segments.ts
+│   ├── use-topics.ts
+│   └── utils
+│       └── useToggleState.ts
+├── instrumentation.ts
+├── jobs
+│   ├── broadcasts
+│   │   ├── send-broadcast-batch.ts
+│   │   ├── send-broadcast.ts
+│   │   └── send-test-broadcast.ts
+│   ├── contact-imports
+│   │   └── process-import.ts
+│   ├── contacts
+│   │   └── unsubscribe.ts
+│   ├── emails
+│   │   └── send-transactional.ts
+│   ├── forms
+│   │   ├── confirm-double-opt-in.ts
+│   │   └── send-double-opt-in.ts
+│   ├── inbox
+│   │   ├── process-inbound-email.ts
+│   │   └── send-reply.ts
+│   ├── instrumentation.ts
+│   ├── segments
+│   │   └── compute-contacts-count.ts
+│   ├── sending-domains
+│   │   ├── check-tracking-dns.ts
+│   │   ├── check-verification.ts
+│   │   ├── issue-tracking-ssl.ts
+│   │   └── renew-expiring-ssl.ts
+│   └── worker.ts
+├── knip.json
+├── lib
+│   ├── api
+│   │   ├── client.ts
+│   │   ├── error-codes.ts
+│   │   ├── errors.ts
+│   │   ├── logger.ts
+│   │   ├── pagination.ts
+│   │   ├── requests.ts
+│   │   ├── responses.ts
+│   │   ├── service-auth.ts
+│   │   └── validation.ts
+│   ├── api-keys
+│   │   └── index.ts
+│   ├── auth
+│   │   ├── get-session.ts
+│   │   ├── permissions.ts
+│   │   ├── redis-session-wrapper.ts
+│   │   └── user-cache.ts
+│   ├── automations
+│   │   ├── config.ts
+│   │   └── validation.ts
+│   ├── broadcast-renderer
+│   │   ├── index.ts
+│   │   ├── renderer.tsx
+│   │   └── types.ts
+│   ├── broadcasts
+│   │   ├── batch-scheduler.ts
+│   │   ├── links-validator.ts
+│   │   ├── readiness.ts
+│   │   ├── recipient-fetcher.ts
+│   │   └── recipient-resolver.ts
+│   ├── components
+│   │   └── image.tsx
+│   ├── contact-imports
+│   │   ├── batch-processor.ts
+│   │   ├── builder.ts
+│   │   ├── extractor.ts
+│   │   ├── index.ts
+│   │   ├── normalizers
+│   │   │   ├── city.ts
+│   │   │   ├── country.ts
+│   │   │   ├── index.ts
+│   │   │   ├── phone.ts
+│   │   │   └── timezone.ts
+│   │   ├── processor.ts
+│   │   ├── readiness.ts
+│   │   └── types.ts
+│   ├── contact-properties
+│   │   └── config.ts
+│   ├── contacts
+│   │   └── properties.ts
+│   ├── contexts
+│   │   └── user-context.tsx
+│   ├── cookies.ts
+│   ├── csv
+│   │   ├── index.ts
+│   │   └── parser.ts
+│   ├── db
+│   │   └── index.ts
+│   ├── email
+│   │   ├── conversation.ts
+│   │   ├── html-to-text.ts
+│   │   ├── index.ts
+│   │   ├── message-id.ts
+│   │   ├── parser.ts
+│   │   ├── prepare.ts
+│   │   └── tracking.ts
+│   ├── encryption
+│   │   └── index.ts
+│   ├── form-builder
+│   │   ├── components
+│   │   │   ├── content-block-renderer.tsx
+│   │   │   ├── form-renderer.tsx
+│   │   │   └── index.ts
+│   │   ├── index.ts
+│   │   └── schema.ts
+│   ├── forms
+│   │   ├── field-mapping.ts
+│   │   ├── submission-handlers.ts
+│   │   └── view-tracking.ts
+│   ├── logto
+│   │   └── errors.ts
+│   ├── mta
+│   │   ├── client.ts
+│   │   ├── event-processor.ts
+│   │   ├── event-types.ts
+│   │   ├── index.ts
+│   │   ├── injector.ts
+│   │   └── types.ts
+│   ├── providers
+│   │   └── query-provider.tsx
+│   ├── queue
+│   │   ├── connection.ts
+│   │   ├── index.ts
+│   │   ├── logger.ts
+│   │   ├── queue.ts
+│   │   ├── types.ts
+│   │   └── worker.ts
+│   ├── segments
+│   │   └── conditions-to-prisma.ts
+│   ├── sending-domains
+│   │   ├── dkim.ts
+│   │   ├── dmarc.ts
+│   │   └── dns.ts
+│   ├── signoz
+│   │   ├── client.ts
+│   │   ├── index.ts
+│   │   ├── tracking-log-parser.ts
+│   │   └── types.ts
+│   ├── ssl
+│   │   └── acme.ts
+│   ├── storage
+│   │   ├── index.ts
+│   │   ├── private-storage.ts
+│   │   ├── public-storage.ts
+│   │   ├── redis-client.ts
+│   │   └── redis-keys.ts
+│   ├── url.ts
+│   └── utils.ts
+├── mta-testing
+│   ├── certs
+│   │   ├── ca.crt
+│   │   ├── ca.key
+│   │   ├── ca.srl
+│   │   ├── cert.pem
+│   │   ├── dkim
+│   │   │   └── kbmta.net
+│   │   │       ├── kbmta.key
+│   │   │       └── kbmta.pub
+│   │   ├── fullchain.pem
+│   │   ├── generate-certs.sh
+│   │   ├── privkey.pem
+│   │   ├── tenant-hq-dkim-private.pem
+│   │   ├── tenant-hq-dkim-public.pem
+│   │   ├── tenant-testcustomer-dkim-private.pem
+│   │   └── tenant-testcustomer-dkim-public.pem
+│   ├── config
+│   │   ├── init.test.lua
+│   │   ├── shaping.toml
+│   │   ├── sources.test.toml
+│   │   └── tsa_init.lua
+│   ├── dnsmasq
+│   │   └── dnsmasq.conf
+│   ├── mocks
+│   │   └── server.js
+│   └── scripts
+│       └── start-kumomta.sh
+├── next-env.d.ts
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+├── prisma
+│   ├── migrations
+│   │   ├── 20251224060450_init
+│   │   │   └── migration.sql
+│   │   ├── 20260102164012_add_email_model
+│   │   │   └── migration.sql
+│   │   ├── 20260102183308_add_confirmation_token_fields
+│   │   │   └── migration.sql
+│   │   ├── 20260102184017_remove_confirmation_token_expiry
+│   │   │   └── migration.sql
+│   │   ├── 20260104091514_add_unsubscribed_event_type
+│   │   │   └── migration.sql
+│   │   ├── 20260104092833_add_list_unsubscribe_event_type
+│   │   │   └── migration.sql
+│   │   ├── 20260104134557_add_ssl_challenge_fields
+│   │   │   └── migration.sql
+│   │   ├── 20260105025053_add_ssl_issuance_status
+│   │   │   └── migration.sql
+│   │   ├── 20260106110057_add_fields_to_sender_identities
+│   │   │   └── migration.sql
+│   │   ├── 20260110120959_add_content_s3_key_to_events
+│   │   │   └── migration.sql
+│   │   └── migration_lock.toml
+│   └── schema.prisma
+├── prisma.config.ts
+├── proxy.ts
+├── public
+│   ├── android-chrome-192x192.png
+│   ├── android-chrome-512x512.png
+│   ├── apple-touch-icon.png
+│   ├── assets
+│   │   └── logo-full-light.png
+│   ├── favicon-16x16.png
+│   ├── favicon-32x32.png
+│   ├── favicon.ico
+│   ├── fonts
+│   │   └── roca-two-rg.ttf
+│   ├── kibamail-og-meta-image.webp
+│   ├── openapi.v1.json
+│   └── site.webmanifest
+├── scripts
+│   ├── contact-seed.ts
+│   ├── rbac-sync.ts
+│   └── seed.ts
+├── tanstack.d.ts
+├── tests
+│   ├── api
+│   │   ├── internal
+│   │   │   └── v1
+│   │   │       ├── acme-challenges
+│   │   │       │   └── get.spec.ts
+│   │   │       ├── domains
+│   │   │       │   └── retry-ssl.spec.ts
+│   │   │       ├── forms
+│   │   │       │   ├── content-image.spec.ts
+│   │   │       │   ├── favicon.spec.ts
+│   │   │       │   ├── public-form-seo.spec.ts
+│   │   │       │   ├── public-submissions.spec.ts
+│   │   │       │   ├── seo-image.spec.ts
+│   │   │       │   └── view-tracking.spec.ts
+│   │   │       └── ssl-certificates
+│   │   │           └── get.spec.ts
+│   │   └── v1
+│   │       ├── api-keys
+│   │       │   └── api-keys.spec.ts
+│   │       ├── automations
+│   │       │   ├── create.spec.ts
+│   │       │   ├── crud.spec.ts
+│   │       │   ├── list.spec.ts
+│   │       │   ├── publish.spec.ts
+│   │       │   └── versioning.spec.ts
+│   │       ├── broadcasts
+│   │       │   ├── auto-text.spec.ts
+│   │       │   ├── create-and-send.spec.ts
+│   │       │   ├── create.spec.ts
+│   │       │   ├── crud.spec.ts
+│   │       │   ├── list.spec.ts
+│   │       │   └── send.spec.ts
+│   │       ├── contact-properties.spec.ts
+│   │       ├── contacts
+│   │       │   ├── create.spec.ts
+│   │       │   ├── get.spec.ts
+│   │       │   ├── list.spec.ts
+│   │       │   ├── properties.spec.ts
+│   │       │   └── search.spec.ts
+│   │       ├── domains
+│   │       │   ├── create.spec.ts
+│   │       │   ├── crud.spec.ts
+│   │       │   ├── list.spec.ts
+│   │       │   └── verify.spec.ts
+│   │       ├── emails
+│   │       │   └── send.spec.ts
+│   │       ├── forms
+│   │       │   ├── create.spec.ts
+│   │       │   ├── crud.spec.ts
+│   │       │   ├── field-mapping.spec.ts
+│   │       │   ├── list-versions.spec.ts
+│   │       │   ├── list.spec.ts
+│   │       │   ├── publish.spec.ts
+│   │       │   ├── seo.spec.ts
+│   │       │   ├── submissions.spec.ts
+│   │       │   └── versions.spec.ts
+│   │       ├── segments
+│   │       │   ├── contacts.spec.ts
+│   │       │   ├── create.spec.ts
+│   │       │   ├── crud.spec.ts
+│   │       │   └── list.spec.ts
+│   │       └── topics
+│   │           ├── contacts.spec.ts
+│   │           ├── create.spec.ts
+│   │           ├── crud.spec.ts
+│   │           └── list.spec.ts
+│   ├── app
+│   │   └── public
+│   │       └── confirm
+│   ├── jobs
+│   │   ├── broadcasts
+│   │   │   └── send-broadcast.spec.ts
+│   │   ├── contacts
+│   │   │   └── unsubscribe.spec.ts
+│   │   ├── forms
+│   │   │   ├── confirm-double-opt-in.spec.ts
+│   │   │   └── send-double-opt-in.spec.ts
+│   │   └── sending-domains
+│   │       ├── check-tracking-dns.spec.ts
+│   │       ├── check-verification.spec.ts
+│   │       ├── issue-tracking-ssl.spec.ts
+│   │       └── renew-expiring-ssl.spec.ts
+│   ├── lib
+│   │   ├── broadcasts
+│   │   │   ├── batch-scheduler.spec.ts
+│   │   │   ├── links-validator.spec.ts
+│   │   │   ├── readiness.spec.ts
+│   │   │   ├── recipient-fetcher.spec.ts
+│   │   │   └── recipient-resolver.spec.ts
+│   │   ├── contact-imports
+│   │   │   ├── large-file.spec.ts
+│   │   │   ├── normalizers
+│   │   │   │   ├── city.spec.ts
+│   │   │   │   ├── country.spec.ts
+│   │   │   │   ├── phone.spec.ts
+│   │   │   │   └── timezone.spec.ts
+│   │   │   ├── processor.spec.ts
+│   │   │   └── readiness.spec.ts
+│   │   ├── csv
+│   │   │   └── parser.spec.ts
+│   │   ├── email
+│   │   │   ├── html-to-text.spec.ts
+│   │   │   ├── prepare.spec.ts
+│   │   │   └── tracking.spec.ts
+│   │   ├── encryption
+│   │   │   └── encryption.spec.ts
+│   │   ├── forms
+│   │   │   ├── confirmation-token.spec.ts
+│   │   │   └── double-opt-in-submission.spec.ts
+│   │   ├── segments
+│   │   │   └── conditions-to-prisma.spec.ts
+│   │   └── ssl
+│   │       └── acme.spec.ts
+│   ├── mocks
+│   │   ├── csv
+│   │   │   ├── empty.csv
+│   │   │   ├── headers-only.csv
+│   │   │   ├── inconsistent.csv
+│   │   │   ├── invalid-emails.csv
+│   │   │   ├── malformed.csv
+│   │   │   ├── perfect.csv
+│   │   │   ├── quoted-fields.csv
+│   │   │   ├── special-chars.csv
+│   │   │   └── standard-fields-mixed.csv
+│   │   └── leads-10000.csv
+│   ├── mta
+│   │   ├── test-broadcast.spec.ts
+│   │   └── test-transactional.spec.ts
+│   ├── setup.ts
+│   └── utils
+│       ├── README.md
+│       ├── api-client.ts
+│       ├── api-keys.ts
+│       ├── factories.ts
+│       ├── form-fixtures.ts
+│       ├── index.ts
+│       ├── mailpit.ts
+│       └── workspace.ts
+├── tree.txt
+├── tsconfig.json
+├── tsconfig.tsbuildinfo
+├── vitest.config.ts
+└── webhooks
+    ├── client
+    │   ├── client.ts
+    │   ├── schema.ts
+    │   └── types.ts
+    └── config
+        └── outpost
+            └── config.yaml
+
+479 directories, 1026 files

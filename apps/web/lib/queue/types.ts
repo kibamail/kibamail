@@ -129,26 +129,30 @@ export type QueueJobs = {
       senderIdentityId: string;
       /** Sending domain ID */
       sendingDomainId: string;
-      /** Optional reply-to email */
-      replyToEmail?: string;
+      /** Optional reply-to configuration */
+      replyTo?: {
+        email: string;
+        name?: string;
+      };
       /** Recipient email(s) - single or array */
       to: string | string[];
       /** Email subject */
       subject: string;
+      /** Preview text shown in email clients (optional) */
+      previewText?: string;
       /** HTML body */
       htmlBody: string;
       /** Plain text body (optional) */
       textBody?: string;
-      /** Attachments uploaded to S3 */
+      /** Attachments with base64 content (uploaded in background job) */
       attachments?: Array<{
-        s3_key: string;
-        file_name: string;
-        content_type: string;
+        filename: string;
+        contentType: string;
+        content: string;
+        index: number;
       }>;
       /** Custom metadata for tracking */
       metadata?: Record<string, string>;
-      /** Whether inbox is enabled for sending domain */
-      inboxEnabled: boolean;
     };
   };
 };

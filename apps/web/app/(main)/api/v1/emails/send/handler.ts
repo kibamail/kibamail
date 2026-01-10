@@ -2,7 +2,8 @@
  * Transactional Email Handler (External API)
  *
  * Business logic for sending transactional emails via API.
- * Handles validation, sender identity resolution, attachment uploads, and job queuing.
+ * Handles validation, sender identity resolution, and job queuing.
+ * Attachment uploads happen in the background job, not during HTTP request.
  */
 
 import { createId } from "@paralleldrive/cuid2";
@@ -12,7 +13,6 @@ import { ErrorCode } from "@/lib/api/error-codes";
 import { responseCreated } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
-import { uploadPrivateFile } from "@/lib/storage";
 import { queue } from "@/lib/queue";
 import {
   sendTransactionalEmailSchema,
@@ -21,15 +21,6 @@ import {
 
 /**
  * Parse an email address into local part and domain
- *
- * @param email - Full email address (e.g., "info@example.com")
- * @returns Object with local part and domain
- *
- * @example
- * ```ts
- * parseEmailAddress("info@example.com")
- * // Returns: { local: "info", domain: "example.com" }
- * ```
  */
 function parseEmailAddress(email: string): { local: string; domain: string } {
   const atIndex = email.lastIndexOf("@");
@@ -48,11 +39,6 @@ function parseEmailAddress(email: string): { local: string; domain: string } {
 
 /**
  * Find or create a sender identity for given from email
- *
- * @param workspaceId - Workspace ID
- * @param fromEmail - Full from email address
- * @param sendingDomainId - Sending domain ID
- * @returns Sender identity record
  */
 async function findOrCreateSenderIdentity(
   workspaceId: string,
@@ -84,49 +70,10 @@ async function findOrCreateSenderIdentity(
 }
 
 /**
- * Upload a base64 encoded attachment to S3
- *
- * @param workspaceId - Workspace ID
- * @param emailSendId - Email send ID for organization
- * @param index - Attachment index for filename
- * @param attachment - Attachment object with filename and base64 content
- * @returns S3 attachment object with key and metadata
- */
-async function uploadAttachment(
-  workspaceId: string,
-  emailSendId: string,
-  index: number,
-  attachment: TransactionalAttachment,
-): Promise<{
-  s3_key: string;
-  file_name: string;
-  content_type: string;
-}> {
-  try {
-    const buffer = Buffer.from(attachment.content, "base64");
-    const s3Key = `emails/${workspaceId}/transactional/${emailSendId}/${index}-${attachment.filename}`;
-
-    await uploadPrivateFile(s3Key, buffer, attachment.contentType);
-
-    return {
-      s3_key: s3Key,
-      file_name: attachment.filename,
-      content_type: attachment.contentType,
-    };
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new BadRequestError(
-      `Failed to upload attachment: ${attachment.filename}. Error: ${errorMessage}`,
-      ErrorCode.INVALID_ATTACHMENT_FORMAT,
-    );
-  }
-}
-
-/**
  * Send a transactional email
  *
- * @param workspaceId - Workspace ID from API key
- * @param request - Next.js request object
+ * Validates the request and queues the job immediately without any S3 uploads.
+ * All file uploads happen in the background job after MTA injection.
  */
 export async function sendTransactionalEmail(
   workspaceId: string,
@@ -134,7 +81,7 @@ export async function sendTransactionalEmail(
 ) {
   const data = await validateRequestBody(sendTransactionalEmailSchema, request);
 
-  const { from, to, subject, html, text, attachments, metadata } = data;
+  const { from, to, replyTo, subject, previewText, html, text, attachments, metadata } = data;
 
   const normalizedTo = Array.isArray(to) ? to : [to];
 
@@ -189,36 +136,33 @@ export async function sendTransactionalEmail(
 
   const emailSendId = createId();
 
-  let uploadedAttachments: Array<{
-    s3_key: string;
-    file_name: string;
-    content_type: string;
-  }> = [];
-
-  if (attachments && attachments.length > 0) {
-    uploadedAttachments = await Promise.all(
-      attachments.map((attachment, index) =>
-        uploadAttachment(workspaceId, emailSendId, index, attachment),
-      ),
-    );
-  }
-
   const attachmentsForJob =
-    uploadedAttachments.length > 0 ? uploadedAttachments : undefined;
+    attachments && attachments.length > 0
+      ? attachments.map((att, index) => ({
+          filename: att.filename,
+          contentType: att.contentType,
+          content: att.content,
+          index,
+        }))
+      : undefined;
+
+  const replyToForJob: { email: string; name?: string } | undefined = replyTo
+    ? { email: replyTo.email, name: replyTo.name }
+    : undefined;
 
   await queue("emails").push("send-transactional", {
     emailSendId,
     workspaceId,
     senderIdentityId: senderIdentity.id,
     sendingDomainId: sendingDomain.id,
-    replyToEmail: senderIdentity.replyToEmail || undefined,
+    replyTo: replyToForJob,
     to: normalizedTo.length === 1 ? normalizedTo[0] : normalizedTo,
     subject,
+    previewText,
     htmlBody: html,
     textBody: text,
     attachments: attachmentsForJob,
     metadata: metadata || undefined,
-    inboxEnabled: sendingDomain.inboxEnabled,
   });
 
   return responseCreated(

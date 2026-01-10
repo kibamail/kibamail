@@ -26,7 +26,18 @@ interface KumoMtaRecipient {
 interface KumoMtaContent {
   text_body?: string;
   html_body?: string;
+  preview_text?: string;
   headers?: Record<string, string>;
+  attachments?: Array<{
+    data: string;
+    base64: boolean;
+    content_type: string;
+    file_name?: string;
+    content_id?: string;
+  }>;
+  from?: { email: string; name?: string };
+  subject?: string;
+  reply_to?: { email: string; name?: string };
 }
 
 interface KumoMtaRequest {
@@ -51,33 +62,33 @@ interface KumoMtaInjectResponse {
  * Builds the native request format using content directly from the message.
  */
 function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
-  // Build the From header
   const senderEmail = `${message.sender.email}@${message.sender.domain}`;
-  const fromHeader = message.sender.name
-    ? `${message.sender.name} <${senderEmail}>`
-    : senderEmail;
 
-  // Build the To header
-  const toHeader = message.recipient.name
-    ? `${message.recipient.name} <${message.recipient.email}>`
-    : message.recipient.email;
-
-  // Build headers object
   const headers: Record<string, string> = {
     Subject: message.subject,
-    From: fromHeader,
-    To: toHeader,
+    From: message.sender.name
+      ? `${message.sender.name} <${senderEmail}>`
+      : senderEmail,
+    To: message.recipient.name
+      ? `${message.recipient.name} <${message.recipient.email}>`
+      : message.recipient.email,
     "Reply-To": message.reply_to.email,
     "Message-ID": `<${message.metadata.message_id}>`,
-    // Include custom headers (like List-Unsubscribe)
     ...message.headers,
   };
 
-  // Add X-Kibamail tracking headers
   headers["X-Kibamail-Broadcast-Id"] = message.broadcast_id;
   headers["X-Kibamail-Contact-Id"] = message.contact_id;
   headers["X-Kibamail-Workspace-Id"] = message.tenant_id;
   headers["X-Kibamail-Email-Send-Id"] = message.id;
+
+  const attachments = message.attachments?.map((att) => ({
+    data: att.data || "",
+    base64: att.base64 ?? true,
+    content_type: att.content_type,
+    file_name: att.file_name,
+    content_id: att.content_id,
+  }));
 
   return {
     envelope_sender: message.metadata.envelope_sender,
@@ -90,7 +101,12 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
     content: {
       html_body: message.html_body,
       text_body: message.text_body,
+      preview_text: message.preview_text || undefined,
       headers,
+      attachments: attachments?.length ? attachments : undefined,
+      from: { email: senderEmail, name: message.sender.name || undefined },
+      subject: message.subject,
+      reply_to: { email: message.reply_to.email, name: message.reply_to.name || undefined },
     },
   };
 }
@@ -135,7 +151,6 @@ export async function injectEmail(
     const result: InjectionResult = {
       id: message.id,
       success,
-      duplicate: false, // KumoMTA doesn't have duplicate detection
       error: errorMsg,
     };
 
@@ -160,7 +175,6 @@ export async function injectEmail(
     return {
       id: message.id,
       success: false,
-      duplicate: false,
       error: errorMessage,
     };
   }
@@ -185,7 +199,6 @@ export async function injectEmailBatch(
       total: 0,
       successful: 0,
       failed: 0,
-      duplicates: 0,
       results: [],
     };
   }
@@ -221,14 +234,12 @@ async function injectEmailBatchIndividually(
   }
 
   const successful = results.filter((r) => r.success).length;
-  const duplicates = results.filter((r) => r.duplicate).length;
   const failed = results.filter((r) => !r.success).length;
 
   logger.info(
     {
       total: messages.length,
       successful,
-      duplicates,
       failed,
     },
     "Email batch injected individually to MTA"
@@ -238,7 +249,6 @@ async function injectEmailBatchIndividually(
     total: messages.length,
     successful,
     failed,
-    duplicates,
     results,
   };
 }

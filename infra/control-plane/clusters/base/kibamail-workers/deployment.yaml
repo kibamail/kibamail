@@ -229,11 +229,10 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: ACME_ACCOUNT_KEY
-            # MTA Direct Injection Configuration
             - name: MTA_INJECTION_URL
               valueFrom:
-                configMapKeyRef:
-                  name: kibamail-config
+                secretKeyRef:
+                  name: control-plane-mta
                   key: MTA_INJECTION_URL
           resources:
             requests:

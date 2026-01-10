@@ -208,7 +208,7 @@ export const sendReply: JobProcessor<"inbox", "send-reply"> = async (
   });
 
   logger.info(
-    { jobId, conversationId, emailSendId, duplicate: result.duplicate },
+    { jobId, conversationId, emailSendId },
     "Inbox reply sent",
   );
 };

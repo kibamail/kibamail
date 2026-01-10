@@ -3,7 +3,7 @@
   "info": {
     "title": "Kibamail API",
     "version": "1.0.0",
-    "description": "# Kibamail API\n\nThe Kibamail API provides a comprehensive set of endpoints for managing your email marketing operations programmatically.\n\n## Key Features\n\n- **Contacts Management**: Create, update, and segment your contact lists with custom properties\n- **Topics & Subscriptions**: Manage email topics and subscriber preferences\n- **Forms**: Create and publish embeddable forms for lead capture\n- **Segments**: Build dynamic audience segments using flexible filtering conditions\n- **Automations**: Set up automated email workflows triggered by contact behavior\n- **API Keys**: Secure, scoped API key management for workspace access\n\n## Authentication\n\nAll API requests require authentication using an API key. Include your API key in the Authorization header:\n\n```\nAuthorization: Bearer kb_your_api_key_here\n```\n\nAPI keys are scoped to specific permissions (read/write for each resource type). Generate keys from your workspace settings.\n\n## Rate Limiting\n\n- **Rate Limit**: 1000 requests per minute per API key\n- **Burst Limit**: 100 requests per second\n- Rate limit headers are included in all responses\n\n## Pagination\n\nList endpoints use cursor-based pagination for optimal performance:\n- `limit`: Number of items (1-100, default 20)\n- `after`: Cursor for next page (ID of last item)\n- `before`: Cursor for previous page (ID of first item)\n\nResponses include `hasMore` and `hasPrevious` flags for navigation.\n\n## Error Handling\n\nAll errors follow a consistent format with:\n- `type`: Error category (authentication_error, validation_error, etc.)\n- `code`: Specific error code (FORM_NOT_FOUND, INSUFFICIENT_SCOPE, etc.)\n- `message`: Human-readable description\n- `requestId`: Unique identifier for debugging\n- `validationErrors`: Field-level errors (for validation failures)\n\n## Webhooks\n\nConfigure webhooks to receive real-time notifications for:\n- Contact created/updated/unsubscribed\n- Form submissions\n- Automation triggers\n- Topic subscriptions/unsubscriptions\n\n## SDKs\n\nOfficial SDKs available for:\n- Node.js/TypeScript\n- Python\n- PHP\n- Ruby\n\nFor detailed guides and tutorials, visit our documentation."
+    "description": "# Kibamail API\n\nThe Kibamail API provides a comprehensive set of endpoints for managing your email marketing operations programmatically.\n\n## Key Features\n\n- **Contacts Management**: Create, update, and segment your contact lists with custom properties\n- **Topics & Subscriptions**: Manage email topics and subscriber preferences\n- **Forms**: Create and publish embeddable forms for lead capture\n- **Segments**: Build dynamic audience segments using flexible filtering conditions\n- **Automations**: Set up automated email workflows triggered by contact behavior\n- **Transactional Emails**: Send one-off transactional emails like order confirmations and password resets\n- **API Keys**: Secure, scoped API key management for workspace access\n\n## Authentication\n\nAll API requests require authentication using an API key. Include your API key in the Authorization header:\n\n```\nAuthorization: Bearer kb_your_api_key_here\n```\n\nAPI keys are scoped to specific permissions (read/write for each resource type). Generate keys from your workspace settings.\n\n## Rate Limiting\n\n- **Rate Limit**: 1000 requests per minute per API key\n- **Burst Limit**: 100 requests per second\n- Rate limit headers are included in all responses\n\n## Pagination\n\nList endpoints use cursor-based pagination for optimal performance:\n- `limit`: Number of items (1-100, default 20)\n- `after`: Cursor for next page (ID of last item)\n- `before`: Cursor for previous page (ID of first item)\n\nResponses include `hasMore` and `hasPrevious` flags for navigation.\n\n## Error Handling\n\nAll errors follow a consistent format with:\n- `type`: Error category (authentication_error, validation_error, etc.)\n- `code`: Specific error code (FORM_NOT_FOUND, INSUFFICIENT_SCOPE, etc.)\n- `message`: Human-readable description\n- `requestId`: Unique identifier for debugging\n- `validationErrors`: Field-level errors (for validation failures)\n\n## Webhooks\n\nConfigure webhooks to receive real-time notifications for:\n- Contact created/updated/unsubscribed\n- Form submissions\n- Automation triggers\n- Topic subscriptions/unsubscriptions\n\n## SDKs\n\nOfficial SDKs available for:\n- Node.js/TypeScript\n- Python\n- PHP\n- Ruby\n\nFor detailed guides and tutorials, visit our documentation."
   },
   "servers": [
     {
@@ -12466,6 +12466,326 @@
           }
         }
       }
+    },
+    "/v1/emails/send": {
+      "post": {
+        "summary": "Send Transactional Email",
+        "description": "Send a transactional email to a recipient. Transactional emails are one-off emails sent for specific purposes like order confirmations, password resets, or notifications.\n\n**Use Cases:**\n- Order confirmation emails\n- Password reset emails\n- Account verification emails\n- Payment receipts\n- Shipping notifications\n- Any one-off automated email\n\n**Behavior:**\n- Email is queued and sent asynchronously\n- Returns immediately with the email send ID\n- Delivery status is tracked via webhooks\n- Supports HTML and plain text content\n- Supports attachments (up to 25 files)\n- Custom metadata can be attached for tracking\n- Optional custom reply-to address\n\n**Required Scope:** `smtp:send`\n\n**Rate Limits:**\n- 100 emails per minute per API key\n- Maximum 10MB HTML content\n- Maximum 25 attachments (total 25MB)\n\n**Reply-To:**\n- If not specified, defaults to the sender identity's reply-to email\n- Custom reply-to allows directing replies to a specific address",
+        "tags": ["Transactional Emails"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["from", "to", "subject", "html"],
+                "properties": {
+                  "from": {
+                    "type": "string",
+                    "format": "email",
+                    "maxLength": 255,
+                    "description": "Sender email address (must be a verified sending domain)"
+                  },
+                  "to": {
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Single recipient email address"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "email"
+                        },
+                        "minItems": 1,
+                        "description": "Multiple recipient email addresses"
+                      }
+                    ],
+                    "description": "Recipient email address(es)"
+                  },
+                  "replyTo": {
+                    "type": "object",
+                    "description": "Custom reply-to address (optional)",
+                    "properties": {
+                      "email": {
+                        "type": "string",
+                        "format": "email",
+                        "description": "Reply-to email address"
+                      },
+                      "name": {
+                        "type": "string",
+                        "maxLength": 255,
+                        "description": "Reply-to display name (optional)"
+                      }
+                    },
+                    "required": ["email"]
+                  },
+                  "subject": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500,
+                    "description": "Email subject line"
+                  },
+                  "html": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 10000000,
+                    "description": "HTML email body content"
+                  },
+                  "text": {
+                    "type": "string",
+                    "maxLength": 10000000,
+                    "description": "Plain text email body content (auto-generated from HTML if not provided)"
+                  },
+                  "attachments": {
+                    "type": "array",
+                    "maxItems": 25,
+                    "description": "Email attachments",
+                    "items": {
+                      "type": "object",
+                      "required": ["filename", "content", "contentType"],
+                      "properties": {
+                        "filename": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255,
+                          "description": "Original filename"
+                        },
+                        "content": {
+                          "type": "string",
+                          "description": "Base64-encoded file content"
+                        },
+                        "contentType": {
+                          "type": "string",
+                          "description": "MIME type of the file"
+                        }
+                      }
+                    }
+                  },
+                  "metadata": {
+                    "type": "object",
+                    "description": "Custom metadata to attach to the email for tracking",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Email queued successfully. The email will be sent asynchronously.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "object": "email",
+                  "id": "es_abc123xyz789"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "email",
+                      "description": "Object type identifier"
+                    },
+                    "id": {
+                      "type": "string",
+                      "description": "Unique email send ID for tracking delivery and events"
+                    }
+                  },
+                  "required": ["object", "id"],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data, such as unverified domain or missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["field", "code", "message"]
+                          }
+                        }
+                      },
+                      "required": ["type", "code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'smtp:send' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["authentication_error"]
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["type", "code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Sending domain not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["invalid_request_error"]
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": ["type", "code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Request body validation failed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": ["validation_error"]
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "type": "string"
+                              },
+                              "code": {
+                                "type": "string"
+                              },
+                              "message": {
+                                "type": "string"
+                              }
+                            },
+                            "required": ["field", "code", "message"]
+                          }
+                        }
+                      },
+                      "required": ["type", "code", "message", "requestId"]
+                    }
+                  },
+                  "required": ["error"]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -12755,7 +13075,7 @@
         "type": "http",
         "scheme": "bearer",
         "bearerFormat": "API Key",
-        "description": "API key authentication using Bearer token format.\n\n**How to authenticate:**\n1. Generate an API key from your workspace settings\n2. Include it in the Authorization header: `Authorization: Bearer kb_xxxxx`\n3. Ensure your API key has the required scopes for the endpoint\n\n**Scopes:**\n- `read:contacts` - Read contact data\n- `write:contacts` - Create and update contacts\n- `read:forms` - View forms\n- `write:forms` - Create and publish forms\n- `read:topics` - View topics\n- `write:topics` - Manage topics\n- `read:segments` - View segments\n- `write:segments` - Create and update segments\n- `read:automations` - View automations\n- `write:automations` - Manage automations\n\n**Security best practices:**\n- Store API keys securely (use environment variables)\n- Use separate keys for development and production\n- Rotate keys periodically\n- Use minimal required scopes for each key"
+        "description": "API key authentication using Bearer token format.\n\n**How to authenticate:**\n1. Generate an API key from your workspace settings\n2. Include it in the Authorization header: `Authorization: Bearer kb_xxxxx`\n3. Ensure your API key has the required scopes for the endpoint\n\n**Scopes:**\n- `read:contacts` - Read contact data\n- `write:contacts` - Create and update contacts\n- `read:forms` - View forms\n- `write:forms` - Create and publish forms\n- `read:topics` - View topics\n- `write:topics` - Manage topics\n- `read:segments` - View segments\n- `write:segments` - Create and update segments\n- `read:automations` - View automations\n- `write:automations` - Manage automations\n- `smtp:send` - Send transactional emails\n\n**Security best practices:**\n- Store API keys securely (use environment variables)\n- Use separate keys for development and production\n- Rotate keys periodically\n- Use minimal required scopes for each key"
       }
     }
   }

@@ -295,7 +295,6 @@ export const sendBroadcastBatch: JobProcessor<
       processedCount: contacts.length,
       preparedCount: preparedEmails.length,
       injectedCount: result.successful,
-      duplicates: result.duplicates,
       failed: result.failed,
       skippedCount,
     },

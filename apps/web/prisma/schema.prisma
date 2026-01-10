@@ -1292,6 +1292,8 @@ model Event {
   queue                       String?
   /// Site name (MTA identifier)
   siteName                    String?
+  /// S3 key for stored RFC822 email content (for transactional emails)
+  contentS3Key                String?
   /// Email size in bytes
   size                        Int?
   /// Total delivery attempts
