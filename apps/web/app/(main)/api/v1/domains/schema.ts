@@ -68,6 +68,7 @@ const dnsVerificationSchema = z.object({
   returnPath: recordVerificationSchema,
   tracking: recordVerificationSchema,
   dmarc: recordVerificationSchema,
+  mx: recordVerificationSchema.optional(),
   allVerified: z.boolean(),
 });
 

@@ -1,0 +1,16 @@
+# TLSRoute patches for staging logto hostnames
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: logto-main
+spec:
+  hostnames:
+    - auth.staging.kibamail.com
+---
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: logto-admin
+spec:
+  hostnames:
+    - admin.auth.staging.kibamail.com

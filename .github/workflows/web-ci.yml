@@ -41,6 +41,7 @@ jobs:
         working-directory: apps/web
         run: |
           docker compose -f docker-compose.ci.yml up --wait
+          docker compose -f compose.kumomta.yaml up --wait
 
       - name: build shared packages
         run: |
@@ -95,6 +96,7 @@ jobs:
           APP_KEY: TestAppKeyForDevelopmentOnly32ch
           INTERNAL_SERVICE_KEY: TestServiceKeyForDevelopment32
           MTA_INJECTION_URL: http://localhost:8000
+          MAILPIT_URL: http://localhost:8025
         run: pnpm test
 
   build-runner:

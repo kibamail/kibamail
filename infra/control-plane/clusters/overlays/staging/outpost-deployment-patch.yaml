@@ -1,10 +1,7 @@
-# Disable OTel for all services in staging
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: outpost-api
-  namespace: outpost
 spec:
   template:
     spec:
@@ -18,7 +15,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: outpost-delivery
-  namespace: outpost
 spec:
   template:
     spec:
@@ -32,26 +28,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: outpost-log
-  namespace: outpost
 spec:
   template:
     spec:
       containers:
         - name: outpost-log
-          env:
-            - name: OTEL_SDK_DISABLED
-              value: "true"
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: logto
-  namespace: logto
-spec:
-  template:
-    spec:
-      containers:
-        - name: logto
           env:
             - name: OTEL_SDK_DISABLED
               value: "true"

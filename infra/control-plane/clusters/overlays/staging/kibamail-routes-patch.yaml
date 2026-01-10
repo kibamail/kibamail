@@ -1,29 +1,44 @@
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+# TLSRoute patches for staging hostnames
+# Note: TLSRoutes use hostnames array, not single hostname like HTTPRoutes
+# Staging uses subdomains (staging.kibamail.com) so all use tls-kibamail listener
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: kibamail-control-plane
+  name: kibamail-apex
 spec:
+  parentRefs:
+    - name: kibamail-gateway
+      sectionName: tls-kibamail
   hostnames:
     - staging.kibamail.com
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
-  name: kibamail-marketing
+  name: kibamail-www
 spec:
   hostnames:
-    - staging.kibamail.com
+    - www.staging.kibamail.com
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: kibamail-api
 spec:
   hostnames:
     - api.staging.kibamail.com
 ---
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
+metadata:
+  name: kibamail-forms
+spec:
+  hostnames:
+    - forms.staging.kibamail.com
+---
+# Tracking route - staging tracking domain
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TLSRoute
 metadata:
   name: kibamail-tracking
 spec:

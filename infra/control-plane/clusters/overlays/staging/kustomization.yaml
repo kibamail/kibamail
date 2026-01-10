@@ -6,9 +6,13 @@ resources:
 
 patches:
   - path: certificate-patch.yaml
-  - path: tracking-certificate-patch.yaml
   - path: rabbitmq-patch.yaml
-  - path: gateway-patch.yaml
   - path: kibamail-routes-patch.yaml
+  - path: kibamail-images-patch.yaml
   - path: kibamail-env-patch.yaml
-  - path: otel-disable-patch.yaml
+  - path: cluster-secret-store-patch.yaml
+  - path: logto-routes-patch.yaml
+  - path: logto-deployment-patch.yaml
+  - path: postgres-objectstore-patch.yaml
+  - path: storageclass-patch.yaml
+  - path: outpost-deployment-patch.yaml
