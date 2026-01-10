@@ -186,6 +186,15 @@ export const API_SCOPES: ApiScopeDefinition[] = [
     description: "Remove entries from suppression list",
     category: "Suppression List",
   },
+
+  // ============================================================================
+  // SMTP
+  // ============================================================================
+  {
+    name: "smtp:send",
+    description: "Send emails via SMTP",
+    category: "SMTP",
+  },
 ];
 
 /**

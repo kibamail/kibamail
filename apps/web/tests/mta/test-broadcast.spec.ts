@@ -15,7 +15,7 @@
  * Run with: pnpm vitest run tests/mta/test-broadcast.spec.ts
  */
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { prisma } from "@/lib/db";
 import { sendTestBroadcast } from "@/jobs/broadcasts/send-test-broadcast";
 import {
@@ -29,14 +29,12 @@ import {
   type CreatedApiKey,
 } from "@/tests/utils";
 
-// Test configuration - matches compose.kumomta.yaml setup
 const MTA_TEST_CONFIG = {
   mailpitUrl: process.env.MAILPIT_URL ?? "http://localhost:8025",
-  mtaUrl: process.env.MTA_INJECTION_URL ?? "http://localhost:8000/api/inject/v1",
-  // Test domain that's configured in DNSMasq and has DKIM keys
+  mtaUrl:
+    process.env.MTA_INJECTION_URL ?? "http://localhost:8000/api/inject/v1",
   testDomain: "picoklos.kibamail.xyz",
   mtaDomain: "kbmta.net",
-  // Timeouts for waiting on email delivery
   deliveryTimeoutMs: 30000,
   pollIntervalMs: 500,
 };
@@ -64,7 +62,7 @@ async function requireEnvironment(): Promise<void> {
   if (!mailpitHealthy) {
     throw new Error(
       `Mailpit not available at ${MTA_TEST_CONFIG.mailpitUrl}. ` +
-      `Start MTA environment with: docker compose -f compose.kumomta.yaml up -d`
+        `Start MTA environment with: docker compose -f compose.kumomta.yaml up -d`
     );
   }
 
@@ -84,13 +82,16 @@ async function requireEnvironment(): Promise<void> {
     }
     // Any response (including 422, 400) means the MTA is running
   } catch (error) {
-    if (error instanceof Error && error.message.includes("inject endpoint not found")) {
+    if (
+      error instanceof Error &&
+      error.message.includes("inject endpoint not found")
+    ) {
       throw error;
     }
     throw new Error(
       `MTA not available at ${injectUrl}. ` +
-      `Start MTA environment with: docker compose -f compose.kumomta.yaml up -d. ` +
-      `Error: ${error instanceof Error ? error.message : String(error)}`
+        `Start MTA environment with: docker compose -f compose.kumomta.yaml up -d. ` +
+        `Error: ${error instanceof Error ? error.message : String(error)}`
     );
   }
 }
@@ -122,7 +123,12 @@ async function createVerifiedDomain(workspaceId: string, name: string) {
 /**
  * Create a sender identity for the domain
  */
-async function createSenderIdentity(workspaceId: string, domainId: string, email: string, name: string) {
+async function createSenderIdentity(
+  workspaceId: string,
+  domainId: string,
+  email: string,
+  name: string
+) {
   return prisma.senderIdentity.create({
     data: {
       workspaceId,
@@ -145,7 +151,7 @@ async function createTestBroadcastRecord(
     subject: string;
     html: string;
     text?: string;
-  },
+  }
 ) {
   const broadcast = await prisma.broadcast.create({
     data: {
@@ -210,7 +216,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       testWorkspace.id,
       domain.id,
       "newsletter",
-      "Kibamail Newsletter",
+      "Kibamail Newsletter"
     );
 
     // Create broadcast
@@ -234,7 +240,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
           </html>
         `,
         text: "Hello! Welcome to our newsletter. Unsubscribe: {{unsubscribe_url}}",
-      },
+      }
     );
 
     // Test email recipients
@@ -246,7 +252,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
     // Send test broadcast
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails },
-      `test-job-${Date.now()}`,
+      `test-job-${Date.now()}`
     );
 
     // Wait for emails to arrive in Mailpit
@@ -279,7 +285,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       testWorkspace.id,
       domain.id,
       "dkim-test",
-      "DKIM Test Sender",
+      "DKIM Test Sender"
     );
 
     // Create broadcast
@@ -291,7 +297,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
         name: "DKIM Test Broadcast",
         subject: "Testing DKIM Signatures",
         html: `<p>Testing DKIM</p><a href="{{unsubscribe_url}}">Unsubscribe</a>`,
-      },
+      }
     );
 
     const testEmail = "dkim-test@example.com";
@@ -299,7 +305,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
     // Send test broadcast
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails: [testEmail] },
-      `test-dkim-${Date.now()}`,
+      `test-dkim-${Date.now()}`
     );
 
     // Wait for email
@@ -326,16 +332,23 @@ describe("MTA Integration: Test Broadcast Sending", () => {
     } else {
       // Mailpit may not expose DKIM-Signature in headers API
       // In this case, we verify email was delivered (DKIM signing happened at MTA)
-      console.log("DKIM-Signature not exposed in Mailpit headers API - email delivery verified");
+      console.log(
+        "DKIM-Signature not exposed in Mailpit headers API - email delivery verified"
+      );
     }
 
     // Check if custom tracking headers are present (Mailpit may not expose all headers)
-    const broadcastId = emailAssertions.getHeader(headers, "X-Kibamail-Broadcast-Id");
+    const broadcastId = emailAssertions.getHeader(
+      headers,
+      "X-Kibamail-Broadcast-Id"
+    );
     if (broadcastId) {
       console.log("X-Kibamail-Broadcast-Id:", broadcastId);
     } else {
       // Custom X-headers may not be exposed by Mailpit - that's OK
-      console.log("Note: X-Kibamail-Broadcast-Id not exposed by Mailpit headers API");
+      console.log(
+        "Note: X-Kibamail-Broadcast-Id not exposed by Mailpit headers API"
+      );
     }
 
     // At minimum, verify the email has standard headers
@@ -350,7 +363,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       testWorkspace.id,
       domain.id,
       "headers-test",
-      "Headers Test",
+      "Headers Test"
     );
 
     const broadcast = await createTestBroadcastRecord(
@@ -361,14 +374,14 @@ describe("MTA Integration: Test Broadcast Sending", () => {
         name: "Headers Test Broadcast",
         subject: "Testing Email Headers",
         html: `<p>Testing headers</p><a href="{{unsubscribe_url}}">Unsubscribe</a>`,
-      },
+      }
     );
 
     const testEmail = "headers-test@example.com";
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails: [testEmail] },
-      `test-headers-${Date.now()}`,
+      `test-headers-${Date.now()}`
     );
 
     const message = await mailpit.waitForMessage(testEmail, {
@@ -394,7 +407,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
     for (const header of requiredHeaders) {
       expect(
         emailAssertions.hasRequiredHeaders(headers, [header]),
-        `Missing required header: ${header}`,
+        `Missing required header: ${header}`
       ).toBe(true);
     }
 
@@ -407,9 +420,10 @@ describe("MTA Integration: Test Broadcast Sending", () => {
     expect(messageId).toMatch(/^<.+@.+>$/);
 
     // Log headers for debugging
-    console.log("Email headers:", Object.fromEntries(
-      Object.entries(headers).map(([k, v]) => [k, v[0]]),
-    ));
+    console.log(
+      "Email headers:",
+      Object.fromEntries(Object.entries(headers).map(([k, v]) => [k, v[0]]))
+    );
   }, 60000);
 
   it("should apply open tracking pixel when enabled", async () => {
@@ -419,7 +433,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       testWorkspace.id,
       domain.id,
       "tracking-test",
-      "Tracking Test",
+      "Tracking Test"
     );
 
     // Create broadcast with tracking enabled
@@ -430,7 +444,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
         senderIdentity: { connect: { id: sender.id } },
         name: "Tracking Test Broadcast",
         status: "DRAFT",
-        trackOpens: true,  // Enable open tracking
+        trackOpens: true, // Enable open tracking
         trackClicks: true, // Enable click tracking
         emailContent: {
           create: {
@@ -459,7 +473,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails: [testEmail] },
-      `test-tracking-${Date.now()}`,
+      `test-tracking-${Date.now()}`
     );
 
     const message = await mailpit.waitForMessage(testEmail, {
@@ -471,7 +485,9 @@ describe("MTA Integration: Test Broadcast Sending", () => {
     // Check for tracking pixel in HTML
     if (message!.HTML) {
       // Open tracking should add a tracking pixel
-      const hasTrackingPixel = emailAssertions.hasOpenTrackingPixel(message!.HTML);
+      const hasTrackingPixel = emailAssertions.hasOpenTrackingPixel(
+        message!.HTML
+      );
       console.log("Has open tracking pixel:", hasTrackingPixel);
 
       // Click tracking should rewrite links
@@ -487,7 +503,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       testWorkspace.id,
       domain.id,
       "unsub-test",
-      "Unsubscribe Test",
+      "Unsubscribe Test"
     );
 
     const broadcast = await createTestBroadcastRecord(
@@ -505,14 +521,14 @@ describe("MTA Integration: Test Broadcast Sending", () => {
           </body>
           </html>
         `,
-      },
+      }
     );
 
     const testEmail = "unsub-test@example.com";
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails: [testEmail] },
-      `test-unsub-${Date.now()}`,
+      `test-unsub-${Date.now()}`
     );
 
     const message = await mailpit.waitForMessage(testEmail, {
@@ -529,7 +545,10 @@ describe("MTA Integration: Test Broadcast Sending", () => {
 
     // Check for List-Unsubscribe header (RFC 2369)
     const headers = await mailpit.getHeaders(message!.ID);
-    const listUnsubscribe = emailAssertions.getHeader(headers, "List-Unsubscribe");
+    const listUnsubscribe = emailAssertions.getHeader(
+      headers,
+      "List-Unsubscribe"
+    );
 
     // List-Unsubscribe header should be present
     expect(listUnsubscribe).toBeDefined();
@@ -547,7 +566,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       testWorkspace.id,
       domain.id,
       "batch-test",
-      "Batch Test",
+      "Batch Test"
     );
 
     const broadcast = await createTestBroadcastRecord(
@@ -558,15 +577,18 @@ describe("MTA Integration: Test Broadcast Sending", () => {
         name: "Batch Test Broadcast",
         subject: "Batch Email Test",
         html: `<p>Batch test email</p><a href="{{unsubscribe_url}}">Unsubscribe</a>`,
-      },
+      }
     );
 
     // Test with 5 recipients
-    const testEmails = Array.from({ length: 5 }, (_, i) => `batch-test-${i + 1}@example.com`);
+    const testEmails = Array.from(
+      { length: 5 },
+      (_, i) => `batch-test-${i + 1}@example.com`
+    );
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails },
-      `test-batch-${Date.now()}`,
+      `test-batch-${Date.now()}`
     );
 
     // Wait for all emails
@@ -583,7 +605,7 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       const recipientMessages = await mailpit.findByRecipient(email);
       expect(
         recipientMessages.length,
-        `No email found for ${email}`,
+        `No email found for ${email}`
       ).toBeGreaterThanOrEqual(1);
     }
 
@@ -599,7 +621,7 @@ describe("MTA Integration: Email Content Verification", () => {
       testWorkspace.id,
       domain.id,
       "html-test",
-      "HTML Test",
+      "HTML Test"
     );
 
     const broadcast = await createTestBroadcastRecord(
@@ -633,14 +655,14 @@ describe("MTA Integration: Email Content Verification", () => {
           </body>
           </html>
         `,
-      },
+      }
     );
 
     const testEmail = "html-content-test@example.com";
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails: [testEmail] },
-      `test-html-${Date.now()}`,
+      `test-html-${Date.now()}`
     );
 
     const message = await mailpit.waitForMessage(testEmail, {
@@ -651,13 +673,15 @@ describe("MTA Integration: Email Content Verification", () => {
     expect(message!.HTML).toBeTruthy();
 
     // Verify HTML structure is preserved
-    expect(emailAssertions.htmlContains(message!.HTML, [
-      "<h1",
-      "Welcome!",
-      "<ul>",
-      "<li>",
-      "<table",
-    ])).toBe(true);
+    expect(
+      emailAssertions.htmlContains(message!.HTML, [
+        "<h1",
+        "Welcome!",
+        "<ul>",
+        "<li>",
+        "<table",
+      ])
+    ).toBe(true);
   }, 60000);
 
   it("should include plain text alternative", async () => {
@@ -667,7 +691,7 @@ describe("MTA Integration: Email Content Verification", () => {
       testWorkspace.id,
       domain.id,
       "text-test",
-      "Text Test",
+      "Text Test"
     );
 
     const broadcast = await createTestBroadcastRecord(
@@ -679,14 +703,14 @@ describe("MTA Integration: Email Content Verification", () => {
         subject: "Plain Text Test",
         html: `<p>HTML version</p><a href="{{unsubscribe_url}}">Unsubscribe</a>`,
         text: "Plain text version. Unsubscribe: {{unsubscribe_url}}",
-      },
+      }
     );
 
     const testEmail = "text-content-test@example.com";
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails: [testEmail] },
-      `test-text-${Date.now()}`,
+      `test-text-${Date.now()}`
     );
 
     const message = await mailpit.waitForMessage(testEmail, {
