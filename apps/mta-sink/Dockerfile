@@ -3,20 +3,22 @@
 # ============================================
 FROM node:22-alpine AS builder
 
-WORKDIR /app
+# Install pnpm globally
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
-# Copy package files
-COPY apps/mta-sink/package.json apps/mta-sink/package.json
-COPY apps/mta-sink/tsconfig.json apps/mta-sink/tsconfig.json
+WORKDIR /build
+
+# Copy mta-sink content
+COPY apps/mta-sink/package.json apps/mta-sink/tsconfig.json ./
 
 # Install dependencies
-RUN cd apps/mta-sink && npm ci
+RUN pnpm install
 
 # Copy source code
-COPY apps/mta-sink/src apps/mta-sink/src
+COPY apps/mta-sink/src ./src
 
 # Build
-RUN cd apps/mta-sink && npm run build
+RUN pnpm run build
 
 # ============================================
 # Stage 2: Production runner
@@ -30,8 +32,8 @@ RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 mta-sink
 
 # Copy build output from builder
-COPY --from=builder --chown=mta-sink:nodejs /app/mta-sink/dist ./dist
-COPY --from=builder --chown=mta-sink:nodejs /app/mta-sink/node_modules ./node_modules
+COPY --from=builder --chown=mta-sink:nodejs /build/dist ./dist
+COPY --from=builder --chown=mta-sink:nodejs /build/node_modules ./node_modules
 
 # Switch to non-root user
 USER mta-sink

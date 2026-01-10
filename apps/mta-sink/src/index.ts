@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { logger } from "hono/logger";
+import { serve } from "@hono/node-server";
 import pino from "pino";
 
 const log = pino({
@@ -165,7 +166,9 @@ const PORT = process.env.PORT || "8000";
 
 log.info({ port: PORT }, "Starting MTA sink server");
 
-export default {
-  port: PORT,
+serve({
   fetch: app.fetch,
-};
+  port: parseInt(PORT, 10),
+}, (info) => {
+  log.info({ port: info.port }, "MTA sink server started");
+});
