@@ -137,7 +137,7 @@ export const contactResponseSchema = z.object({
 /**
  * Contact List Response Schema
  */
-const _contactListResponseSchema = z.object({
+export const contactListResponseSchema = z.object({
   object: z.literal("contact_list"),
   hasMore: z.boolean(),
   data: z.array(contactResponseSchema.omit({ object: true })),

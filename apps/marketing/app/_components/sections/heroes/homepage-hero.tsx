@@ -2,6 +2,7 @@ import { Button, Text } from "@kibamail/owly";
 import { ProductToggle } from "./product-toggle";
 import { HeroFeatures } from "./hero-features";
 import Image from "next/image";
+import Link from "next/link";
 
 export function HomePageHero() {
   return (
@@ -18,8 +19,8 @@ export function HomePageHero() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-6 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
-            <Button className="w-full! lg:w-fit! px-[42px]!">
-              Get started for free
+            <Button className="w-full! lg:w-fit! px-[42px]!" asChild>
+              <Link href="/w?action=register">Get started for free</Link>
             </Button>
             <Button variant="secondary" className="w-full! lg:w-fit!">
               Calculate your email savings

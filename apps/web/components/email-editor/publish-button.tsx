@@ -25,6 +25,7 @@ interface PublishButtonProps {
   onPublish: () => Promise<void>;
   successRedirectUrl?: string;
   labels: EmailEditorLabels;
+  disabled?: boolean;
 }
 
 export function PublishButton({
@@ -36,6 +37,7 @@ export function PublishButton({
   onPublish,
   successRedirectUrl,
   labels,
+  disabled = false,
 }: PublishButtonProps) {
   const [open, setOpen] = useState(false);
   const [panel, setPanel] = useState<Panel>("checklist");
@@ -116,6 +118,7 @@ export function PublishButton({
           publishMutation.mutate();
         }}
         loading={isSavingDraft || publishMutation.isPending}
+        disabled={disabled}
       >
         {labels.publishTrigger}
       </Button>
@@ -127,7 +130,9 @@ export function PublishButton({
   return (
     <Popover.Root open={open} onOpenChange={onOpenChange}>
       <Popover.Trigger asChild>
-        <Button loading={isSavingDraft}>{labels.publishTrigger}</Button>
+        <Button loading={isSavingDraft} disabled={disabled}>
+          {labels.publishTrigger}
+        </Button>
       </Popover.Trigger>
       <Popover.Content
         align="end"

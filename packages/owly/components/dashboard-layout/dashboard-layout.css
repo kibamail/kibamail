@@ -60,7 +60,7 @@
   display: grid;
   grid-template-columns: auto 1fr;
   grid-template-rows: auto auto;
-  gap: var(--sp-lg);
+  row-gap: var(--sp-lg);
   align-items: center;
 }
 
@@ -310,7 +310,6 @@
   font-family: var(--default-font-family);
   text-decoration: none;
   cursor: pointer;
-  text-decoration: underline;
 }
 
 @keyframes kb-dashboard-sidebar-zoom-in {

@@ -136,7 +136,9 @@ export class MailpitClient {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`Mailpit request failed: ${response.status} ${await response.text()}`);
+        throw new Error(
+          `Mailpit request failed: ${response.status} ${await response.text()}`,
+        );
       }
 
       return (await response.json()) as T;
@@ -240,12 +242,52 @@ export class MailpitClient {
   }
 
   /**
+   * Get attachment content from a message
+   *
+   * @param messageId - Mailpit message ID
+   * @param partId - Attachment part ID
+   * @returns Base64 encoded attachment content
+   */
+  async getAttachment(messageId: string, partId: string): Promise<string> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
+
+    try {
+      const response = await fetch(
+        `${this.baseUrl}/api/v1/message/${messageId}/part/${partId}`,
+        {
+          method: "GET",
+          signal: controller.signal,
+        },
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Mailpit request failed: ${response.status}`);
+      }
+
+      const buffer = await response.arrayBuffer();
+      return Buffer.from(buffer).toString("base64");
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === "AbortError") {
+        throw new Error(`Mailpit request timed out after ${this.timeoutMs}ms`);
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Search for messages
    *
    * @param query - Search query (e.g., "to:user@example.com" or "subject:Newsletter")
    * @param limit - Maximum number of results (default: 50)
    */
-  async searchMessages(query: string, limit = 50): Promise<MailpitMessageSummary[]> {
+  async searchMessages(
+    query: string,
+    limit = 50,
+  ): Promise<MailpitMessageSummary[]> {
     const response = await this.request<MailpitMessagesResponse>(
       "GET",
       `/search?query=${encodeURIComponent(query)}&limit=${limit}`,
@@ -357,9 +399,11 @@ export const emailAssertions = {
    * @param rawEmail - Raw RFC 5322 email content
    * @returns Array of DKIM signature objects with domain info
    */
-  extractDkimSignatures(rawEmail: string): Array<{ domain: string; selector: string }> {
+  extractDkimSignatures(
+    rawEmail: string,
+  ): Array<{ domain: string; selector: string }> {
     const signatures: Array<{ domain: string; selector: string }> = [];
-    const dkimRegex = /DKIM-Signature:[^]*?d=([^\s;]+)[^]*?s=([^\s;]+)/gi;
+    const dkimRegex = /DKIM-Signature:[\s\S]*?d=([^\s;]+)[\s\S]*?s=([^\s;]+)/gi;
     let match: RegExpExecArray | null;
 
     while ((match = dkimRegex.exec(rawEmail)) !== null) {
@@ -380,7 +424,9 @@ export const emailAssertions = {
    */
   hasRequiredHeaders(headers: MailpitHeaders, required: string[]): boolean {
     return required.every((header) => {
-      const key = Object.keys(headers).find((k) => k.toLowerCase() === header.toLowerCase());
+      const key = Object.keys(headers).find(
+        (k) => k.toLowerCase() === header.toLowerCase(),
+      );
       return key !== undefined && headers[key].length > 0;
     });
   },
@@ -392,7 +438,9 @@ export const emailAssertions = {
    * @param name - Header name
    */
   getHeader(headers: MailpitHeaders, name: string): string | undefined {
-    const key = Object.keys(headers).find((k) => k.toLowerCase() === name.toLowerCase());
+    const key = Object.keys(headers).find(
+      (k) => k.toLowerCase() === name.toLowerCase(),
+    );
     return key ? headers[key][0] : undefined;
   },
 
@@ -445,7 +493,9 @@ export const emailAssertions = {
 /**
  * Create a Mailpit client with default settings for MTA testing
  */
-export function createMailpitClient(options?: MailpitClientOptions): MailpitClient {
+export function createMailpitClient(
+  options?: MailpitClientOptions,
+): MailpitClient {
   return new MailpitClient({
     baseUrl: process.env.MAILPIT_URL ?? "http://localhost:8025",
     ...options,

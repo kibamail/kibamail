@@ -98,7 +98,7 @@ export function DoubleOptInEmailEditorClient({
   const [senderLocalPart, setSenderLocalPart] = useState("");
   const [senderDomainId, setSenderDomainId] = useState(domains[0]?.id || "");
   const [isAddingNewSender, setIsAddingNewSender] = useState(
-    !initialSenderIdentityId && senderIdentities.length === 0,
+    !initialSenderIdentityId && senderIdentities.length === 0
   );
 
   const allDomains = [...domains, ...addedDomains];
@@ -114,10 +114,10 @@ export function DoubleOptInEmailEditorClient({
           updates.senderIdentityId !== prev.senderIdentityId
         ) {
           const prevSender = senderIdentities.find(
-            (s) => s.id === prev.senderIdentityId,
+            (s) => s.id === prev.senderIdentityId
           );
           const nextSender = senderIdentities.find(
-            (s) => s.id === updates.senderIdentityId,
+            (s) => s.id === updates.senderIdentityId
           );
 
           if (prevSender?.domainId !== nextSender?.domainId) {
@@ -128,7 +128,7 @@ export function DoubleOptInEmailEditorClient({
         return next;
       });
     },
-    [senderIdentities],
+    [senderIdentities]
   );
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {

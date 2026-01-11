@@ -111,11 +111,6 @@ describe("ImportReadinessChecker", () => {
   });
 
   describe("ImportReadinessChecker class", () => {
-    it("should be instantiable", () => {
-      const checker = new ImportReadinessChecker();
-      expect(checker).toBeInstanceOf(ImportReadinessChecker);
-    });
-
     it("should produce same results as convenience function", () => {
       const contactImport = createMockImport({
         columnMapping: { Email: "email" },

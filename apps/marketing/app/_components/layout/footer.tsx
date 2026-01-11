@@ -21,42 +21,40 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "Transactional emails", href: "/products/transactional" },
       { label: "Marketing emails", href: "/products/marketing" },
-      { label: "Inbound email", href: "/" },
-      { label: "Email validation", href: "/" },
+      { label: "Inbound email", href: "/products/inbound" },
+      { label: "Email validation", href: "/docs/guides/email-validation" },
     ],
   },
   {
     title: "Documentation",
     links: [
-      { label: "Quickstart", href: "/" },
-      { label: "API Reference", href: "/" },
-      { label: "Examples", href: "/" },
-      { label: "Libraries & SDKs", href: "/" },
+      { label: "Quickstart", href: "/docs/quick-start" },
+      { label: "API Reference", href: "/docs/api" },
+      { label: "Examples", href: "/docs/guides" },
+      { label: "Libraries & SDKs", href: "/docs/sdks" },
     ],
   },
   {
     title: "Resources",
     links: [
-      { label: "Weekly changelog", href: "/" },
-      { label: "Blog", href: "/" },
-      { label: "Self hosted", href: "/" },
-      { label: "Email academy", href: "/" },
-      { label: "Tutorials", href: "/" },
+      { label: "Weekly changelog", href: "/changelog" },
+      { label: "Blog", href: "/blog" },
+      { label: "Self hosted", href: "/docs/installation" },
+      { label: "Tutorials", href: "/tutorials" },
     ],
   },
   {
     title: "Community",
     links: [
-      { label: "Open email forum", href: "/" },
-      { label: "Github", href: "/" },
-      { label: "X (Formerly Twitter)", href: "/" },
+      { label: "Open email forum", href: "/docs/community" },
+      { label: "Github", href: "https://github.com/kibamail/kibamail" },
+      { label: "X (Formerly Twitter)", href: "https://x.com/kibamail" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "Why we exist", href: "/" },
-      { label: "How we operate", href: "/" },
+      { label: "Why we exist", href: "/docs/company" },
       { label: "Privacy Policy", href: "/legal/privacy-policy" },
       { label: "Terms of Service", href: "/legal/terms-of-service" },
       { label: "Acceptable Use", href: "/legal/acceptable-use-policy" },
@@ -90,12 +88,12 @@ export function Footer() {
 
               <Text className="mt-4">
                 The fastest way to become a part is to{" "}
-                <a
-                  href="/"
+                <Link
+                  href="/docs/community"
                   className="underline underline-offset-4 text-kb-content-link"
                 >
                   join our open email forum
-                </a>
+                </Link>
                 . You can also connect with us on other platforms.
               </Text>
 

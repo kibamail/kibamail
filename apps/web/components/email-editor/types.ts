@@ -215,6 +215,9 @@ export interface EmailEditorProps<T extends EmailEditorMode> {
 
   // Labels (customizable per mode)
   labels?: Partial<EmailEditorLabels>;
+
+  // Header customization (e.g., version dropdown)
+  headerExtra?: React.ReactNode;
 }
 
 /**

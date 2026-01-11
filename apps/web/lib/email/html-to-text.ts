@@ -100,7 +100,6 @@ const EMAIL_CONVERSION_OPTIONS: HtmlToTextOptions = {
       format: "blockquote",
     },
 
-    // Tables: Convert to readable format
     {
       selector: "table",
       options: {
@@ -108,13 +107,11 @@ const EMAIL_CONVERSION_OPTIONS: HtmlToTextOptions = {
       },
     },
 
-    // Horizontal rules
     {
       selector: "hr",
       format: "horizontalLine",
     },
 
-    // Skip style and script tags
     { selector: "style", format: "skip" },
     { selector: "script", format: "skip" },
 
@@ -176,7 +173,7 @@ export function htmlToPlainText(html: string): string {
  */
 export function htmlToPlainTextWithOptions(
   html: string,
-  options: Partial<HtmlToTextOptions>,
+  options: Partial<HtmlToTextOptions>
 ): string {
   if (!html || html.trim() === "") {
     return "";

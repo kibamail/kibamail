@@ -479,12 +479,13 @@ export interface paths {
                                 timezone: string | null;
                                 city: string | null;
                                 /** @enum {string} */
-                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                                 subscribedAt: string | null;
                                 unsubscribedAt: string | null;
                                 properties: {
-                                    [key: string]: string | number;
+                                    [key: string]: string | number | null;
                                 };
+                                topics: string[];
                             }[];
                         };
                     };
@@ -587,11 +588,11 @@ export interface paths {
                          * @default SUBSCRIBED
                          * @enum {string}
                          */
-                        status?: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                        status?: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                         subscribedAt?: string | null;
                         unsubscribedAt?: string | null;
                         properties?: {
-                            [key: string]: string | number;
+                            [key: string]: string | number | null;
                         };
                         /** @default [] */
                         topics?: string[];
@@ -617,12 +618,13 @@ export interface paths {
                             timezone: string | null;
                             city: string | null;
                             /** @enum {string} */
-                            status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                            status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                             subscribedAt: string | null;
                             unsubscribedAt: string | null;
                             properties: {
-                                [key: string]: string | number;
+                                [key: string]: string | number | null;
                             };
+                            topics: string[];
                         };
                     };
                 };
@@ -842,12 +844,13 @@ export interface paths {
                             timezone: string | null;
                             city: string | null;
                             /** @enum {string} */
-                            status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                            status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                             subscribedAt: string | null;
                             unsubscribedAt: string | null;
                             properties: {
-                                [key: string]: string | number;
+                                [key: string]: string | number | null;
                             };
+                            topics: string[];
                         };
                     };
                 };
@@ -986,11 +989,11 @@ export interface paths {
                         timezone?: string | null;
                         city?: string | null;
                         /** @enum {string} */
-                        status?: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                        status?: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                         subscribedAt?: string | null;
                         unsubscribedAt?: string | null;
                         properties?: {
-                            [key: string]: string | number;
+                            [key: string]: string | number | null;
                         };
                         topics?: string[];
                     };
@@ -1015,12 +1018,13 @@ export interface paths {
                             timezone: string | null;
                             city: string | null;
                             /** @enum {string} */
-                            status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                            status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                             subscribedAt: string | null;
                             unsubscribedAt: string | null;
                             properties: {
-                                [key: string]: string | number;
+                                [key: string]: string | number | null;
                             };
+                            topics: string[];
                         };
                     };
                 };
@@ -3989,12 +3993,13 @@ export interface paths {
                                 timezone: string | null;
                                 city: string | null;
                                 /** @enum {string} */
-                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                                 subscribedAt: string | null;
                                 unsubscribedAt: string | null;
                                 properties: {
-                                    [key: string]: string | number;
+                                    [key: string]: string | number | null;
                                 };
+                                topics: string[];
                             }[];
                         };
                     };
@@ -4196,12 +4201,13 @@ export interface paths {
                                 timezone: string | null;
                                 city: string | null;
                                 /** @enum {string} */
-                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                                 subscribedAt: string | null;
                                 unsubscribedAt: string | null;
                                 properties: {
-                                    [key: string]: string | number;
+                                    [key: string]: string | number | null;
                                 };
+                                topics: string[];
                             }[];
                         };
                     };
@@ -4370,12 +4376,13 @@ export interface paths {
                                 timezone: string | null;
                                 city: string | null;
                                 /** @enum {string} */
-                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED";
+                                status: "SUBSCRIBED" | "UNSUBSCRIBED" | "BOUNCED" | "COMPLAINED" | "ARCHIVED" | "UNCONFIRMED";
                                 subscribedAt: string | null;
                                 unsubscribedAt: string | null;
                                 properties: {
-                                    [key: string]: string | number;
+                                    [key: string]: string | number | null;
                                 };
+                                topics: string[];
                             }[];
                         };
                     };
@@ -4539,6 +4546,10 @@ export interface paths {
                                 name: string;
                                 description: string | null;
                                 /** @enum {string} */
+                                type: "SIGN_UP" | "SURVEY";
+                                /** @enum {string} */
+                                display: "POPUP" | "INLINE_EMBED";
+                                /** @enum {string} */
                                 status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
                             }[];
                         };
@@ -4596,7 +4607,7 @@ export interface paths {
          *
          *     **Behavior:**
          *     - Form is created in DRAFT status (not yet public)
-         *     - Uses SurveyJS JSON configuration for flexibility
+         *     - Uses form builder JSON schema for flexibility
          *     - Form gets a unique ID and slug for embedding
          *     - Initial version is created automatically
          *     - Form must be published to make it publicly accessible
@@ -4608,16 +4619,15 @@ export interface paths {
          *     - **name:** Internal form name for identification
          *     - **title:** Display title shown to users
          *     - **description:** Form purpose/instructions (optional)
-         *     - **surveyJson:** SurveyJS JSON schema defining fields
+         *     - **fields:** Form builder JSON schema defining fields
          *     - **redirectUrl:** Where to send users after submission (optional)
          *     - **submitText:** Custom submit button text (optional)
          *
-         *     **SurveyJS Integration:**
-         *     - Supports all SurveyJS question types
-         *     - Flexible field validation and logic
-         *     - Conditional field display
-         *     - Multi-page forms supported
-         *     - Custom styling via themes
+         *     **Form Builder Features:**
+         *     - Supports all standard field types (text, email, number, phone, etc.)
+         *     - Flexible field validation and conditional logic
+         *     - Multi-page and multi-section forms
+         *     - Custom styling and appearance options
          *
          *     **Form Lifecycle:**
          *     1. Create form (DRAFT status)
@@ -4642,7 +4652,220 @@ export interface paths {
                     "application/json": {
                         name: string;
                         description?: string | null;
-                        fields: unknown;
+                        /**
+                         * @default SIGN_UP
+                         * @enum {string}
+                         */
+                        type?: "SIGN_UP" | "SURVEY";
+                        /**
+                         * @default INLINE_EMBED
+                         * @enum {string}
+                         */
+                        display?: "POPUP" | "INLINE_EMBED";
+                        fields?: {
+                            id: string;
+                            version: number;
+                            title: string;
+                            description?: string;
+                            pages: {
+                                id: string;
+                                title?: string;
+                                description?: string;
+                                sections: {
+                                    id: string;
+                                    title?: string;
+                                    description?: string;
+                                    fields: {
+                                        id: string;
+                                        /** @enum {string} */
+                                        type: "text" | "email" | "number" | "phone" | "url" | "textarea" | "select" | "multi_select" | "radio" | "choice_card" | "checkbox" | "checkbox_group" | "date" | "time" | "datetime" | "file" | "rating" | "slider" | "hidden" | "content";
+                                        name: string;
+                                        label: string;
+                                        placeholder?: string;
+                                        description?: string;
+                                        defaultValue?: string | number | boolean | string[];
+                                        options?: {
+                                            id: string;
+                                            label: string;
+                                            value: string;
+                                            description?: string;
+                                        }[];
+                                        validation?: {
+                                            required?: boolean;
+                                            requiredMessage?: string;
+                                            text?: {
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                                patternMessage?: string;
+                                            };
+                                            number?: {
+                                                min?: number;
+                                                max?: number;
+                                                step?: number;
+                                                integer?: boolean;
+                                            };
+                                            date?: {
+                                                minDate?: string;
+                                                maxDate?: string;
+                                                disablePastDates?: boolean;
+                                                disableFutureDates?: boolean;
+                                            };
+                                            file?: {
+                                                maxSize?: number;
+                                                maxFiles?: number;
+                                                allowedTypes?: string[];
+                                            };
+                                            rating?: {
+                                                maxRating?: number;
+                                            };
+                                            slider?: {
+                                                min?: number;
+                                                max?: number;
+                                                step?: number;
+                                            };
+                                        };
+                                        conditionalLogic?: {
+                                            enabled: boolean;
+                                            /** @enum {string} */
+                                            action: "show" | "hide";
+                                            /** @enum {string} */
+                                            logicalOperator: "and" | "or";
+                                            conditions: {
+                                                fieldId: string;
+                                                /** @enum {string} */
+                                                operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                                value?: string | number | boolean | string[];
+                                            }[];
+                                        };
+                                        appearance: {
+                                            /** @enum {string} */
+                                            width: "full" | "half" | "third" | "quarter";
+                                            /** @enum {string} */
+                                            labelPosition: "top" | "left" | "hidden";
+                                            /** @enum {string} */
+                                            size: "sm" | "default" | "lg";
+                                        };
+                                        richContent?: {
+                                            [key: string]: unknown;
+                                        };
+                                        contactProperty?: {
+                                            /** @enum {string} */
+                                            type: "standard" | "custom";
+                                            id: string;
+                                            name: string;
+                                        };
+                                    }[];
+                                    conditionalLogic?: {
+                                        enabled: boolean;
+                                        /** @enum {string} */
+                                        action: "show" | "hide";
+                                        /** @enum {string} */
+                                        logicalOperator: "and" | "or";
+                                        conditions: {
+                                            fieldId: string;
+                                            /** @enum {string} */
+                                            operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                            value?: string | number | boolean | string[];
+                                        }[];
+                                    };
+                                    collapsible: boolean;
+                                    defaultCollapsed: boolean;
+                                }[];
+                                conditionalLogic?: {
+                                    enabled: boolean;
+                                    /** @enum {string} */
+                                    action: "show" | "hide";
+                                    /** @enum {string} */
+                                    logicalOperator: "and" | "or";
+                                    conditions: {
+                                        fieldId: string;
+                                        /** @enum {string} */
+                                        operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                        value?: string | number | boolean | string[];
+                                    }[];
+                                };
+                            }[];
+                            settings: {
+                                submitButton: {
+                                    text: string;
+                                    loadingText: string;
+                                    /** @enum {string} */
+                                    variant: "default" | "secondary" | "outline" | "ghost";
+                                    /** @enum {string} */
+                                    size: "sm" | "default" | "lg";
+                                    fullWidth: boolean;
+                                    /** @enum {string} */
+                                    position: "left" | "center" | "right";
+                                };
+                                successAction: {
+                                    /** @constant */
+                                    type: "message";
+                                    message?: string;
+                                    richContent?: {
+                                        [key: string]: unknown;
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "redirect";
+                                    /** Format: uri */
+                                    url: string;
+                                    openInNewTab: boolean;
+                                };
+                                doubleOptIn: {
+                                    enabled: boolean;
+                                };
+                                showProgressBar: boolean;
+                                allowSaveAndContinue: boolean;
+                                preventDuplicateSubmissions: boolean;
+                                theme: {
+                                    /** @enum {string} */
+                                    mode: "light" | "dark";
+                                    radius: string;
+                                    colors: {
+                                        background: string;
+                                        foreground: string;
+                                        card: string;
+                                        cardForeground: string;
+                                        popover: string;
+                                        popoverForeground: string;
+                                        primary: string;
+                                        primaryForeground: string;
+                                        secondary: string;
+                                        secondaryForeground: string;
+                                        muted: string;
+                                        mutedForeground: string;
+                                        accent: string;
+                                        accentForeground: string;
+                                        destructive: string;
+                                        border: string;
+                                        input: string;
+                                        ring: string;
+                                    };
+                                    font: {
+                                        family: string;
+                                        /** Format: uri */
+                                        url: string;
+                                    };
+                                    body: {
+                                        [key: string]: string | number;
+                                    };
+                                    container: {
+                                        [key: string]: string | number;
+                                    };
+                                };
+                            };
+                            styling: {
+                                /** @enum {string} */
+                                layout: "stacked" | "inline";
+                                /** @enum {string} */
+                                labelStyle: "default" | "floating";
+                                /** @enum {string} */
+                                borderRadius: "none" | "sm" | "md" | "lg" | "full";
+                                /** @enum {string} */
+                                spacing: "compact" | "default" | "relaxed";
+                            };
+                        };
                     };
                 };
             };
@@ -4667,7 +4890,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Bad Request - Invalid SurveyJS JSON configuration or malformed input */
+                /** @description Bad Request - Invalid form builder JSON configuration or malformed input */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -4739,7 +4962,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Validation Error - Invalid field values, missing required fields, or invalid SurveyJS schema */
+                /** @description Validation Error - Invalid field values, missing required fields, or invalid form builder schema */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -4803,7 +5026,7 @@ export interface paths {
          *
          *     **Behavior:**
          *     - Returns forms in any status (DRAFT, PUBLISHED, ARCHIVED)
-         *     - Includes complete SurveyJS configuration
+         *     - Includes complete form builder configuration
          *     - Shows form version information
          *     - Published forms include publishedAt timestamp
          *     - Includes submission statistics
@@ -4815,7 +5038,7 @@ export interface paths {
          *     - Form identification (id, name, slug)
          *     - Display information (title, description)
          *     - Status (DRAFT, PUBLISHED, ARCHIVED)
-         *     - SurveyJS configuration (surveyJson)
+         *     - Form builder configuration (fields)
          *     - Settings (redirectUrl, submitText)
          *     - Version information (rootFormId, publishedVersionId)
          *     - Statistics (submission count)
@@ -4943,7 +5166,7 @@ export interface paths {
          *     - Update form title or description
          *     - Change redirect URL after submission
          *     - Customize submit button text
-         *     - Refine SurveyJS configuration
+         *     - Refine form builder configuration
          *
          *     **Behavior:**
          *     - Only DRAFT forms can be updated
@@ -4959,7 +5182,7 @@ export interface paths {
          *     - name (internal identifier)
          *     - title (displayed to users)
          *     - description (form instructions)
-         *     - surveyJson (SurveyJS configuration)
+         *     - fields (form builder configuration)
          *     - redirectUrl (post-submission redirect)
          *     - submitText (button text)
          *
@@ -4973,7 +5196,7 @@ export interface paths {
          *     - Cannot update PUBLISHED or ARCHIVED forms
          *     - Changes to DRAFT don't affect live form until published
          *     - Test changes before publishing
-         *     - SurveyJS configuration must be valid JSON
+         *     - Form builder configuration must be valid JSON
          *
          *     **Note:** For published forms, create a new version instead of updating directly.
          */
@@ -4992,9 +5215,221 @@ export interface paths {
                     "application/json": {
                         name?: string;
                         description?: string | null;
-                        fields?: unknown;
-                        /** @description Form settings configuration (e.g., redirectUrl, submitText, double opt-in) */
-                        settings?: Record<string, never>;
+                        /** @enum {string} */
+                        type?: "SIGN_UP" | "SURVEY";
+                        /** @enum {string} */
+                        display?: "POPUP" | "INLINE_EMBED";
+                        fields?: {
+                            id: string;
+                            version: number;
+                            title: string;
+                            description?: string;
+                            pages: {
+                                id: string;
+                                title?: string;
+                                description?: string;
+                                sections: {
+                                    id: string;
+                                    title?: string;
+                                    description?: string;
+                                    fields: {
+                                        id: string;
+                                        /** @enum {string} */
+                                        type: "text" | "email" | "number" | "phone" | "url" | "textarea" | "select" | "multi_select" | "radio" | "choice_card" | "checkbox" | "checkbox_group" | "date" | "time" | "datetime" | "file" | "rating" | "slider" | "hidden" | "content";
+                                        name: string;
+                                        label: string;
+                                        placeholder?: string;
+                                        description?: string;
+                                        defaultValue?: string | number | boolean | string[];
+                                        options?: {
+                                            id: string;
+                                            label: string;
+                                            value: string;
+                                            description?: string;
+                                        }[];
+                                        validation?: {
+                                            required?: boolean;
+                                            requiredMessage?: string;
+                                            text?: {
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                                patternMessage?: string;
+                                            };
+                                            number?: {
+                                                min?: number;
+                                                max?: number;
+                                                step?: number;
+                                                integer?: boolean;
+                                            };
+                                            date?: {
+                                                minDate?: string;
+                                                maxDate?: string;
+                                                disablePastDates?: boolean;
+                                                disableFutureDates?: boolean;
+                                            };
+                                            file?: {
+                                                maxSize?: number;
+                                                maxFiles?: number;
+                                                allowedTypes?: string[];
+                                            };
+                                            rating?: {
+                                                maxRating?: number;
+                                            };
+                                            slider?: {
+                                                min?: number;
+                                                max?: number;
+                                                step?: number;
+                                            };
+                                        };
+                                        conditionalLogic?: {
+                                            enabled: boolean;
+                                            /** @enum {string} */
+                                            action: "show" | "hide";
+                                            /** @enum {string} */
+                                            logicalOperator: "and" | "or";
+                                            conditions: {
+                                                fieldId: string;
+                                                /** @enum {string} */
+                                                operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                                value?: string | number | boolean | string[];
+                                            }[];
+                                        };
+                                        appearance: {
+                                            /** @enum {string} */
+                                            width: "full" | "half" | "third" | "quarter";
+                                            /** @enum {string} */
+                                            labelPosition: "top" | "left" | "hidden";
+                                            /** @enum {string} */
+                                            size: "sm" | "default" | "lg";
+                                        };
+                                        richContent?: {
+                                            [key: string]: unknown;
+                                        };
+                                        contactProperty?: {
+                                            /** @enum {string} */
+                                            type: "standard" | "custom";
+                                            id: string;
+                                            name: string;
+                                        };
+                                    }[];
+                                    conditionalLogic?: {
+                                        enabled: boolean;
+                                        /** @enum {string} */
+                                        action: "show" | "hide";
+                                        /** @enum {string} */
+                                        logicalOperator: "and" | "or";
+                                        conditions: {
+                                            fieldId: string;
+                                            /** @enum {string} */
+                                            operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                            value?: string | number | boolean | string[];
+                                        }[];
+                                    };
+                                    collapsible: boolean;
+                                    defaultCollapsed: boolean;
+                                }[];
+                                conditionalLogic?: {
+                                    enabled: boolean;
+                                    /** @enum {string} */
+                                    action: "show" | "hide";
+                                    /** @enum {string} */
+                                    logicalOperator: "and" | "or";
+                                    conditions: {
+                                        fieldId: string;
+                                        /** @enum {string} */
+                                        operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                        value?: string | number | boolean | string[];
+                                    }[];
+                                };
+                            }[];
+                            settings: {
+                                submitButton: {
+                                    text: string;
+                                    loadingText: string;
+                                    /** @enum {string} */
+                                    variant: "default" | "secondary" | "outline" | "ghost";
+                                    /** @enum {string} */
+                                    size: "sm" | "default" | "lg";
+                                    fullWidth: boolean;
+                                    /** @enum {string} */
+                                    position: "left" | "center" | "right";
+                                };
+                                successAction: {
+                                    /** @constant */
+                                    type: "message";
+                                    message?: string;
+                                    richContent?: {
+                                        [key: string]: unknown;
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "redirect";
+                                    /** Format: uri */
+                                    url: string;
+                                    openInNewTab: boolean;
+                                };
+                                doubleOptIn: {
+                                    enabled: boolean;
+                                };
+                                showProgressBar: boolean;
+                                allowSaveAndContinue: boolean;
+                                preventDuplicateSubmissions: boolean;
+                                theme: {
+                                    /** @enum {string} */
+                                    mode: "light" | "dark";
+                                    radius: string;
+                                    colors: {
+                                        background: string;
+                                        foreground: string;
+                                        card: string;
+                                        cardForeground: string;
+                                        popover: string;
+                                        popoverForeground: string;
+                                        primary: string;
+                                        primaryForeground: string;
+                                        secondary: string;
+                                        secondaryForeground: string;
+                                        muted: string;
+                                        mutedForeground: string;
+                                        accent: string;
+                                        accentForeground: string;
+                                        destructive: string;
+                                        border: string;
+                                        input: string;
+                                        ring: string;
+                                    };
+                                    font: {
+                                        family: string;
+                                        /** Format: uri */
+                                        url: string;
+                                    };
+                                    body: {
+                                        [key: string]: string | number;
+                                    };
+                                    container: {
+                                        [key: string]: string | number;
+                                    };
+                                };
+                            };
+                            styling: {
+                                /** @enum {string} */
+                                layout: "stacked" | "inline";
+                                /** @enum {string} */
+                                labelStyle: "default" | "floating";
+                                /** @enum {string} */
+                                borderRadius: "none" | "sm" | "md" | "lg" | "full";
+                                /** @enum {string} */
+                                spacing: "compact" | "default" | "relaxed";
+                            };
+                        };
+                        settings?: unknown;
+                        doubleOptInEmailId?: string | null;
+                        seoTitle?: string | null;
+                        seoDescription?: string | null;
+                        seoImageUrl?: string | null;
+                        seoFaviconUrl?: string | null;
+                        slug?: string | null;
                     };
                 };
             };
@@ -5121,7 +5556,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Validation Error - Invalid SurveyJS configuration or field values */
+                /** @description Validation Error - Invalid form builder configuration or field values */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -5385,6 +5820,10 @@ export interface paths {
                                 name: string;
                                 description: string | null;
                                 /** @enum {string} */
+                                type: "SIGN_UP" | "SURVEY";
+                                /** @enum {string} */
+                                display: "POPUP" | "INLINE_EMBED";
+                                /** @enum {string} */
                                 status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
                                 version: number;
                             }[];
@@ -5525,7 +5964,221 @@ export interface paths {
                     "application/json": {
                         name?: string;
                         description?: string | null;
-                        fields?: unknown;
+                        /** @enum {string} */
+                        type?: "SIGN_UP" | "SURVEY";
+                        /** @enum {string} */
+                        display?: "POPUP" | "INLINE_EMBED";
+                        fields?: {
+                            id: string;
+                            version: number;
+                            title: string;
+                            description?: string;
+                            pages: {
+                                id: string;
+                                title?: string;
+                                description?: string;
+                                sections: {
+                                    id: string;
+                                    title?: string;
+                                    description?: string;
+                                    fields: {
+                                        id: string;
+                                        /** @enum {string} */
+                                        type: "text" | "email" | "number" | "phone" | "url" | "textarea" | "select" | "multi_select" | "radio" | "choice_card" | "checkbox" | "checkbox_group" | "date" | "time" | "datetime" | "file" | "rating" | "slider" | "hidden" | "content";
+                                        name: string;
+                                        label: string;
+                                        placeholder?: string;
+                                        description?: string;
+                                        defaultValue?: string | number | boolean | string[];
+                                        options?: {
+                                            id: string;
+                                            label: string;
+                                            value: string;
+                                            description?: string;
+                                        }[];
+                                        validation?: {
+                                            required?: boolean;
+                                            requiredMessage?: string;
+                                            text?: {
+                                                minLength?: number;
+                                                maxLength?: number;
+                                                pattern?: string;
+                                                patternMessage?: string;
+                                            };
+                                            number?: {
+                                                min?: number;
+                                                max?: number;
+                                                step?: number;
+                                                integer?: boolean;
+                                            };
+                                            date?: {
+                                                minDate?: string;
+                                                maxDate?: string;
+                                                disablePastDates?: boolean;
+                                                disableFutureDates?: boolean;
+                                            };
+                                            file?: {
+                                                maxSize?: number;
+                                                maxFiles?: number;
+                                                allowedTypes?: string[];
+                                            };
+                                            rating?: {
+                                                maxRating?: number;
+                                            };
+                                            slider?: {
+                                                min?: number;
+                                                max?: number;
+                                                step?: number;
+                                            };
+                                        };
+                                        conditionalLogic?: {
+                                            enabled: boolean;
+                                            /** @enum {string} */
+                                            action: "show" | "hide";
+                                            /** @enum {string} */
+                                            logicalOperator: "and" | "or";
+                                            conditions: {
+                                                fieldId: string;
+                                                /** @enum {string} */
+                                                operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                                value?: string | number | boolean | string[];
+                                            }[];
+                                        };
+                                        appearance: {
+                                            /** @enum {string} */
+                                            width: "full" | "half" | "third" | "quarter";
+                                            /** @enum {string} */
+                                            labelPosition: "top" | "left" | "hidden";
+                                            /** @enum {string} */
+                                            size: "sm" | "default" | "lg";
+                                        };
+                                        richContent?: {
+                                            [key: string]: unknown;
+                                        };
+                                        contactProperty?: {
+                                            /** @enum {string} */
+                                            type: "standard" | "custom";
+                                            id: string;
+                                            name: string;
+                                        };
+                                    }[];
+                                    conditionalLogic?: {
+                                        enabled: boolean;
+                                        /** @enum {string} */
+                                        action: "show" | "hide";
+                                        /** @enum {string} */
+                                        logicalOperator: "and" | "or";
+                                        conditions: {
+                                            fieldId: string;
+                                            /** @enum {string} */
+                                            operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                            value?: string | number | boolean | string[];
+                                        }[];
+                                    };
+                                    collapsible: boolean;
+                                    defaultCollapsed: boolean;
+                                }[];
+                                conditionalLogic?: {
+                                    enabled: boolean;
+                                    /** @enum {string} */
+                                    action: "show" | "hide";
+                                    /** @enum {string} */
+                                    logicalOperator: "and" | "or";
+                                    conditions: {
+                                        fieldId: string;
+                                        /** @enum {string} */
+                                        operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
+                                        value?: string | number | boolean | string[];
+                                    }[];
+                                };
+                            }[];
+                            settings: {
+                                submitButton: {
+                                    text: string;
+                                    loadingText: string;
+                                    /** @enum {string} */
+                                    variant: "default" | "secondary" | "outline" | "ghost";
+                                    /** @enum {string} */
+                                    size: "sm" | "default" | "lg";
+                                    fullWidth: boolean;
+                                    /** @enum {string} */
+                                    position: "left" | "center" | "right";
+                                };
+                                successAction: {
+                                    /** @constant */
+                                    type: "message";
+                                    message?: string;
+                                    richContent?: {
+                                        [key: string]: unknown;
+                                    };
+                                } | {
+                                    /** @constant */
+                                    type: "redirect";
+                                    /** Format: uri */
+                                    url: string;
+                                    openInNewTab: boolean;
+                                };
+                                doubleOptIn: {
+                                    enabled: boolean;
+                                };
+                                showProgressBar: boolean;
+                                allowSaveAndContinue: boolean;
+                                preventDuplicateSubmissions: boolean;
+                                theme: {
+                                    /** @enum {string} */
+                                    mode: "light" | "dark";
+                                    radius: string;
+                                    colors: {
+                                        background: string;
+                                        foreground: string;
+                                        card: string;
+                                        cardForeground: string;
+                                        popover: string;
+                                        popoverForeground: string;
+                                        primary: string;
+                                        primaryForeground: string;
+                                        secondary: string;
+                                        secondaryForeground: string;
+                                        muted: string;
+                                        mutedForeground: string;
+                                        accent: string;
+                                        accentForeground: string;
+                                        destructive: string;
+                                        border: string;
+                                        input: string;
+                                        ring: string;
+                                    };
+                                    font: {
+                                        family: string;
+                                        /** Format: uri */
+                                        url: string;
+                                    };
+                                    body: {
+                                        [key: string]: string | number;
+                                    };
+                                    container: {
+                                        [key: string]: string | number;
+                                    };
+                                };
+                            };
+                            styling: {
+                                /** @enum {string} */
+                                layout: "stacked" | "inline";
+                                /** @enum {string} */
+                                labelStyle: "default" | "floating";
+                                /** @enum {string} */
+                                borderRadius: "none" | "sm" | "md" | "lg" | "full";
+                                /** @enum {string} */
+                                spacing: "compact" | "default" | "relaxed";
+                            };
+                        };
+                        settings?: unknown;
+                        doubleOptInEmailId?: string | null;
+                        seoTitle?: string | null;
+                        seoDescription?: string | null;
+                        seoImageUrl?: string | null;
+                        seoFaviconUrl?: string | null;
+                        slug?: string | null;
                     };
                 };
             };
@@ -5652,7 +6305,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Validation Error - Invalid field values or SurveyJS configuration */
+                /** @description Validation Error - Invalid field values or form builder configuration */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -5858,6 +6511,337 @@ export interface paths {
                 };
                 /** @description Not Found - Form with this ID does not exist in your workspace */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/emails/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Transactional Email
+         * @description Send a transactional email to one or more recipients.
+         *
+         *     **Use Cases:**
+         *     - Order confirmation emails
+         *     - Password reset emails
+         *     - Account verification emails
+         *     - Payment receipts
+         *     - Shipping notifications
+         *     - Welcome emails
+         *     - Any one-off automated email
+         *
+         *     **Behavior:**
+         *     - Email is queued and sent asynchronously
+         *     - Returns immediately with the email send ID
+         *     - Delivery status is tracked via webhooks
+         *     - Supports HTML and plain text content
+         *     - Plain text is auto-generated from HTML if not provided
+         *     - Supports attachments (up to 25 files, 25MB total)
+         *     - Custom metadata can be attached for tracking
+         *
+         *     **Required Scope:** `smtp:send`
+         *
+         *     **Rate Limits:**
+         *     - 100 emails per minute per API key
+         *     - Maximum 10MB HTML content
+         *     - Maximum 25 attachments (total 25MB)
+         *
+         *     **Delivery Tracking:**
+         *     - Use the returned email ID to track delivery status
+         *     - Configure webhooks to receive delivery notifications
+         *     - Events: delivered, bounced, complained, opened, clicked
+         *
+         *     **Best Practices:**
+         *     - Always include a plain text version for accessibility
+         *     - Keep HTML under 100KB for best deliverability
+         *     - Use verified sending domains only
+         *     - Include unsubscribe links for marketing content
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "from": "noreply@yourdomain.com",
+                     *       "to": "customer@example.com",
+                     *       "subject": "Order Confirmation #12345",
+                     *       "html": "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>",
+                     *       "text": "Thank you for your order! Your order #12345 has been confirmed.",
+                     *       "metadata": {
+                     *         "orderId": "12345",
+                     *         "customerId": "cust_abc123"
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        /**
+                         * Format: email
+                         * @description Sender email address (must be from a verified sending domain)
+                         */
+                        from: string;
+                        /** @description Recipient email address(es) - single email or array of emails */
+                        to: string | string[];
+                        /** @description Custom reply-to address (optional) */
+                        replyTo?: {
+                            /**
+                             * Format: email
+                             * @description Reply-to email address
+                             */
+                            email: string;
+                            /** @description Reply-to display name (optional) */
+                            name?: string;
+                        };
+                        /** @description Email subject line */
+                        subject: string;
+                        /** @description Preview text shown in email clients (optional) */
+                        previewText?: string;
+                        /** @description HTML email body content */
+                        html: string;
+                        /** @description Plain text email body content (auto-generated from HTML if not provided) */
+                        text?: string;
+                        /**
+                         * @description Email attachments (max 25 files, 25MB total)
+                         * @default []
+                         */
+                        attachments?: {
+                            /** @description Original filename of the attachment */
+                            filename: string;
+                            /** @description Base64-encoded file content */
+                            content: string;
+                            /**
+                             * @description MIME type of the file (e.g., application/pdf, image/png)
+                             * @default application/octet-stream
+                             */
+                            contentType?: string;
+                        }[];
+                        /** @description Custom metadata for tracking (key-value pairs) */
+                        metadata?: {
+                            [key: string]: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Email queued successfully. The email will be sent asynchronously. Use the returned ID to track delivery status via webhooks. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "email",
+                         *       "id": "es_abc123xyz789"
+                         *     }
+                         */
+                        "application/json": {
+                            /**
+                             * @description Object type identifier
+                             * @constant
+                             */
+                            object: "email";
+                            /** @description Unique email send ID for tracking */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid input data, such as malformed email addresses, missing required fields, or attachment size exceeded */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'smtp:send' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Forbidden - Sending domain not verified, or sending limits exceeded */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Email content validation failed (e.g., HTML too large, too many attachments) */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Rate Limit Exceeded - Too many emails sent. Wait before sending more. */
+                429: {
                     headers: {
                         [name: string]: unknown;
                     };

@@ -13,6 +13,15 @@ export function createTestWorkspace(): TestWorkspace {
 }
 
 export async function cleanupWorkspace(workspaceId: string): Promise<void> {
+  // Clean up events and transactional emails
+  await prisma.event.deleteMany({
+    where: { workspaceId },
+  });
+
+  await prisma.transactionalEmail.deleteMany({
+    where: { workspaceId },
+  });
+
   await prisma.contactTopic.deleteMany({
     where: { contact: { workspaceId } },
   });

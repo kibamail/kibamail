@@ -77,10 +77,20 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
     ...message.headers,
   };
 
-  headers["X-Kibamail-Broadcast-Id"] = message.broadcast_id;
-  headers["X-Kibamail-Contact-Id"] = message.contact_id;
-  headers["X-Kibamail-Workspace-Id"] = message.tenant_id;
-  headers["X-Kibamail-Email-Send-Id"] = message.id;
+  // Only set tracking headers if they have valid values
+  // Empty/undefined values would cause issues in webhook processing
+  if (message.broadcast_id) {
+    headers["X-Kibamail-Broadcast-Id"] = message.broadcast_id;
+  }
+  if (message.contact_id) {
+    headers["X-Kibamail-Contact-Id"] = message.contact_id;
+  }
+  if (message.tenant_id) {
+    headers["X-Kibamail-Workspace-Id"] = message.tenant_id;
+  }
+  if (message.id) {
+    headers["X-Kibamail-Email-Send-Id"] = message.id;
+  }
 
   const attachments = message.attachments?.map((att) => ({
     data: att.data || "",
@@ -106,7 +116,10 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
       attachments: attachments?.length ? attachments : undefined,
       from: { email: senderEmail, name: message.sender.name || undefined },
       subject: message.subject,
-      reply_to: { email: message.reply_to.email, name: message.reply_to.name || undefined },
+      reply_to: {
+        email: message.reply_to.email,
+        name: message.reply_to.name || undefined,
+      },
     },
   };
 }
@@ -120,7 +133,7 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
  */
 export async function injectEmail(
   options: MtaInjectionOptions,
-  message: EmailMessage
+  message: EmailMessage,
 ): Promise<InjectionResult> {
   const client = getMtaClient(options);
 
@@ -130,7 +143,7 @@ export async function injectEmail(
       recipient: message.recipient.email,
       broadcastId: message.broadcast_id,
     },
-    "Injecting email to MTA"
+    "Injecting email to MTA",
   );
 
   try {
@@ -140,7 +153,7 @@ export async function injectEmail(
     // Send to MTA using native injection API
     const response = await client.post<KumoMtaInjectResponse>(
       "/api/inject/v1",
-      kumoRequest
+      kumoRequest,
     );
 
     // KumoMTA returns { success_count, fail_count, failed_recipients, errors }
@@ -161,7 +174,7 @@ export async function injectEmail(
         successCount: response.success_count,
         failCount: response.fail_count,
       },
-      "Email injected to MTA"
+      "Email injected to MTA",
     );
 
     return result;
@@ -169,7 +182,7 @@ export async function injectEmail(
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(
       { messageId: message.id, error: errorMessage },
-      "Failed to inject email to MTA"
+      "Failed to inject email to MTA",
     );
 
     return {
@@ -192,7 +205,7 @@ export async function injectEmail(
  */
 export async function injectEmailBatch(
   options: MtaInjectionOptions,
-  messages: EmailMessage[]
+  messages: EmailMessage[],
 ): Promise<BatchInjectionResult> {
   if (messages.length === 0) {
     return {
@@ -214,7 +227,7 @@ export async function injectEmailBatch(
  */
 async function injectEmailBatchIndividually(
   options: MtaInjectionOptions,
-  messages: EmailMessage[]
+  messages: EmailMessage[],
 ): Promise<BatchInjectionResult> {
   const results: InjectionResult[] = [];
 
@@ -228,7 +241,7 @@ async function injectEmailBatchIndividually(
 
   for (const chunk of chunks) {
     const chunkResults = await Promise.all(
-      chunk.map((message) => injectEmail(options, message))
+      chunk.map((message) => injectEmail(options, message)),
     );
     results.push(...chunkResults);
   }
@@ -242,7 +255,7 @@ async function injectEmailBatchIndividually(
       successful,
       failed,
     },
-    "Email batch injected individually to MTA"
+    "Email batch injected individually to MTA",
   );
 
   return {
@@ -260,7 +273,7 @@ async function injectEmailBatchIndividually(
  * @returns True if the MTA is healthy and accepting connections
  */
 export async function isMtaReady(
-  options: MtaInjectionOptions
+  options: MtaInjectionOptions,
 ): Promise<boolean> {
   try {
     const client = getMtaClient(options);

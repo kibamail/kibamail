@@ -1,5 +1,5 @@
 // Adapters for specific use cases
-export { BroadcastEditorAdapter } from "./adapters";
+export { BroadcastEditorAdapter, TemplateEditorAdapter } from "./adapters";
 
 // Sub-components
 export type { ContentEditorRef } from "./content-editor";

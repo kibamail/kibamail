@@ -153,7 +153,7 @@ export const segmentListResponseSchema = z.object({
 /**
  * Segment Delete Response Schema
  */
-const _segmentDeleteResponseSchema = z.object({
+export const segmentDeleteResponseSchema = z.object({
   object: z.literal("segment"),
   id: z.string().describe("ID of the deleted segment"),
 });

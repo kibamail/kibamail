@@ -1,9 +1,10 @@
 import { ToastProvider } from "@kibamail/owly/toast";
 import type { Metadata } from "next";
-import { Manrope } from "next/font/google";
+import { Manrope, IBM_Plex_Sans } from "next/font/google";
 import "../globals.css";
 
 const manrope = Manrope();
+const ibmPlex = IBM_Plex_Sans();
 
 const description =
   "send emails that land in the inbox, save 95% on your email bill.";
@@ -77,7 +78,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${manrope.className} antialiased flex flex-col overflow-y-auto h-screen`}
+        className={`${manrope.className} ${ibmPlex.className} antialiased flex flex-col overflow-y-auto h-screen`}
       >
         <ToastProvider>{children}</ToastProvider>
       </body>

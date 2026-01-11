@@ -116,7 +116,7 @@ export default async function BlogArticle({ params }: BlogArticleProps) {
                   </Text>
 
                   <Button variant="primary" className="w-full mt-4" asChild>
-                    <a href="https://kibamail.com/w">
+                    <a href="/w?action=register">
                       Send your first 10,000 emails for free
                     </a>
                   </Button>
@@ -142,7 +142,7 @@ export default async function BlogArticle({ params }: BlogArticleProps) {
               </Text>
 
               <Button variant="primary" size="sm" className="mt-4" asChild>
-                <a href="https://kibamail.com/w">Sign up free</a>
+                <a href="/w?action=register">Sign up free</a>
               </Button>
             </div>
           </div>

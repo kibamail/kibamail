@@ -236,7 +236,7 @@ export function BroadcastsTable({ broadcasts }: BroadcastsTableProps) {
             <Table.Head>Subject</Table.Head>
             <Table.Head className="w-[120px]">Status</Table.Head>
             <Table.Head className="w-[180px]">Send On</Table.Head>
-            <Table.Head className="w-[80px]">Actions</Table.Head>
+            <Table.Head className="w-20">Actions</Table.Head>
           </Table.Row>
         </Table.Header>
         <Table.Body>

@@ -2,6 +2,7 @@ import { createHttpClient } from "./client";
 import { ApiKeys } from "./resources/api-keys";
 import { ContactProperties } from "./resources/contact-properties";
 import { Contacts } from "./resources/contacts";
+import { Emails } from "./resources/emails";
 import { Forms } from "./resources/forms";
 import { Segments } from "./resources/segments";
 import { Topics } from "./resources/topics";
@@ -28,6 +29,7 @@ const BASE_URL = "https://api.kibamail.com";
  * **Resources:**
  * - `apiKeys` - Manage API keys for workspace access
  * - `contacts` - Manage contact records and subscriptions
+ * - `emails` - Send transactional emails
  * - `topics` - Organize email communications by topic
  * - `segments` - Create dynamic contact groups with filtering
  * - `contactProperties` - Define custom contact properties
@@ -144,6 +146,21 @@ export class Kibamail {
   public forms: Forms;
 
   /**
+   * Emails resource for sending transactional emails.
+   *
+   * @example
+   * ```ts
+   * const result = await kibamail.emails.send({
+   *   from: "noreply@yourdomain.com",
+   *   to: "customer@example.com",
+   *   subject: "Order Confirmation",
+   *   html: "<h1>Thank you for your order!</h1>"
+   * });
+   * ```
+   */
+  public emails: Emails;
+
+  /**
    * Initialize the Kibamail SDK client.
    *
    * @param apiKey - Your Kibamail API key (starts with 'kb_')
@@ -175,6 +192,7 @@ export class Kibamail {
     // Initialize all resource instances
     this.apiKeys = new ApiKeys(this.client);
     this.contacts = new Contacts(this.client);
+    this.emails = new Emails(this.client);
     this.topics = new Topics(this.client);
     this.segments = new Segments(this.client);
     this.contactProperties = new ContactProperties(this.client);

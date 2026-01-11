@@ -1,0 +1,20 @@
+{
+  "name": "kibamail-examples",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "password-reset": "npx tsx password-reset/main.ts"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.31",
+    "@react-email/render": "^1.0.5",
+    "kibamail": "file:..",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

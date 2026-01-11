@@ -29,6 +29,20 @@ local TLS_KEY_PATH = '/opt/kumomta/etc/tls/privkey.pem'
 
 local shaping = require 'policy-extras.shaping'
 local sources = require 'policy-extras.sources'
+local log_hooks = require 'policy-extras.log_hooks'
+
+-- =============================================================================
+-- WEBHOOK LOGGING TO CONTROL PLANE
+-- =============================================================================
+-- IMPORTANT: This must be called BEFORE the queues helper (shaper setup)
+-- Events are sent to the configured WEBHOOK_URL as JSON batches
+log_hooks:new_json {
+  name = 'control_plane_webhook',
+  url = WEBHOOK_URL,
+  log_parameters = {
+    headers = { 'Subject', 'X-Kibamail-Broadcast-Id', 'X-Kibamail-Contact-Id', 'X-Kibamail-Workspace-Id' },
+  },
+}
 
 -- Setup traffic shaping with TSA automation
 local shaper = shaping:setup_with_automation {
@@ -192,14 +206,6 @@ kumo.on('init', function()
     trusted_hosts = { '0.0.0.0/0' },
   }
 
-  -- ==========================================================================
-  -- WEBHOOK LOGGING
-  -- ==========================================================================
-
-  kumo.configure_log_hook {
-    name = 'test_webhook',
-    headers = { 'Subject', 'X-Kibamail-Broadcast-Id', 'X-Kibamail-Contact-Id' },
-  }
 end)
 
 -- =============================================================================

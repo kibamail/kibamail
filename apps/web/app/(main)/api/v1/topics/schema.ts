@@ -68,7 +68,7 @@ export const topicListResponseSchema = z.object({
 /**
  * Topic Delete Response Schema
  */
-const _topicDeleteResponseSchema = z.object({
+export const topicDeleteResponseSchema = z.object({
   object: z.literal("topic"),
   id: z.string().describe("ID of the deleted topic"),
 });

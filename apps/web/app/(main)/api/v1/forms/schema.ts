@@ -135,7 +135,7 @@ const formVersionItemSchema = z.object({
 /**
  * Form Version List Response Schema
  */
-const _formVersionListResponseSchema = z.object({
+export const formVersionListResponseSchema = z.object({
   object: z.literal("form_version_list"),
   data: z.array(formVersionItemSchema),
 });
@@ -143,7 +143,7 @@ const _formVersionListResponseSchema = z.object({
 /**
  * Form Delete Response Schema
  */
-const _formDeleteResponseSchema = z.object({
+export const formDeleteResponseSchema = z.object({
   object: z.literal("form"),
   id: z.string().describe("ID of the deleted form"),
 });

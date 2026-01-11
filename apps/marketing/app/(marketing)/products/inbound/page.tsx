@@ -25,6 +25,7 @@ import {
   FeaturesWithCTA,
   type Feature,
 } from "@/app/_components/sections/features-with-cta";
+import Link from "next/link";
 
 const inboundFeatures: BentoFeature[] = [
   {
@@ -136,8 +137,8 @@ export default function InboundProductPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-8 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
-                <Button className="w-full! lg:w-fit! px-[42px]!">
-                  Get started for free
+                <Button className="w-full! lg:w-fit! px-[42px]!" asChild>
+                  <Link href="/w?action=register">Get started for free</Link>
                 </Button>
                 <Button variant="secondary" className="w-full! lg:w-fit!">
                   View documentation
@@ -182,6 +183,7 @@ export default function InboundProductPage() {
         title="Email as an input for your application."
         description="Stop building email infrastructure from scratch. Kibamail handles the complexity of receiving, parsing, and routing emails so you can focus on building your product."
         buttonText="Start receiving emails"
+        buttonHref="/w?action=register"
         features={ctaFeatures}
         showCommunitySection={false}
       />

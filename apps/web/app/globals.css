@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Rethink+Sans:ital,wght@0,400..800;1,400..800&display=swap");
-
 @import "tailwindcss";
 @import "@kibamail/owly/styles/index.css";
 
@@ -18,6 +16,7 @@
 
 @theme inline {
   --font-heading: var(--default-font-family-display);
+  --font-mono: var(--default-font-family-mono);
 
   /* Shadcn/Form theme color mappings */
   --color-ring: var(--ring);

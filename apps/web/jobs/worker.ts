@@ -12,6 +12,7 @@ import { sendDoubleOptIn } from "./forms/send-double-opt-in";
 import { processInboundEmail } from "./inbox/process-inbound-email";
 import { sendReply } from "./inbox/send-reply";
 import { sendTransactional } from "./emails/send-transactional";
+import { processEvents } from "./mta/process-events";
 import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
@@ -89,6 +90,13 @@ configureWorker("emails", {
   concurrency: 50,
 });
 
+configureWorker("mta", {
+  processors: {
+    "process-events": processEvents,
+  },
+  concurrency: 10,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -102,6 +110,7 @@ const queues = [
   "contacts",
   "inbox",
   "emails",
+  "mta",
 ] as const;
 
 for (const queueName of queues) {
@@ -167,6 +176,11 @@ logger.info(
         queue: "emails",
         jobs: ["send-transactional"],
         concurrency: 50,
+      },
+      {
+        queue: "mta",
+        jobs: ["process-events"],
+        concurrency: 10,
       },
     ],
   },

@@ -276,6 +276,19 @@ const PERMISSIONS: PermissionDefinition[] = [
   },
 
   // ============================================================================
+  // EMAIL TEMPLATES MANAGEMENT
+  // ============================================================================
+  {
+    name: "read:templates",
+    description: "View email templates and their details",
+  },
+  {
+    name: "manage:templates",
+    description:
+      "Full email template management (create, update, delete templates and versions)",
+  },
+
+  // ============================================================================
   // WEBHOOKS
   // ============================================================================
   {
@@ -354,6 +367,9 @@ export const ROLES: Role[] = [
       // Forms Management - Full Access
       "read:forms",
       "manage:forms",
+      // Email Templates Management - Full Access
+      "read:templates",
+      "manage:templates",
       // Automations Management - Full Access
       "read:automations",
       "manage:automations",
@@ -398,6 +414,9 @@ export const ROLES: Role[] = [
       // Forms Management - Full Access
       "read:forms",
       "manage:forms",
+      // Email Templates Management - Full Access
+      "read:templates",
+      "manage:templates",
       // Automations Management - Full Access
       "read:automations",
       "manage:automations",
@@ -509,6 +528,9 @@ export type Permission =
   // Forms Management
   | "read:forms"
   | "manage:forms"
+  // Email Templates Management
+  | "read:templates"
+  | "manage:templates"
   // Automations Management
   | "read:automations"
   | "manage:automations";

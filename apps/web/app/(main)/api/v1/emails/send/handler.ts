@@ -72,7 +72,8 @@ async function findOrCreateSenderIdentity(
 /**
  * Send a transactional email
  *
- * Validates the request and queues the job immediately without any S3 uploads.
+ * Validates the request and queues one job per recipient.
+ * Each recipient gets their own TransactionalEmail record for accurate billing and analytics.
  * All file uploads happen in the background job after MTA injection.
  */
 export async function sendTransactionalEmail(
@@ -83,9 +84,9 @@ export async function sendTransactionalEmail(
 
   const { from, to, replyTo, subject, previewText, html, text, attachments, metadata } = data;
 
-  const normalizedTo = Array.isArray(to) ? to : [to];
+  const recipients = Array.isArray(to) ? to : [to];
 
-  if (normalizedTo.length === 0) {
+  if (recipients.length === 0) {
     throw new BadRequestError(
       "At least one recipient is required",
       ErrorCode.INVALID_PARAMETER,
@@ -105,7 +106,7 @@ export async function sendTransactionalEmail(
     }
   }
 
-  const { local, domain: domainName } = parseEmailAddress(from);
+  const { domain: domainName } = parseEmailAddress(from);
 
   const sendingDomain = await prisma.sendingDomain.findFirst({
     where: {
@@ -134,8 +135,6 @@ export async function sendTransactionalEmail(
     sendingDomain.id,
   );
 
-  const emailSendId = createId();
-
   const attachmentsForJob =
     attachments && attachments.length > 0
       ? attachments.map((att, index) => ({
@@ -150,25 +149,44 @@ export async function sendTransactionalEmail(
     ? { email: replyTo.email, name: replyTo.name }
     : undefined;
 
-  await queue("emails").push("send-transactional", {
-    emailSendId,
-    workspaceId,
-    senderIdentityId: senderIdentity.id,
-    sendingDomainId: sendingDomain.id,
-    replyTo: replyToForJob,
-    to: normalizedTo.length === 1 ? normalizedTo[0] : normalizedTo,
-    subject,
-    previewText,
-    htmlBody: html,
-    textBody: text,
-    attachments: attachmentsForJob,
-    metadata: metadata || undefined,
-  });
+  // Queue one job per recipient - each gets their own TransactionalEmail record
+  const emailIds: Array<{ id: string; recipient: string }> = [];
+
+  for (const recipient of recipients) {
+    const emailSendId = createId();
+
+    await queue("emails").push("send-transactional", {
+      emailSendId,
+      workspaceId,
+      senderIdentityId: senderIdentity.id,
+      sendingDomainId: sendingDomain.id,
+      replyTo: replyToForJob,
+      to: recipient,
+      subject,
+      previewText,
+      htmlBody: html,
+      textBody: text,
+      attachments: attachmentsForJob,
+      metadata: metadata || undefined,
+    });
+
+    emailIds.push({ id: emailSendId, recipient });
+  }
+
+  // Return single object for single recipient, array for multiple
+  if (emailIds.length === 1) {
+    return responseCreated(
+      {
+        id: emailIds[0].id,
+      },
+      "email",
+    );
+  }
 
   return responseCreated(
     {
-      id: emailSendId,
+      emails: emailIds,
     },
-    "email",
+    "email_list",
   );
 }

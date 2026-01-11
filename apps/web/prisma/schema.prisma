@@ -1131,6 +1131,10 @@ model SenderIdentity {
   events                         Event[]
   /// Conversations using this sender identity
   conversations                  Conversation[]
+  /// Email templates using this sender identity
+  templatesAsSender              EmailTemplate[] @relation("TemplateSender")
+  /// Email templates using this as reply-to
+  templatesAsReplyTo             EmailTemplate[] @relation("TemplateReplyTo")
 
   @@index([workspaceId])
 }
@@ -1163,6 +1167,8 @@ model EmailContent {
   broadcasts     Broadcast[]
   /// A/B test variants using this content
   abTestVariants AbTestVariant[]
+  /// Email templates using this content
+  templates     EmailTemplate[]
 }
 
 /// *
@@ -1366,6 +1372,121 @@ model Event {
   @@index([type])
   @@index([createdAt])
   @@map("events")
+}
+
+/// Transactional email status (computed from latest event)
+enum TransactionalEmailStatus {
+  QUEUED // Email queued for sending
+  SENDING // Being processed by MTA
+  DELIVERED // Successfully delivered
+  BOUNCED // Hard or soft bounce
+  COMPLAINED // Spam complaint received
+  FAILED // Permanent failure
+}
+
+/// *
+///  * Transactional Email Schema
+///  *
+///  * Stores metadata for transactional emails sent via API.
+///  * Events are linked via sendingId for timeline reconstruction.
+///  * Status is denormalized for fast queries.
+model TransactionalEmail {
+  /// Unique identifier for the transactional email
+  id                   String                    @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId          String
+  /// Unique sending ID (es_<timestamp>_<random>) - links to Event records
+  sendingId            String                    @unique
+
+  // === Sender Information ===
+  /// Sender email address (full address: local@domain.com)
+  fromEmail            String
+  /// Sender display name
+  fromName             String?
+  /// Reply-to email address
+  replyToEmail         String?
+  /// Reply-to display name
+  replyToName          String?
+  /// Sending domain ID
+  sendingDomainId      String?
+  /// Sender identity ID
+  senderIdentityId     String?
+
+  // === Recipient ===
+  /// Recipient email address (one email per record for billing/analytics)
+  toEmail              String
+
+  // === Content ===
+  /// Email subject line
+  subject              String
+  /// Preview text (shown in inbox preview)
+  previewText          String?
+  /// S3 key for stored HTML email content
+  htmlContentS3Key     String?
+  /// S3 key for stored plain text email content
+  textContentS3Key     String?
+
+  // === Status (denormalized for fast queries) ===
+  /// Current email status
+  status               TransactionalEmailStatus  @default(QUEUED)
+  /// SMTP response code from last delivery attempt
+  lastResponseCode     Int?
+  /// SMTP response message from last delivery attempt
+  lastResponseMessage  String?
+  /// Bounce classification if bounced
+  bounceClassification String?
+
+  // === Tracking Configuration ===
+  /// Whether open tracking is enabled
+  openTrackingEnabled  Boolean                   @default(false)
+  /// Whether click tracking is enabled
+  clickTrackingEnabled Boolean                   @default(false)
+
+  // === User Metadata ===
+  /// Custom metadata provided by API caller (key-value pairs)
+  metadata             Json?
+  /// Tags for categorization
+  tags                 Json?
+
+  // === Timestamps ===
+  /// When the email was created/queued
+  createdAt            DateTime                  @default(now())
+  /// When the email was sent to MTA
+  sentAt               DateTime?
+  /// When delivery was confirmed
+  deliveredAt          DateTime?
+  /// When first opened (if tracking enabled)
+  firstOpenedAt        DateTime?
+  /// When first clicked (if tracking enabled)
+  firstClickedAt       DateTime?
+  /// When bounce was received
+  bouncedAt            DateTime?
+  /// When complaint was received
+  complainedAt         DateTime?
+
+  // === Denormalized Stats (updated on each event) ===
+  /// Total open count
+  openCount            Int                       @default(0)
+  /// Total click count
+  clickCount           Int                       @default(0)
+  /// Unique links clicked
+  uniqueLinksClicked   Int                       @default(0)
+  /// Total event count for this email
+  totalEvents          Int                       @default(1)
+
+  // === Indexes for common queries ===
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, createdAt])
+  @@index([workspaceId, fromEmail])
+  @@index([workspaceId, toEmail])
+  @@index([sendingId])
+  @@index([sendingDomainId])
+  @@index([senderIdentityId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@map("transactional_emails")
 }
 
 /// Broadcast status
@@ -1651,5 +1772,82 @@ enum InboxMessageStatus {
   UNREAD // Not yet read
   READ // Read by user
   ARCHIVED // Archived
+}
+
+/// *
+///  * Email Templates Schema
+///  *
+///  * Reusable transactional email templates with versioning support.
+///  * Users define templates with variable placeholders, then call the
+///  * transactional email endpoint providing variables for substitution.
+///  * Versioning pattern follows Forms - only one DRAFT and one PUBLISHED per template.
+model EmailTemplate {
+  /// Unique identifier for the template
+  id                 String               @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId        String
+  /// Template name for identification
+  name               String
+  /// Template description
+  description        String?
+  /// Current status of this version
+  status             EmailTemplateStatus  @default(DRAFT)
+  /// Version number (increments with each new version)
+  version            Int                  @default(1)
+  /// Reference to parent template ID (for version grouping)
+  /// NULL for the first version, references the original template ID for subsequent versions
+  parentId           String?
+  /// Reference to the currently published version (for root templates only)
+  /// Points to the active published version that should be used when sending
+  publishedVersionId String?
+  /// Email content (subject, preview, HTML, JSON, styles, text) - optional until template is published
+  emailContentId     String?
+  /// Default sender identity for this template
+  senderIdentityId   String?
+  /// Reply-to sender identity
+  replyToIdentityId  String?
+  /// Whether to track clicks
+  trackClicks        Boolean              @default(true)
+  /// Whether to track opens
+  trackOpens         Boolean              @default(true)
+  /// When this version was published (NULL if never published)
+  publishedAt        DateTime?
+  /// When the template was created
+  createdAt          DateTime             @default(now())
+  /// When the template was last updated
+  updatedAt          DateTime             @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt          DateTime?            @map("deleted_at")
+  /// Parent template (for version tracking)
+  parent             EmailTemplate?       @relation("TemplateVersions", fields: [parentId], references: [id], onDelete: Cascade)
+  /// Child versions
+  versions           EmailTemplate[]      @relation("TemplateVersions")
+  /// Currently published version (for root templates only)
+  publishedVersion   EmailTemplate?       @relation("PublishedTemplate", fields: [publishedVersionId], references: [id], onDelete: SetNull)
+  /// Templates that reference this as published version
+  referencedByAsPublished EmailTemplate[] @relation("PublishedTemplate")
+  /// Email content relation - optional until template is published
+  emailContent       EmailContent?        @relation(fields: [emailContentId], references: [id], onDelete: SetNull)
+  /// Sender identity relation
+  senderIdentity     SenderIdentity?      @relation("TemplateSender", fields: [senderIdentityId], references: [id], onDelete: SetNull)
+  /// Reply-to sender identity
+  replyToIdentity    SenderIdentity?      @relation("TemplateReplyTo", fields: [replyToIdentityId], references: [id], onDelete: SetNull)
+
+  /// Only enforce uniqueness for DRAFT and PUBLISHED status (allow multiple ARCHIVED)
+  /// This allows version rollback/rollforward without constraint violations
+  @@unique([workspaceId, parentId, status], name: "one_template_status_per_parent")
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([workspaceId, deletedAt])
+  @@index([parentId])
+  @@index([publishedVersionId])
+  @@map("email_templates")
+}
+
+/// Email template status
+enum EmailTemplateStatus {
+  DRAFT      // Draft version being edited
+  PUBLISHED  // Published version (active)
+  ARCHIVED   // Archived version (replaced by newer published version)
 }
 

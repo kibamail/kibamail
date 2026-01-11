@@ -28,6 +28,7 @@ import { CodeShowcase } from "@/app/_components/sections/code-showcase";
 import { Sandbox } from "@/app/_components/sections/sandbox";
 import { EmailEvents } from "@/app/_components/sections/email-events";
 import { generateCodeSamples } from "@/app/_lib/code-samples";
+import Link from "next/link";
 
 const transactionalFeatures: BentoFeature[] = [
   {
@@ -141,8 +142,8 @@ export default async function TransactionalProductPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-8 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
-                <Button className="w-full! lg:w-fit! px-[42px]!">
-                  Get started for free
+                <Button className="w-full! lg:w-fit! px-[42px]!" asChild>
+                  <Link href="/w?action=register">Get started for free</Link>
                 </Button>
                 <Button variant="secondary" className="w-full! lg:w-fit!">
                   View documentation
@@ -202,6 +203,7 @@ export default async function TransactionalProductPage() {
         title="Email that grows with you."
         description="Start free, scale to millions. Same API, same reliability, from your first user to your millionth."
         buttonText="Start sending for free"
+        buttonHref="/w?action=register"
         features={ctaFeatures}
         showCommunitySection={false}
       />

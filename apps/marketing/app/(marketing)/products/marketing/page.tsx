@@ -26,6 +26,7 @@ import {
   FeaturesWithCTA,
   type Feature,
 } from "@/app/_components/sections/features-with-cta";
+import Link from "next/link";
 
 const marketingFeatures: BentoFeature[] = [
   {
@@ -145,8 +146,8 @@ export default function MarketingProductPage() {
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-8 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
-                <Button className="w-full! lg:w-fit! px-[42px]!">
-                  Get started for free
+                <Button className="w-full! lg:w-fit! px-[42px]!" asChild>
+                  <Link href="/w?action=register">Get started for free</Link>
                 </Button>
                 <Button variant="secondary" className="w-full! lg:w-fit!">
                   Calculate your email savings
@@ -190,6 +191,7 @@ export default function MarketingProductPage() {
         title="Grow your audience with email."
         description="Build lasting relationships with your subscribers through personalized, timely, and relevant email campaigns that drive engagement and conversions."
         buttonText="Start your first campaign"
+        buttonHref="/w?action=register"
         features={ctaFeatures}
         showCommunitySection={false}
       />

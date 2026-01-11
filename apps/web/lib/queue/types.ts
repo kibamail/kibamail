@@ -118,6 +118,35 @@ export type QueueJobs = {
       replySubject?: string;
     };
   };
+  // MTA queue for processing webhook events from the MTA
+  mta: {
+    "process-events": {
+      /** The raw MTA event payload */
+      events: Array<{
+        type: string;
+        sending_id: string;
+        recipient: string;
+        tenant_id: string;
+        broadcast_id: string;
+        contact_id: string;
+        response: {
+          code: number;
+          content: string;
+          command?: string | null;
+          enhanced_code?: {
+            class: number;
+            subject: number;
+            detail: number;
+          } | null;
+        };
+        bounce_classification: string;
+        timestamp: string;
+        node_id: string;
+      }>;
+      /** Retry attempt number (starts at 0) */
+      attempt?: number;
+    };
+  };
   // Emails queue for transactional email sending
   emails: {
     "send-transactional": {
@@ -134,8 +163,8 @@ export type QueueJobs = {
         email: string;
         name?: string;
       };
-      /** Recipient email(s) - single or array */
-      to: string | string[];
+      /** Recipient email address */
+      to: string;
       /** Email subject */
       subject: string;
       /** Preview text shown in email clients (optional) */

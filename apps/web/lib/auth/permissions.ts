@@ -1,5 +1,5 @@
 import type { Permission } from "@/config/rbac";
-import { UnauthorizedError } from "@/lib/api/errors";
+import { ForbiddenError } from "@/lib/api/errors";
 import type { UserSession } from "@/lib/auth/get-session";
 
 export function hasPermission(
@@ -14,6 +14,6 @@ export function requirePermissions(
   permission: Permission,
 ): void {
   if (!hasPermission(session, permission)) {
-    throw new UnauthorizedError(`Requires permission: ${permission}`);
+    throw new ForbiddenError(`Requires permission: ${permission}`);
   }
 }

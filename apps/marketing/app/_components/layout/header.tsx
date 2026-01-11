@@ -19,10 +19,14 @@ export function Header() {
         <Navigation />
 
         <div className="hidden lg:flex items-center gap-4">
-          <Button variant="tertiary">Sign in</Button>
-          <Button>
-            Get started
-            <NavArrowRight />
+          <Button variant="tertiary" asChild>
+            <Link href="/w?action=signin">Sign in</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/w?action=register">
+              Get started
+              <NavArrowRight />
+            </Link>
           </Button>
         </div>
       </header>

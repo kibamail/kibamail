@@ -2,6 +2,7 @@
 
 import { Button } from "@kibamail/owly/button";
 import { useToast } from "@kibamail/owly/toast";
+import * as Tooltip from "@kibamail/owly/tooltip";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Settings, StatUp, Xmark } from "iconoir-react";
 import Link from "next/link";
@@ -45,6 +46,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   backUrl,
   successRedirectUrl,
   labels: customLabels,
+  headerExtra,
 }: EmailEditorClientProps<T>) {
   const labels = { ...getDefaultLabels(mode), ...customLabels };
   const tabs = getTabsForMode(mode);
@@ -190,6 +192,8 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           <h1 className="text-lg font-semibold text-kb-content-primary">
             {entityName}
           </h1>
+
+          {headerExtra}
         </div>
 
         {/* Tab Navigation */}
@@ -210,49 +214,89 @@ export function EmailEditorClient<T extends EmailEditorMode>({
         </div>
 
         {/* Action Buttons */}
-        {!isReadonly && (
-          <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4">
+          <Tooltip.Provider>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <span>
+                  <Button
+                    variant="secondary"
+                    onClick={() => setStylesOpen((current) => !current)}
+                    disabled={isReadonly}
+                  >
+                    <Settings className="w-4 h-4" />
+                    Styles
+                  </Button>
+                </span>
+              </Tooltip.Trigger>
+              {isReadonly && (
+                <Tooltip.Content side="bottom" sideOffset={8}>
+                  Only draft versions can be edited
+                </Tooltip.Content>
+              )}
+            </Tooltip.Root>
+          </Tooltip.Provider>
+          <Tooltip.Provider>
+            <Tooltip.Root>
+              <Tooltip.Trigger asChild>
+                <span>
+                  <Button
+                    variant="secondary"
+                    onClick={onSaveDraft}
+                    disabled={isReadonly || saveDraftMutation.isPending}
+                  >
+                    {saveDraftMutation.isPending
+                      ? labels.saveDraftPending
+                      : labels.saveDraft}
+                  </Button>
+                </span>
+              </Tooltip.Trigger>
+              {isReadonly && (
+                <Tooltip.Content side="bottom" sideOffset={8}>
+                  Only draft versions can be edited
+                </Tooltip.Content>
+              )}
+            </Tooltip.Root>
+          </Tooltip.Provider>
+          {mode === "broadcast" && (
             <Button
               variant="secondary"
-              onClick={() => setStylesOpen((current) => !current)}
+              onClick={() => setTestEmailModalOpen(true)}
+              disabled={isReadonly}
             >
-              <Settings className="w-4 h-4" />
-              Styles
+              Send test email
             </Button>
-            <Button
-              variant="secondary"
-              onClick={onSaveDraft}
-              disabled={saveDraftMutation.isPending}
-            >
-              {saveDraftMutation.isPending
-                ? labels.saveDraftPending
-                : labels.saveDraft}
-            </Button>
-            {mode === "broadcast" && (
-              <Button
-                variant="secondary"
-                onClick={() => setTestEmailModalOpen(true)}
-              >
-                Send test email
-              </Button>
-            )}
-            {mutations.onPublish && (
-              <PublishButton
-                mode={mode}
-                entityId={entityId}
-                onSaveDraft={onSaveDraftAsync}
-                isSavingDraft={saveDraftMutation.isPending}
-                onCheckReadiness={mutations.onCheckReadiness}
-                onPublish={async () => {
-                  const payload = getSavePayload();
-                  await mutations.onPublish?.(payload);
-                }}
-                successRedirectUrl={successRedirectUrl}
-                labels={labels}
-              />
-            )}
-          </div>
-        )}
+          )}
+          {mutations.onPublish && (
+            <Tooltip.Provider>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <span>
+                    <PublishButton
+                      mode={mode}
+                      entityId={entityId}
+                      onSaveDraft={onSaveDraftAsync}
+                      isSavingDraft={saveDraftMutation.isPending}
+                      onCheckReadiness={mutations.onCheckReadiness}
+                      onPublish={async () => {
+                        const payload = getSavePayload();
+                        await mutations.onPublish?.(payload);
+                      }}
+                      successRedirectUrl={successRedirectUrl}
+                      labels={labels}
+                      disabled={isReadonly}
+                    />
+                  </span>
+                </Tooltip.Trigger>
+                {isReadonly && (
+                  <Tooltip.Content side="bottom" sideOffset={8}>
+                    Only draft versions can be published
+                  </Tooltip.Content>
+                )}
+              </Tooltip.Root>
+            </Tooltip.Provider>
+          )}
+        </div>
       </div>
 
       {/* Tab Content */}

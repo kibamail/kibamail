@@ -118,6 +118,15 @@ export enum ErrorCode {
   BROADCAST_NOT_EDITABLE = "BROADCAST_NOT_EDITABLE",
 
   // ============================================================================
+  // EMAIL TEMPLATE ERRORS
+  // ============================================================================
+  TEMPLATE_NOT_FOUND = "TEMPLATE_NOT_FOUND",
+  TEMPLATE_ALREADY_PUBLISHED = "TEMPLATE_ALREADY_PUBLISHED",
+  TEMPLATE_NOT_EDITABLE = "TEMPLATE_NOT_EDITABLE",
+  TEMPLATE_HAS_DRAFT_VERSION = "TEMPLATE_HAS_DRAFT_VERSION",
+  TEMPLATE_NO_CONTENT = "TEMPLATE_NO_CONTENT",
+
+  // ============================================================================
   // INBOX/CONVERSATION ERRORS
   // ============================================================================
   ConversationNotFound = "CONVERSATION_NOT_FOUND",

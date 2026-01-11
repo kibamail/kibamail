@@ -63,10 +63,17 @@ export type ApiObjectType =
   | "api_key_validation"
   | "email"
   | "email_list"
+  | "email_template"
+  | "email_template_list"
+  | "email_template_versions"
   | "conversation"
   | "conversation_list"
   | "inbox_message"
-  | "inbox_message_list";
+  | "inbox_message_list"
+  | "transactional_email"
+  | "transactional_email_list"
+  | "event_list"
+  | "email_content";
 
 /**
  * Standard API response structure (for external API v1)

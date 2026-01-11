@@ -2751,6 +2751,306 @@ class DomainsApi extends HttpClient {
 }
 
 /**
+ * Email template response type for API
+ */
+export interface EmailTemplateResponse {
+  object: "email_template";
+  id: string;
+  name: string;
+  description?: string | null;
+  status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+  version: number;
+  emailContentId?: string | null;
+  emailContent?: {
+    subject?: string | null;
+    previewText?: string | null;
+    contentJson?: unknown;
+    styles?: unknown;
+    contentHtml?: string | null;
+    contentText?: string | null;
+  } | null;
+  senderIdentityId?: string | null;
+  senderIdentity?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  replyToIdentityId?: string | null;
+  replyToIdentity?: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  trackClicks: boolean;
+  trackOpens: boolean;
+  publishedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Email template list response type for API
+ */
+export interface EmailTemplateListResponse {
+  object: "email_template_list";
+  data: Array<{
+    id: string;
+    name: string;
+    description?: string | null;
+    status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+    version: number;
+    createdAt: string;
+    updatedAt: string;
+  }>;
+  hasMore: boolean;
+}
+
+/**
+ * Email Templates API namespace
+ */
+class EmailTemplatesApi extends HttpClient {
+  /**
+   * Create a new email template
+   *
+   * @param data - Template creation data (only name is required)
+   * @returns Created template
+   *
+   * @example
+   * ```ts
+   * const template = await internalApi.emailTemplates().create({
+   *   name: 'Welcome Email Template'
+   * })
+   * ```
+   */
+  async create(data: {
+    name: string;
+    description?: string;
+    trackClicks?: boolean;
+    trackOpens?: boolean;
+  }): Promise<{ object: "email_template"; id: string }> {
+    return this.request(
+      "POST",
+      "/api/internal/v1/email-templates",
+      null,
+      z.any(),
+      data,
+    );
+  }
+
+  /**
+   * List all email templates for the workspace
+   *
+   * @param params - Query parameters (limit, after, before)
+   * @returns List of templates with pagination info
+   *
+   * @example
+   * ```ts
+   * const { data: templates, hasMore } = await internalApi.emailTemplates().list()
+   * ```
+   */
+  async list(params?: {
+    limit?: number;
+    after?: string;
+    before?: string;
+  }): Promise<EmailTemplateListResponse> {
+    const queryParams = new URLSearchParams();
+    if (params?.limit) queryParams.set("limit", params.limit.toString());
+    if (params?.after) queryParams.set("after", params.after);
+    if (params?.before) queryParams.set("before", params.before);
+
+    const queryString = queryParams.toString();
+    const url = `/api/internal/v1/email-templates${queryString ? `?${queryString}` : ""}`;
+
+    return this.request("GET", url, null, z.any());
+  }
+
+  /**
+   * Get a specific email template by ID
+   *
+   * @param templateId - ID of the template to retrieve
+   * @returns Template data with full content
+   *
+   * @example
+   * ```ts
+   * const template = await internalApi.emailTemplates().get('template_123')
+   * ```
+   */
+  async get(templateId: string): Promise<EmailTemplateResponse> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/email-templates/${templateId}`,
+      null,
+      z.any(),
+    );
+  }
+
+  /**
+   * Update an existing email template
+   *
+   * @param templateId - ID of the template to update
+   * @param data - Template update data
+   * @returns Updated template
+   *
+   * @example
+   * ```ts
+   * const template = await internalApi.emailTemplates().update('template_123', {
+   *   name: 'Updated Template Name',
+   *   senderIdentityId: 'sender_123',
+   *   emailContent: { subject: 'Welcome', contentJson: {...} }
+   * })
+   * ```
+   */
+  async update(
+    templateId: string,
+    data: {
+      name?: string;
+      description?: string | null;
+      senderIdentityId?: string | null;
+      replyToIdentityId?: string | null;
+      trackClicks?: boolean;
+      trackOpens?: boolean;
+      emailContent?: {
+        subject?: string | null;
+        previewText?: string | null;
+        contentJson?: unknown;
+        styles?: unknown;
+      };
+    },
+  ): Promise<{ object: "email_template"; id: string }> {
+    return this.request(
+      "PUT",
+      `/api/internal/v1/email-templates/${templateId}`,
+      null,
+      z.any(),
+      data,
+    );
+  }
+
+  /**
+   * Get the HTML preview of an email template
+   *
+   * @param templateId - ID of the template to preview
+   * @returns Preview HTML and content status
+   *
+   * @example
+   * ```ts
+   * const { html, hasContent } = await internalApi.emailTemplates().preview('template_123')
+   * ```
+   */
+  async preview(
+    templateId: string,
+  ): Promise<{ html: string; hasContent: boolean }> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/email-templates/${templateId}/preview`,
+      null,
+      z.any(),
+    );
+  }
+
+  /**
+   * Delete an email template
+   *
+   * @param templateId - ID of the template to delete
+   * @returns Deleted template info
+   *
+   * @example
+   * ```ts
+   * await internalApi.emailTemplates().delete('template_123')
+   * ```
+   */
+  async delete(
+    templateId: string,
+  ): Promise<{ object: "email_template"; id: string }> {
+    return this.request(
+      "DELETE",
+      `/api/internal/v1/email-templates/${templateId}`,
+      null,
+      z.any(),
+    );
+  }
+
+  /**
+   * Publish an email template
+   *
+   * @param templateId - ID of the template to publish
+   * @returns Published template info
+   *
+   * @example
+   * ```ts
+   * await internalApi.emailTemplates().publish('template_123')
+   * ```
+   */
+  async publish(
+    templateId: string,
+  ): Promise<{ object: "email_template"; id: string }> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/email-templates/${templateId}/publish`,
+      null,
+      z.any(),
+    );
+  }
+
+  /**
+   * Create a new version of an email template
+   *
+   * @param templateId - ID of the template to create a version from
+   * @returns New version info
+   *
+   * @example
+   * ```ts
+   * const newVersion = await internalApi.emailTemplates().createVersion('template_123')
+   * ```
+   */
+  async createVersion(
+    templateId: string,
+  ): Promise<{ object: "email_template"; id: string }> {
+    return this.request(
+      "POST",
+      `/api/internal/v1/email-templates/${templateId}/versions`,
+      null,
+      z.any(),
+      {},
+    );
+  }
+
+  /**
+   * List all versions of an email template
+   *
+   * @param templateId - ID of the template to list versions for
+   * @returns List of versions with metadata
+   *
+   * @example
+   * ```ts
+   * const versions = await internalApi.emailTemplates().listVersions('template_123')
+   * ```
+   */
+  async listVersions(templateId: string): Promise<{
+    object: "email_template_versions";
+    data: Array<{
+      id: string;
+      name: string;
+      version: number;
+      status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+      isLive: boolean;
+      publishedAt: string | null;
+      createdAt: string;
+      updatedAt: string;
+    }>;
+    rootTemplateId: string;
+    publishedVersionId: string | null;
+  }> {
+    return this.request(
+      "GET",
+      `/api/internal/v1/email-templates/${templateId}/versions`,
+      null,
+      z.any(),
+    );
+  }
+}
+
+/**
  * Internal API SDK
  *
  * Provides namespaced, type-safe methods for all internal API endpoints.
@@ -2771,6 +3071,7 @@ class InternalApi {
   private _broadcasts: BroadcastsApi;
   private _senderIdentities: SenderIdentitiesApi;
   private _emails: EmailsApi;
+  private _emailTemplates: EmailTemplatesApi;
 
   constructor() {
     this._workspaces = new WorkspacesApi();
@@ -2788,6 +3089,7 @@ class InternalApi {
     this._broadcasts = new BroadcastsApi();
     this._senderIdentities = new SenderIdentitiesApi();
     this._emails = new EmailsApi();
+    this._emailTemplates = new EmailTemplatesApi();
   }
 
   /**
@@ -3037,6 +3339,22 @@ class InternalApi {
    */
   emails() {
     return this._emails;
+  }
+
+  /**
+   * Access email templates API
+   *
+   * @returns EmailTemplatesApi instance
+   *
+   * @example
+   * ```ts
+   * const template = await internalApi.emailTemplates().create({
+   *   name: 'Welcome Email Template'
+   * })
+   * ```
+   */
+  emailTemplates() {
+    return this._emailTemplates;
   }
 }
 

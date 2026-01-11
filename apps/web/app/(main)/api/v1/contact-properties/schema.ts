@@ -133,7 +133,7 @@ export const contactPropertyListResponseSchema = z.object({
 /**
  * Contact Property Delete Response Schema
  */
-const _contactPropertyDeleteResponseSchema = z.object({
+export const contactPropertyDeleteResponseSchema = z.object({
   object: z.literal("contact_property"),
   id: z.string().describe("ID of the deleted contact property"),
 });

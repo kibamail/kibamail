@@ -107,15 +107,51 @@ describe("POST /api/v1/emails/send", () => {
     expect(responseData.id).toBeDefined();
   });
 
-  test("should send to multiple recipients", async () => {
+  test("should send to multiple recipients and create separate emails for each", async () => {
     const domainName = `transactional-${Date.now()}.kibamail.xyz`;
-    const domain = await createVerifiedSendingDomain(testWorkspace.id, domainName);
+    await createVerifiedSendingDomain(testWorkspace.id, domainName);
+
+    const recipients = ["recipient1@example.com", "recipient2@example.com", "recipient3@example.com"];
 
     const request = post(
       "/emails/send",
       {
         from: `info@${domainName}`,
-        to: ["recipient1@example.com", "recipient2@example.com", "recipient3@example.com"],
+        to: recipients,
+        subject: "Test Subject",
+        html: "<p>Test HTML content</p>",
+      },
+      fullAccessApiKey.key,
+    );
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("email_list");
+    expect(responseData.emails).toBeDefined();
+    expect(responseData.emails).toHaveLength(3);
+
+    // Each email should have a unique ID and the correct recipient
+    const emailIds = new Set<string>();
+    for (let i = 0; i < responseData.emails.length; i++) {
+      const email = responseData.emails[i];
+      expect(email.id).toBeDefined();
+      expect(email.recipient).toBe(recipients[i]);
+      expect(emailIds.has(email.id)).toBe(false); // Each ID should be unique
+      emailIds.add(email.id);
+    }
+  });
+
+  test("should return single email object for single recipient", async () => {
+    const domainName = `transactional-${Date.now()}.kibamail.xyz`;
+    await createVerifiedSendingDomain(testWorkspace.id, domainName);
+
+    const request = post(
+      "/emails/send",
+      {
+        from: `info@${domainName}`,
+        to: "single-recipient@example.com",
         subject: "Test Subject",
         html: "<p>Test HTML content</p>",
       },
@@ -128,6 +164,33 @@ describe("POST /api/v1/emails/send", () => {
     expect(response.status).toBe(201);
     expect(responseData.object).toBe("email");
     expect(responseData.id).toBeDefined();
+    // Should NOT have emails array for single recipient
+    expect(responseData.emails).toBeUndefined();
+  });
+
+  test("should return single email object for array with one recipient", async () => {
+    const domainName = `transactional-${Date.now()}.kibamail.xyz`;
+    await createVerifiedSendingDomain(testWorkspace.id, domainName);
+
+    const request = post(
+      "/emails/send",
+      {
+        from: `info@${domainName}`,
+        to: ["single-recipient@example.com"],
+        subject: "Test Subject",
+        html: "<p>Test HTML content</p>",
+      },
+      fullAccessApiKey.key,
+    );
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("email");
+    expect(responseData.id).toBeDefined();
+    // Should NOT have emails array for single recipient
+    expect(responseData.emails).toBeUndefined();
   });
 
   test("should auto-create sender identity if not exists", async () => {

@@ -14,7 +14,6 @@
 
 import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { applyTracking } from "@/lib/email/tracking";
-import { generateMessageIdForDomain } from "@/lib/email/message-id";
 import type { EmailMessage, EmailAttachment } from "@/lib/mta";
 import { getMtaOptions, injectEmail } from "@/lib/mta";
 import type { JobProcessor } from "@/lib/queue";
@@ -42,7 +41,7 @@ interface JobData {
   senderIdentityId: string;
   sendingDomainId: string;
   replyTo?: ReplyToInput;
-  to: string | string[];
+  to: string;
   subject: string;
   previewText?: string;
   htmlBody: string;
@@ -55,74 +54,44 @@ interface JobData {
  * Build the reply-to address for MTA
  */
 function buildReplyToAddress(
-  senderIdentity: { email: string; name: string | null; replyToEmail: string | null },
+  senderIdentity: {
+    email: string;
+    name: string | null;
+    replyToEmail: string | null;
+  },
   sendingDomain: { name: string },
-  replyTo?: ReplyToInput,
+  replyTo?: ReplyToInput
 ): { email: string; name: string | null } {
   if (replyTo) {
     return { email: replyTo.email, name: replyTo.name ?? null };
   }
 
-  const replyToEmail = senderIdentity.replyToEmail || senderIdentity.email;
+  // If sender has a specific reply-to email, use it; otherwise construct from local part + domain
+  const replyToEmail = senderIdentity.replyToEmail || `${senderIdentity.email}@${sendingDomain.name}`;
   return { email: replyToEmail, name: senderIdentity.name };
 }
 
-/**
- * Build RFC822 email content for S3 storage
- */
-function buildRfc822Email(params: {
-  fromEmail: string;
-  fromName: string | null;
-  toEmail: string;
-  replyTo: { email: string; name: string | null };
-  subject: string;
-  messageId: string;
-  htmlBody: string;
-}): string {
-  const { fromEmail, fromName, toEmail, replyTo, subject, messageId, htmlBody } = params;
-
-  const fromHeader = fromName ? `"${fromName}" <${fromEmail}>` : fromEmail;
-  const replyToHeader = replyTo.name
-    ? `"${replyTo.name}" <${replyTo.email}>`
-    : replyTo.email;
-
-  const headers = [
-    `From: ${fromHeader}`,
-    `To: ${toEmail}`,
-    `Reply-To: ${replyToHeader}`,
-    `Subject: ${subject}`,
-    `Message-ID: ${messageId}`,
-    `Date: ${new Date().toUTCString()}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: text/html; charset=utf-8`,
-    "",
-    htmlBody,
-  ];
-
-  return headers.join("\r\n");
-}
-
-export const sendTransactional: JobProcessor<"emails", "send-transactional"> = async (data, jobId) => {
+export const sendTransactional: JobProcessor<
+  "emails",
+  "send-transactional"
+> = async (data, jobId) => {
   const {
     emailSendId,
     workspaceId,
     senderIdentityId,
     sendingDomainId,
     replyTo,
-    to,
+    to: recipient,
     subject,
-    previewText,
     htmlBody,
     textBody,
     attachments,
-    metadata,
+    previewText,
   } = data as JobData;
-
-  const recipient = Array.isArray(to) ? to[0] : to;
 
   logger.info(
     { jobId, workspaceId, recipient, emailSendId },
-    "Processing transactional email",
+    "Processing transactional email"
   );
 
   const senderIdentity = await prisma.senderIdentity.findUnique({
@@ -142,10 +111,13 @@ export const sendTransactional: JobProcessor<"emails", "send-transactional"> = a
   }
 
   const finalTextBody = textBody || htmlToPlainText(htmlBody);
-  const { id, messageId } = generateMessageIdForDomain(sendingDomain.name);
-  const envelopeSender = `bounces+${id}@${sendingDomain.returnPathSubDomain}.${sendingDomain.name}`;
-  const eventId = `evt_${id}`;
-  const s3Key = `emails/${workspaceId}/transactional/${id}`;
+  // Use emailSendId from API instead of generating a new ID
+  // This ensures the ID returned to the user matches what's in the database and MTA headers
+  const messageId = `<${emailSendId}@${sendingDomain.name}>`;
+  const envelopeSender = `bounces+${emailSendId}@${sendingDomain.returnPathSubDomain}.${sendingDomain.name}`;
+  const eventId = `evt_${emailSendId}`;
+  const htmlS3Key = `emails/${workspaceId}/transactional/${emailSendId}/html`;
+  const textS3Key = `emails/${workspaceId}/transactional/${emailSendId}/text`;
 
   const existingEvent = await prisma.event.findUnique({
     where: { id: eventId },
@@ -155,7 +127,7 @@ export const sendTransactional: JobProcessor<"emails", "send-transactional"> = a
   if (existingEvent?.contentS3Key) {
     logger.info(
       { jobId, emailSendId, recipient, eventId },
-      "Email already processed successfully, skipping",
+      "Email already processed successfully, skipping"
     );
     return;
   }
@@ -163,15 +135,24 @@ export const sendTransactional: JobProcessor<"emails", "send-transactional"> = a
   let htmlContent = htmlBody;
 
   if (sendingDomain.openTrackingEnabled || sendingDomain.clickTrackingEnabled) {
-    const trackingResult = applyTracking(htmlContent, `${sendingDomain.trackingSubDomain}.${sendingDomain.name}`, id, {
-      clickTracking: sendingDomain.clickTrackingEnabled,
-      openTracking: sendingDomain.openTrackingEnabled,
-    });
+    const trackingResult = applyTracking(
+      htmlContent,
+      `${sendingDomain.trackingSubDomain}.${sendingDomain.name}`,
+      emailSendId,
+      {
+        clickTracking: sendingDomain.clickTrackingEnabled,
+        openTracking: sendingDomain.openTrackingEnabled,
+      }
+    );
     htmlContent = trackingResult.html;
   }
 
   const senderEmail = `${senderIdentity.email}@${sendingDomain.name}`;
-  const replyToAddress = buildReplyToAddress(senderIdentity, sendingDomain, replyTo);
+  const replyToAddress = buildReplyToAddress(
+    senderIdentity,
+    sendingDomain,
+    replyTo
+  );
 
   const mtaAttachments: EmailAttachment[] = (attachments || []).map((att) => ({
     file_name: att.filename,
@@ -181,10 +162,10 @@ export const sendTransactional: JobProcessor<"emails", "send-transactional"> = a
   }));
 
   const mtaMessage: EmailMessage = {
-    id,
+    id: emailSendId,
     tenant_id: workspaceId,
-    broadcast_id: "transactional",
-    contact_id: "transactional",
+    broadcast_id: "",
+    contact_id: "",
     pool: "transactional",
     recipient: {
       email: recipient,
@@ -207,13 +188,18 @@ export const sendTransactional: JobProcessor<"emails", "send-transactional"> = a
     headers: {},
     metadata: {
       message_id: messageId,
-      envelopeSender,
+      envelope_sender: envelopeSender,
     },
     track_opens: sendingDomain.openTrackingEnabled,
     track_clicks: sendingDomain.clickTrackingEnabled,
   };
 
   const mtaOptions = getMtaOptions();
+
+  // Capture timestamp before injection so Queued event has correct order
+  // (MTA webhooks arrive with their own timestamps which may be after injection)
+  const queuedAt = new Date();
+
   const result = await injectEmail(mtaOptions, mtaMessage);
 
   logger.info(
@@ -223,42 +209,69 @@ export const sendTransactional: JobProcessor<"emails", "send-transactional"> = a
       success: result.success,
       error: result.error,
     },
-    "Email injected to MTA",
+    "Email injected to MTA"
   );
 
   if (!result.success) {
     throw new Error(`Failed to inject email to MTA: ${result.error}`);
   }
 
-  const rfc822Content = buildRfc822Email({
-    fromEmail: senderEmail,
-    fromName: senderIdentity.name,
-    toEmail: recipient,
-    replyTo: replyToAddress,
-    subject,
-    messageId,
-    htmlBody: htmlContent,
-  });
-
-  await uploadPrivateFile(s3Key, rfc822Content, "message/rfc822");
+  // Upload HTML and text content to separate S3 keys
+  await Promise.all([
+    uploadPrivateFile(htmlS3Key, htmlContent, "text/html"),
+    uploadPrivateFile(textS3Key, finalTextBody, "text/plain"),
+  ]);
 
   await prisma.event.upsert({
     where: { id: eventId },
     create: {
       id: eventId,
-      sendingId: id,
+      sendingId: emailSendId,
       workspaceId,
       type: "Queued",
       recipient,
       queue: "transactional",
       siteName: "transactional",
-      contentS3Key: s3Key,
-      createdAt: new Date(),
+      contentS3Key: htmlS3Key,
+      createdAt: queuedAt,
     },
     update: {
-      contentS3Key: s3Key,
+      contentS3Key: htmlS3Key,
     },
   });
 
-  logger.info({ jobId, eventId, recipient }, "Email processed and event created/updated");
+  await prisma.transactionalEmail.upsert({
+    where: { sendingId: emailSendId },
+    create: {
+      workspaceId,
+      sendingId: emailSendId,
+      fromEmail: senderEmail,
+      fromName: senderIdentity.name,
+      replyToEmail: replyToAddress.email,
+      replyToName: replyToAddress.name,
+      sendingDomainId: sendingDomain.id,
+      senderIdentityId: senderIdentity.id,
+      toEmail: recipient,
+      subject,
+      previewText: previewText || undefined,
+      htmlContentS3Key: htmlS3Key,
+      textContentS3Key: textS3Key,
+      status: "SENDING",
+      openTrackingEnabled: sendingDomain.openTrackingEnabled,
+      clickTrackingEnabled: sendingDomain.clickTrackingEnabled,
+      metadata: (data as JobData).metadata || undefined,
+      sentAt: queuedAt,
+    },
+    update: {
+      htmlContentS3Key: htmlS3Key,
+      textContentS3Key: textS3Key,
+      status: "SENDING",
+      sentAt: queuedAt,
+    },
+  });
+
+  logger.info(
+    { jobId, eventId, recipient, sendingId: emailSendId },
+    "Email processed, event and transactional email record created"
+  );
 };

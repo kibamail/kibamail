@@ -63,6 +63,22 @@ end
 
 local shaping = require 'policy-extras.shaping'
 local sources = require 'policy-extras.sources'
+local log_hooks = require 'policy-extras.log_hooks'
+
+-- =============================================================================
+-- WEBHOOK LOGGING TO CONTROL PLANE
+-- =============================================================================
+-- IMPORTANT: This must be called BEFORE the queues helper (shaper setup)
+-- Events are sent to the configured WEBHOOK_URL as JSON batches
+log_hooks:new_json {
+  name = 'control_plane_webhook',
+  url = WEBHOOK_URL,
+  log_parameters = {
+    -- import_x_headers converts X-Kibamail-* headers to x_kibamail_* meta keys
+    -- (lowercase, hyphens to underscores, X- prefix retained as x_)
+    meta = { 'x_kibamail_broadcast_id', 'x_kibamail_contact_id', 'x_kibamail_workspace_id', 'x_kibamail_email_send_id', 'x_kibamail_pool' },
+  },
+}
 
 -- Setup traffic shaping with TSA automation
 local shaper = shaping:setup_with_automation {
@@ -324,16 +340,6 @@ kumo.on('init', function()
     trusted_hosts = trusted_hosts_list,
   }
 
-  -- ==========================================================================
-  -- WEBHOOK LOGGING TO CONTROL PLANE
-  -- ==========================================================================
-
-  -- Configure log hook for event tracking
-  -- Events are sent to the configured WEBHOOK_URL via custom protocol handler
-  kumo.configure_log_hook {
-    name = 'control_plane_webhook',
-    headers = { 'Subject', 'X-Kibamail-Broadcast-Id', 'X-Kibamail-Contact-Id', 'X-Kibamail-Workspace-Id' },
-  }
 end)
 
 -- =============================================================================
