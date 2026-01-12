@@ -4,6 +4,7 @@ import express from "express";
 import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
 import { sendBroadcast } from "./broadcasts/send-broadcast";
 import { sendBroadcastBatch } from "./broadcasts/send-broadcast-batch";
+import { processSandboxBroadcast } from "./broadcasts/process-sandbox-broadcast";
 import { sendTestBroadcast } from "./broadcasts/send-test-broadcast";
 import { processImport } from "./contact-imports/process-import";
 import { unsubscribe } from "./contacts/unsubscribe";
@@ -12,7 +13,9 @@ import { sendDoubleOptIn } from "./forms/send-double-opt-in";
 import { processInboundEmail } from "./inbox/process-inbound-email";
 import { sendReply } from "./inbox/send-reply";
 import { sendTransactional } from "./emails/send-transactional";
+import { processSandbox } from "./emails/process-sandbox";
 import { processEvents } from "./mta/process-events";
+import { pruneBroadcastSends } from "./maintenance/prune-broadcast-sends";
 import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
@@ -56,6 +59,7 @@ configureWorker("broadcasts", {
     "send-broadcast": sendBroadcast,
     "send-broadcast-batch": sendBroadcastBatch,
     "send-test-broadcast": sendTestBroadcast,
+    "process-sandbox-broadcast": processSandboxBroadcast,
   },
   concurrency: 5,
 });
@@ -86,6 +90,7 @@ configureWorker("inbox", {
 configureWorker("emails", {
   processors: {
     "send-transactional": sendTransactional,
+    "process-sandbox": processSandbox,
   },
   concurrency: 50,
 });
@@ -95,6 +100,13 @@ configureWorker("mta", {
     "process-events": processEvents,
   },
   concurrency: 10,
+});
+
+configureWorker("maintenance", {
+  processors: {
+    "prune-broadcast-sends": pruneBroadcastSends,
+  },
+  concurrency: 1,
 });
 
 // ============================================================
@@ -111,6 +123,7 @@ const queues = [
   "inbox",
   "emails",
   "mta",
+  "maintenance",
 ] as const;
 
 for (const queueName of queues) {
@@ -130,6 +143,18 @@ async function scheduleRepeatableJobs() {
   );
 
   logger.info("Scheduled SSL certificate renewal job (every 24 hours)");
+
+  // Broadcast sends pruning - runs every 24 hours
+  // Deletes BroadcastSend records older than 60 days while preserving aggregates
+  const maintenanceQueue = queue("maintenance").getQueue().getQueue();
+
+  await maintenanceQueue.upsertJobScheduler(
+    "prune-broadcast-sends-scheduler",
+    { every: 24 * 60 * 60 * 1000 }, // 24 hours in milliseconds
+    { name: "prune-broadcast-sends", data: { retentionDays: 60 } },
+  );
+
+  logger.info("Scheduled broadcast sends pruning job (every 24 hours, 60 day retention)");
 }
 
 scheduleRepeatableJobs().catch((err) => {
@@ -154,7 +179,7 @@ logger.info(
       },
       {
         queue: "broadcasts",
-        jobs: ["send-broadcast", "send-broadcast-batch", "send-test-broadcast"],
+        jobs: ["send-broadcast", "send-broadcast-batch", "send-test-broadcast", "process-sandbox-broadcast"],
         concurrency: 100,
       },
       {
@@ -174,7 +199,7 @@ logger.info(
       },
       {
         queue: "emails",
-        jobs: ["send-transactional"],
+        jobs: ["send-transactional", "process-sandbox"],
         concurrency: 50,
       },
       {

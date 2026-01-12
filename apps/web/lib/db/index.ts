@@ -19,5 +19,5 @@ export const prisma = prismaBase.$extends(
         return deleted ? new Date() : null;
       },
     },
-  }),
+  })
 );

@@ -2914,6 +2914,7 @@ class EmailTemplatesApi extends HttpClient {
         previewText?: string | null;
         contentJson?: unknown;
         styles?: unknown;
+        variables?: Array<{ id: string; name: string; type: "text" | "number" }>;
       };
     },
   ): Promise<{ object: "email_template"; id: string }> {

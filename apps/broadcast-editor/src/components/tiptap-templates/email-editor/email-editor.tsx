@@ -49,7 +49,13 @@ import {
   ActiveNodeProvider,
   useActiveNode,
 } from "@/contexts/active-node-context";
-import { VariablesProvider } from "@/contexts/variables-context";
+import {
+  VariablesProvider,
+  type VariableInput,
+  type OnVariableCreateCallback,
+  type OnVariableUpdateCallback,
+  type OnVariableDeleteCallback,
+} from "@/contexts/variables-context";
 
 import { MAX_FILE_SIZE } from "@/lib/tiptap-utils";
 
@@ -97,7 +103,19 @@ export interface EmailEditorProps {
     abortSignal?: AbortSignal
   ) => Promise<string>;
   canvasConfiguration?: CanvasConfiguration;
-  variables?: string[];
+  /** Variables available in the editor. Can be strings (system, not editable) or objects (custom, editable) */
+  variables?: VariableInput[];
+  /**
+   * Whether to allow creating, editing, and deleting custom variables.
+   * @default false
+   */
+  allowCustomVariables?: boolean;
+  /** Called when a new variable is created */
+  onVariableCreate?: OnVariableCreateCallback;
+  /** Called when a variable is updated */
+  onVariableUpdate?: OnVariableUpdateCallback;
+  /** Called when a variable is deleted */
+  onVariableDelete?: OnVariableDeleteCallback;
   onChange?: (content: JSONContent) => void;
   onStylesChange?: (styles: EditorStylesConfig) => void;
   initialContent?: JSONContent;
@@ -498,6 +516,10 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
       onUpload,
       canvasConfiguration,
       variables = [],
+      allowCustomVariables = false,
+      onVariableCreate,
+      onVariableUpdate,
+      onVariableDelete,
       onChange,
       onStylesChange,
       initialContent,
@@ -517,7 +539,13 @@ export const EmailEditor = forwardRef<EmailEditorRef, EmailEditorProps>(
           features={features}
           onStylesChange={onStylesChange}
         >
-          <VariablesProvider variables={variables}>
+          <VariablesProvider
+            variables={variables}
+            allowCustomVariables={allowCustomVariables}
+            onVariableCreate={onVariableCreate}
+            onVariableUpdate={onVariableUpdate}
+            onVariableDelete={onVariableDelete}
+          >
             <AppProvider>
               <ActiveNodeProvider>
                 <EmailEditorContent

@@ -26,7 +26,6 @@ interface KumoMtaRecipient {
 interface KumoMtaContent {
   text_body?: string;
   html_body?: string;
-  preview_text?: string;
   headers?: Record<string, string>;
   attachments?: Array<{
     data: string;
@@ -35,9 +34,6 @@ interface KumoMtaContent {
     file_name?: string;
     content_id?: string;
   }>;
-  from?: { email: string; name?: string };
-  subject?: string;
-  reply_to?: { email: string; name?: string };
 }
 
 interface KumoMtaRequest {
@@ -73,7 +69,7 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
       ? `${message.recipient.name} <${message.recipient.email}>`
       : message.recipient.email,
     "Reply-To": message.reply_to.email,
-    "Message-ID": `<${message.metadata.message_id}>`,
+    "Message-ID": message.metadata.message_id,
     ...message.headers,
   };
 
@@ -100,6 +96,7 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
     content_id: att.content_id,
   }));
 
+  // KumoMTA expects a specific content format - only include supported fields
   return {
     envelope_sender: message.metadata.envelope_sender,
     recipients: [
@@ -111,15 +108,8 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
     content: {
       html_body: message.html_body,
       text_body: message.text_body,
-      preview_text: message.preview_text || undefined,
       headers,
       attachments: attachments?.length ? attachments : undefined,
-      from: { email: senderEmail, name: message.sender.name || undefined },
-      subject: message.subject,
-      reply_to: {
-        email: message.reply_to.email,
-        name: message.reply_to.name || undefined,
-      },
     },
   };
 }

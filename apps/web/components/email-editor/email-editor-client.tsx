@@ -23,6 +23,7 @@ import {
   type EditorTab,
   type EmailEditorMode,
   type EmailEditorProps,
+  type VariableDefinition,
   getDefaultLabels,
   getTabsForMode,
 } from "./types";
@@ -47,6 +48,11 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   successRedirectUrl,
   labels: customLabels,
   headerExtra,
+  customVariables,
+  allowCustomVariables,
+  onVariableCreate,
+  onVariableUpdate,
+  onVariableDelete,
 }: EmailEditorClientProps<T>) {
   const labels = { ...getDefaultLabels(mode), ...customLabels };
   const tabs = getTabsForMode(mode);
@@ -319,6 +325,11 @@ export function EmailEditorClient<T extends EmailEditorMode>({
             readonly={isReadonly}
             onUpload={mutations.onUploadFile}
             mode={mode}
+            customVariables={customVariables}
+            allowCustomVariables={allowCustomVariables}
+            onVariableCreate={onVariableCreate}
+            onVariableUpdate={onVariableUpdate}
+            onVariableDelete={onVariableDelete}
           />
         </div>
 

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { type Editor } from "@tiptap/react";
 import { NodeSelection } from "@tiptap/pm/state";
 import { autoUpdate } from "@floating-ui/react";
-import { Trash as TrashIcon, CornerBottomLeft as CornerDownLeftIcon } from "iconoir-react";
+import { Trash as TrashIcon, CornerBottomLeft as CornerDownLeftIcon, EditPencil } from "iconoir-react";
 import { useTiptapEditor } from "@/hooks/use-tiptap-editor";
 import { isNodeSelectionType } from "@/lib/tiptap-utils";
 import { FloatingElement } from "@/components/tiptap-ui-utils/floating-element";
@@ -12,6 +12,8 @@ import { Card, CardBody, CardItemGroup } from "@/components/tiptap-ui-primitive/
 import { Button, ButtonGroup } from "@/components/tiptap-ui-primitive/button";
 import { Input, InputGroup } from "@/components/tiptap-ui-primitive/input";
 import { Separator } from "@/components/tiptap-ui-primitive/separator";
+import { useVariables, type NormalizedVariable } from "@/contexts/variables-context";
+import { VariableDialog } from "@/components/tiptap-ui/variable-dropdown-menu/create-variable-dialog";
 
 export interface VariableFallbackFloatingProps {
   editor?: Editor | null;
@@ -21,11 +23,20 @@ export function VariableFallbackFloating({
   editor: providedEditor,
 }: VariableFallbackFloatingProps) {
   const { editor } = useTiptapEditor(providedEditor);
+  const { variables, allowCustomVariables, updateVariable, deleteVariable } = useVariables();
   const [shouldShow, setShouldShow] = useState(false);
   const [fallbackValue, setFallbackValue] = useState("");
   const [selectedNodePos, setSelectedNodePos] = useState<number | null>(null);
+  const [selectedVariableName, setSelectedVariableName] = useState<string | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingVariable, setEditingVariable] = useState<NormalizedVariable | undefined>();
   const inputRef = useRef<HTMLInputElement>(null);
   const isInputFocusedRef = useRef(false);
+
+  // Find the variable object for the currently selected variable
+  const selectedVariable = selectedVariableName
+    ? variables.find((v) => v.name === selectedVariableName)
+    : undefined;
 
   const getVariableNodeBoundingRect = useCallback((): DOMRect | null => {
     if (!editor) return null;
@@ -51,13 +62,13 @@ export function VariableFallbackFloating({
   }, [editor, selectedNodePos]);
 
   const isVariableNodeSelected = useCallback(
-    (editorInstance: Editor | null): { selected: boolean; fallback: string; pos: number | null } => {
-      if (!editorInstance) return { selected: false, fallback: "", pos: null };
+    (editorInstance: Editor | null): { selected: boolean; fallback: string; pos: number | null; name: string | null } => {
+      if (!editorInstance) return { selected: false, fallback: "", pos: null, name: null };
 
       const { selection } = editorInstance.state;
 
       if (!isNodeSelectionType(selection)) {
-        return { selected: false, fallback: "", pos: null };
+        return { selected: false, fallback: "", pos: null, name: null };
       }
 
       if (selection.node.type.name === "variable") {
@@ -65,10 +76,11 @@ export function VariableFallbackFloating({
           selected: true,
           fallback: selection.node.attrs.fallback || "",
           pos: selection.from,
+          name: selection.node.attrs.name || null,
         };
       }
 
-      return { selected: false, fallback: "", pos: null };
+      return { selected: false, fallback: "", pos: null, name: null };
     },
     []
   );
@@ -116,11 +128,12 @@ export function VariableFallbackFloating({
 
       if (variableNode) {
         setTimeout(() => {
-          const { selected, fallback, pos } = isVariableNodeSelected(editor);
+          const { selected, fallback, pos, name } = isVariableNodeSelected(editor);
           if (selected) {
             setShouldShow(true);
             setFallbackValue(fallback);
             setSelectedNodePos(pos);
+            setSelectedVariableName(name);
           }
         }, 0);
       } else {
@@ -160,9 +173,71 @@ export function VariableFallbackFloating({
     }
   }
 
+  function onEditClick() {
+    if (!selectedVariable) return;
+    setEditingVariable(selectedVariable);
+    setShouldShow(false);
+    setIsEditDialogOpen(true);
+  }
+
+  function onEditDialogSubmit(data: { name: string; type: "text" | "number" }) {
+    if (!editingVariable) return;
+
+    const oldName = editingVariable.name;
+    const newName = data.name;
+
+    updateVariable(editingVariable.id, newName, data.type);
+
+    // Update all instances in the editor if name changed
+    if (editor && oldName !== newName) {
+      const { tr } = editor.state;
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === "variable" && node.attrs.name === oldName) {
+          tr.setNodeMarkup(pos, undefined, { ...node.attrs, name: newName });
+        }
+      });
+      editor.view.dispatch(tr);
+    }
+  }
+
+  function onEditDialogDelete(id: string) {
+    if (!editingVariable) return;
+
+    const variableName = editingVariable.name;
+
+    // Delete from context (this also calls the onVariableDelete callback)
+    deleteVariable(id);
+
+    // Remove all instances of this variable from the editor
+    if (editor) {
+      const { tr } = editor.state;
+      const nodesToDelete: number[] = [];
+
+      // Collect positions of all variable nodes with this name (in reverse order)
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === "variable" && node.attrs.name === variableName) {
+          nodesToDelete.push(pos);
+        }
+      });
+
+      // Delete nodes in reverse order to avoid position shifting issues
+      nodesToDelete.reverse().forEach((pos) => {
+        const node = tr.doc.nodeAt(pos);
+        if (node) {
+          tr.delete(pos, pos + node.nodeSize);
+        }
+      });
+
+      if (nodesToDelete.length > 0) {
+        editor.view.dispatch(tr);
+      }
+    }
+  }
+
   if (!editor) return null;
 
   return (
+    <>
     <FloatingElement
       zIndex={60}
       editor={editor}
@@ -238,6 +313,16 @@ export function VariableFallbackFloating({
             <Separator />
 
             <ButtonGroup orientation="horizontal">
+              {allowCustomVariables && selectedVariable?.editable && (
+                <Button
+                  type="button"
+                  data-style="ghost"
+                  title="Edit variable"
+                  onClick={onEditClick}
+                >
+                  <EditPencil className="tiptap-button-icon" />
+                </Button>
+              )}
               <Button
                 type="button"
                 data-style="ghost"
@@ -251,5 +336,14 @@ export function VariableFallbackFloating({
         </CardBody>
       </Card>
     </FloatingElement>
+
+    <VariableDialog
+      open={isEditDialogOpen}
+      onOpenChange={setIsEditDialogOpen}
+      variable={editingVariable}
+      onSubmit={onEditDialogSubmit}
+      onDelete={onEditDialogDelete}
+    />
+  </>
   );
 }

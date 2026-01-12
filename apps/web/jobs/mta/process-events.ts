@@ -20,7 +20,7 @@ const RETRY_DELAY_MS = 3000; // 3 seconds
  * Check if any events have corresponding TransactionalEmail records
  * Returns the sendingIds that don't have records yet
  */
-async function findMissingSendingIds(events: EmailEvent[]): Promise<Set<string>> {
+async function findMissingTransactionalSendingIds(events: EmailEvent[]): Promise<Set<string>> {
   // Get unique sendingIds that look like transactional email IDs (not es_ prefixed IDs from broadcasts)
   const transactionalSendingIds = [...new Set(
     events
@@ -42,6 +42,32 @@ async function findMissingSendingIds(events: EmailEvent[]): Promise<Set<string>>
   return new Set(transactionalSendingIds.filter(id => !existingIds.has(id)));
 }
 
+/**
+ * Check if any events have corresponding BroadcastSend records
+ * Returns the sendingIds that don't have records yet
+ */
+async function findMissingBroadcastSendingIds(events: EmailEvent[]): Promise<Set<string>> {
+  // Get unique sendingIds that look like broadcast IDs (es_ prefixed)
+  const broadcastSendingIds = [...new Set(
+    events
+      .filter(e => e.sending_id && e.sending_id.startsWith("es_"))
+      .map(e => e.sending_id)
+  )];
+
+  if (broadcastSendingIds.length === 0) {
+    return new Set();
+  }
+
+  // Check which ones exist
+  const existingRecords = await prisma.broadcastSend.findMany({
+    where: { sendingId: { in: broadcastSendingIds } },
+    select: { sendingId: true },
+  });
+
+  const existingIds = new Set(existingRecords.map(r => r.sendingId));
+  return new Set(broadcastSendingIds.filter(id => !existingIds.has(id)));
+}
+
 export const processEvents: JobProcessor<"mta", "process-events"> = async (
   data,
   jobId,
@@ -53,13 +79,21 @@ export const processEvents: JobProcessor<"mta", "process-events"> = async (
     "Processing MTA events"
   );
 
-  // Check for missing TransactionalEmail records (race condition)
-  const missingSendingIds = await findMissingSendingIds(events as EmailEvent[]);
+  // Check for missing records (race condition where webhook arrives before send job completes)
+  const missingTransactionalIds = await findMissingTransactionalSendingIds(events as EmailEvent[]);
+  const missingBroadcastIds = await findMissingBroadcastSendingIds(events as EmailEvent[]);
 
-  if (missingSendingIds.size > 0 && attempt < MAX_RETRY_ATTEMPTS) {
+  const hasMissingRecords = missingTransactionalIds.size > 0 || missingBroadcastIds.size > 0;
+
+  if (hasMissingRecords && attempt < MAX_RETRY_ATTEMPTS) {
     logger.info(
-      { jobId, missingSendingIds: [...missingSendingIds], attempt },
-      "Some TransactionalEmail records not found, scheduling retry"
+      {
+        jobId,
+        missingTransactionalIds: [...missingTransactionalIds],
+        missingBroadcastIds: [...missingBroadcastIds],
+        attempt
+      },
+      "Some email records not found, scheduling retry"
     );
 
     // Re-queue the job with a delay
@@ -72,10 +106,15 @@ export const processEvents: JobProcessor<"mta", "process-events"> = async (
     return;
   }
 
-  if (missingSendingIds.size > 0) {
+  if (hasMissingRecords) {
     logger.warn(
-      { jobId, missingSendingIds: [...missingSendingIds], attempt },
-      "TransactionalEmail records still not found after max retries, processing anyway"
+      {
+        jobId,
+        missingTransactionalIds: [...missingTransactionalIds],
+        missingBroadcastIds: [...missingBroadcastIds],
+        attempt
+      },
+      "Email records still not found after max retries, processing anyway"
     );
   }
 

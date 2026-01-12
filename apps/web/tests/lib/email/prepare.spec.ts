@@ -558,4 +558,299 @@ describe("prepareEmailBatch", () => {
       expect(result[0].htmlBody).not.toContain("{{contact.phone}}");
     });
   });
+
+  describe("transient variables (per-email)", () => {
+    test("should substitute transient variables in subject", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Order #{{orderNumber}} confirmed",
+          contentHtml: "<p>Thank you for your order!</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "customer@example.com",
+          transientVariables: { orderNumber: "ORD-12345" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Order #ORD-12345 confirmed");
+    });
+
+    test("should substitute transient variables in HTML body", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Your Order",
+          contentHtml: "<p>Hi {{firstName}}, your order #{{orderNumber}} is ready!</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "customer@example.com",
+          transientVariables: { firstName: "John", orderNumber: "ORD-99999" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].htmlBody).toContain("Hi John, your order #ORD-99999 is ready!");
+    });
+
+    test("should override contact properties with transient variables", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Hello {{firstName}}",
+          contentHtml: "<p>Welcome, {{firstName}}!</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          firstName: "OriginalName",
+          transientVariables: { firstName: "OverriddenName" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Hello OverriddenName");
+      expect(result[0].htmlBody).toContain("Welcome, OverriddenName!");
+    });
+
+    test("should override contact.X properties with transient variables", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Welcome",
+          contentHtml: "<p>Company: {{contact.company}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          properties: { company: "OldCompany" },
+          transientVariables: { company: "NewCompany" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].htmlBody).toContain("Company: NewCompany");
+    });
+
+    test("should make transient variables accessible with contact. prefix", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Order Update",
+          contentHtml: "<p>Order: {{contact.orderNumber}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          transientVariables: { orderNumber: "ORD-PREFIXED" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].htmlBody).toContain("Order: ORD-PREFIXED");
+    });
+
+    test("should support numeric transient variable values", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "You have {{points}} points",
+          contentHtml: "<p>Balance: ${{balance}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          transientVariables: { points: 1500, balance: 99.99 },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("You have 1500 points");
+      expect(result[0].htmlBody).toContain("Balance: $99.99");
+    });
+
+    test("should preserve built-in variables when using transient variables", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Welcome {{customName}}",
+          contentHtml: "<p>Email: {{email}}, Custom: {{customField}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "real@example.com",
+          transientVariables: { customName: "Friend", customField: "Value" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Welcome Friend");
+      expect(result[0].htmlBody).toContain("Email: real@example.com");
+      expect(result[0].htmlBody).toContain("Custom: Value");
+    });
+
+    test("should handle contacts without transient variables", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Hello {{firstName}}",
+          contentHtml: "<p>Hi {{firstName}}!</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          firstName: "Alice",
+          // No transientVariables
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Hello Alice");
+      expect(result[0].htmlBody).toContain("Hi Alice!");
+    });
+
+    test("should apply different transient variables to different contacts", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Order #{{orderNumber}}",
+          contentHtml: "<p>Hi {{customerName}}, your order is confirmed.</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user1@example.com",
+          transientVariables: { orderNumber: "ORD-001", customerName: "Alice" },
+        },
+        {
+          id: "contact_2",
+          email: "user2@example.com",
+          transientVariables: { orderNumber: "ORD-002", customerName: "Bob" },
+        },
+        {
+          id: "contact_3",
+          email: "user3@example.com",
+          transientVariables: { orderNumber: "ORD-003", customerName: "Charlie" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result).toHaveLength(3);
+      expect(result[0].subject).toBe("Order #ORD-001");
+      expect(result[0].htmlBody).toContain("Hi Alice");
+      expect(result[1].subject).toBe("Order #ORD-002");
+      expect(result[1].htmlBody).toContain("Hi Bob");
+      expect(result[2].subject).toBe("Order #ORD-003");
+      expect(result[2].htmlBody).toContain("Hi Charlie");
+    });
+
+    test("should handle missing transient variables as empty string", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Order {{orderNumber}}",
+          contentHtml: "<p>Status: {{status}}</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          transientVariables: { orderNumber: "ORD-123" },
+          // No 'status' variable
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].subject).toBe("Order ORD-123");
+      expect(result[0].htmlBody).toContain("Status:");
+      expect(result[0].htmlBody).not.toContain("{{status}}");
+    });
+
+    test("should substitute transient variables in preview text", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Order Update",
+          previewText: "Your order #{{orderNumber}} has shipped!",
+          contentHtml: "<p>Details inside.</p>",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          transientVariables: { orderNumber: "ORD-PREVIEW" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].previewText).toBe("Your order #ORD-PREVIEW has shipped!");
+    });
+
+    test("should substitute transient variables in plain text body", async () => {
+      const broadcast = createTestBroadcast({
+        emailContent: {
+          subject: "Order Update",
+          contentHtml: "<p>HTML content</p>",
+          contentText: "Hi {{customerName}}, your order #{{orderNumber}} is ready.",
+          contentJson: null,
+        },
+      });
+
+      const contacts = [
+        {
+          id: "contact_1",
+          email: "user@example.com",
+          transientVariables: { customerName: "TextUser", orderNumber: "ORD-TEXT" },
+        },
+      ];
+
+      const result = await prepareEmailBatch(contacts, broadcast);
+
+      expect(result[0].textBody).toContain("Hi TextUser, your order #ORD-TEXT is ready.");
+    });
+  });
 });

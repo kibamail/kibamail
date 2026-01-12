@@ -54,11 +54,37 @@ export type QueueJobs = {
         firstName: string | null;
         lastName: string | null;
         properties: Record<string, string | number | Date | null>;
+        /** Transient variables from API request, not persisted to database */
+        transientVariables?: Record<string, string | number>;
       }>;
     };
     "send-test-broadcast": {
       broadcastId: string;
       testEmails: string[];
+    };
+    "process-sandbox-broadcast": {
+      /** Broadcast ID this email belongs to */
+      broadcastId: string;
+      /** Workspace ID */
+      workspaceId: string;
+      /** Contact ID for this recipient */
+      contactId: string;
+      /** Recipient email address (sandbox address) */
+      email: string;
+      /** Sandbox outcome type (delivered, bounced, complained, etc.) */
+      sandboxOutcome: string;
+      /** Optional label from +label syntax */
+      sandboxLabel: string | null;
+      /** Email subject */
+      subject: string;
+      /** HTML body */
+      htmlBody: string;
+      /** Plain text body (optional) */
+      textBody?: string;
+      /** Preview text shown in email clients (optional) */
+      previewText?: string;
+      /** Transient variables from API request */
+      transientVariables?: Record<string, string | number>;
     };
   };
   // Sending domains queue for domain verification checks
@@ -147,6 +173,13 @@ export type QueueJobs = {
       attempt?: number;
     };
   };
+  // Maintenance queue for scheduled cleanup and maintenance jobs
+  maintenance: {
+    "prune-broadcast-sends": {
+      /** Retention period in days (default: 60) */
+      retentionDays?: number;
+    };
+  };
   // Emails queue for transactional email sending
   emails: {
     "send-transactional": {
@@ -180,6 +213,41 @@ export type QueueJobs = {
         content: string;
         index: number;
       }>;
+      /** Custom metadata for tracking */
+      metadata?: Record<string, string>;
+    };
+    "process-sandbox": {
+      /** Unique ID for this email send */
+      emailSendId: string;
+      /** Workspace ID */
+      workspaceId: string;
+      /** Sender identity ID (optional - not needed for sandbox-only sends) */
+      senderIdentityId?: string;
+      /** Sending domain ID (optional - not needed for sandbox-only sends) */
+      sendingDomainId?: string;
+      /** From email address (used when no domain is configured) */
+      fromEmail: string;
+      /** From name (used when no domain is configured) */
+      fromName?: string;
+      /** Recipient email address */
+      recipient: string;
+      /** Sandbox outcome type (delivered, bounced, complained, etc.) */
+      sandboxOutcome: string;
+      /** Optional label from +label syntax */
+      sandboxLabel: string | null;
+      /** Email subject */
+      subject: string;
+      /** Preview text shown in email clients (optional) */
+      previewText?: string;
+      /** HTML body */
+      htmlBody: string;
+      /** Plain text body (optional) */
+      textBody?: string;
+      /** Optional reply-to configuration */
+      replyTo?: {
+        email: string;
+        name?: string;
+      };
       /** Custom metadata for tracking */
       metadata?: Record<string, string>;
     };

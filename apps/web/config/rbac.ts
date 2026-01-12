@@ -313,6 +313,19 @@ const PERMISSIONS: PermissionDefinition[] = [
     description:
       "Full automation management (create, update, delete, publish, archive automations)",
   },
+
+  // ============================================================================
+  // BROADCASTS
+  // ============================================================================
+  {
+    name: "read:broadcasts",
+    description: "View broadcasts and their details",
+  },
+  {
+    name: "write:broadcasts",
+    description:
+      "Create and schedule broadcasts (create-and-send, schedule for delivery)",
+  },
 ];
 
 /**
@@ -373,6 +386,9 @@ export const ROLES: Role[] = [
       // Automations Management - Full Access
       "read:automations",
       "manage:automations",
+      // Broadcasts Management - Full Access
+      "read:broadcasts",
+      "write:broadcasts",
     ],
   },
 
@@ -420,6 +436,9 @@ export const ROLES: Role[] = [
       // Automations Management - Full Access
       "read:automations",
       "manage:automations",
+      // Broadcasts Management - Full Access
+      "read:broadcasts",
+      "write:broadcasts",
     ],
   },
 
@@ -533,4 +552,7 @@ export type Permission =
   | "manage:templates"
   // Automations Management
   | "read:automations"
-  | "manage:automations";
+  | "manage:automations"
+  // Broadcasts Management
+  | "read:broadcasts"
+  | "write:broadcasts";

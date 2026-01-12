@@ -3,8 +3,9 @@ import type {
   CreatedDomain,
   TransformedSenderIdentity,
 } from "@/components/sender-select";
+import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 
-export type { TransformedSenderIdentity, CreatedDomain };
+export type { TransformedSenderIdentity, CreatedDomain, VariableDefinition };
 
 /**
  * The mode of the email editor determines which features are available.
@@ -218,6 +219,13 @@ export interface EmailEditorProps<T extends EmailEditorMode> {
 
   // Header customization (e.g., version dropdown)
   headerExtra?: React.ReactNode;
+
+  // Custom variables support
+  customVariables?: VariableDefinition[];
+  allowCustomVariables?: boolean;
+  onVariableCreate?: (variable: VariableDefinition) => void;
+  onVariableUpdate?: (variable: VariableDefinition) => void;
+  onVariableDelete?: (id: string) => void;
 }
 
 /**

@@ -6884,6 +6884,343 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/broadcasts/create-and-send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create and Schedule Broadcast
+         * @description Create a broadcast with HTML content and schedule it for delivery to specified recipients.
+         *
+         *     **Use Cases:**
+         *     - Send marketing newsletters to a segment of contacts
+         *     - Announce product launches to specific topics
+         *     - Send promotional emails to a list of email addresses
+         *     - Trigger one-time campaigns with personalized variables per recipient
+         *
+         *     **Recipient Modes:**
+         *     Recipients can be specified in multiple ways (at least one is required):
+         *     - `contacts`: Array of contact IDs from your workspace
+         *     - `emails`: Array of email addresses (will upsert contacts automatically)
+         *     - `segment`: Segment ID to send to all contacts matching segment conditions
+         *     - `topic`: Topic ID to send to all subscribed contacts
+         *
+         *     **Per-Email Variables:**
+         *     The `emails` field supports two formats:
+         *
+         *     1. **Simple format (backward compatible):**
+         *     ```json
+         *     {
+         *       "emails": ["user1@example.com", "user2@example.com"]
+         *     }
+         *     ```
+         *
+         *     2. **With variables:**
+         *     ```json
+         *     {
+         *       "emails": [
+         *         { "email": "user1@example.com", "variables": { "orderNumber": "12345", "discount": 20 } },
+         *         { "email": "user2@example.com", "variables": { "orderNumber": "67890", "discount": 15 } }
+         *       ]
+         *     }
+         *     ```
+         *
+         *     Variables can be used in email content with `{{variableName}}` syntax:
+         *     - `{{orderNumber}}` - Direct variable reference
+         *     - `{{contact.orderNumber}}` - Prefixed with contact (both work the same)
+         *
+         *     **Variable Priority (highest to lowest):**
+         *     1. Transient variables (per-email, from API request)
+         *     2. Contact properties (from database)
+         *     3. Built-in variables (email, firstName, lastName, URLs)
+         *
+         *     Transient variables override contact properties with the same name but are NOT saved to the contact record.
+         *
+         *     **Behavior:**
+         *     - Creates a new broadcast in QUEUED_FOR_SENDING status
+         *     - Email content is validated and stored
+         *     - Broadcast is scheduled for delivery at the specified sendAt time
+         *     - Recipients are resolved at send time (not at creation time)
+         *     - For `emails` mode, contacts are upserted (created if not existing)
+         *     - Sending domain must be verified before the broadcast can be sent
+         *
+         *     **Required Scope:** `broadcasts:write`
+         *
+         *     **Rate Limits:**
+         *     - 100 broadcasts per hour per workspace
+         *     - Maximum 100,000 recipients per broadcast
+         *
+         *     **Email Content:**
+         *     - Subject and HTML are required
+         *     - Plain text is auto-generated from HTML if not provided
+         *     - Preview text is optional but recommended for inbox preview
+         *     - Use {{variableName}} for personalization (first name, custom properties, etc.)
+         *
+         *     **Scheduling:**
+         *     - sendAt must be a future ISO 8601 datetime
+         *     - Broadcast will be processed at the scheduled time
+         *     - Cannot be modified after creation (create a new broadcast instead)
+         *
+         *     **Best Practices:**
+         *     - Always test with a small segment first
+         *     - Use preview text for better inbox engagement
+         *     - Include unsubscribe links for compliance
+         *     - Verify sending domain before scheduling
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        from?: string;
+                        /** Format: email */
+                        replyTo?: string;
+                        emailContent: {
+                            subject: string;
+                            html: string;
+                            text?: string;
+                            previewText?: string;
+                        };
+                        recipients: {
+                            contacts?: string[];
+                            emails?: string[] | {
+                                /** Format: email */
+                                email: string;
+                                variables?: {
+                                    [key: string]: string | number;
+                                };
+                            }[];
+                            segment?: string;
+                            topic?: string;
+                        };
+                        /** Format: date-time */
+                        sendAt: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Broadcast created and scheduled successfully. The broadcast will be sent at the specified sendAt time. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "broadcast",
+                         *       "id": "brd_abc123xyz789"
+                         *     }
+                         */
+                        "application/json": {
+                            /**
+                             * @description Object type identifier
+                             * @constant
+                             */
+                            object: "broadcast";
+                            /** @description Unique broadcast ID for tracking */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid input data, such as missing required fields, invalid email format, or sendAt in the past */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'broadcasts:write' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Forbidden - Sending domain not verified, or broadcast limits exceeded */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Email content validation failed, no valid recipients found, or segment/topic does not exist */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Rate Limit Exceeded - Too many broadcasts created. Wait before creating more. */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

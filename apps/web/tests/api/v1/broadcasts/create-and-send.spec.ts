@@ -674,6 +674,233 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
     });
   });
 
+  describe("Per-email custom variables", () => {
+    test("should create broadcast with per-email variables (object format)", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "per-email-vars.example.com",
+      );
+
+      const broadcastData = {
+        name: "Per-Email Variables Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Order #{{orderNumber}} confirmed",
+          html: "<p>Hi {{firstName}}, your order #{{orderNumber}} is ready!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails: [
+            { email: "user1@per-email-vars.com", variables: { orderNumber: "12345", firstName: "John" } },
+            { email: "user2@per-email-vars.com", variables: { orderNumber: "67890", firstName: "Jane" } },
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+      expect(responseData.id).toBeDefined();
+
+      // Verify contacts were created
+      const createdContacts = await prisma.contact.findMany({
+        where: {
+          workspaceId: testWorkspace.id,
+          email: { in: ["user1@per-email-vars.com", "user2@per-email-vars.com"] },
+        },
+      });
+      expect(createdContacts.length).toBe(2);
+    });
+
+    test("should accept simple string array for backward compatibility", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "backward-compat.example.com",
+      );
+
+      const broadcastData = {
+        name: "Backward Compat Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Hello!",
+          html: "<p>Welcome!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails: ["user1@compat.com", "user2@compat.com"],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should support numeric variable values", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "numeric-vars.example.com",
+      );
+
+      const broadcastData = {
+        name: "Numeric Variables Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Your points: {{points}}",
+          html: "<p>You have {{points}} points worth ${{value}}!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails: [
+            { email: "user@numeric-vars.com", variables: { points: 1500, value: 75.50 } },
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should allow emails with variables to omit variables field", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "optional-vars.example.com",
+      );
+
+      const broadcastData = {
+        name: "Optional Variables Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Hello {{firstName}}!",
+          html: "<p>Welcome!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails: [
+            { email: "user1@optional-vars.com", variables: { firstName: "John" } },
+            { email: "user2@optional-vars.com" }, // No variables
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should reject invalid email in object format", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "invalid-obj-email.example.com",
+      );
+
+      const broadcastData = {
+        name: "Invalid Object Email Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Test",
+          html: "<p>Test</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails: [
+            { email: "not-a-valid-email", variables: { test: "value" } },
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(422);
+      expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    });
+
+    test("should create broadcast with empty variables object", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "empty-vars.example.com",
+      );
+
+      const broadcastData = {
+        name: "Empty Variables Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Hello!",
+          html: "<p>Welcome!</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails: [
+            { email: "user@empty-vars.com", variables: {} },
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should handle many recipients with variables", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "many-recipients.example.com",
+      );
+
+      const emails = Array.from({ length: 50 }, (_, i) => ({
+        email: `user${i}@many-recipients.com`,
+        variables: { userId: i, greeting: `Hello User ${i}` },
+      }));
+
+      const broadcastData = {
+        name: "Many Recipients Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Welcome User #{{userId}}",
+          html: "<p>{{greeting}}</p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a>",
+        },
+        recipients: {
+          emails,
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+
+      // Verify all contacts were created
+      const createdContacts = await prisma.contact.findMany({
+        where: {
+          workspaceId: testWorkspace.id,
+          email: { startsWith: "user", endsWith: "@many-recipients.com" },
+        },
+      });
+      expect(createdContacts.length).toBe(50);
+    });
+  });
+
   describe("Name validation", () => {
     test("should reject broadcast without name", async () => {
       const domain = await createVerifiedDomain(
@@ -724,6 +951,225 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
 
       expect(response.status).toBe(422);
       expect(responseData.error.type).toBe(ErrorType.VALIDATION_ERROR);
+    });
+  });
+
+  describe("Sandbox broadcasts", () => {
+    test("should create sandbox broadcast with delivered@kibamail.dev", async () => {
+      const broadcastData = {
+        name: "Sandbox Delivered Test",
+        emailContent: {
+          subject: "Test Sandbox Delivery",
+          html: "<p>This is a sandbox test</p>",
+        },
+        recipients: {
+          emails: ["delivered@kibamail.dev"],
+        },
+        sendAt: getFutureDate(1), // sendAt is ignored for sandbox but still required by schema
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+      expect(responseData.id).toBeDefined();
+
+      // Verify broadcast was created with SENDING status
+      const broadcast = await prisma.broadcast.findUnique({
+        where: { id: responseData.id },
+      });
+      expect(broadcast?.status).toBe("SENDING");
+    });
+
+    test("should create sandbox broadcast with multiple sandbox emails", async () => {
+      const broadcastData = {
+        name: "Multiple Sandbox Emails Test",
+        emailContent: {
+          subject: "Test Multiple Sandbox",
+          html: "<p>Testing multiple sandbox recipients</p>",
+        },
+        recipients: {
+          emails: [
+            "delivered@kibamail.dev",
+            "bounced@kibamail.dev",
+            "opened@kibamail.dev",
+            "clicked@kibamail.dev",
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+
+      // Verify contacts were created for sandbox emails
+      const contacts = await prisma.contact.findMany({
+        where: {
+          workspaceId: testWorkspace.id,
+          email: { endsWith: "@kibamail.dev" },
+        },
+      });
+      expect(contacts.length).toBeGreaterThanOrEqual(4);
+    });
+
+    test("should create sandbox broadcast with +label syntax", async () => {
+      const broadcastData = {
+        name: "Sandbox Label Test",
+        emailContent: {
+          subject: "Test Sandbox Labels",
+          html: "<p>Testing sandbox with labels</p>",
+        },
+        recipients: {
+          emails: [
+            "delivered+signup@kibamail.dev",
+            "opened+newsletter@kibamail.dev",
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should reject mixed sandbox and real emails", async () => {
+      const domain = await createVerifiedDomain(
+        fullAccessApiKey,
+        "mixed-sandbox.example.com",
+      );
+
+      const broadcastData = {
+        name: "Mixed Sandbox Test",
+        from: `news@${domain.name}`,
+        emailContent: {
+          subject: "Test Mixed",
+          html: "<p>This should fail</p>",
+        },
+        recipients: {
+          emails: [
+            "delivered@kibamail.dev",
+            "real-user@example.com",
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(responseData.error.code).toBe(ErrorCode.INVALID_PARAMETER);
+      expect(responseData.error.message).toContain("Cannot mix sandbox");
+      expect(responseData.error.message).toContain("@kibamail.dev");
+    });
+
+    test("should allow sandbox broadcast without from address", async () => {
+      // Sandbox broadcasts don't require a verified domain
+      const broadcastData = {
+        name: "Sandbox No From Test",
+        emailContent: {
+          subject: "Test Sandbox Without From",
+          html: "<p>Sandbox without from address</p>",
+        },
+        recipients: {
+          emails: ["delivered@kibamail.dev"],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should allow sandbox broadcast with past sendAt (ignored)", async () => {
+      // Sandbox broadcasts process immediately, so sendAt is ignored
+      const broadcastData = {
+        name: "Sandbox Past Date Test",
+        emailContent: {
+          subject: "Test Sandbox Past Date",
+          html: "<p>This should work despite past date</p>",
+        },
+        recipients: {
+          emails: ["delivered@kibamail.dev"],
+        },
+        sendAt: getPastDate(1), // Past date - should be allowed for sandbox
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should create sandbox broadcast with per-email variables", async () => {
+      const broadcastData = {
+        name: "Sandbox Variables Test",
+        emailContent: {
+          subject: "Hello {{firstName}}!",
+          html: "<p>Hi {{firstName}}, your order #{{orderNumber}} is ready!</p>",
+        },
+        recipients: {
+          emails: [
+            { email: "delivered@kibamail.dev", variables: { firstName: "John", orderNumber: "12345" } },
+            { email: "opened@kibamail.dev", variables: { firstName: "Jane", orderNumber: "67890" } },
+          ],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(responseData.object).toBe("broadcast");
+    });
+
+    test("should queue sandbox processing jobs", async () => {
+      const broadcastData = {
+        name: "Sandbox Queue Test",
+        emailContent: {
+          subject: "Queue Test",
+          html: "<p>Testing job queue</p>",
+        },
+        recipients: {
+          emails: ["delivered@kibamail.dev", "bounced@kibamail.dev"],
+        },
+        sendAt: getFutureDate(1),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+
+      // Verify broadcast was created
+      const broadcast = await prisma.broadcast.findUnique({
+        where: { id: responseData.id },
+        include: { emailContent: true },
+      });
+
+      expect(broadcast).not.toBeNull();
+      expect(broadcast?.status).toBe("SENDING");
+      expect(broadcast?.emailContent?.subject).toBe("Queue Test");
     });
   });
 });

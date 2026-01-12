@@ -11,7 +11,9 @@ export { Kibamail } from "./kibamail";
 
 // Resource classes (for advanced usage)
 export { ApiKeys } from "./resources/api-keys";
+export { Broadcasts } from "./resources/broadcasts";
 export { Contacts } from "./resources/contacts";
+export { Emails } from "./resources/emails";
 export { Topics } from "./resources/topics";
 export { Segments } from "./resources/segments";
 export { ContactProperties } from "./resources/contact-properties";

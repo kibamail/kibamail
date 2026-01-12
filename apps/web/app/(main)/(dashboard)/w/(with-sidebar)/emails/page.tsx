@@ -17,7 +17,7 @@ import { EmailsSearch } from "./_components/emails-search";
 import { EmailsStatusFilter } from "./_components/emails-status-filter";
 import { EmailsTable, type EmailListItem } from "./_components/emails-table";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 
 async function getTransactionalEmails(
   workspaceId: string,
@@ -174,7 +174,7 @@ export default async function EmailsPage({
   const after = params.after;
   const before = params.before;
 
-  const [{ emails, hasMore }, stats] = await Promise.all([
+  const [{ emails, hasMore: fetchedExtra }, stats] = await Promise.all([
     getTransactionalEmails(
       session.currentOrganization.id,
       search,
@@ -185,7 +185,25 @@ export default async function EmailsPage({
     getEmailStats(session.currentOrganization.id),
   ]);
 
-  const hasPrevious = !!after || !!before;
+  // Determine pagination flags based on navigation direction
+  // - When navigating backwards (before): fetchedExtra tells us if there's a previous page,
+  //   and we know there's a next page because we came from it
+  // - When navigating forwards (after): we know there's a previous page because we came from it,
+  //   and fetchedExtra tells us if there's a next page
+  // - When on first page (no cursor): no previous page, fetchedExtra tells us if there's a next page
+  let hasMore: boolean;
+  let hasPrevious: boolean;
+
+  if (before) {
+    hasPrevious = fetchedExtra;
+    hasMore = true;
+  } else if (after) {
+    hasPrevious = true;
+    hasMore = fetchedExtra;
+  } else {
+    hasPrevious = false;
+    hasMore = fetchedExtra;
+  }
 
   return (
     <div className="w-full">

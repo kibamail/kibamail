@@ -16,6 +16,23 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { BadRequestError, NotFoundError } from "@/lib/api/errors";
+
+/**
+ * Sandbox email detection
+ * Sandbox emails use the @kibamail.dev domain and auto-generate events
+ */
+const SANDBOX_DOMAIN = "kibamail.dev";
+
+function isSandboxEmail(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return domain === SANDBOX_DOMAIN;
+}
+
+function parseSandboxEmail(email: string): { outcome: string; label: string | null } {
+  const localPart = email.split("@")[0].toLowerCase();
+  const [outcome, label] = localPart.split("+");
+  return { outcome, label: label || null };
+}
 import {
   createCursorPaginatedResponse,
   parseCursorPaginationParams,
@@ -31,7 +48,11 @@ import {
   checkBroadcastReadiness,
   getReadinessErrors,
 } from "@/lib/broadcasts/readiness";
-import { resolveRecipients } from "@/lib/broadcasts/recipient-resolver";
+import {
+  resolveRecipients,
+  type RecipientContact,
+} from "@/lib/broadcasts/recipient-resolver";
+import { scheduleBroadcast as createBatchSchedule } from "@/lib/broadcasts/batch-scheduler";
 import { prisma } from "@/lib/db";
 import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { queue } from "@/lib/queue";
@@ -39,6 +60,7 @@ import {
   createAndSendBroadcastSchema,
   createBroadcastSchema,
   updateBroadcastSchema,
+  type CreateAndSendBroadcastRequest,
 } from "./schema";
 
 /**
@@ -657,10 +679,68 @@ export async function scheduleBroadcast(workspaceId: string, broadcastId: string
 }
 
 /**
+ * Process a sandbox broadcast
+ *
+ * Creates a broadcast record and queues sandbox processing jobs for each recipient.
+ * Sandbox broadcasts auto-generate events based on the email prefix (e.g., delivered@, bounced@).
+ */
+async function processSandboxBroadcast(
+  workspaceId: string,
+  data: CreateAndSendBroadcastRequest,
+  contacts: RecipientContact[],
+) {
+  // Create broadcast record (no sender identity/domain required for sandbox)
+  const broadcast = await prisma.broadcast.create({
+    data: {
+      workspaceId,
+      name: data.name,
+      status: "SENDING",
+      emailContent: {
+        create: {
+          subject: data.emailContent.subject,
+          contentHtml: data.emailContent.html,
+          contentText: data.emailContent.text ?? null,
+          previewText: data.emailContent.previewText ?? null,
+        },
+      },
+    },
+  });
+
+  // Queue sandbox processing job for each recipient
+  const jobs = contacts.map((contact) => {
+    const { outcome, label } = parseSandboxEmail(contact.email);
+    return {
+      name: "process-sandbox-broadcast" as const,
+      data: {
+        broadcastId: broadcast.id,
+        workspaceId,
+        contactId: contact.id,
+        email: contact.email,
+        sandboxOutcome: outcome,
+        sandboxLabel: label,
+        subject: data.emailContent.subject,
+        htmlBody: data.emailContent.html,
+        textBody: data.emailContent.text,
+        previewText: data.emailContent.previewText,
+        transientVariables: contact.transientVariables,
+      },
+    };
+  });
+
+  await queue("broadcasts").pushBulk(jobs);
+
+  return responseCreated({ id: broadcast.id }, "broadcast");
+}
+
+/**
  * POST /api/v1/broadcasts/create-and-send
  *
  * Create and immediately send a broadcast with raw HTML/text content.
  * Bypasses the JSON-based email editor.
+ *
+ * This function handles per-email variables by directly queuing batch jobs
+ * with the resolved contacts (including transientVariables) instead of going
+ * through the standard scheduleBroadcast flow which would lose the variables.
  *
  * @param workspaceId - The workspace ID from API key
  * @param request - Next.js request with broadcast data
@@ -674,8 +754,30 @@ export async function createAndSendBroadcast(
     request,
   );
 
+  // Check for sandbox emails FIRST (only when using emails recipient type)
+  // This allows us to skip sendAt validation for sandbox broadcasts
+  let isSandboxBroadcast = false;
+  if (data.recipients.emails && data.recipients.emails.length > 0) {
+    const emails = data.recipients.emails.map((e) =>
+      typeof e === "string" ? e : e.email,
+    );
+    const sandboxEmails = emails.filter(isSandboxEmail);
+    const realEmails = emails.filter((e) => !isSandboxEmail(e));
+
+    // Reject mixed sandbox/real emails
+    if (sandboxEmails.length > 0 && realEmails.length > 0) {
+      throw new BadRequestError(
+        "Cannot mix sandbox (@kibamail.dev) and real email addresses. Use only sandbox addresses for testing, or only real addresses for production sends.",
+        ErrorCode.INVALID_PARAMETER,
+      );
+    }
+
+    isSandboxBroadcast = sandboxEmails.length > 0;
+  }
+
+  // Skip sendAt validation for sandbox broadcasts (they process immediately)
   const sendAt = new Date(data.sendAt);
-  if (sendAt <= new Date()) {
+  if (!isSandboxBroadcast && sendAt <= new Date()) {
     throw new BadRequestError(
       "sendAt must be in the future",
       ErrorCode.INVALID_PARAMETER,
@@ -692,6 +794,11 @@ export async function createAndSendBroadcast(
       "No valid recipients found",
       ErrorCode.INVALID_PARAMETER,
     );
+  }
+
+  // Route to sandbox processing if applicable
+  if (isSandboxBroadcast) {
+    return processSandboxBroadcast(workspaceId, data, contacts);
   }
 
   let senderIdentityId: string | undefined;
@@ -729,6 +836,18 @@ export async function createAndSendBroadcast(
     },
   });
 
+  // Get the sending domain for limits
+  const sendingDomain = await prisma.sendingDomain.findUnique({
+    where: { id: sendingDomainId },
+  });
+
+  if (!sendingDomain) {
+    throw new BadRequestError(
+      "Sending domain not found",
+      ErrorCode.BROADCAST_INVALID_FROM_DOMAIN,
+    );
+  }
+
   const broadcast = await prisma.broadcast.create({
     data: {
       workspaceId,
@@ -740,7 +859,7 @@ export async function createAndSendBroadcast(
       segmentId: data.recipients.segment ?? null,
       topicId: data.recipients.topic ?? null,
       sendAt,
-      status: "DRAFT",
+      status: "QUEUED_FOR_SENDING",
     },
     include: {
       emailContent: true,
@@ -754,11 +873,40 @@ export async function createAndSendBroadcast(
     },
   });
 
-  if (sendAt) {
-    await scheduleBroadcast(workspaceId, broadcast.id);
-  } else {
-    await queue("broadcasts").push("send-broadcast", { broadcastId: broadcast.id });
-  }
+  // Calculate delay until sendAt time (minus 5 minutes buffer for processing)
+  const jobRunAt = new Date(sendAt.getTime() - 5 * 60 * 1000);
+  const baseDelay = Math.max(0, jobRunAt.getTime() - Date.now());
+
+  // Create batch schedule using the batch scheduler
+  // This respects domain sending limits for warmup
+  const schedule = createBatchSchedule(contactIds, {
+    maxSendPerDay: sendingDomain.maxSendPerDay,
+    maxSendPerHour: sendingDomain.maxSendPerHour,
+  });
+
+  // Queue batch jobs directly with contacts (including transientVariables)
+  const batchQueue = queue("broadcasts");
+  const batchJobs = schedule.batches.map((batch) => {
+    const batchContactIds = batch.contactIds;
+    // Filter contacts for this batch, preserving transientVariables
+    const batchContacts = contacts.filter((c) => batchContactIds.includes(c.id));
+
+    return {
+      name: "send-broadcast-batch" as const,
+      data: {
+        broadcastId: broadcast.id,
+        batchId: batch.batchId,
+        contactIds: batchContactIds,
+        contacts: batchContacts,
+      },
+      options: {
+        // Add baseDelay to the batch's scheduled delay
+        delay: baseDelay + batch.delayMs,
+      },
+    };
+  });
+
+  await batchQueue.pushBulk(batchJobs);
 
   return responseCreated({ id: broadcast.id }, "broadcast");
 }

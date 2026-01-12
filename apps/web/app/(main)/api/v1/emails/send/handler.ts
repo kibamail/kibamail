@@ -19,6 +19,26 @@ import {
   type TransactionalAttachment,
 } from "./schema";
 
+const SANDBOX_DOMAIN = "kibamail.dev";
+
+/**
+ * Check if an email address is a sandbox test address
+ */
+function isSandboxEmail(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase();
+  return domain === SANDBOX_DOMAIN;
+}
+
+/**
+ * Parse a sandbox email address to extract the outcome and optional label
+ * e.g., "delivered+test-flow@kibamail.dev" -> { outcome: "delivered", label: "test-flow" }
+ */
+function parseSandboxEmail(email: string): { outcome: string; label: string | null } {
+  const localPart = email.split("@")[0].toLowerCase();
+  const [outcome, label] = localPart.split("+");
+  return { outcome, label: label || null };
+}
+
 /**
  * Parse an email address into local part and domain
  */
@@ -106,34 +126,68 @@ export async function sendTransactionalEmail(
     }
   }
 
-  const { domain: domainName } = parseEmailAddress(from);
+  // Check if any recipient is a real (non-sandbox) email
+  const hasRealRecipient = recipients.some((r) => !isSandboxEmail(r));
 
-  const sendingDomain = await prisma.sendingDomain.findFirst({
-    where: {
+  const { local: fromLocal, domain: domainName } = parseEmailAddress(from);
+
+  // For sandbox-only sends, domain setup is optional
+  // Users can test with any "from" address without configuring domains
+  let sendingDomain: Awaited<ReturnType<typeof prisma.sendingDomain.findFirst>> = null;
+  let senderIdentity: Awaited<ReturnType<typeof prisma.senderIdentity.findFirst>> = null;
+
+  if (hasRealRecipient) {
+    // Real recipients require a fully verified domain
+    sendingDomain = await prisma.sendingDomain.findFirst({
+      where: {
+        workspaceId,
+        name: domainName,
+      },
+    });
+
+    if (!sendingDomain) {
+      throw new NotFoundError(
+        `Sending domain not found for email address: ${from}`,
+        ErrorCode.SENDING_DOMAIN_NOT_FOUND,
+      );
+    }
+
+    if (!sendingDomain.dkimVerifiedAt) {
+      throw new BadRequestError(
+        `Sending domain DKIM is not verified: ${domainName}`,
+        ErrorCode.SENDING_DOMAIN_NOT_VERIFIED,
+      );
+    }
+
+    if (!sendingDomain.returnPathDomainVerifiedAt) {
+      throw new BadRequestError(
+        `Sending domain return path is not verified: ${domainName}`,
+        ErrorCode.SENDING_DOMAIN_NOT_VERIFIED,
+      );
+    }
+
+    senderIdentity = await findOrCreateSenderIdentity(
       workspaceId,
-      name: domainName,
-    },
-  });
-
-  if (!sendingDomain) {
-    throw new NotFoundError(
-      `Sending domain not found for email address: ${from}`,
-      ErrorCode.SENDING_DOMAIN_NOT_FOUND,
+      from,
+      sendingDomain.id,
     );
-  }
+  } else {
+    // Sandbox-only: try to find domain/identity but don't require them
+    sendingDomain = await prisma.sendingDomain.findFirst({
+      where: {
+        workspaceId,
+        name: domainName,
+      },
+    });
 
-  if (!sendingDomain.dkimVerifiedAt) {
-    throw new BadRequestError(
-      `Sending domain is not verified: ${domainName}`,
-      ErrorCode.SENDING_DOMAIN_NOT_VERIFIED,
-    );
+    if (sendingDomain) {
+      senderIdentity = await findOrCreateSenderIdentity(
+        workspaceId,
+        from,
+        sendingDomain.id,
+      );
+    }
   }
-
-  const senderIdentity = await findOrCreateSenderIdentity(
-    workspaceId,
-    from,
-    sendingDomain.id,
-  );
 
   const attachmentsForJob =
     attachments && attachments.length > 0
@@ -145,32 +199,62 @@ export async function sendTransactionalEmail(
         }))
       : undefined;
 
-  const replyToForJob: { email: string; name?: string } | undefined = replyTo
+  // Default replyTo to sender details if not provided
+  const replyToForJob: { email: string; name?: string } = replyTo
     ? { email: replyTo.email, name: replyTo.name }
-    : undefined;
+    : {
+        email: from,
+        name: senderIdentity?.name ?? fromLocal,
+      };
 
   // Queue one job per recipient - each gets their own TransactionalEmail record
-  const emailIds: Array<{ id: string; recipient: string }> = [];
+  const emailIds: Array<{ id: string; recipient: string; sandbox: boolean }> = [];
 
   for (const recipient of recipients) {
     const emailSendId = createId();
+    const sandbox = isSandboxEmail(recipient);
 
-    await queue("emails").push("send-transactional", {
-      emailSendId,
-      workspaceId,
-      senderIdentityId: senderIdentity.id,
-      sendingDomainId: sendingDomain.id,
-      replyTo: replyToForJob,
-      to: recipient,
-      subject,
-      previewText,
-      htmlBody: html,
-      textBody: text,
-      attachments: attachmentsForJob,
-      metadata: metadata || undefined,
-    });
+    if (sandbox) {
+      // Route sandbox emails to the sandbox processor
+      const { outcome, label } = parseSandboxEmail(recipient);
 
-    emailIds.push({ id: emailSendId, recipient });
+      await queue("emails").push("process-sandbox", {
+        emailSendId,
+        workspaceId,
+        senderIdentityId: senderIdentity?.id,
+        sendingDomainId: sendingDomain?.id,
+        fromEmail: from,
+        fromName: senderIdentity?.name ?? fromLocal,
+        recipient,
+        sandboxOutcome: outcome,
+        sandboxLabel: label,
+        subject,
+        previewText,
+        htmlBody: html,
+        textBody: text,
+        replyTo: replyToForJob,
+        metadata: metadata || undefined,
+      });
+    } else {
+      // Route real emails to the transactional processor
+      // At this point sendingDomain and senderIdentity are guaranteed to exist
+      await queue("emails").push("send-transactional", {
+        emailSendId,
+        workspaceId,
+        senderIdentityId: senderIdentity!.id,
+        sendingDomainId: sendingDomain!.id,
+        replyTo: replyToForJob,
+        to: recipient,
+        subject,
+        previewText,
+        htmlBody: html,
+        textBody: text,
+        attachments: attachmentsForJob,
+        metadata: metadata || undefined,
+      });
+    }
+
+    emailIds.push({ id: emailSendId, recipient, sandbox });
   }
 
   // Return single object for single recipient, array for multiple
@@ -178,6 +262,7 @@ export async function sendTransactionalEmail(
     return responseCreated(
       {
         id: emailIds[0].id,
+        sandbox: emailIds[0].sandbox,
       },
       "email",
     );
@@ -185,7 +270,11 @@ export async function sendTransactionalEmail(
 
   return responseCreated(
     {
-      emails: emailIds,
+      emails: emailIds.map((e) => ({
+        id: e.id,
+        recipient: e.recipient,
+        sandbox: e.sandbox,
+      })),
     },
     "email_list",
   );

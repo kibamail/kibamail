@@ -1,5 +1,6 @@
 import { createHttpClient } from "./client";
 import { ApiKeys } from "./resources/api-keys";
+import { Broadcasts } from "./resources/broadcasts";
 import { ContactProperties } from "./resources/contact-properties";
 import { Contacts } from "./resources/contacts";
 import { Emails } from "./resources/emails";
@@ -28,6 +29,7 @@ const BASE_URL = "https://api.kibamail.com";
  *
  * **Resources:**
  * - `apiKeys` - Manage API keys for workspace access
+ * - `broadcasts` - Create and schedule email broadcasts
  * - `contacts` - Manage contact records and subscriptions
  * - `emails` - Send transactional emails
  * - `topics` - Organize email communications by topic
@@ -77,6 +79,25 @@ export class Kibamail {
    * ```
    */
   public apiKeys: ApiKeys;
+
+  /**
+   * Broadcasts resource for creating and scheduling email broadcasts.
+   *
+   * @example
+   * ```ts
+   * const broadcast = await kibamail.broadcasts.createAndSend({
+   *   name: "January Newsletter",
+   *   from: "newsletter@yourdomain.com",
+   *   emailContent: {
+   *     subject: "Our January Newsletter",
+   *     html: "<h1>Hello {{firstName}}!</h1>"
+   *   },
+   *   recipients: { emails: ["user@example.com"] },
+   *   sendAt: "2024-01-15T10:00:00Z"
+   * });
+   * ```
+   */
+  public broadcasts: Broadcasts;
 
   /**
    * Contacts resource for managing contact records.
@@ -191,6 +212,7 @@ export class Kibamail {
 
     // Initialize all resource instances
     this.apiKeys = new ApiKeys(this.client);
+    this.broadcasts = new Broadcasts(this.client);
     this.contacts = new Contacts(this.client);
     this.emails = new Emails(this.client);
     this.topics = new Topics(this.client);

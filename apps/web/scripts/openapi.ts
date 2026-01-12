@@ -55,6 +55,10 @@ import {
   sendTransactionalEmailSchema,
   sendTransactionalEmailResponseSchema,
 } from "@/app/(main)/api/v1/emails/send/schema";
+import {
+  createAndSendBroadcastSchema,
+  createAndSendBroadcastResponseSchema,
+} from "@/app/(main)/api/v1/broadcasts/schema";
 
 /**
  * Validation error detail structure
@@ -333,6 +337,40 @@ For detailed guides and tutorials, visit our documentation.`,
     {
       url: "https://api.kibamail.com",
       description: "Production server - Use this for live applications",
+    },
+  ],
+  tags: [
+    {
+      name: "Contacts",
+      description: "Manage contact records, subscriptions, and custom properties",
+    },
+    {
+      name: "Topics",
+      description: "Organize email communications by topic and manage subscriptions",
+    },
+    {
+      name: "Segments",
+      description: "Create dynamic contact groups using flexible filtering conditions",
+    },
+    {
+      name: "Contact Properties",
+      description: "Define custom fields to store additional contact data",
+    },
+    {
+      name: "Forms",
+      description: "Build and manage embeddable signup forms for lead capture",
+    },
+    {
+      name: "API Keys",
+      description: "Manage API keys for secure programmatic access to your workspace",
+    },
+    {
+      name: "Transactional Emails",
+      description: "Send one-off transactional emails like order confirmations and password resets",
+    },
+    {
+      name: "Broadcasts",
+      description: "Create and schedule email broadcasts to segments, topics, or email lists with per-recipient personalization",
     },
   ],
   components: {
@@ -3327,6 +3365,299 @@ Find contacts missing a property:
           "429": {
             description:
               "Rate Limit Exceeded - Too many emails sent. Wait before sending more.",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/broadcasts/create-and-send": {
+      post: {
+        summary: "Create and Schedule Broadcast",
+        description: `Create a broadcast with HTML content and schedule it for delivery to specified recipients.
+
+**Use Cases:**
+- Send marketing newsletters to a segment of contacts
+- Announce product launches to specific topics
+- Send promotional emails to a list of email addresses
+- Trigger one-time campaigns with personalized variables per recipient
+
+**Recipient Modes:**
+Recipients can be specified in multiple ways (at least one is required):
+- \`contacts\`: Array of contact IDs from your workspace
+- \`emails\`: Array of email addresses (will upsert contacts automatically)
+- \`segment\`: Segment ID to send to all contacts matching segment conditions
+- \`topic\`: Topic ID to send to all subscribed contacts
+
+**Per-Email Variables:**
+The \`emails\` field supports two formats:
+
+1. **Simple format (backward compatible):**
+\`\`\`json
+{
+  "emails": ["user1@example.com", "user2@example.com"]
+}
+\`\`\`
+
+2. **With variables:**
+\`\`\`json
+{
+  "emails": [
+    { "email": "user1@example.com", "variables": { "orderNumber": "12345", "discount": 20 } },
+    { "email": "user2@example.com", "variables": { "orderNumber": "67890", "discount": 15 } }
+  ]
+}
+\`\`\`
+
+Variables can be used in email content with \`{{variableName}}\` syntax:
+- \`{{orderNumber}}\` - Direct variable reference
+- \`{{contact.orderNumber}}\` - Prefixed with contact (both work the same)
+
+**Variable Priority (highest to lowest):**
+1. Transient variables (per-email, from API request)
+2. Contact properties (from database)
+3. Built-in variables (email, firstName, lastName, URLs)
+
+Transient variables override contact properties with the same name but are NOT saved to the contact record.
+
+**Behavior:**
+- Creates a new broadcast in QUEUED_FOR_SENDING status
+- Email content is validated and stored
+- Broadcast is scheduled for delivery at the specified sendAt time
+- Recipients are resolved at send time (not at creation time)
+- For \`emails\` mode, contacts are upserted (created if not existing)
+- Sending domain must be verified before the broadcast can be sent
+
+**Required Scope:** \`broadcasts:write\`
+
+**Rate Limits:**
+- 100 broadcasts per hour per workspace
+- Maximum 100,000 recipients per broadcast
+
+**Email Content:**
+- Subject and HTML are required
+- Plain text is auto-generated from HTML if not provided
+- Preview text is optional but recommended for inbox preview
+- Use {{variableName}} for personalization (first name, custom properties, etc.)
+
+**Scheduling:**
+- sendAt must be a future ISO 8601 datetime
+- Broadcast will be processed at the scheduled time
+- Cannot be modified after creation (create a new broadcast instead)
+
+**Sandbox/Test Mode:**
+For testing without sending real emails, use \`@kibamail.dev\` test addresses. These addresses simulate different delivery outcomes:
+
+| Address | Simulated Outcome |
+|---------|-------------------|
+| \`delivered@kibamail.dev\` | Successful delivery |
+| \`bounced@kibamail.dev\` | Hard bounce |
+| \`softbounce@kibamail.dev\` | Soft bounce (transient failure) |
+| \`complained@kibamail.dev\` | Spam complaint |
+| \`failed@kibamail.dev\` | Permanent delivery failure |
+| \`delayed@kibamail.dev\` | Delayed delivery (retries then succeeds) |
+| \`opened@kibamail.dev\` | Delivered + opened |
+| \`clicked@kibamail.dev\` | Delivered + opened + clicked |
+
+**Sandbox features:**
+- Add \`+label\` for tracking: \`delivered+campaign1@kibamail.dev\`
+- Events are generated instantly (no actual email sent)
+- \`sendAt\` can be any time (processed immediately)
+- Cannot mix sandbox and real email addresses in the same broadcast
+- Per-email variables work with sandbox addresses
+
+**Best Practices:**
+- Always test with a small segment first
+- Use preview text for better inbox engagement
+- Include unsubscribe links for compliance
+- Verify sending domain before scheduling`,
+        tags: ["Broadcasts"],
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: createAndSendBroadcastSchema,
+              examples: {
+                "simple-emails": {
+                  summary: "Send to email addresses",
+                  description: "Basic broadcast to a list of email addresses",
+                  value: {
+                    name: "January Newsletter",
+                    from: "newsletter@yourdomain.com",
+                    replyTo: "support@yourdomain.com",
+                    emailContent: {
+                      subject: "Our January Newsletter",
+                      html: "<h1>Hello {{firstName}}!</h1><p>Welcome to our January newsletter.</p>",
+                      previewText: "Check out what's new this month...",
+                    },
+                    recipients: {
+                      emails: [
+                        "user1@example.com",
+                        "user2@example.com",
+                        "user3@example.com",
+                      ],
+                    },
+                    sendAt: "2024-01-15T10:00:00Z",
+                  },
+                },
+                "with-variables": {
+                  summary: "Send with per-email variables",
+                  description: "Broadcast with custom variables for each recipient",
+                  value: {
+                    name: "Order Confirmation Campaign",
+                    from: "orders@yourdomain.com",
+                    emailContent: {
+                      subject: "Your Order #{{orderNumber}} is confirmed!",
+                      html: "<h1>Thank you, {{firstName}}!</h1><p>Your order #{{orderNumber}} totaling ${{orderTotal}} has been confirmed.</p><p>Expected delivery: {{deliveryDate}}</p>",
+                      previewText: "Your order has been confirmed",
+                    },
+                    recipients: {
+                      emails: [
+                        {
+                          email: "customer1@example.com",
+                          variables: {
+                            orderNumber: "ORD-12345",
+                            orderTotal: 99.99,
+                            deliveryDate: "January 20, 2024",
+                          },
+                        },
+                        {
+                          email: "customer2@example.com",
+                          variables: {
+                            orderNumber: "ORD-12346",
+                            orderTotal: 149.50,
+                            deliveryDate: "January 22, 2024",
+                          },
+                        },
+                      ],
+                    },
+                    sendAt: "2024-01-15T14:00:00Z",
+                  },
+                },
+                "to-segment": {
+                  summary: "Send to a segment",
+                  description: "Broadcast to all contacts in a segment",
+                  value: {
+                    name: "VIP Customer Promotion",
+                    from: "promotions@yourdomain.com",
+                    emailContent: {
+                      subject: "Exclusive VIP Offer for {{firstName}}",
+                      html: "<h1>Hi {{firstName}}!</h1><p>As a valued VIP customer, you get 25% off your next purchase!</p>",
+                      previewText: "Your exclusive VIP discount awaits...",
+                    },
+                    recipients: {
+                      segment: "seg_vip_customers_abc123",
+                    },
+                    sendAt: "2024-01-20T09:00:00Z",
+                  },
+                },
+                "to-topic": {
+                  summary: "Send to topic subscribers",
+                  description: "Broadcast to all contacts subscribed to a topic",
+                  value: {
+                    name: "Product Updates",
+                    from: "updates@yourdomain.com",
+                    emailContent: {
+                      subject: "New Features Released!",
+                      html: "<h1>Hey {{firstName}}!</h1><p>Check out our latest features...</p>",
+                      previewText: "See what's new in our product",
+                    },
+                    recipients: {
+                      topic: "top_product_updates_xyz789",
+                    },
+                    sendAt: "2024-01-25T15:00:00Z",
+                  },
+                },
+                "sandbox-testing": {
+                  summary: "Test with sandbox addresses",
+                  description:
+                    "Use @kibamail.dev addresses to test different delivery outcomes without sending real emails",
+                  value: {
+                    name: "Test Broadcast - Multiple Outcomes",
+                    from: "newsletter@yourdomain.com",
+                    emailContent: {
+                      subject: "Test Email for {{firstName}}",
+                      html: "<h1>Hello {{firstName}}!</h1><p>This is a test broadcast to verify {{outcome}} behavior.</p>",
+                      previewText: "Testing email delivery outcomes",
+                    },
+                    recipients: {
+                      emails: [
+                        {
+                          email: "delivered@kibamail.dev",
+                          variables: { firstName: "Delivered User", outcome: "successful delivery" },
+                        },
+                        {
+                          email: "bounced+test1@kibamail.dev",
+                          variables: { firstName: "Bounced User", outcome: "hard bounce" },
+                        },
+                        {
+                          email: "opened@kibamail.dev",
+                          variables: { firstName: "Engaged User", outcome: "open tracking" },
+                        },
+                        {
+                          email: "clicked+cta@kibamail.dev",
+                          variables: { firstName: "Clicking User", outcome: "click tracking" },
+                        },
+                        {
+                          email: "complained@kibamail.dev",
+                          variables: { firstName: "Complainant", outcome: "spam complaint" },
+                        },
+                      ],
+                    },
+                    sendAt: "2024-01-15T10:00:00Z",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "Broadcast created and scheduled successfully. The broadcast will be sent at the specified sendAt time.",
+            content: {
+              "application/json": {
+                schema: createAndSendBroadcastResponseSchema,
+                example: {
+                  object: "broadcast",
+                  id: "brd_abc123xyz789",
+                },
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Invalid input data, such as missing required fields, invalid email format, or sendAt in the past",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'broadcasts:write' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "403": {
+            description:
+              "Forbidden - Sending domain not verified, or broadcast limits exceeded",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "422": {
+            description:
+              "Validation Error - Email content validation failed, no valid recipients found, or segment/topic does not exist",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "429": {
+            description:
+              "Rate Limit Exceeded - Too many broadcasts created. Wait before creating more.",
             content: {
               "application/json": { schema: errorResponseSchema },
             },

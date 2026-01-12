@@ -186,22 +186,30 @@ export function scheduleBroadcast(
   let currentIndex = 0;
   let dayOffset = 0;
 
+  // Handle unlimited limits (-1 means no limit)
+  // Use a very high number to effectively bypass limits while keeping math valid
+  const UNLIMITED = Number.MAX_SAFE_INTEGER;
+  const effectiveHourlyLimit =
+    limits.maxSendPerHour === -1 ? UNLIMITED : limits.maxSendPerHour;
+  const effectiveDailyLimit =
+    limits.maxSendPerDay === -1 ? UNLIMITED : limits.maxSendPerDay;
+
   // Calculate effective batches per hour based on sending limits
   // If maxBatchesPerHour is 0 (default), calculate from the hourly limit
   const effectiveBatchesPerHour =
     cfg.maxBatchesPerHour > 0
       ? cfg.maxBatchesPerHour
-      : Math.ceil(limits.maxSendPerHour / cfg.maxBatchSize);
+      : Math.ceil(effectiveHourlyLimit / cfg.maxBatchSize);
 
   // Effective hourly limit respects both the domain limit and batch constraints
   const maxPerHour = Math.min(
-    limits.maxSendPerHour,
+    effectiveHourlyLimit,
     effectiveBatchesPerHour * cfg.maxBatchSize,
   );
 
   while (currentIndex < contactIds.length) {
     let dailySent = 0;
-    const dailyLimit = limits.maxSendPerDay;
+    const dailyLimit = effectiveDailyLimit;
 
     // Iterate through available hours in the day
     for (

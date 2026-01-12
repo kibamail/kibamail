@@ -1,5 +1,4 @@
-import { Badge, Heading, LetterAvatar, Text } from "@kibamail/owly";
-import type { TransactionalEmailStatus } from "@prisma/client";
+import { Heading, LetterAvatar, Text } from "@kibamail/owly";
 import { EditPencil, Notes, AtSignCircle, WarningCircle } from "iconoir-react";
 import { html as beautifyHtml } from "js-beautify";
 import Link from "next/link";
@@ -10,53 +9,7 @@ import { prisma } from "@/lib/db";
 import { downloadPrivateFile } from "@/lib/storage";
 import { EmailContentViewer } from "../_components/email-content-viewer";
 import { EmailEventTimeline } from "../_components/email-event-timeline";
-
-function getStatusBadge(status: TransactionalEmailStatus) {
-  switch (status) {
-    case "QUEUED":
-      return (
-        <Badge size="sm" variant="warning">
-          Queued
-        </Badge>
-      );
-    case "SENDING":
-      return (
-        <Badge size="sm" variant="info">
-          Sending
-        </Badge>
-      );
-    case "DELIVERED":
-      return (
-        <Badge size="sm" variant="success">
-          Delivered
-        </Badge>
-      );
-    case "BOUNCED":
-      return (
-        <Badge size="sm" variant="error">
-          Bounced
-        </Badge>
-      );
-    case "COMPLAINED":
-      return (
-        <Badge size="sm" variant="error">
-          Complained
-        </Badge>
-      );
-    case "FAILED":
-      return (
-        <Badge size="sm" variant="error">
-          Failed
-        </Badge>
-      );
-    default:
-      return (
-        <Badge size="sm" variant="neutral">
-          {status}
-        </Badge>
-      );
-  }
-}
+import { EmailStatusBadge } from "../_components/email-status-badge";
 
 async function getEmailWithEvents(workspaceId: string, emailId: string) {
   const email = await prisma.transactionalEmail.findFirst({
@@ -175,6 +128,9 @@ export default async function EmailDetailPage({
     email.textContentS3Key
   );
 
+  // Get the latest event type for status display (matches table view)
+  const latestEventType = events.length > 0 ? events[events.length - 1].type : null;
+
   return (
     <div className="flex flex-col">
       <div className="pb-5 border-b border-kb-border-tertiary">
@@ -251,7 +207,7 @@ export default async function EmailDetailPage({
             <Text variant="tertiary">Status</Text>
           </div>
 
-          <div className="col-span-10">{getStatusBadge(email.status)}</div>
+          <div className="col-span-10"><EmailStatusBadge eventType={latestEventType} /></div>
         </div>
       </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useCallback } from "react";
 import type { EmailTemplateStatus, SendingDomain } from "@prisma/client";
 
 import { EmailEditorClient } from "@/components/email-editor/email-editor-client";
@@ -14,6 +15,7 @@ import {
   TemplateVersionDropdown,
   type TemplateVersionItem,
 } from "@/app/(main)/(dashboard)/w/(fullscreen)/templates/[id]/_components/template-version-dropdown";
+import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 
 interface TemplateEditorAdapterProps {
   templateId: string;
@@ -28,6 +30,7 @@ interface TemplateEditorAdapterProps {
   initialStyles?: Record<string, unknown>;
   initialSubject?: string;
   initialPreviewText?: string;
+  initialVariables?: VariableDefinition[];
   initialSenderIdentityId?: string;
   initialReplyToIdentityId?: string;
   initialTrackClicks?: boolean;
@@ -49,6 +52,7 @@ export function TemplateEditorAdapter({
   initialStyles,
   initialSubject,
   initialPreviewText,
+  initialVariables,
   initialSenderIdentityId,
   initialReplyToIdentityId,
   initialTrackClicks,
@@ -57,6 +61,38 @@ export function TemplateEditorAdapter({
   domains,
 }: TemplateEditorAdapterProps) {
   const isReadonly = status !== "DRAFT";
+
+  // Track current variables for incremental updates
+  const variablesRef = useRef<VariableDefinition[]>(initialVariables ?? []);
+
+  const handleVariableCreate = useCallback(async (variable: VariableDefinition) => {
+    const updatedVariables = [...variablesRef.current, variable];
+    variablesRef.current = updatedVariables;
+
+    await internalApi.emailTemplates().update(templateId, {
+      emailContent: { variables: updatedVariables },
+    });
+  }, [templateId]);
+
+  const handleVariableUpdate = useCallback(async (variable: VariableDefinition) => {
+    const updatedVariables = variablesRef.current.map(v =>
+      v.id === variable.id ? variable : v
+    );
+    variablesRef.current = updatedVariables;
+
+    await internalApi.emailTemplates().update(templateId, {
+      emailContent: { variables: updatedVariables },
+    });
+  }, [templateId]);
+
+  const handleVariableDelete = useCallback(async (id: string) => {
+    const updatedVariables = variablesRef.current.filter(v => v.id !== id);
+    variablesRef.current = updatedVariables;
+
+    await internalApi.emailTemplates().update(templateId, {
+      emailContent: { variables: updatedVariables },
+    });
+  }, [templateId]);
 
   const initialDetails: TemplateDetails = {
     subject: initialSubject || "",
@@ -125,6 +161,11 @@ export function TemplateEditorAdapter({
       backUrl="/w/templates"
       successRedirectUrl="/w/templates"
       headerExtra={versionDropdown}
+      customVariables={initialVariables}
+      allowCustomVariables={!isReadonly}
+      onVariableCreate={handleVariableCreate}
+      onVariableUpdate={handleVariableUpdate}
+      onVariableDelete={handleVariableDelete}
     />
   );
 }

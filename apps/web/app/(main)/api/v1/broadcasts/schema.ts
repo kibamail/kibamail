@@ -134,12 +134,28 @@ export type BroadcastResponse = z.infer<typeof broadcastResponseSchema>;
 export type BroadcastListResponse = z.infer<typeof broadcastListResponseSchema>;
 
 /**
+ * Email recipient with optional per-email variables
+ * Variables are transient (not saved to contact) and override contact properties
+ */
+const emailWithVariablesSchema = z.object({
+  email: z.string().email(),
+  variables: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+});
+
+/**
  * Recipients Schema
  * Defines how recipients can be specified for a broadcast
+ *
+ * The emails field accepts either:
+ * - string[] (simple email addresses, backward compatible)
+ * - { email: string, variables?: Record<string, string | number> }[] (with per-email variables)
  */
 const recipientsSchema = z.object({
   contacts: z.array(z.string()).optional(),
-  emails: z.array(z.string().email()).optional(),
+  emails: z.union([
+    z.array(z.string().email()),
+    z.array(emailWithVariablesSchema),
+  ]).optional(),
   segment: z.string().optional(),
   topic: z.string().optional(),
 }).refine(
@@ -172,4 +188,14 @@ export const createAndSendBroadcastSchema = z.object({
   sendAt: z.string().datetime(),
 });
 
+/**
+ * Create and Send Broadcast Response Schema
+ * Returns only object type and broadcast ID
+ */
+export const createAndSendBroadcastResponseSchema = z.object({
+  object: z.literal("broadcast").describe("Object type identifier"),
+  id: z.string().describe("Unique broadcast ID for tracking"),
+});
+
 export type CreateAndSendBroadcastRequest = z.infer<typeof createAndSendBroadcastSchema>;
+export type CreateAndSendBroadcastResponse = z.infer<typeof createAndSendBroadcastResponseSchema>;

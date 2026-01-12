@@ -8,7 +8,7 @@ import {
 import type { JSONContent } from "@tiptap/react";
 import { forwardRef, useImperativeHandle, useRef } from "react";
 import "@repo/broadcast-editor/styles";
-import type { EmailEditorMode } from "./types";
+import type { EmailEditorMode, VariableDefinition } from "./types";
 
 export interface ContentEditorRef {
   getContent: () => JSONContent | null;
@@ -24,6 +24,11 @@ interface ContentEditorProps {
   readonly?: boolean;
   onUpload?: (file: File) => Promise<string>;
   mode: EmailEditorMode;
+  customVariables?: VariableDefinition[];
+  allowCustomVariables?: boolean;
+  onVariableCreate?: (variable: VariableDefinition) => void;
+  onVariableUpdate?: (variable: VariableDefinition) => void;
+  onVariableDelete?: (id: string) => void;
 }
 
 const defaultStyles: EditorStylesConfig = {
@@ -130,6 +135,11 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
       readonly = false,
       onUpload,
       mode,
+      customVariables,
+      allowCustomVariables,
+      onVariableCreate,
+      onVariableUpdate,
+      onVariableDelete,
     },
     ref,
   ) {
@@ -174,6 +184,12 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
       return url;
     }
 
+    // Merge system variables with custom variables
+    const allVariables = [
+      ...getVariablesForMode(mode),
+      ...(customVariables ?? []),
+    ];
+
     return (
       <div className="h-full">
         <EmailEditor
@@ -186,7 +202,11 @@ export const ContentEditor = forwardRef<ContentEditorRef, ContentEditorProps>(
           }}
           onChange={onChange}
           onStylesChange={onStylesChange}
-          variables={getVariablesForMode(mode)}
+          variables={allVariables}
+          allowCustomVariables={allowCustomVariables}
+          onVariableCreate={onVariableCreate}
+          onVariableUpdate={onVariableUpdate}
+          onVariableDelete={onVariableDelete}
           onUpload={onUpload ? upload : undefined}
           initialContent={initialContent}
           editable={!readonly}

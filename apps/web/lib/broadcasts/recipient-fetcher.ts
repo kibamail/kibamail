@@ -18,6 +18,8 @@ export interface RecipientContact {
   firstName: string | null;
   lastName: string | null;
   properties: Record<string, ContactPropertyValue>;
+  /** Transient variables from API request, not persisted to database */
+  transientVariables?: Record<string, string | number>;
 }
 
 export type BatchJobContact = RecipientContact;

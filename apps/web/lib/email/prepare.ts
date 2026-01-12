@@ -29,6 +29,8 @@ export interface EmailContact {
   firstName?: string | null;
   lastName?: string | null;
   properties?: Record<string, ContactPropertyValue>;
+  /** Transient variables from API request, override contact properties */
+  transientVariables?: Record<string, string | number>;
 }
 
 /**
@@ -142,6 +144,11 @@ function buildReplyToAddress(
 /**
  * Build personalization variables for a contact
  *
+ * Priority order (highest to lowest):
+ * 1. Transient variables (per-email, from API request)
+ * 2. Custom properties (from contact record)
+ * 3. Built-in variables (email, firstName, lastName, URLs)
+ *
  * @param contact - The contact
  * @param broadcast - The broadcast
  * @param customProperties - Optional custom contact properties for personalization
@@ -155,6 +162,7 @@ function buildVariables(
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
 
+  // Start with built-in variables
   const variables: Record<string, string> = {
     email: contact.email,
     firstName: contact.firstName || "",
@@ -166,9 +174,19 @@ function buildVariables(
     view_in_browser_url: `https://${trackingDomain}/v/${broadcast.id}/${contact.id}`,
   };
 
+  // Add custom properties from contact record (lower priority)
   if (customProperties) {
     for (const [key, value] of Object.entries(customProperties)) {
       variables[`contact.${key}`] = value != null ? String(value) : "";
+    }
+  }
+
+  // Override with transient variables from API request (highest priority)
+  if (contact.transientVariables) {
+    for (const [key, value] of Object.entries(contact.transientVariables)) {
+      // Transient variables can be accessed both with and without contact. prefix
+      variables[key] = String(value);
+      variables[`contact.${key}`] = String(value);
     }
   }
 

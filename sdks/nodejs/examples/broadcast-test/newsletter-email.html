@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Weekly Deals</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Ubuntu, sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; padding: 40px 0;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; overflow: hidden;">
+          <!-- Header -->
+          <tr>
+            <td style="background-color: #18181b; padding: 24px; text-align: center;">
+              <h1 style="color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: 2px; margin: 0;">KIBASTORE</h1>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 32px 24px;">
+              <!-- Greeting -->
+              <h2 style="font-size: 24px; line-height: 1.3; font-weight: 600; color: #18181b; margin: 0 0 16px;">
+                Hey {{firstName}}, Your Weekly Deals Are Here!
+              </h2>
+
+              <p style="font-size: 15px; line-height: 1.6; color: #52525b; margin: 0 0 16px;">
+                As a valued <strong>{{membershipTier}}</strong> member with <strong>{{loyaltyPoints}} points</strong>, you've unlocked exclusive deals just for you.
+              </p>
+
+              <!-- Stats -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f4f4f5; border-radius: 8px; margin: 24px 0;">
+                <tr>
+                  <td style="text-align: center; padding: 16px;">
+                    <p style="font-size: 12px; color: #71717a; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px;">Your Points</p>
+                    <p style="font-size: 18px; font-weight: 600; color: #18181b; margin: 0;">{{loyaltyPoints}}</p>
+                  </td>
+                  <td style="text-align: center; padding: 16px;">
+                    <p style="font-size: 12px; color: #71717a; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px;">Member Tier</p>
+                    <p style="font-size: 18px; font-weight: 600; color: #18181b; margin: 0;">{{membershipTier}}</p>
+                  </td>
+                  <td style="text-align: center; padding: 16px;">
+                    <p style="font-size: 12px; color: #71717a; margin: 0 0 4px; text-transform: uppercase; letter-spacing: 0.5px;">Last Purchase</p>
+                    <p style="font-size: 18px; font-weight: 600; color: #18181b; margin: 0;">{{lastPurchaseDate}}</p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- Recommendation -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fef3c7; border-radius: 8px; margin: 24px 0;">
+                <tr>
+                  <td style="padding: 24px; text-align: center;">
+                    <p style="font-size: 14px; color: #92400e; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Recommended for You</p>
+                    <p style="font-size: 20px; font-weight: 600; color: #78350f; margin: 0 0 12px;">{{recommendedProduct}}</p>
+                    <p style="font-size: 15px; line-height: 1.6; color: #52525b; margin: 0 0 16px;">Based on your purchase history, we think you'll love this!</p>
+                    <a href="https://example.com/shop" style="display: inline-block; background-color: #18181b; color: #ffffff; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 24px; border-radius: 6px;">Shop Now</a>
+                  </td>
+                </tr>
+              </table>
+
+              <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
+
+              <!-- Discount -->
+              <table width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="text-align: center; padding: 16px 0;">
+                    <p style="font-size: 14px; color: #71717a; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px;">Your Exclusive Discount Code</p>
+                    <p style="font-size: 32px; font-weight: 700; color: #059669; margin: 0 0 8px; letter-spacing: 2px;">{{discountCode}}</p>
+                    <p style="font-size: 13px; color: #71717a; margin: 0;">Use this code at checkout for 15% off your next purchase!</p>
+                  </td>
+                </tr>
+              </table>
+
+              <hr style="border: none; border-top: 1px solid #e4e4e7; margin: 24px 0;">
+
+              <!-- Footer -->
+              <p style="font-size: 12px; color: #a1a1aa; margin: 0 0 8px; text-align: center;">
+                This email was sent to {{email}}. You're receiving this because you're a {{membershipTier}} member of Kibastore.
+              </p>
+              <p style="font-size: 12px; color: #a1a1aa; margin: 0; text-align: center;">
+                <a href="{{unsubscribe_url}}" style="color: #71717a; text-decoration: underline;">Unsubscribe</a> | <a href="https://example.com/preferences" style="color: #71717a; text-decoration: underline;">Email Preferences</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

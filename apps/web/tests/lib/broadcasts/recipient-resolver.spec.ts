@@ -401,6 +401,141 @@ describe("resolveRecipients", () => {
     });
   });
 
+  describe("Per-email transient variables", () => {
+    test("should attach transient variables to contacts from object format emails", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: [
+          { email: "user1@transient.com", variables: { orderNumber: "12345", firstName: "John" } },
+          { email: "user2@transient.com", variables: { orderNumber: "67890", firstName: "Jane" } },
+        ],
+      });
+
+      expect(result.contactIds.length).toBe(2);
+      expect(result.contacts.length).toBe(2);
+
+      const contact1 = result.contacts.find((c) => c.email === "user1@transient.com");
+      const contact2 = result.contacts.find((c) => c.email === "user2@transient.com");
+
+      expect(contact1?.transientVariables).toEqual({ orderNumber: "12345", firstName: "John" });
+      expect(contact2?.transientVariables).toEqual({ orderNumber: "67890", firstName: "Jane" });
+    });
+
+    test("should handle mixed string and object email formats", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: [
+          "plain@mixed.com",
+          { email: "with-vars@mixed.com", variables: { customField: "value" } },
+        ],
+      });
+
+      expect(result.contactIds.length).toBe(2);
+
+      const plainContact = result.contacts.find((c) => c.email === "plain@mixed.com");
+      const varsContact = result.contacts.find((c) => c.email === "with-vars@mixed.com");
+
+      expect(plainContact?.transientVariables).toBeUndefined();
+      expect(varsContact?.transientVariables).toEqual({ customField: "value" });
+    });
+
+    test("should handle simple string array format (backward compat)", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: ["email1@backcompat.com", "email2@backcompat.com"],
+      });
+
+      expect(result.contactIds.length).toBe(2);
+      expect(result.contacts[0].transientVariables).toBeUndefined();
+      expect(result.contacts[1].transientVariables).toBeUndefined();
+    });
+
+    test("should support numeric variable values", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: [
+          { email: "numeric@vars.com", variables: { points: 1500, value: 75.50 } },
+        ],
+      });
+
+      expect(result.contacts[0].transientVariables).toEqual({ points: 1500, value: 75.50 });
+    });
+
+    test("should handle empty variables object", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: [
+          { email: "empty-vars@test.com", variables: {} },
+        ],
+      });
+
+      expect(result.contacts[0].transientVariables).toBeUndefined();
+    });
+
+    test("should attach variables to existing contacts", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      // Create existing contact
+      await createTestContacts(workspace.id, [
+        { email: "existing@vars.com", firstName: "Existing", status: "SUBSCRIBED" },
+      ]);
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: [
+          { email: "existing@vars.com", variables: { customData: "attached" } },
+        ],
+      });
+
+      expect(result.contacts.length).toBe(1);
+      expect(result.contacts[0].firstName).toBe("Existing");
+      expect(result.contacts[0].transientVariables).toEqual({ customData: "attached" });
+    });
+
+    test("should preserve both contact properties and transient variables", async () => {
+      const workspace = createTestWorkspace();
+      workspacesToCleanup.push(workspace.id);
+
+      // Create custom property
+      await prisma.contactProperty.create({
+        data: {
+          workspaceId: workspace.id,
+          name: "Company",
+          slot: "propertyString0",
+          type: "STRING",
+        },
+      });
+
+      const contacts = await createTestContacts(workspace.id, [
+        { email: "both@props.com", status: "SUBSCRIBED" },
+      ]);
+
+      await prisma.contact.update({
+        where: { id: contacts[0].id },
+        data: { propertyString0: "Acme Corp" },
+      });
+
+      const result = await resolveRecipients(workspace.id, {
+        emails: [
+          { email: "both@props.com", variables: { orderNumber: "ORD-123" } },
+        ],
+      });
+
+      expect(result.contacts[0].properties.Company).toBe("Acme Corp");
+      expect(result.contacts[0].transientVariables).toEqual({ orderNumber: "ORD-123" });
+    });
+  });
+
   describe("Workspace isolation", () => {
     test("should not return contacts from other workspaces", async () => {
       const workspace1 = createTestWorkspace();

@@ -280,6 +280,41 @@ export const sendBroadcastBatch: JobProcessor<
     "Prepared emails for batch",
   );
 
+  // Create BroadcastSend records for analytics tracking
+  if (preparedEmails.length > 0) {
+    const now = new Date();
+    await prisma.broadcastSend.createMany({
+      data: preparedEmails.map((email) => ({
+        broadcastId: broadcast.id,
+        contactId: email.contactId,
+        workspaceId: broadcast.workspaceId,
+        sendingId: email.emailSendId,
+        email: email.recipientEmail,
+        status: "QUEUED" as const,
+        queuedAt: now,
+      })),
+      skipDuplicates: true, // In case of retry, don't fail on duplicate
+    });
+
+    // Update broadcast aggregate counts
+    await prisma.broadcast.update({
+      where: { id: broadcast.id },
+      data: {
+        totalQueued: { increment: preparedEmails.length },
+      },
+    });
+
+    logger.debug(
+      {
+        jobId,
+        broadcastId,
+        batchId,
+        broadcastSendCount: preparedEmails.length,
+      },
+      "Created BroadcastSend records for analytics",
+    );
+  }
+
   // Convert to MTA message format
   const mtaMessages = convertToMtaMessages(preparedEmails);
 
@@ -300,6 +335,43 @@ export const sendBroadcastBatch: JobProcessor<
     },
     "Batch processing complete - emails injected to MTA",
   );
+
+  // Update BroadcastSend records and aggregates based on injection results
+  if (preparedEmails.length > 0) {
+    const successfulSendingIds = result.results
+      .filter((r) => r.success)
+      .map((r) => r.id);
+    const failedSendingIds = result.results
+      .filter((r) => !r.success)
+      .map((r) => r.id);
+
+    const now = new Date();
+
+    // Update successful sends to SENDING status
+    if (successfulSendingIds.length > 0) {
+      await prisma.broadcastSend.updateMany({
+        where: { sendingId: { in: successfulSendingIds } },
+        data: { status: "SENDING", sentAt: now },
+      });
+    }
+
+    // Update failed sends to FAILED status
+    if (failedSendingIds.length > 0) {
+      await prisma.broadcastSend.updateMany({
+        where: { sendingId: { in: failedSendingIds } },
+        data: { status: "FAILED" },
+      });
+    }
+
+    // Update broadcast aggregates
+    await prisma.broadcast.update({
+      where: { id: broadcast.id },
+      data: {
+        totalSent: { increment: successfulSendingIds.length },
+        totalFailed: { increment: failedSendingIds.length },
+      },
+    });
+  }
 
   // If any emails failed, log them (but don't throw - we still want to create conversations for successful ones)
   if (result.failed > 0) {

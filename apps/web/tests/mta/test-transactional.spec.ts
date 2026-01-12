@@ -212,7 +212,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
     expect(queuedJob.data.workspaceId).toBe(testWorkspace.id);
   });
 
-  it("should queue job with array of recipients", async () => {
+  it("should queue one job per recipient for array of recipients", async () => {
     const domainName = getUniqueDomainName();
     await createVerifiedDomain(testWorkspace.id, domainName);
 
@@ -237,11 +237,23 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
     expect(response.status).toBe(201);
 
     const responseData = await response.json();
-    const jobs = await getTransactionalJobs(testWorkspace.id, responseData.id);
-    expect(jobs.length).toBe(1);
 
-    const queuedJob = jobs[0];
-    expect(queuedJob.data.to).toEqual(recipients);
+    // Multi-recipient response returns emails array
+    expect(responseData.object).toBe("email_list");
+    expect(responseData.emails).toHaveLength(3);
+
+    // Find all jobs for these email IDs
+    const emailIds = responseData.emails.map((e: { id: string }) => e.id);
+    const allJobs = await Promise.all(
+      emailIds.map((id: string) => getTransactionalJobs(testWorkspace.id, id))
+    );
+
+    // Should have 1 job per recipient
+    expect(allJobs.flat()).toHaveLength(3);
+
+    // Each job should have a single recipient
+    const jobRecipients = allJobs.flat().map((job) => job.data.to);
+    expect(jobRecipients.sort()).toEqual(recipients.sort());
   });
 
   it("should create sender identity if not exists", async () => {

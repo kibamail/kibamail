@@ -222,6 +222,7 @@ export async function getEmailTemplate(
             styles: template.emailContent.styles,
             contentHtml: template.emailContent.contentHtml,
             contentText: template.emailContent.contentText,
+            variables: template.emailContent.variables,
           }
         : null,
       senderIdentityId: template.senderIdentityId,
@@ -311,6 +312,9 @@ export async function updateEmailTemplate(
           }),
           ...(data.emailContent.styles !== undefined && {
             styles: data.emailContent.styles as Record<string, unknown>,
+          }),
+          ...(data.emailContent.variables !== undefined && {
+            variables: data.emailContent.variables,
           }),
         },
       });
@@ -475,6 +479,7 @@ export async function createEmailTemplateVersion(
         styles: sourceTemplate.emailContent?.styles ?? undefined,
         contentHtml: sourceTemplate.emailContent?.contentHtml,
         contentText: sourceTemplate.emailContent?.contentText,
+        variables: sourceTemplate.emailContent?.variables ?? undefined,
       },
     });
 

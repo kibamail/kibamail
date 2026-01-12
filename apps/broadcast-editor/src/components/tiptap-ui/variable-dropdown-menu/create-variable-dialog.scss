@@ -1,0 +1,27 @@
+.create-variable-dialog {
+  max-width: 28rem;
+  z-index: 1000;
+}
+
+.create-variable-dialog-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem;
+}
+
+.create-variable-dialog-select-content {
+  z-index: 50;
+}
+
+.create-variable-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.create-variable-dialog-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}

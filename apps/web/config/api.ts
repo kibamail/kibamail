@@ -195,6 +195,20 @@ export const API_SCOPES: ApiScopeDefinition[] = [
     description: "Send emails via SMTP",
     category: "SMTP",
   },
+
+  // ============================================================================
+  // BROADCASTS
+  // ============================================================================
+  {
+    name: "read:broadcasts",
+    description: "View broadcasts and their details",
+    category: "Broadcasts",
+  },
+  {
+    name: "write:broadcasts",
+    description: "Create and schedule broadcasts",
+    category: "Broadcasts",
+  },
 ];
 
 /**

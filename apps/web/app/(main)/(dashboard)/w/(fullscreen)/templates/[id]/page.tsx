@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { TemplateEditorAdapter } from "@/components/email-editor";
 import { getSession } from "@/lib/auth/get-session";
 import { prisma } from "@/lib/db";
+import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 
 export interface TemplateVersion {
   id: string;
@@ -28,6 +29,7 @@ interface TemplateWithVersions {
     styles: Record<string, unknown> | null;
     subject: string | null;
     previewText: string | null;
+    variables: VariableDefinition[] | null;
   } | null;
   senderIdentityId: string | null;
   replyToIdentityId: string | null;
@@ -97,6 +99,7 @@ async function getTemplateWithVersions(
           > | null,
           subject: template.emailContent.subject,
           previewText: template.emailContent.previewText,
+          variables: template.emailContent.variables as VariableDefinition[] | null,
         }
       : null,
     senderIdentityId: template.senderIdentityId,
@@ -169,6 +172,7 @@ export default async function TemplateEditorPage({
       initialStyles={template.emailContent?.styles ?? undefined}
       initialSubject={template.emailContent?.subject ?? ""}
       initialPreviewText={template.emailContent?.previewText ?? ""}
+      initialVariables={template.emailContent?.variables ?? undefined}
       initialSenderIdentityId={template.senderIdentityId ?? undefined}
       initialReplyToIdentityId={template.replyToIdentityId ?? undefined}
       initialTrackClicks={template.trackClicks ?? undefined}

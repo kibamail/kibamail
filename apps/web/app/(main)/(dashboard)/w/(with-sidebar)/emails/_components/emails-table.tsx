@@ -1,23 +1,14 @@
 "use client";
 
 import { Text } from "@kibamail/owly";
-import { Badge } from "@kibamail/owly/badge";
 import { Button } from "@kibamail/owly/button";
 import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import * as EmptyCard from "@kibamail/owly/empty-card";
 import * as Table from "@kibamail/owly/table";
 import type { EventType, TransactionalEmailStatus } from "@prisma/client";
-import {
-  Check,
-  Clock,
-  Eye,
-  Mail,
-  MoreHoriz,
-  RefreshDouble,
-  WarningCircle,
-  Xmark,
-} from "iconoir-react";
+import { Eye, MoreHoriz } from "iconoir-react";
 import Link from "next/link";
+import { EmailStatusBadge } from "./email-status-badge";
 
 export interface EmailListItem {
   id: string;
@@ -29,92 +20,6 @@ export interface EmailListItem {
   status: TransactionalEmailStatus;
   latestEventType: EventType | null;
   createdAt: Date;
-}
-
-function getEventBadge(eventType: EventType | null) {
-  if (!eventType) {
-    return (
-      <Badge variant="neutral" size="sm">
-        <Clock className="w-3 h-3" />
-        Pending
-      </Badge>
-    );
-  }
-
-  switch (eventType) {
-    case "Queued":
-      return (
-        <Badge variant="warning" size="sm">
-          <Clock className="w-3 h-3" />
-          Queued
-        </Badge>
-      );
-    case "Reception":
-      return (
-        <Badge variant="info" size="sm">
-          <Mail className="w-3 h-3" />
-          Received
-        </Badge>
-      );
-    case "Delivery":
-      return (
-        <Badge variant="success" size="sm">
-          <Check className="w-3 h-3" />
-          Delivered
-        </Badge>
-      );
-    case "Bounce":
-    case "AdminBounce":
-    case "OOB":
-      return (
-        <Badge variant="error" size="sm">
-          <Xmark className="w-3 h-3" />
-          Bounced
-        </Badge>
-      );
-    case "TransientFailure":
-      return (
-        <Badge variant="warning" size="sm">
-          <RefreshDouble className="w-3 h-3" />
-          Temporary failure
-        </Badge>
-      );
-    case "Feedback":
-      return (
-        <Badge variant="error" size="sm">
-          <WarningCircle className="w-3 h-3" />
-          Complained
-        </Badge>
-      );
-    case "Rejection":
-    case "Expiration":
-      return (
-        <Badge variant="error" size="sm">
-          <Xmark className="w-3 h-3" />
-          Failed
-        </Badge>
-      );
-    case "Open":
-      return (
-        <Badge variant="success" size="sm">
-          <Eye className="w-3 h-3" />
-          Opened
-        </Badge>
-      );
-    case "Click":
-      return (
-        <Badge variant="success" size="sm">
-          <Check className="w-3 h-3" />
-          Clicked
-        </Badge>
-      );
-    default:
-      return (
-        <Badge variant="neutral" size="sm">
-          {eventType}
-        </Badge>
-      );
-  }
 }
 
 function formatDate(date: Date) {
@@ -194,7 +99,7 @@ export function EmailsTable({ emails }: EmailsTableProps) {
                 </Link>
               </Table.Cell>
 
-              <Table.Cell>{getEventBadge(email.latestEventType)}</Table.Cell>
+              <Table.Cell><EmailStatusBadge eventType={email.latestEventType} /></Table.Cell>
               <Table.Cell>
                 <span className="text-sm text-kb-content-secondary">
                   {formatDate(email.createdAt)}

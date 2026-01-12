@@ -157,9 +157,9 @@ afterAll(async () => {
 });
 
 describe("sendBroadcast job", () => {
-  describe("Tier 3 domain (250/day, 50/hour) with 5,400 recipients", () => {
+  describe("Tier 3 domain (5,000/day, 1,000/hour) with 5,400 recipients", () => {
     test(
-      "should dispatch batches spread across 22 days",
+      "should dispatch batches spread across 2 days",
       { timeout: 30000 },
       async () => {
         // Create fresh workspace for this test
@@ -209,9 +209,9 @@ describe("sendBroadcast job", () => {
         );
         expect(totalContacts).toBe(5400);
 
-        // Verify each batch has max 50 contacts (hourly limit)
+        // Verify each batch has max 1000 contacts (max batch size)
         for (const job of batchJobs) {
-          expect(job.data.contactIds.length).toBeLessThanOrEqual(50);
+          expect(job.data.contactIds.length).toBeLessThanOrEqual(1000);
           expect(job.data.broadcastId).toBe(broadcast.id);
           expect(job.data.batchId).toBeDefined();
         }
@@ -228,14 +228,14 @@ describe("sendBroadcast job", () => {
           delays.map((d) => Math.floor(d / (24 * 60 * 60 * 1000))),
         );
 
-        // Should span approximately 22 days (5400 / 250 = 21.6)
-        expect(dayBuckets.size).toBeGreaterThanOrEqual(20);
-        expect(dayBuckets.size).toBeLessThanOrEqual(25);
+        // Should span approximately 2 days (5400 / 5000 = 1.08)
+        expect(dayBuckets.size).toBeGreaterThanOrEqual(1);
+        expect(dayBuckets.size).toBeLessThanOrEqual(3);
       },
     );
   });
 
-  describe("Tier 8 domain (10,000/day, 2,000/hour) with 2,000 recipients", () => {
+  describe("Tier 8 domain (unlimited) with 2,000 recipients", () => {
     test("should dispatch batches that complete in one day", async () => {
       // Create fresh workspace for this test
       const testWorkspace = createTestWorkspace();
@@ -243,7 +243,7 @@ describe("sendBroadcast job", () => {
 
       const tier8 = WARMUP_TIERS_BY_NUMBER[8];
 
-      // Create domain with Tier 8 limits
+      // Create domain with Tier 8 limits (unlimited: -1)
       const domain = await createTestDomain(testWorkspace.id, {
         name: `tier8-${Date.now()}.example.com`,
         maxSendPerDay: tier8.dailyLimit,

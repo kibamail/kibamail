@@ -92,6 +92,7 @@ export default function App() {
             "preferences_url",
             "view_in_browser_url",
           ]}
+          allowCustomVariables
           onUpload={async function (_file, _onProgress, _abortSignal) {
             return "/kiba-mascot-pumpkin.jpg";
           }}

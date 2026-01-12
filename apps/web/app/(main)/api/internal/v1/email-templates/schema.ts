@@ -23,6 +23,17 @@ export type CreateEmailTemplateInput = z.infer<
 >;
 
 /**
+ * Schema for custom variable definition
+ */
+export const variableDefinitionSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.enum(["text", "number"]),
+});
+
+export type VariableDefinition = z.infer<typeof variableDefinitionSchema>;
+
+/**
  * Schema for email content updates
  */
 export const emailContentSchema = z.object({
@@ -30,6 +41,7 @@ export const emailContentSchema = z.object({
   previewText: z.string().max(1000).optional().nullable(),
   contentJson: z.unknown().optional(),
   styles: z.unknown().optional(),
+  variables: z.array(variableDefinitionSchema).optional(),
 });
 
 /**

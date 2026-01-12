@@ -6,7 +6,7 @@
  * Also updates TransactionalEmail records with status changes.
  */
 
-import type { EventType, Prisma, TransactionalEmailStatus } from "@prisma/client";
+import type { EventType, Prisma, TransactionalEmailStatus, BroadcastSendStatus } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { queueLogger } from "@/lib/queue";
 import type { EmailEvent } from "./event-types";
@@ -285,6 +285,259 @@ async function updateTransactionalEmailStatus(events: EmailEvent[]): Promise<voi
 }
 
 /**
+ * Map MTA event type to BroadcastSend status
+ */
+function mapEventTypeToBroadcastSendStatus(eventType: string): BroadcastSendStatus | null {
+  switch (eventType) {
+    case "Delivery":
+      return "DELIVERED";
+    case "Bounce":
+    case "AdminBounce":
+    case "OOB":
+      return "BOUNCED";
+    case "Feedback":
+      return "COMPLAINED";
+    case "Rejection":
+    case "Expiration":
+      return "FAILED";
+    default:
+      return null;
+  }
+}
+
+/**
+ * Status priority for BroadcastSend (same as TransactionalEmail)
+ */
+const BROADCAST_SEND_STATUS_PRIORITY: Record<BroadcastSendStatus, number> = {
+  QUEUED: 1,
+  SENDING: 2,
+  DELIVERED: 3,
+  FAILED: 4,
+  BOUNCED: 5,
+  COMPLAINED: 6,
+};
+
+/**
+ * Update BroadcastSend records and Broadcast aggregates with status changes from MTA events
+ *
+ * Handles:
+ * - Delivery, Bounce, Complaint status updates
+ * - Open/Click counter increments
+ * - Broadcast aggregate updates (totalDelivered, totalBounced, etc.)
+ */
+async function updateBroadcastSendStatus(events: EmailEvent[]): Promise<void> {
+  // Filter to only broadcast events (those with valid broadcast_id)
+  const broadcastEvents = events.filter(
+    (e) => e.broadcast_id && isValidCuid(e.broadcast_id) && e.sending_id
+  );
+
+  if (broadcastEvents.length === 0) {
+    return;
+  }
+
+  const startTime = Date.now();
+
+  logger.info(
+    { eventCount: broadcastEvents.length },
+    "Starting updateBroadcastSendStatus"
+  );
+
+  // Group events by sendingId
+  const eventsBySendingId = new Map<string, EmailEvent[]>();
+  for (const event of broadcastEvents) {
+    if (!event.sending_id) continue;
+    const existing = eventsBySendingId.get(event.sending_id) || [];
+    existing.push(event);
+    eventsBySendingId.set(event.sending_id, existing);
+  }
+
+  // Track aggregate updates per broadcast
+  // Note: Open/Click/Unsubscribe tracking is handled by tracking endpoints, not here
+  const broadcastAggregates = new Map<string, {
+    delivered: number;
+    bounced: number;
+    complained: number;
+    failed: number;
+  }>();
+
+  let updatedCount = 0;
+
+  for (const [sendingId, sendingEvents] of eventsBySendingId) {
+    try {
+      // Fetch the existing BroadcastSend record to check current state
+      const existingRecord = await prisma.broadcastSend.findUnique({
+        where: { sendingId },
+        select: {
+          id: true,
+          broadcastId: true,
+          status: true,
+          firstOpenedAt: true,
+          firstClickedAt: true,
+          openCount: true,
+          clickCount: true,
+        },
+      });
+
+      if (!existingRecord) {
+        // Not a broadcast send (might be transactional) - skip silently
+        continue;
+      }
+
+      // Determine highest-priority status from events
+      let highestStatus: BroadcastSendStatus | null = null;
+      let highestPriority = BROADCAST_SEND_STATUS_PRIORITY[existingRecord.status];
+
+      // Collect updates
+      // Note: Open/Click/Unsubscribe events come from tracking endpoints, not MTA webhooks
+      let deliveredAt: Date | undefined;
+      let bouncedAt: Date | undefined;
+      let complainedAt: Date | undefined;
+      let bounceClassification: string | undefined;
+      let lastResponseCode: number | undefined;
+      let lastResponseMessage: string | undefined;
+
+      for (const event of sendingEvents) {
+        const status = mapEventTypeToBroadcastSendStatus(event.type);
+        if (status && BROADCAST_SEND_STATUS_PRIORITY[status] > highestPriority) {
+          highestStatus = status;
+          highestPriority = BROADCAST_SEND_STATUS_PRIORITY[status];
+        }
+
+        const eventTime = new Date(event.timestamp);
+
+        // Note: Open/Click/Unsubscribe events are handled separately by tracking endpoints,
+        // not through MTA webhooks. Those endpoints will need to update BroadcastSend records.
+        switch (event.type) {
+          case "Delivery":
+            deliveredAt = eventTime;
+            lastResponseCode = event.response.code;
+            lastResponseMessage = event.response.content;
+            break;
+          case "Bounce":
+          case "AdminBounce":
+          case "OOB":
+            bouncedAt = eventTime;
+            bounceClassification = event.bounce_classification;
+            lastResponseCode = event.response.code;
+            lastResponseMessage = event.response.content;
+            break;
+          case "Feedback":
+            complainedAt = eventTime;
+            break;
+        }
+      }
+
+      // Build update object for BroadcastSend
+      const update: Prisma.BroadcastSendUpdateInput = {};
+
+      if (highestStatus) {
+        update.status = highestStatus;
+      }
+
+      if (deliveredAt) {
+        update.deliveredAt = deliveredAt;
+      }
+
+      if (bouncedAt) {
+        update.bouncedAt = bouncedAt;
+        update.bounceClassification = bounceClassification;
+      }
+
+      if (complainedAt) {
+        update.complainedAt = complainedAt;
+      }
+
+      if (lastResponseCode !== undefined) {
+        update.lastResponseCode = lastResponseCode;
+        update.lastResponseMessage = lastResponseMessage;
+      }
+
+      // Note: Open/Click/Unsubscribe updates are handled by tracking endpoints
+
+      // Update the BroadcastSend record if there are changes
+      if (Object.keys(update).length > 0) {
+        await prisma.broadcastSend.update({
+          where: { sendingId },
+          data: update,
+        });
+        updatedCount++;
+      }
+
+      // Accumulate aggregate updates for this broadcast
+      const broadcastId = existingRecord.broadcastId;
+      const current = broadcastAggregates.get(broadcastId) || {
+        delivered: 0,
+        bounced: 0,
+        complained: 0,
+        failed: 0,
+      };
+
+      // Only count status transitions for delivery/bounce/complaint aggregates
+      // Note: Open/Click/Unsubscribe aggregates are updated by tracking endpoints
+      if (highestStatus === "DELIVERED" && existingRecord.status !== "DELIVERED") {
+        current.delivered++;
+      }
+      if (highestStatus === "BOUNCED" && existingRecord.status !== "BOUNCED") {
+        current.bounced++;
+      }
+      if (highestStatus === "COMPLAINED" && existingRecord.status !== "COMPLAINED") {
+        current.complained++;
+      }
+      if (highestStatus === "FAILED" && existingRecord.status !== "FAILED") {
+        current.failed++;
+      }
+
+      broadcastAggregates.set(broadcastId, current);
+    } catch (error) {
+      logger.error(
+        { error, sendingId },
+        "Failed to update broadcast send status"
+      );
+    }
+  }
+
+  // Batch update broadcast aggregates
+  // Note: totalOpened/totalClicked/totalUnsubscribed are updated by tracking endpoints
+  for (const [broadcastId, updates] of broadcastAggregates) {
+    const hasUpdates =
+      updates.delivered > 0 ||
+      updates.bounced > 0 ||
+      updates.complained > 0 ||
+      updates.failed > 0;
+
+    if (!hasUpdates) continue;
+
+    try {
+      await prisma.broadcast.update({
+        where: { id: broadcastId },
+        data: {
+          totalDelivered: { increment: updates.delivered },
+          totalBounced: { increment: updates.bounced },
+          totalComplained: { increment: updates.complained },
+          totalFailed: { increment: updates.failed },
+        },
+      });
+
+      logger.debug(
+        { broadcastId, updates },
+        "Updated broadcast aggregates"
+      );
+    } catch (error) {
+      logger.error(
+        { error, broadcastId },
+        "Failed to update broadcast aggregates"
+      );
+    }
+  }
+
+  const duration = Date.now() - startTime;
+  logger.info(
+    { updatedCount, totalSendingIds: eventsBySendingId.size, broadcastsUpdated: broadcastAggregates.size, durationMs: duration },
+    "Finished updateBroadcastSendStatus"
+  );
+}
+
+/**
  * Process events and update contact/broadcast statistics
  *
  * This handles:
@@ -301,6 +554,9 @@ export async function processEventsWithSideEffects(
 
   // Update TransactionalEmail records with status changes
   await updateTransactionalEmailStatus(events);
+
+  // Update BroadcastSend records and Broadcast aggregates with status changes
+  await updateBroadcastSendStatus(events);
 
   // Group events by type for batch processing
   const bounces = events.filter(

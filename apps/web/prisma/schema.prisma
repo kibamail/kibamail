@@ -1067,9 +1067,9 @@ model SendingDomain {
   /// Whether click tracking is enabled for this domain
   clickTrackingEnabled        Boolean          @default(false)
   /// Maximum emails allowed per day (warmup limit, -1 = unlimited)
-  maxSendPerDay               Int              @default(100)
+  maxSendPerDay               Int              @default(1000)
   /// Maximum emails allowed per hour (warmup limit, -1 = unlimited)
-  maxSendPerHour              Int              @default(10)
+  maxSendPerHour              Int              @default(200)
   /// When DNS records were last verified
   recordsLastVerifiedAt       DateTime?
   /// When the sending domain was created
@@ -1159,6 +1159,8 @@ model EmailContent {
   subject        String?
   /// Preview text (shown in inbox preview)
   previewText    String?
+  /// Custom variables defined by the user
+  variables      Json?
   /// When the content was last updated
   updatedAt      DateTime?       @updatedAt
   /// When the content was created
@@ -1229,6 +1231,34 @@ model Broadcast {
   abTestVariants          AbTestVariant[]
   /// Events for this broadcast
   events                  Event[]
+  /// Per-recipient send records
+  sends                   BroadcastSend[]
+
+  // === Aggregate Statistics (updated incrementally) ===
+  /// Total emails queued for this broadcast
+  totalQueued             Int              @default(0)
+  /// Total emails sent (handed to MTA)
+  totalSent               Int              @default(0)
+  /// Total emails delivered
+  totalDelivered          Int              @default(0)
+  /// Total unique opens
+  totalOpened             Int              @default(0)
+  /// Total unique clicks
+  totalClicked            Int              @default(0)
+  /// Total bounces (hard + soft)
+  totalBounced            Int              @default(0)
+  /// Total complaints
+  totalComplained         Int              @default(0)
+  /// Total failed (permanent failures)
+  totalFailed             Int              @default(0)
+  /// Total unsubscribes triggered by this broadcast
+  totalUnsubscribed       Int              @default(0)
+
+  // === Snapshot Data (for retention) ===
+  /// Whether detailed BroadcastSend records have been pruned
+  detailsPruned           Boolean          @default(false)
+  /// When the stats were last fully recomputed (for consistency checks)
+  statsRecomputedAt       DateTime?
 
   @@index([workspaceId])
 }
@@ -1261,6 +1291,88 @@ model AbTestVariant {
   emailContent   EmailContent @relation(fields: [emailContentId], references: [id], onDelete: Cascade)
 
   @@index([broadcastId])
+}
+
+/// *
+///  * Broadcast Send Schema
+///  *
+///  * Tracks per-recipient delivery status for broadcasts.
+///  * This is a time-limited table - rows can be deleted after N days
+///  * while aggregate stats are preserved on the Broadcast model.
+///  * Similar pattern to TransactionalEmail but scoped to broadcasts.
+model BroadcastSend {
+  /// Unique identifier
+  id                   String              @id @default(cuid())
+  /// Broadcast this send belongs to
+  broadcastId          String
+  /// Contact who received this email
+  contactId            String
+  /// Workspace ID for tenant segregation (denormalized for efficient queries)
+  workspaceId          String
+  /// MTA sending ID - links to Event records
+  sendingId            String              @unique
+  /// Recipient email (denormalized for exports after contact deletion)
+  email                String
+
+  // === Delivery Status (denormalized from Events) ===
+  /// Current send status
+  status               BroadcastSendStatus @default(QUEUED)
+  /// When the email was queued
+  queuedAt             DateTime            @default(now())
+  /// When the email was sent to MTA
+  sentAt               DateTime?
+  /// When delivery was confirmed
+  deliveredAt          DateTime?
+  /// When first opened (if tracking enabled)
+  firstOpenedAt        DateTime?
+  /// When first clicked (if tracking enabled)
+  firstClickedAt       DateTime?
+  /// When bounce was received
+  bouncedAt            DateTime?
+  /// When complaint was received
+  complainedAt         DateTime?
+
+  // === Engagement Counters ===
+  /// Total open count for this recipient
+  openCount            Int                 @default(0)
+  /// Total click count for this recipient
+  clickCount           Int                 @default(0)
+  /// Unique links clicked by this recipient
+  uniqueLinksClicked   Int                 @default(0)
+
+  // === Bounce/Failure Details ===
+  /// Bounce classification if bounced
+  bounceClassification String?
+  /// Last SMTP response code
+  lastResponseCode     Int?
+  /// Last SMTP response message
+  lastResponseMessage  String?
+
+  // === Timestamps ===
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  // === Relations ===
+  broadcast            Broadcast           @relation(fields: [broadcastId], references: [id], onDelete: Cascade)
+
+  // === Indexes ===
+  /// Primary query: Get all sends for a broadcast
+  @@index([broadcastId])
+  /// Filter by status within broadcast (e.g., "show me bounced recipients")
+  @@index([broadcastId, status])
+  /// Workspace-level queries
+  @@index([workspaceId])
+  /// Contact engagement queries (for segmentation)
+  @@index([contactId])
+  /// Composite index for segmentation: "contacts who opened broadcast X"
+  @@index([broadcastId, contactId, openCount])
+  /// Composite index for segmentation: "contacts who clicked broadcast X"
+  @@index([broadcastId, contactId, clickCount])
+  /// Time-based queries for retention/pruning
+  @@index([createdAt])
+  /// Lookup by sendingId for event processing
+  @@index([sendingId])
+  @@map("broadcast_sends")
 }
 
 /// *
@@ -1498,6 +1610,16 @@ enum BroadcastStatus {
   SENDING_FAILED // Sending failed
   DRAFT_ARCHIVED // Archived draft
   ARCHIVED // Archived sent broadcast
+}
+
+/// Broadcast send status (per-recipient)
+enum BroadcastSendStatus {
+  QUEUED // Email queued for sending
+  SENDING // Being processed by MTA
+  DELIVERED // Successfully delivered
+  BOUNCED // Hard or soft bounce
+  COMPLAINED // Spam complaint received
+  FAILED // Permanent failure
 }
 
 /// A/B test winning criteria

@@ -7,6 +7,14 @@ export {
   type EditorFeatureConfig,
 } from "@/components/tiptap-templates/email-editor/email-editor"
 
+// Variable types
+export {
+  type VariableDefinition,
+  type VariableInput,
+  type VariableType,
+  type NormalizedVariable,
+} from "@/contexts/variables-context"
+
 // Feature config types and presets
 export {
   type TextFormattingFeatures,

@@ -9,12 +9,19 @@ import { prisma } from "@/lib/db";
 import { buildContactProperties } from "@/lib/contacts/properties";
 import type { ContactPropertyValue } from "@/lib/contacts/properties";
 
+/**
+ * Email recipient input - either a simple string or object with variables
+ */
+export type EmailRecipientInput = string | { email: string; variables?: Record<string, string | number> };
+
 export interface RecipientContact {
   id: string;
   email: string;
   firstName: string | null;
   lastName: string | null;
   properties: Record<string, ContactPropertyValue>;
+  /** Transient variables from API request, not persisted to database */
+  transientVariables?: Record<string, string | number>;
 }
 
 export interface RecipientResolution {
@@ -24,7 +31,7 @@ export interface RecipientResolution {
 
 export interface RecipientsInput {
   contacts?: string[];
-  emails?: string[];
+  emails?: EmailRecipientInput[];
   segment?: string;
   topic?: string;
 }
@@ -94,21 +101,48 @@ async function resolveByContactIds(
 }
 
 /**
+ * Normalize email input to extract email addresses and variable maps
+ * Handles both string[] and { email, variables }[] formats
+ */
+function normalizeEmailInput(emails: EmailRecipientInput[]): {
+  normalizedEmails: string[];
+  variablesMap: Map<string, Record<string, string | number>>;
+} {
+  const normalizedEmails: string[] = [];
+  const variablesMap = new Map<string, Record<string, string | number>>();
+
+  for (const item of emails) {
+    if (typeof item === "string") {
+      normalizedEmails.push(item);
+    } else {
+      normalizedEmails.push(item.email);
+      if (item.variables && Object.keys(item.variables).length > 0) {
+        variablesMap.set(item.email, item.variables);
+      }
+    }
+  }
+
+  return { normalizedEmails, variablesMap };
+}
+
+/**
  * Resolve recipients by email addresses (upsert contacts if not exists)
  */
 async function resolveByEmails(
   workspaceId: string,
-  emails: string[],
+  emails: EmailRecipientInput[],
 ): Promise<RecipientResolution> {
+  const { normalizedEmails, variablesMap } = normalizeEmailInput(emails);
+
   const existingContacts = await prisma.contact.findMany({
     where: {
-      email: { in: emails },
+      email: { in: normalizedEmails },
       workspaceId,
     },
   });
 
   const existingEmails = new Set(existingContacts.map((c) => c.email));
-  const newEmails = emails.filter((e) => !existingEmails.has(e));
+  const newEmails = normalizedEmails.filter((e) => !existingEmails.has(e));
 
   if (newEmails.length > 0) {
     await prisma.$transaction(
@@ -144,6 +178,7 @@ async function resolveByEmails(
     firstName: contact.firstName,
     lastName: contact.lastName,
     properties: buildContactProperties(contact, propertyDefs),
+    transientVariables: variablesMap.get(contact.email),
   }));
 
   return {

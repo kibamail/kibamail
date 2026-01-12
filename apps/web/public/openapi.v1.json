@@ -9,10 +9,40 @@
     {
       "url": "https://api.kibamail.com",
       "description": "Production server - Use this for live applications"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Contacts",
+      "description": "Manage contact records, subscriptions, and custom properties"
     },
     {
-      "url": "http://localhost:3000/api",
-      "description": "Local development server - For testing during development"
+      "name": "Topics",
+      "description": "Organize email communications by topic and manage subscriptions"
+    },
+    {
+      "name": "Segments",
+      "description": "Create dynamic contact groups using flexible filtering conditions"
+    },
+    {
+      "name": "Contact Properties",
+      "description": "Define custom fields to store additional contact data"
+    },
+    {
+      "name": "Forms",
+      "description": "Build and manage embeddable signup forms for lead capture"
+    },
+    {
+      "name": "API Keys",
+      "description": "Manage API keys for secure programmatic access to your workspace"
+    },
+    {
+      "name": "Transactional Emails",
+      "description": "Send one-off transactional emails like order confirmations and password resets"
+    },
+    {
+      "name": "Broadcasts",
+      "description": "Create and schedule email broadcasts to segments, topics, or email lists with per-recipient personalization"
     }
   ],
   "paths": {
@@ -14678,6 +14708,750 @@
           },
           "429": {
             "description": "Rate Limit Exceeded - Too many emails sent. Wait before sending more.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/broadcasts/create-and-send": {
+      "post": {
+        "summary": "Create and Schedule Broadcast",
+        "description": "Create a broadcast with HTML content and schedule it for delivery to specified recipients.\n\n**Use Cases:**\n- Send marketing newsletters to a segment of contacts\n- Announce product launches to specific topics\n- Send promotional emails to a list of email addresses\n- Trigger one-time campaigns with personalized variables per recipient\n\n**Recipient Modes:**\nRecipients can be specified in multiple ways (at least one is required):\n- `contacts`: Array of contact IDs from your workspace\n- `emails`: Array of email addresses (will upsert contacts automatically)\n- `segment`: Segment ID to send to all contacts matching segment conditions\n- `topic`: Topic ID to send to all subscribed contacts\n\n**Per-Email Variables:**\nThe `emails` field supports two formats:\n\n1. **Simple format (backward compatible):**\n```json\n{\n  \"emails\": [\"user1@example.com\", \"user2@example.com\"]\n}\n```\n\n2. **With variables:**\n```json\n{\n  \"emails\": [\n    { \"email\": \"user1@example.com\", \"variables\": { \"orderNumber\": \"12345\", \"discount\": 20 } },\n    { \"email\": \"user2@example.com\", \"variables\": { \"orderNumber\": \"67890\", \"discount\": 15 } }\n  ]\n}\n```\n\nVariables can be used in email content with `{{variableName}}` syntax:\n- `{{orderNumber}}` - Direct variable reference\n- `{{contact.orderNumber}}` - Prefixed with contact (both work the same)\n\n**Variable Priority (highest to lowest):**\n1. Transient variables (per-email, from API request)\n2. Contact properties (from database)\n3. Built-in variables (email, firstName, lastName, URLs)\n\nTransient variables override contact properties with the same name but are NOT saved to the contact record.\n\n**Behavior:**\n- Creates a new broadcast in QUEUED_FOR_SENDING status\n- Email content is validated and stored\n- Broadcast is scheduled for delivery at the specified sendAt time\n- Recipients are resolved at send time (not at creation time)\n- For `emails` mode, contacts are upserted (created if not existing)\n- Sending domain must be verified before the broadcast can be sent\n\n**Required Scope:** `broadcasts:write`\n\n**Rate Limits:**\n- 100 broadcasts per hour per workspace\n- Maximum 100,000 recipients per broadcast\n\n**Email Content:**\n- Subject and HTML are required\n- Plain text is auto-generated from HTML if not provided\n- Preview text is optional but recommended for inbox preview\n- Use {{variableName}} for personalization (first name, custom properties, etc.)\n\n**Scheduling:**\n- sendAt must be a future ISO 8601 datetime\n- Broadcast will be processed at the scheduled time\n- Cannot be modified after creation (create a new broadcast instead)\n\n**Sandbox/Test Mode:**\nFor testing without sending real emails, use `@kibamail.dev` test addresses. These addresses simulate different delivery outcomes:\n\n| Address | Simulated Outcome |\n|---------|-------------------|\n| `delivered@kibamail.dev` | Successful delivery |\n| `bounced@kibamail.dev` | Hard bounce |\n| `softbounce@kibamail.dev` | Soft bounce (transient failure) |\n| `complained@kibamail.dev` | Spam complaint |\n| `failed@kibamail.dev` | Permanent delivery failure |\n| `delayed@kibamail.dev` | Delayed delivery (retries then succeeds) |\n| `opened@kibamail.dev` | Delivered + opened |\n| `clicked@kibamail.dev` | Delivered + opened + clicked |\n\n**Sandbox features:**\n- Add `+label` for tracking: `delivered+campaign1@kibamail.dev`\n- Events are generated instantly (no actual email sent)\n- `sendAt` can be any time (processed immediately)\n- Cannot mix sandbox and real email addresses in the same broadcast\n- Per-email variables work with sandbox addresses\n\n**Best Practices:**\n- Always test with a small segment first\n- Use preview text for better inbox engagement\n- Include unsubscribe links for compliance\n- Verify sending domain before scheduling",
+        "tags": [
+          "Broadcasts"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "from": {
+                    "type": "string",
+                    "pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                  },
+                  "replyTo": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "emailContent": {
+                    "type": "object",
+                    "properties": {
+                      "subject": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                      },
+                      "html": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "previewText": {
+                        "type": "string",
+                        "maxLength": 255
+                      }
+                    },
+                    "required": [
+                      "subject",
+                      "html"
+                    ]
+                  },
+                  "recipients": {
+                    "type": "object",
+                    "properties": {
+                      "contacts": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "emails": {
+                        "anyOf": [
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "format": "email",
+                              "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                            }
+                          },
+                          {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "email": {
+                                  "type": "string",
+                                  "format": "email",
+                                  "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                                },
+                                "variables": {
+                                  "type": "object",
+                                  "propertyNames": {
+                                    "type": "string"
+                                  },
+                                  "additionalProperties": {
+                                    "anyOf": [
+                                      {
+                                        "type": "string"
+                                      },
+                                      {
+                                        "type": "number"
+                                      }
+                                    ]
+                                  }
+                                }
+                              },
+                              "required": [
+                                "email"
+                              ]
+                            }
+                          }
+                        ]
+                      },
+                      "segment": {
+                        "type": "string"
+                      },
+                      "topic": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "sendAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "name",
+                  "emailContent",
+                  "recipients",
+                  "sendAt"
+                ]
+              },
+              "examples": {
+                "simple-emails": {
+                  "summary": "Send to email addresses",
+                  "description": "Basic broadcast to a list of email addresses",
+                  "value": {
+                    "name": "January Newsletter",
+                    "from": "newsletter@yourdomain.com",
+                    "replyTo": "support@yourdomain.com",
+                    "emailContent": {
+                      "subject": "Our January Newsletter",
+                      "html": "<h1>Hello {{firstName}}!</h1><p>Welcome to our January newsletter.</p>",
+                      "previewText": "Check out what's new this month..."
+                    },
+                    "recipients": {
+                      "emails": [
+                        "user1@example.com",
+                        "user2@example.com",
+                        "user3@example.com"
+                      ]
+                    },
+                    "sendAt": "2024-01-15T10:00:00Z"
+                  }
+                },
+                "with-variables": {
+                  "summary": "Send with per-email variables",
+                  "description": "Broadcast with custom variables for each recipient",
+                  "value": {
+                    "name": "Order Confirmation Campaign",
+                    "from": "orders@yourdomain.com",
+                    "emailContent": {
+                      "subject": "Your Order #{{orderNumber}} is confirmed!",
+                      "html": "<h1>Thank you, {{firstName}}!</h1><p>Your order #{{orderNumber}} totaling ${{orderTotal}} has been confirmed.</p><p>Expected delivery: {{deliveryDate}}</p>",
+                      "previewText": "Your order has been confirmed"
+                    },
+                    "recipients": {
+                      "emails": [
+                        {
+                          "email": "customer1@example.com",
+                          "variables": {
+                            "orderNumber": "ORD-12345",
+                            "orderTotal": 99.99,
+                            "deliveryDate": "January 20, 2024"
+                          }
+                        },
+                        {
+                          "email": "customer2@example.com",
+                          "variables": {
+                            "orderNumber": "ORD-12346",
+                            "orderTotal": 149.5,
+                            "deliveryDate": "January 22, 2024"
+                          }
+                        }
+                      ]
+                    },
+                    "sendAt": "2024-01-15T14:00:00Z"
+                  }
+                },
+                "to-segment": {
+                  "summary": "Send to a segment",
+                  "description": "Broadcast to all contacts in a segment",
+                  "value": {
+                    "name": "VIP Customer Promotion",
+                    "from": "promotions@yourdomain.com",
+                    "emailContent": {
+                      "subject": "Exclusive VIP Offer for {{firstName}}",
+                      "html": "<h1>Hi {{firstName}}!</h1><p>As a valued VIP customer, you get 25% off your next purchase!</p>",
+                      "previewText": "Your exclusive VIP discount awaits..."
+                    },
+                    "recipients": {
+                      "segment": "seg_vip_customers_abc123"
+                    },
+                    "sendAt": "2024-01-20T09:00:00Z"
+                  }
+                },
+                "to-topic": {
+                  "summary": "Send to topic subscribers",
+                  "description": "Broadcast to all contacts subscribed to a topic",
+                  "value": {
+                    "name": "Product Updates",
+                    "from": "updates@yourdomain.com",
+                    "emailContent": {
+                      "subject": "New Features Released!",
+                      "html": "<h1>Hey {{firstName}}!</h1><p>Check out our latest features...</p>",
+                      "previewText": "See what's new in our product"
+                    },
+                    "recipients": {
+                      "topic": "top_product_updates_xyz789"
+                    },
+                    "sendAt": "2024-01-25T15:00:00Z"
+                  }
+                },
+                "sandbox-testing": {
+                  "summary": "Test with sandbox addresses",
+                  "description": "Use @kibamail.dev addresses to test different delivery outcomes without sending real emails",
+                  "value": {
+                    "name": "Test Broadcast - Multiple Outcomes",
+                    "from": "newsletter@yourdomain.com",
+                    "emailContent": {
+                      "subject": "Test Email for {{firstName}}",
+                      "html": "<h1>Hello {{firstName}}!</h1><p>This is a test broadcast to verify {{outcome}} behavior.</p>",
+                      "previewText": "Testing email delivery outcomes"
+                    },
+                    "recipients": {
+                      "emails": [
+                        {
+                          "email": "delivered@kibamail.dev",
+                          "variables": {
+                            "firstName": "Delivered User",
+                            "outcome": "successful delivery"
+                          }
+                        },
+                        {
+                          "email": "bounced+test1@kibamail.dev",
+                          "variables": {
+                            "firstName": "Bounced User",
+                            "outcome": "hard bounce"
+                          }
+                        },
+                        {
+                          "email": "opened@kibamail.dev",
+                          "variables": {
+                            "firstName": "Engaged User",
+                            "outcome": "open tracking"
+                          }
+                        },
+                        {
+                          "email": "clicked+cta@kibamail.dev",
+                          "variables": {
+                            "firstName": "Clicking User",
+                            "outcome": "click tracking"
+                          }
+                        },
+                        {
+                          "email": "complained@kibamail.dev",
+                          "variables": {
+                            "firstName": "Complainant",
+                            "outcome": "spam complaint"
+                          }
+                        }
+                      ]
+                    },
+                    "sendAt": "2024-01-15T10:00:00Z"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Broadcast created and scheduled successfully. The broadcast will be sent at the specified sendAt time.",
+            "content": {
+              "application/json": {
+                "example": {
+                  "object": "broadcast",
+                  "id": "brd_abc123xyz789"
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "description": "Object type identifier",
+                      "type": "string",
+                      "const": "broadcast"
+                    },
+                    "id": {
+                      "description": "Unique broadcast ID for tracking",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data, such as missing required fields, invalid email format, or sendAt in the past",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'broadcasts:write' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - Sending domain not verified, or broadcast limits exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error - Email content validation failed, no valid recipients found, or segment/topic does not exist",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limit Exceeded - Too many broadcasts created. Wait before creating more.",
             "content": {
               "application/json": {
                 "schema": {
