@@ -206,7 +206,6 @@ beforeEach(async () => {
   mockInjectEmail.mockResolvedValue({
     id: "test-email-id",
     success: true,
-    duplicate: false,
   });
 
   // Clean up test data before each test
@@ -405,7 +404,6 @@ describe("sendDoubleOptIn job", () => {
       mockInjectEmail.mockResolvedValue({
         id: "test-email-id",
         success: false,
-        duplicate: false,
         error: "Connection refused",
       });
 

@@ -68,7 +68,9 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
     To: message.recipient.name
       ? `${message.recipient.name} <${message.recipient.email}>`
       : message.recipient.email,
-    "Reply-To": message.reply_to.email,
+    "Reply-To": message.reply_to.name
+      ? `${message.reply_to.name} <${message.reply_to.email}>`
+      : message.reply_to.email,
     "Message-ID": message.metadata.message_id,
     ...message.headers,
   };

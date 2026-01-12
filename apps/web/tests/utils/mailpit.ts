@@ -374,6 +374,51 @@ export class MailpitClient {
     // Return whatever we have
     return this.getMessages(count);
   }
+
+  /**
+   * Wait for messages to arrive for specific recipients
+   *
+   * @param emails - Array of recipient emails to wait for
+   * @param options - Wait options
+   * @returns Map of email to messages
+   */
+  async waitForRecipients(
+    emails: string[],
+    options: { timeoutMs?: number; pollIntervalMs?: number } = {},
+  ): Promise<Map<string, MailpitMessageSummary[]>> {
+    const timeout = options.timeoutMs ?? 30000;
+    const pollInterval = options.pollIntervalMs ?? 500;
+    const startTime = Date.now();
+    const results = new Map<string, MailpitMessageSummary[]>();
+
+    while (Date.now() - startTime < timeout) {
+      let allFound = true;
+
+      for (const email of emails) {
+        const messages = await this.findByRecipient(email);
+        results.set(email, messages);
+        if (messages.length === 0) {
+          allFound = false;
+        }
+      }
+
+      if (allFound) {
+        return results;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    // Return whatever we found
+    return results;
+  }
+
+  /**
+   * Delete all messages from Mailpit
+   */
+  async deleteAllMessages(): Promise<void> {
+    await this.request<void>("DELETE", "/messages");
+  }
 }
 
 /**

@@ -580,36 +580,38 @@ describe("MTA Integration: Test Broadcast Sending", () => {
       }
     );
 
-    // Test with 5 recipients
+    // Test with 5 recipients - use unique timestamp to avoid conflicts
+    const timestamp = Date.now();
     const testEmails = Array.from(
       { length: 5 },
-      (_, i) => `batch-test-${i + 1}@example.com`
+      (_, i) => `batch-test-${timestamp}-${i + 1}@example.com`
     );
 
     await sendTestBroadcast(
       { broadcastId: broadcast.id, testEmails },
-      `test-batch-${Date.now()}`
+      `test-batch-${timestamp}`
     );
 
-    // Wait for all emails
-    const messages = await mailpit.waitForMessages(testEmails.length, {
+    // Wait for all specific recipients to receive their emails
+    const recipientMessages = await mailpit.waitForRecipients(testEmails, {
       timeoutMs: MTA_TEST_CONFIG.deliveryTimeoutMs * 2, // Extra time for batch
       pollIntervalMs: MTA_TEST_CONFIG.pollIntervalMs,
     });
 
-    // Verify all emails delivered
-    expect(messages.length).toBeGreaterThanOrEqual(testEmails.length);
-
-    // Verify each recipient
+    // Verify each recipient received their email
     for (const email of testEmails) {
-      const recipientMessages = await mailpit.findByRecipient(email);
+      const messages = recipientMessages.get(email) ?? [];
       expect(
-        recipientMessages.length,
+        messages.length,
         `No email found for ${email}`
       ).toBeGreaterThanOrEqual(1);
     }
 
-    console.log(`Successfully delivered ${messages.length} emails`);
+    const totalDelivered = [...recipientMessages.values()].reduce(
+      (sum, msgs) => sum + msgs.length,
+      0
+    );
+    console.log(`Successfully delivered ${totalDelivered} emails to ${testEmails.length} recipients`);
   }, 120000); // 2 minute timeout for batch
 });
 
