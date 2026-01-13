@@ -21,6 +21,7 @@ export default defineConfig({
       exclude: ["node_modules/", "tests/", ".next/", "dist/", "*.config.*"],
     },
     pool: "threads",
+    fileParallelism: false,
     server: {
       deps: {
         inline: ["next", "@logto/next"],

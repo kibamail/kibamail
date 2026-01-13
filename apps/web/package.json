@@ -90,6 +90,7 @@
     "iconoir-react": "^7.11.0",
     "ioredis": "^5.8.2",
     "js-beautify": "^1.15.4",
+    "kibamail": "^0.0.2",
     "libphonenumber-js": "^1.12.33",
     "lucide-react": "^0.562.0",
     "mailparser": "^3.9.1",

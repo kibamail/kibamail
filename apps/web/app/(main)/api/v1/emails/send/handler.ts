@@ -34,7 +34,10 @@ function isSandboxEmail(email: string): boolean {
  * Parse a sandbox email address to extract the outcome and optional label
  * e.g., "delivered+test-flow@kibamail.dev" -> { outcome: "delivered", label: "test-flow" }
  */
-function parseSandboxEmail(email: string): { outcome: string; label: string | null } {
+function parseSandboxEmail(email: string): {
+  outcome: string;
+  label: string | null;
+} {
   const localPart = email.split("@")[0].toLowerCase();
   const [outcome, label] = localPart.split("+");
   return { outcome, label: label || null };
@@ -48,7 +51,7 @@ function parseEmailAddress(email: string): { local: string; domain: string } {
   if (atIndex === -1) {
     throw new BadRequestError(
       `Invalid email format: ${email}`,
-      ErrorCode.INVALID_PARAMETER,
+      ErrorCode.INVALID_PARAMETER
     );
   }
 
@@ -64,7 +67,7 @@ function parseEmailAddress(email: string): { local: string; domain: string } {
 async function findOrCreateSenderIdentity(
   workspaceId: string,
   fromEmail: string,
-  sendingDomainId: string,
+  sendingDomainId: string
 ) {
   const { local } = parseEmailAddress(fromEmail);
 
@@ -115,10 +118,14 @@ function validateVariableTypes(
 ) {
   for (const def of definitions) {
     const value = provided[def.name];
-    if (value !== undefined && def.type === "number" && typeof value !== "number") {
+    if (
+      value !== undefined &&
+      def.type === "number" &&
+      typeof value !== "number"
+    ) {
       throw new BadRequestError(
         `Variable '${def.name}' must be a number`,
-        ErrorCode.INVALID_PARAMETER,
+        ErrorCode.INVALID_PARAMETER
       );
     }
   }
@@ -152,14 +159,14 @@ async function resolveTemplateContent(
   if (!parentTemplate) {
     throw new NotFoundError(
       `Template with identifier '${templateSlug}' not found`,
-      ErrorCode.TEMPLATE_NOT_FOUND,
+      ErrorCode.TEMPLATE_NOT_FOUND
     );
   }
 
   if (!parentTemplate.publishedVersionId) {
     throw new BadRequestError(
       `Template '${templateSlug}' is not published`,
-      ErrorCode.TEMPLATE_NOT_PUBLISHED,
+      ErrorCode.TEMPLATE_NOT_PUBLISHED
     );
   }
 
@@ -172,27 +179,44 @@ async function resolveTemplateContent(
   if (!publishedVersion?.emailContent) {
     throw new BadRequestError(
       `Template '${templateSlug}' has no content`,
-      ErrorCode.TEMPLATE_NO_CONTENT,
+      ErrorCode.TEMPLATE_NO_CONTENT
     );
   }
 
-  if (!publishedVersion.emailContent.contentHtml) {
+  if (
+    !publishedVersion.emailContent.contentHtml &&
+    !publishedVersion.emailContent.contentJson
+  ) {
     throw new BadRequestError(
-      `Template '${templateSlug}' has no HTML content`,
-      ErrorCode.TEMPLATE_NO_CONTENT,
+      `Template '${templateSlug}' has no content`,
+      ErrorCode.TEMPLATE_NO_CONTENT
     );
   }
 
   // 3. Validate variable types
-  const definitions = (publishedVersion.emailContent.variables as VariableDefinition[]) || [];
+  const definitions =
+    (publishedVersion.emailContent.variables as VariableDefinition[]) || [];
   validateVariableTypes(definitions, userVariables);
 
   // 4. Substitute variables in all content fields
   return {
-    subject: substituteVariables(publishedVersion.emailContent.subject, userVariables),
-    previewText: substituteVariables(publishedVersion.emailContent.previewText, userVariables),
-    html: substituteVariables(publishedVersion.emailContent.contentHtml, userVariables) || "",
-    text: substituteVariables(publishedVersion.emailContent.contentText, userVariables),
+    subject: substituteVariables(
+      publishedVersion.emailContent.subject,
+      userVariables
+    ),
+    previewText: substituteVariables(
+      publishedVersion.emailContent.previewText,
+      userVariables
+    ),
+    html:
+      substituteVariables(
+        publishedVersion.emailContent.contentHtml,
+        userVariables
+      ) || "",
+    text: substituteVariables(
+      publishedVersion.emailContent.contentText,
+      userVariables
+    ),
     trackClicks: publishedVersion.trackClicks,
     trackOpens: publishedVersion.trackOpens,
   };
@@ -207,7 +231,7 @@ async function resolveTemplateContent(
  */
 export async function sendTransactionalEmail(
   workspaceId: string,
-  request: NextRequest,
+  request: NextRequest
 ) {
   const data = await validateRequestBody(sendTransactionalEmailSchema, request);
 
@@ -223,7 +247,7 @@ export async function sendTransactionalEmail(
     const templateContent = await resolveTemplateContent(
       workspaceId,
       template.id,
-      template.variables || {},
+      template.variables || {}
     );
 
     // User-provided values override template defaults
@@ -236,7 +260,7 @@ export async function sendTransactionalEmail(
     if (!subject) {
       throw new BadRequestError(
         "Email subject is required (template has no subject)",
-        ErrorCode.INVALID_PARAMETER,
+        ErrorCode.INVALID_PARAMETER
       );
     }
   } else {
@@ -251,19 +275,19 @@ export async function sendTransactionalEmail(
   if (recipients.length === 0) {
     throw new BadRequestError(
       "At least one recipient is required",
-      ErrorCode.INVALID_PARAMETER,
+      ErrorCode.INVALID_PARAMETER
     );
   }
 
   if (attachments && attachments.length > 0) {
     const totalSize = attachments.reduce(
       (sum: number, att: TransactionalAttachment) => sum + att.content.length,
-      0,
+      0
     );
     if (totalSize > 25 * 1024 * 1024) {
       throw new BadRequestError(
         "Total attachment size exceeds 25MB limit",
-        ErrorCode.ATTACHMENT_TOO_LARGE,
+        ErrorCode.ATTACHMENT_TOO_LARGE
       );
     }
   }
@@ -275,8 +299,12 @@ export async function sendTransactionalEmail(
 
   // For sandbox-only sends, domain setup is optional
   // Users can test with any "from" address without configuring domains
-  let sendingDomain: Awaited<ReturnType<typeof prisma.sendingDomain.findFirst>> = null;
-  let senderIdentity: Awaited<ReturnType<typeof prisma.senderIdentity.findFirst>> = null;
+  let sendingDomain: Awaited<
+    ReturnType<typeof prisma.sendingDomain.findFirst>
+  > = null;
+  let senderIdentity: Awaited<
+    ReturnType<typeof prisma.senderIdentity.findFirst>
+  > = null;
 
   if (hasRealRecipient) {
     // Real recipients require a fully verified domain
@@ -290,28 +318,28 @@ export async function sendTransactionalEmail(
     if (!sendingDomain) {
       throw new NotFoundError(
         `Sending domain not found for email address: ${from}`,
-        ErrorCode.SENDING_DOMAIN_NOT_FOUND,
+        ErrorCode.SENDING_DOMAIN_NOT_FOUND
       );
     }
 
     if (!sendingDomain.dkimVerifiedAt) {
       throw new BadRequestError(
         `Sending domain DKIM is not verified: ${domainName}`,
-        ErrorCode.SENDING_DOMAIN_NOT_VERIFIED,
+        ErrorCode.SENDING_DOMAIN_NOT_VERIFIED
       );
     }
 
     if (!sendingDomain.returnPathDomainVerifiedAt) {
       throw new BadRequestError(
         `Sending domain return path is not verified: ${domainName}`,
-        ErrorCode.SENDING_DOMAIN_NOT_VERIFIED,
+        ErrorCode.SENDING_DOMAIN_NOT_VERIFIED
       );
     }
 
     senderIdentity = await findOrCreateSenderIdentity(
       workspaceId,
       from,
-      sendingDomain.id,
+      sendingDomain.id
     );
   } else {
     // Sandbox-only: try to find domain/identity but don't require them
@@ -326,7 +354,7 @@ export async function sendTransactionalEmail(
       senderIdentity = await findOrCreateSenderIdentity(
         workspaceId,
         from,
-        sendingDomain.id,
+        sendingDomain.id
       );
     }
   }
@@ -350,7 +378,8 @@ export async function sendTransactionalEmail(
       };
 
   // Queue one job per recipient - each gets their own TransactionalEmail record
-  const emailIds: Array<{ id: string; recipient: string; sandbox: boolean }> = [];
+  const emailIds: Array<{ id: string; recipient: string; sandbox: boolean }> =
+    [];
 
   for (const recipient of recipients) {
     const emailSendId = createId();
@@ -406,7 +435,7 @@ export async function sendTransactionalEmail(
         id: emailIds[0].id,
         sandbox: emailIds[0].sandbox,
       },
-      "email",
+      "email"
     );
   }
 
@@ -418,6 +447,6 @@ export async function sendTransactionalEmail(
         sandbox: e.sandbox,
       })),
     },
-    "email_list",
+    "email_list"
   );
 }

@@ -23,7 +23,7 @@
 
 import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
-import { Kibamail } from "../../../../sdks/nodejs";
+import { Kibamail } from "kibamail";
 import {
   ManualTest,
   testConfig,
@@ -174,8 +174,14 @@ class CreateAndSendTest extends ManualTest {
     console.log("  This may take a moment...\n");
 
     const startContactCreate = Date.now();
-    this.contacts = await createContacts(workspaceId, this.recipientCount, faker);
-    const contactDuration = ((Date.now() - startContactCreate) / 1000).toFixed(2);
+    this.contacts = await createContacts(
+      workspaceId,
+      this.recipientCount,
+      faker
+    );
+    const contactDuration = ((Date.now() - startContactCreate) / 1000).toFixed(
+      2
+    );
 
     this.printField("Contacts created", this.contacts.length);
     this.printField("Time taken", `${contactDuration}s`);
@@ -305,7 +311,9 @@ class CreateAndSendTest extends ManualTest {
     this.printField("API Base URL", testConfig.apiBaseUrl);
 
     const startApiCall = Date.now();
-    const { data, error } = await kibamail.broadcasts.createAndSend(broadcastData);
+    const { data, error } = await kibamail.broadcasts.createAndSend(
+      broadcastData
+    );
     const apiDuration = ((Date.now() - startApiCall) / 1000).toFixed(2);
 
     if (error) {
@@ -336,7 +344,9 @@ class CreateAndSendTest extends ManualTest {
     this.printField("Contacts created by API", createdContacts);
 
     if (createdContacts === 0) {
-      this.printSuccess("VERIFIED: No contacts were created (expected behavior)");
+      this.printSuccess(
+        "VERIFIED: No contacts were created (expected behavior)"
+      );
     } else {
       this.printError(
         `UNEXPECTED: ${createdContacts} contacts were created! This is a bug.`
@@ -396,7 +406,11 @@ class CreateAndSendTest extends ManualTest {
       console.log(`      contactId: ${send.contactId || "null"}`);
       console.log(`      status: ${send.status}`);
       console.log(
-        `      variables: ${send.variables ? JSON.stringify(send.variables).substring(0, 50) + "..." : "null"}`
+        `      variables: ${
+          send.variables
+            ? JSON.stringify(send.variables).substring(0, 50) + "..."
+            : "null"
+        }`
       );
     }
   }

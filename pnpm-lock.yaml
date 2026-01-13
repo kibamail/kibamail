@@ -517,6 +517,9 @@ importers:
       js-beautify:
         specifier: ^1.15.4
         version: 1.15.4
+      kibamail:
+        specifier: ^0.0.2
+        version: link:../../sdks/nodejs
       libphonenumber-js:
         specifier: ^1.12.33
         version: 1.12.33
@@ -14939,18 +14942,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@emotion/core@10.3.1(react@19.2.0)':
-    dependencies:
-      '@babel/runtime': 7.28.4
-      '@emotion/cache': 10.0.29
-      '@emotion/css': 10.0.27
-      '@emotion/serialize': 0.11.16
-      '@emotion/sheet': 0.9.4
-      '@emotion/utils': 0.11.3
-      react: 19.2.0
-    transitivePeerDependencies:
-      - supports-color
-
   '@emotion/css@10.0.27':
     dependencies:
       '@emotion/serialize': 0.11.16
@@ -14980,7 +14971,7 @@ snapshots:
   '@emotion/styled-base@10.3.0(@emotion/core@10.3.1(react@19.2.0))(react@16.14.0)':
     dependencies:
       '@babel/runtime': 7.28.4
-      '@emotion/core': 10.3.1(react@19.2.0)
+      '@emotion/core': 10.3.1(react@16.14.0)
       '@emotion/is-prop-valid': 0.8.8
       '@emotion/serialize': 0.11.16
       '@emotion/utils': 0.11.3
@@ -14988,7 +14979,7 @@ snapshots:
 
   '@emotion/styled@10.3.0(@emotion/core@10.3.1(react@19.2.0))(react@16.14.0)':
     dependencies:
-      '@emotion/core': 10.3.1(react@19.2.0)
+      '@emotion/core': 10.3.1(react@16.14.0)
       '@emotion/styled-base': 10.3.0(@emotion/core@10.3.1(react@19.2.0))(react@16.14.0)
       babel-plugin-emotion: 10.2.2
       react: 16.14.0
@@ -22030,7 +22021,7 @@ snapshots:
   emotion-theming@10.3.0(@emotion/core@10.3.1(react@19.2.0))(react@16.14.0):
     dependencies:
       '@babel/runtime': 7.28.4
-      '@emotion/core': 10.3.1(react@19.2.0)
+      '@emotion/core': 10.3.1(react@16.14.0)
       '@emotion/weak-memoize': 0.2.5
       hoist-non-react-statics: 3.3.2
       react: 16.14.0

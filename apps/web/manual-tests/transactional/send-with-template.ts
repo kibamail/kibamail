@@ -19,7 +19,7 @@
 
 import { faker } from "@faker-js/faker";
 import { PrismaClient } from "@prisma/client";
-import { Kibamail } from "../../../../sdks/nodejs";
+import { Kibamail } from "kibamail";
 import { ManualTest, testConfig } from "../lib";
 import {
   createApiKey,

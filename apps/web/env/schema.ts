@@ -880,6 +880,37 @@ export const env = createEnv({
       .pipe(z.number().int().min(1).max(1000))
       .default(100)
       .describe("Maximum emails per batch injection request"),
+
+    // ============================================================================
+    // KIBAMAIL TRANSACTIONAL EMAIL CONFIGURATION
+    // ============================================================================
+    // Configuration for sending Kibamail's own transactional emails via the API.
+    // Used for authentication flows (Logto) and other system emails.
+
+    /**
+     * Kibamail API Key
+     *
+     * API key for sending transactional emails via Kibamail API.
+     * This is Kibamail using itself to send its own authentication emails.
+     *
+     * @example "kb_abc123def456..."
+     */
+    KIBAMAIL_API_KEY: z
+      .string()
+      .min(1, "KIBAMAIL_API_KEY is required")
+      .describe("Kibamail API key for sending transactional emails"),
+
+    /**
+     * Kibamail From Email
+     *
+     * The sender email address for Kibamail system emails.
+     * Must be from a verified sending domain.
+     *
+     * @example "frantz@notifications.kibamail.com"
+     */
+    KIBAMAIL_FROM_EMAIL: z
+      .email("KIBAMAIL_FROM_EMAIL must be a valid email")
+      .describe("Sender email address for Kibamail system emails"),
   },
 
   /**
@@ -957,6 +988,8 @@ export const env = createEnv({
     MTA_INJECTION_TIMEOUT_MS: process.env.MTA_INJECTION_TIMEOUT_MS,
     MTA_INJECTION_RETRY_ATTEMPTS: process.env.MTA_INJECTION_RETRY_ATTEMPTS,
     MTA_INJECTION_BATCH_SIZE: process.env.MTA_INJECTION_BATCH_SIZE,
+    KIBAMAIL_API_KEY: process.env.KIBAMAIL_API_KEY,
+    KIBAMAIL_FROM_EMAIL: process.env.KIBAMAIL_FROM_EMAIL,
     // Map client environment variables here
     // Example:
     // NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,

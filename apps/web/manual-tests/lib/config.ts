@@ -29,7 +29,7 @@ export function loadConfig(): ManualTestConfig {
   return {
     databaseUrl,
     apiBaseUrl: process.env.API_BASE_URL || "http://localhost:18092/api",
-    mailpitUrl: process.env.MAILPIT_URL || "http://localhost:18025",
+    mailpitUrl: process.env.MAILPIT_URL || "http://localhost:8025",
   };
 }
 

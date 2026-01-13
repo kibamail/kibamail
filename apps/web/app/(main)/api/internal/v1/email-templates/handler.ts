@@ -18,7 +18,13 @@ import {
 } from "@/lib/api/pagination";
 import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
+import {
+  type BroadcastDocument,
+  type BroadcastStyles,
+  renderBroadcastToHtml,
+} from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
+import { htmlToPlainText } from "@/lib/email/html-to-text";
 import { createEmailTemplateSchema, updateEmailTemplateSchema } from "./schema";
 
 /**
@@ -386,8 +392,10 @@ export async function updateEmailTemplate(
               previewText: data.emailContent.previewText,
             }),
             ...(data.emailContent.contentJson !== undefined && {
-              contentJson:
-                data.emailContent.contentJson as Record<string, unknown>,
+              contentJson: data.emailContent.contentJson as Record<
+                string,
+                unknown
+              >,
             }),
             ...(data.emailContent.styles !== undefined && {
               styles: data.emailContent.styles as Record<string, unknown>,
@@ -421,7 +429,9 @@ export async function updateEmailTemplate(
           ...(data.templateGroupId !== undefined && {
             templateGroupId: data.templateGroupId,
           }),
-          ...(data.trackClicks !== undefined && { trackClicks: data.trackClicks }),
+          ...(data.trackClicks !== undefined && {
+            trackClicks: data.trackClicks,
+          }),
           ...(data.trackOpens !== undefined && { trackOpens: data.trackOpens }),
         },
       });
@@ -653,6 +663,32 @@ export async function publishEmailTemplate(
       ErrorCode.TEMPLATE_NO_CONTENT,
     );
   }
+
+  // Validate template has content JSON for rendering
+  if (!template.emailContent?.contentJson) {
+    throw new BadRequestError(
+      "Cannot publish a template without content. Add content before publishing.",
+      ErrorCode.TEMPLATE_NO_CONTENT,
+    );
+  }
+
+  // Render HTML from contentJson (with empty variables to preserve placeholders)
+  const contentJson = template.emailContent
+    .contentJson as unknown as BroadcastDocument;
+  const styles = (template.emailContent.styles as BroadcastStyles) || {};
+  const contentHtml = await renderBroadcastToHtml(contentJson, {}, styles);
+
+  // Generate plain text from HTML
+  const contentText = htmlToPlainText(contentHtml);
+
+  // Update emailContent with rendered HTML and text
+  await prisma.emailContent.update({
+    where: { id: template.emailContent.id },
+    data: {
+      contentHtml,
+      contentText,
+    },
+  });
 
   // Root template (first publish)
   if (!template.parentId) {
