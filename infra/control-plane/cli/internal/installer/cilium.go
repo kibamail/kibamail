@@ -55,21 +55,22 @@ func (c *CiliumInstaller) IsInstalled(ctx context.Context, client *kubernetes.Cl
 	return true, nil
 }
 
-// Install installs Cilium with Gateway API support
+// Install installs or upgrades Cilium CNI
 func (c *CiliumInstaller) Install(ctx context.Context, client *kubernetes.Clientset, kubeconfig string) error {
 	ui.ComponentHeader(c.Name(), c.Version())
 
-	// Check if already installed
+	// Check if already installed (for logging purposes)
 	installed, err := c.IsInstalled(ctx, client)
 	if err != nil {
 		return err
 	}
+
+	action := "Installing"
 	if installed {
-		ui.PrintWarning("Cilium is already installed, skipping")
-		return nil
+		action = "Upgrading"
 	}
 
-	spinner, err := ui.StartSpinner("Installing Cilium CNI...")
+	spinner, err := ui.StartSpinner(fmt.Sprintf("%s Cilium CNI...", action))
 	if err != nil {
 		return err
 	}
@@ -83,10 +84,23 @@ func (c *CiliumInstaller) Install(ctx context.Context, client *kubernetes.Client
 
 	// Cilium Helm values - CNI only, Gateway API disabled (handled by Istio)
 	// See: https://github.com/cilium/cilium/issues/42786 (hostNetwork bug)
+	//
+	// IPAM Configuration:
+	// Using 100.64.0.0/10 (CGNAT/Shared Address Space - RFC 6598) for pod CIDR
+	// This avoids conflicts with:
+	// - vSwitch private network (10.0.0.0/24)
+	// - Standard private ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16)
 	values := map[string]interface{}{
 		"kubeProxyReplacement": true,
 		"gatewayAPI": map[string]interface{}{
 			"enabled": false,
+		},
+		"ipam": map[string]interface{}{
+			"mode": "cluster-pool",
+			"operator": map[string]interface{}{
+				"clusterPoolIPv4PodCIDRList": []string{"100.64.0.0/10"},
+				"clusterPoolIPv4MaskSize":    24,
+			},
 		},
 	}
 
@@ -99,8 +113,8 @@ func (c *CiliumInstaller) Install(ctx context.Context, client *kubernetes.Client
 		ChartName:   CiliumChartName,
 		Version:     CiliumVersion,
 		Values:      values,
-		ReuseValues: true, // Reuse values from previous installation if exists
-		Wait:        true, // Wait for Cilium to be ready
+		ReuseValues: false, // Apply fresh values to ensure IPAM config is updated
+		Wait:        true,  // Wait for Cilium to be ready
 	}
 
 	if err := helmInstaller.UpgradeOrInstallHelmChart(ctx, client); err != nil {

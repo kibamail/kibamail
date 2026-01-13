@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "password-reset": "npx tsx password-reset/main.ts"
+    "password-reset": "npx tsx password-reset/main.ts",
+    "broadcast-test": "npx tsx broadcast-test/main.ts"
   },
   "dependencies": {
     "@react-email/components": "^0.0.31",

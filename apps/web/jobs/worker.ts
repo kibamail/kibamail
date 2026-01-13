@@ -4,10 +4,12 @@ import express from "express";
 import { closeAll, configureWorker, queue, queueLogger } from "@/lib/queue";
 import { sendBroadcast } from "./broadcasts/send-broadcast";
 import { sendBroadcastBatch } from "./broadcasts/send-broadcast-batch";
+import { sendBroadcastBatchEmails } from "./broadcasts/send-broadcast-batch-emails";
 import { processSandboxBroadcast } from "./broadcasts/process-sandbox-broadcast";
 import { sendTestBroadcast } from "./broadcasts/send-test-broadcast";
 import { processImport } from "./contact-imports/process-import";
 import { unsubscribe } from "./contacts/unsubscribe";
+import { unsubscribeBySendingId } from "./contacts/unsubscribe-by-sending-id";
 import { confirmDoubleOptIn } from "./forms/confirm-double-opt-in";
 import { sendDoubleOptIn } from "./forms/send-double-opt-in";
 import { processInboundEmail } from "./inbox/process-inbound-email";
@@ -58,6 +60,7 @@ configureWorker("broadcasts", {
   processors: {
     "send-broadcast": sendBroadcast,
     "send-broadcast-batch": sendBroadcastBatch,
+    "send-broadcast-batch-emails": sendBroadcastBatchEmails,
     "send-test-broadcast": sendTestBroadcast,
     "process-sandbox-broadcast": processSandboxBroadcast,
   },
@@ -75,6 +78,7 @@ configureWorker("forms", {
 configureWorker("contacts", {
   processors: {
     unsubscribe: unsubscribe,
+    "unsubscribe-by-sending-id": unsubscribeBySendingId,
   },
   concurrency: 5,
 });

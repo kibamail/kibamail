@@ -325,19 +325,25 @@ jobs:
         run: |
           kubectl patch deployment kibamail-web \
             -n kibamail \
-            --type=json \
-            -p='[
-              {
-                "op": "replace",
-                "path": "/spec/template/spec/initContainers/0/image",
-                "value": "${{ env.REGISTRY }}/${{ env.MARKETING_IMAGE }}:${{ needs.build-marketing.outputs.image-tag }}"
-              },
-              {
-                "op": "replace",
-                "path": "/spec/template/spec/initContainers/1/image",
-                "value": "${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:prod-cli"
+            --type=strategic \
+            -p='{
+              "spec": {
+                "template": {
+                  "spec": {
+                    "initContainers": [
+                      {
+                        "name": "marketing-init",
+                        "image": "${{ env.REGISTRY }}/${{ env.MARKETING_IMAGE }}:${{ needs.build-marketing.outputs.image-tag }}"
+                      },
+                      {
+                        "name": "migrations",
+                        "image": "${{ env.REGISTRY }}/${{ env.WEB_IMAGE }}:${{ needs.build-cli.outputs.image-tag }}-cli"
+                      }
+                    ]
+                  }
+                }
               }
-            ]'
+            }'
 
       - name: deploy workers to kubernetes
         run: |

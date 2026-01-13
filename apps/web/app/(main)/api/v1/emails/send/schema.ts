@@ -24,7 +24,21 @@ const replyToSchema = z.object({
 });
 
 /**
+ * Template Schema for template-based sending
+ */
+const templateSchema = z.object({
+  id: z.string().min(1, "Template identifier is required").describe("Unique template identifier (uniqueSlug)"),
+  variables: z.record(z.string(), z.union([z.string(), z.number()])).optional().describe("Variables to substitute in the template"),
+});
+
+/**
  * Send Transactional Email Request Schema
+ *
+ * Supports two modes:
+ * 1. Raw content: Provide `html` (required) and optionally `text`
+ * 2. Template-based: Provide `template` with identifier and variables
+ *
+ * The two modes are mutually exclusive.
  */
 export const sendTransactionalEmailSchema = z.object({
   from: z
@@ -41,25 +55,37 @@ export const sendTransactionalEmailSchema = z.object({
     .string()
     .min(1, "Subject is required")
     .max(500, "Subject must be 500 characters or less")
-    .describe("Email subject line"),
+    .optional()
+    .describe("Email subject line (required when not using template, optional override when using template)"),
   previewText: z
     .string()
     .max(150, "Preview text must be 150 characters or less")
     .optional()
-    .describe("Preview text shown in email clients (optional)"),
+    .describe("Preview text shown in email clients (optional, overrides template value if provided)"),
   html: z
     .string()
     .min(1, "HTML body is required")
     .max(10_000_000, "HTML body is too large (max 10MB)")
-    .describe("HTML email body content"),
+    .optional()
+    .describe("HTML email body content (required when not using template)"),
   text: z
     .string()
     .max(10_000_000, "Text body is too large (max 10MB)")
     .optional()
-    .describe("Plain text email body content (auto-generated from HTML if not provided)"),
+    .describe("Plain text email body content (auto-generated from HTML if not provided, cannot be used with template)"),
+  template: templateSchema.optional().describe("Template-based sending: provide template identifier and variables instead of html/text"),
   attachments: z.array(transactionalAttachmentSchema).max(25, "Maximum 25 attachments allowed").optional().default([]).describe("Email attachments (max 25 files, 25MB total)"),
   metadata: z.record(z.string(), z.string()).optional().describe("Custom metadata for tracking (key-value pairs)"),
-});
+}).refine(
+  (data) => !!(data.template) !== !!(data.html),
+  { message: "Provide either 'template' or 'html', not both", path: ["template"] }
+).refine(
+  (data) => data.template || data.subject,
+  { message: "Subject is required when not using a template", path: ["subject"] }
+).refine(
+  (data) => !(data.template && data.text),
+  { message: "Cannot provide 'text' when using a template", path: ["text"] }
+);
 
 /**
  * Send Transactional Email Response Schema
@@ -76,3 +102,4 @@ export type SendTransactionalEmailRequest = z.infer<typeof sendTransactionalEmai
 export type SendTransactionalEmailResponse = z.infer<typeof sendTransactionalEmailResponseSchema>;
 export type TransactionalAttachment = z.infer<typeof transactionalAttachmentSchema>;
 export type ReplyTo = z.infer<typeof replyToSchema>;
+export type TemplateReference = z.infer<typeof templateSchema>;

@@ -13,6 +13,7 @@ import { internalApi } from "@/lib/api/client";
 
 interface FormData {
   name: string;
+  uniqueSlug: string;
 }
 
 interface CreateTemplateModalProps extends ToggleState {}
@@ -24,6 +25,7 @@ export function CreateTemplateModal({
   const router = useRouter();
   const { success: toast } = useToast();
   const nameFieldId = useId();
+  const slugFieldId = useId();
 
   const {
     register,
@@ -33,12 +35,13 @@ export function CreateTemplateModal({
   } = useForm<FormData>({
     defaultValues: {
       name: "",
+      uniqueSlug: "",
     },
   });
 
   useEffect(() => {
     if (open) {
-      reset({ name: "" });
+      reset({ name: "", uniqueSlug: "" });
     }
   }, [open, reset]);
 
@@ -46,6 +49,7 @@ export function CreateTemplateModal({
     async mutationFn(data: FormData) {
       return internalApi.emailTemplates().create({
         name: data.name,
+        uniqueSlug: data.uniqueSlug || undefined,
       });
     },
     onSuccess(data) {
@@ -70,7 +74,7 @@ export function CreateTemplateModal({
       <Dialog.Content>
         <form onSubmit={handleSubmit(onSubmit)}>
           <Dialog.Header>
-            <Dialog.Title>Create New Template</Dialog.Title>
+            <Dialog.Title>Create new template</Dialog.Title>
             <Dialog.Description>
               Create a reusable email template for your transactional emails.
             </Dialog.Description>
@@ -91,6 +95,30 @@ export function CreateTemplateModal({
               <TextField.Label>Name</TextField.Label>
               {errors.name && (
                 <TextField.Error>{errors.name.message}</TextField.Error>
+              )}
+            </TextField.Root>
+
+            <TextField.Root
+              id={slugFieldId}
+              placeholder="welcome_email"
+              {...register("uniqueSlug", {
+                pattern: {
+                  value: /^[a-zA-Z][a-zA-Z0-9_-]*$/,
+                  message:
+                    "Must start with a letter and contain only letters, numbers, underscores, or hyphens",
+                },
+                maxLength: {
+                  value: 100,
+                  message: "Identifier must be 100 characters or less",
+                },
+              })}
+            >
+              <TextField.Label>Unique identifier</TextField.Label>
+              <TextField.Hint>
+                Required when sending transactional emails using this template.
+              </TextField.Hint>
+              {errors.uniqueSlug && (
+                <TextField.Error>{errors.uniqueSlug.message}</TextField.Error>
               )}
             </TextField.Root>
           </div>

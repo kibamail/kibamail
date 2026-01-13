@@ -42,15 +42,32 @@
 
     # KumoMTA environment configuration
     kumomta_env_file: "/opt/kumomta/etc/kumod.env"
-    kumomta_email_agent_url: "http://127.0.0.1:8080"
-    kumomta_webhook_url: "http://127.0.0.1:8080"
+    kumomta_control_plane_url: "{{ lookup('env', 'CONTROL_PLANE_URL') }}"
+    kumomta_internal_service_key: "{{ lookup('env', 'INTERNAL_SERVICE_KEY') }}"
+    kumomta_webhook_url: "{{ lookup('env', 'WEBHOOK_URL') }}"
     kumomta_mta_hostname: "{{ mta_hostname }}"
+    kumomta_trusted_hosts: "127.0.0.1,::1,10.0.0.0/8"
 
   pre_tasks:
     - name: Validate mta_cluster is defined
       ansible.builtin.fail:
         msg: "mta_cluster variable is required. Use: -e mta_cluster=helsinki"
       when: mta_cluster is not defined
+
+    - name: Validate CONTROL_PLANE_URL is set
+      ansible.builtin.fail:
+        msg: "CONTROL_PLANE_URL environment variable is required"
+      when: kumomta_control_plane_url | length == 0
+
+    - name: Validate INTERNAL_SERVICE_KEY is set
+      ansible.builtin.fail:
+        msg: "INTERNAL_SERVICE_KEY environment variable is required"
+      when: kumomta_internal_service_key | length == 0
+
+    - name: Validate WEBHOOK_URL is set
+      ansible.builtin.fail:
+        msg: "WEBHOOK_URL environment variable is required"
+      when: kumomta_webhook_url | length == 0
 
     - name: Verify cluster sources.toml exists
       ansible.builtin.stat:
@@ -267,14 +284,20 @@
           #
           # These variables are required by the init.lua policy file
 
-          # Email Agent API URL (for DKIM lookups, auth validation, webhooks)
-          EMAIL_AGENT_URL={{ kumomta_email_agent_url }}
+          # Control Plane API URL (for DKIM lookups, auth validation, domain validation)
+          CONTROL_PLANE_URL={{ kumomta_control_plane_url }}
+
+          # Internal service key for authenticating to Control Plane
+          INTERNAL_SERVICE_KEY={{ kumomta_internal_service_key }}
 
           # Webhook URL for delivery events (bounces, deliveries, etc.)
           WEBHOOK_URL={{ kumomta_webhook_url }}
 
-          # MTA hostname for identification in logs and headers
+          # MTA hostname for SMTP banner and headers
           MTA_HOSTNAME={{ kumomta_mta_hostname }}
+
+          # Trusted hosts for HTTP API access (comma-separated)
+          TRUSTED_HOSTS={{ kumomta_trusted_hosts }}
         dest: "{{ kumomta_env_file }}"
         owner: kumod
         group: kumod
@@ -416,9 +439,11 @@
           {% endfor %}
 
           Environment file: {{ kumomta_env_file }}
-            - EMAIL_AGENT_URL: {{ kumomta_email_agent_url }}
+            - CONTROL_PLANE_URL: {{ kumomta_control_plane_url }}
+            - INTERNAL_SERVICE_KEY: ********** (hidden)
             - WEBHOOK_URL: {{ kumomta_webhook_url }}
             - MTA_HOSTNAME: {{ kumomta_mta_hostname }}
+            - TRUSTED_HOSTS: 127.0.0.1,::1,10.0.0.0/8
 
           DKIM Keys:
             - Private: {{ dkim_base_dir }}/{{ dkim_domain }}/{{ dkim_selector }}.key

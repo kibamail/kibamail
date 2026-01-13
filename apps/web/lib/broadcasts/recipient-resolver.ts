@@ -29,6 +29,23 @@ export interface RecipientResolution {
   contacts: RecipientContact[];
 }
 
+/**
+ * Email-only recipient (no contact record required)
+ * Used for create-and-send API with emails array
+ */
+export interface EmailOnlyRecipient {
+  email: string;
+  variables?: Record<string, string | number>;
+}
+
+/**
+ * Resolution result for email-only sends
+ * Does not create or lookup contacts - just passes through the emails
+ */
+export interface EmailOnlyResolution {
+  emails: EmailOnlyRecipient[];
+}
+
 export interface RecipientsInput {
   contacts?: string[];
   emails?: EmailRecipientInput[];
@@ -38,6 +55,10 @@ export interface RecipientsInput {
 
 /**
  * Resolve recipients to contact IDs and fetch full contact data with properties
+ *
+ * NOTE: This function handles contact-based recipients only (contacts, segment, topic).
+ * For email-only recipients (via create-and-send API with emails array), use
+ * resolveByEmails() directly which returns EmailOnlyResolution.
  *
  * @param workspaceId - The workspace ID
  * @param recipients - Recipient specification (one mode required)
@@ -49,10 +70,6 @@ export async function resolveRecipients(
 ): Promise<RecipientResolution> {
   if (recipients.contacts?.length) {
     return resolveByContactIds(workspaceId, recipients.contacts);
-  }
-
-  if (recipients.emails?.length) {
-    return resolveByEmails(workspaceId, recipients.emails);
   }
 
   if (recipients.segment) {
@@ -101,90 +118,25 @@ async function resolveByContactIds(
 }
 
 /**
- * Normalize email input to extract email addresses and variable maps
- * Handles both string[] and { email, variables }[] formats
+ * Resolve recipients by email addresses (email-only, no contact creation)
+ *
+ * This function does NOT create or lookup contacts. It simply returns the
+ * emails as EmailOnlyRecipients for use with email-only broadcast sends.
  */
-function normalizeEmailInput(emails: EmailRecipientInput[]): {
-  normalizedEmails: string[];
-  variablesMap: Map<string, Record<string, string | number>>;
-} {
-  const normalizedEmails: string[] = [];
-  const variablesMap = new Map<string, Record<string, string | number>>();
-
-  for (const item of emails) {
-    if (typeof item === "string") {
-      normalizedEmails.push(item);
-    } else {
-      normalizedEmails.push(item.email);
-      if (item.variables && Object.keys(item.variables).length > 0) {
-        variablesMap.set(item.email, item.variables);
-      }
-    }
-  }
-
-  return { normalizedEmails, variablesMap };
-}
-
-/**
- * Resolve recipients by email addresses (upsert contacts if not exists)
- */
-async function resolveByEmails(
-  workspaceId: string,
+export function resolveByEmails(
   emails: EmailRecipientInput[],
-): Promise<RecipientResolution> {
-  const { normalizedEmails, variablesMap } = normalizeEmailInput(emails);
-
-  const existingContacts = await prisma.contact.findMany({
-    where: {
-      email: { in: normalizedEmails },
-      workspaceId,
-    },
+): EmailOnlyResolution {
+  const emailOnlyRecipients: EmailOnlyRecipient[] = emails.map((item) => {
+    if (typeof item === "string") {
+      return { email: item };
+    }
+    return {
+      email: item.email,
+      variables: item.variables,
+    };
   });
 
-  const existingEmails = new Set(existingContacts.map((c) => c.email));
-  const newEmails = normalizedEmails.filter((e) => !existingEmails.has(e));
-
-  if (newEmails.length > 0) {
-    await prisma.$transaction(
-      newEmails.map((email) =>
-        prisma.contact.create({
-          data: {
-            workspaceId,
-            email,
-            status: "SUBSCRIBED",
-          },
-        }),
-      ),
-    );
-
-    const newContacts = await prisma.contact.findMany({
-      where: {
-        email: { in: newEmails },
-        workspaceId,
-      },
-    });
-
-    existingContacts.push(...newContacts);
-  }
-
-  const propertyDefs = await prisma.contactProperty.findMany({
-    where: { workspaceId },
-    select: { name: true, slot: true },
-  });
-
-  const contactsWithProperties = existingContacts.map((contact) => ({
-    id: contact.id,
-    email: contact.email,
-    firstName: contact.firstName,
-    lastName: contact.lastName,
-    properties: buildContactProperties(contact, propertyDefs),
-    transientVariables: variablesMap.get(contact.email),
-  }));
-
-  return {
-    contactIds: contactsWithProperties.map((c) => c.id),
-    contacts: contactsWithProperties,
-  };
+  return { emails: emailOnlyRecipients };
 }
 
 /**

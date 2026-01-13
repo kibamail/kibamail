@@ -21,7 +21,7 @@ import { logger } from "./logger.js";
 import { imageRoute } from "./routes/image.js";
 import { openRoute } from "./routes/open.js";
 import { clickRoute } from "./routes/click.js";
-import { unsubscribeRoute } from "./routes/unsubscribe.js";
+import { unsubscribeRoute, unsubscribeBySendingIdRoute } from "./routes/unsubscribe.js";
 import { confirmRoute } from "./routes/confirm.js";
 import { acmeChallengeRoute } from "./routes/acme-challenge.js";
 
@@ -55,6 +55,7 @@ app.route("/i", imageRoute);
 app.route("/o", openRoute);
 app.route("/c", clickRoute);
 app.route("/u", unsubscribeRoute);
+app.route("/us", unsubscribeBySendingIdRoute); // SendingId-based unsubscribe for email-only sends
 app.route("/confirm", confirmRoute);
 app.route("/.well-known/acme-challenge", acmeChallengeRoute);
 
@@ -79,7 +80,8 @@ logger.info(
       "GET /i/{encoded} - Image proxy",
       "GET /o/{encoded} - Open tracking pixel",
       "GET /c/{encoded} - Click tracking redirect",
-      "GET /u/{contactId}/{broadcastId} - Unsubscribe",
+      "GET /u/{contactId}/{broadcastId} - Unsubscribe (contact-based)",
+      "GET /us/{sendingId} - Unsubscribe (sendingId-based, email-only sends)",
       "GET /confirm/{formId}/{token} - Double opt-in confirmation",
       "GET /.well-known/acme-challenge/{token} - ACME HTTP-01 challenge",
     ],

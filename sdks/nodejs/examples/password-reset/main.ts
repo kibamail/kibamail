@@ -2,10 +2,10 @@ import { render } from "@react-email/render";
 import { Kibamail } from "kibamail";
 import { PasswordResetEmail } from "./password-reset";
 
-const API_KEY = "kb_976fcb964ce171453e7ed7f050de0519e3c957cd07493c65";
-const API_URL = "http://localhost:18092/api";
-const FROM_EMAIL = "hey@franko.kibamail.xyz";
-const TO_EMAIL = "bounced+frantz@kibamail.dev";
+const API_KEY = "kb_98f5ea1f8c9a59d71bc8d215e74e1cd2d9188751cec9415f";
+// const API_URL = "http://localhost:18092/api";
+const FROM_EMAIL = "frantz@notifications.kibamail.com";
+const TO_EMAIL = "test-v8gkxqrld@srv1.mail-tester.com";
 const USERNAME = "bahdcoder";
 
 async function main() {
@@ -14,7 +14,7 @@ async function main() {
   const html = await render(
     PasswordResetEmail({
       username: USERNAME,
-      resetLink: "https://example.com/reset?token=abc123xyz",
+      resetLink: "https://google.com",
       expiresIn: "1 hour",
     })
   );
@@ -22,9 +22,7 @@ async function main() {
   console.log("✅ Email template rendered");
   console.log("\n📤 Sending email...\n");
 
-  const kibamail = new Kibamail(API_KEY, {
-    baseURL: API_URL,
-  });
+  const kibamail = new Kibamail(API_KEY);
 
   const { data, error } = await kibamail.emails.send({
     from: FROM_EMAIL,

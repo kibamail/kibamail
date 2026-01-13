@@ -14,6 +14,7 @@ import { responseCreated } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
+import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 import {
   sendTransactionalEmailSchema,
   type TransactionalAttachment,
@@ -90,6 +91,114 @@ async function findOrCreateSenderIdentity(
 }
 
 /**
+ * Substitute {{varName}} placeholders with values
+ * Missing variables are replaced with empty string
+ */
+function substituteVariables(
+  text: string | null | undefined,
+  variables: Record<string, string | number>
+): string | null {
+  if (!text) return null;
+  return text.replace(/\{\{(\w+)\}\}/g, (_match, varName) => {
+    const value = variables[varName];
+    return value !== undefined ? String(value) : "";
+  });
+}
+
+/**
+ * Validate that provided variable values match expected types
+ * Only validates type if variable is defined AND provided
+ */
+function validateVariableTypes(
+  definitions: VariableDefinition[],
+  provided: Record<string, string | number>
+) {
+  for (const def of definitions) {
+    const value = provided[def.name];
+    if (value !== undefined && def.type === "number" && typeof value !== "number") {
+      throw new BadRequestError(
+        `Variable '${def.name}' must be a number`,
+        ErrorCode.INVALID_PARAMETER,
+      );
+    }
+  }
+}
+
+/**
+ * Resolve template by uniqueSlug and get published content with variable substitution
+ */
+async function resolveTemplateContent(
+  workspaceId: string,
+  templateSlug: string,
+  userVariables: Record<string, string | number> = {}
+): Promise<{
+  subject: string | null;
+  previewText: string | null;
+  html: string;
+  text: string | null;
+  trackClicks: boolean;
+  trackOpens: boolean;
+}> {
+  // 1. Find parent template by uniqueSlug
+  const parentTemplate = await prisma.emailTemplate.findFirst({
+    where: {
+      workspaceId,
+      uniqueSlug: templateSlug,
+      parentId: null,
+    },
+    select: { id: true, publishedVersionId: true },
+  });
+
+  if (!parentTemplate) {
+    throw new NotFoundError(
+      `Template with identifier '${templateSlug}' not found`,
+      ErrorCode.TEMPLATE_NOT_FOUND,
+    );
+  }
+
+  if (!parentTemplate.publishedVersionId) {
+    throw new BadRequestError(
+      `Template '${templateSlug}' is not published`,
+      ErrorCode.TEMPLATE_NOT_PUBLISHED,
+    );
+  }
+
+  // 2. Get published version with content
+  const publishedVersion = await prisma.emailTemplate.findUnique({
+    where: { id: parentTemplate.publishedVersionId },
+    include: { emailContent: true },
+  });
+
+  if (!publishedVersion?.emailContent) {
+    throw new BadRequestError(
+      `Template '${templateSlug}' has no content`,
+      ErrorCode.TEMPLATE_NO_CONTENT,
+    );
+  }
+
+  if (!publishedVersion.emailContent.contentHtml) {
+    throw new BadRequestError(
+      `Template '${templateSlug}' has no HTML content`,
+      ErrorCode.TEMPLATE_NO_CONTENT,
+    );
+  }
+
+  // 3. Validate variable types
+  const definitions = (publishedVersion.emailContent.variables as VariableDefinition[]) || [];
+  validateVariableTypes(definitions, userVariables);
+
+  // 4. Substitute variables in all content fields
+  return {
+    subject: substituteVariables(publishedVersion.emailContent.subject, userVariables),
+    previewText: substituteVariables(publishedVersion.emailContent.previewText, userVariables),
+    html: substituteVariables(publishedVersion.emailContent.contentHtml, userVariables) || "",
+    text: substituteVariables(publishedVersion.emailContent.contentText, userVariables),
+    trackClicks: publishedVersion.trackClicks,
+    trackOpens: publishedVersion.trackOpens,
+  };
+}
+
+/**
  * Send a transactional email
  *
  * Validates the request and queues one job per recipient.
@@ -102,7 +211,40 @@ export async function sendTransactionalEmail(
 ) {
   const data = await validateRequestBody(sendTransactionalEmailSchema, request);
 
-  const { from, to, replyTo, subject, previewText, html, text, attachments, metadata } = data;
+  const { from, to, replyTo, template, attachments, metadata } = data;
+
+  // Resolve content from template or use provided values
+  let subject: string;
+  let html: string;
+  let text: string | undefined;
+  let previewText: string | undefined;
+
+  if (template) {
+    const templateContent = await resolveTemplateContent(
+      workspaceId,
+      template.id,
+      template.variables || {},
+    );
+
+    // User-provided values override template defaults
+    subject = data.subject || templateContent.subject || "";
+    html = templateContent.html;
+    text = templateContent.text || undefined;
+    previewText = data.previewText || templateContent.previewText || undefined;
+
+    // Validate subject is not empty after resolution
+    if (!subject) {
+      throw new BadRequestError(
+        "Email subject is required (template has no subject)",
+        ErrorCode.INVALID_PARAMETER,
+      );
+    }
+  } else {
+    subject = data.subject!;
+    html = data.html!;
+    text = data.text;
+    previewText = data.previewText;
+  }
 
   const recipients = Array.isArray(to) ? to : [to];
 

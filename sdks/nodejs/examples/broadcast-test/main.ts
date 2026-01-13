@@ -7,21 +7,76 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Configuration
-const API_KEY = "kb_f68aeed2f47e13feb1c2eb14748c0a772628e6cbdc75b103";
-const API_URL = "http://localhost:18092/api";
+const API_KEY = "kb_98f5ea1f8c9a59d71bc8d215e74e1cd2d9188751cec9415f";
 const FROM_EMAIL = "newsletter@franko.kibamail.xyz";
-const CONTACT_COUNT = 100;
+const CONTACT_COUNT = 50;
 
 // Random data generators
 const firstNames = [
-  "James", "Mary", "John", "Patricia", "Robert", "Jennifer", "Michael", "Linda",
-  "William", "Elizabeth", "David", "Barbara", "Richard", "Susan", "Joseph", "Jessica",
-  "Thomas", "Sarah", "Charles", "Karen", "Christopher", "Lisa", "Daniel", "Nancy",
-  "Matthew", "Betty", "Anthony", "Margaret", "Mark", "Sandra", "Donald", "Ashley",
-  "Steven", "Kimberly", "Paul", "Emily", "Andrew", "Donna", "Joshua", "Michelle",
-  "Kenneth", "Dorothy", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
-  "Timothy", "Deborah", "Ronald", "Stephanie", "Edward", "Rebecca", "Jason", "Sharon",
-  "Jeffrey", "Laura", "Ryan", "Cynthia", "Jacob", "Kathleen", "Gary", "Amy"
+  "James",
+  "Mary",
+  "John",
+  "Patricia",
+  "Robert",
+  "Jennifer",
+  "Michael",
+  "Linda",
+  "William",
+  "Elizabeth",
+  "David",
+  "Barbara",
+  "Richard",
+  "Susan",
+  "Joseph",
+  "Jessica",
+  "Thomas",
+  "Sarah",
+  "Charles",
+  "Karen",
+  "Christopher",
+  "Lisa",
+  "Daniel",
+  "Nancy",
+  "Matthew",
+  "Betty",
+  "Anthony",
+  "Margaret",
+  "Mark",
+  "Sandra",
+  "Donald",
+  "Ashley",
+  "Steven",
+  "Kimberly",
+  "Paul",
+  "Emily",
+  "Andrew",
+  "Donna",
+  "Joshua",
+  "Michelle",
+  "Kenneth",
+  "Dorothy",
+  "Kevin",
+  "Carol",
+  "Brian",
+  "Amanda",
+  "George",
+  "Melissa",
+  "Timothy",
+  "Deborah",
+  "Ronald",
+  "Stephanie",
+  "Edward",
+  "Rebecca",
+  "Jason",
+  "Sharon",
+  "Jeffrey",
+  "Laura",
+  "Ryan",
+  "Cynthia",
+  "Jacob",
+  "Kathleen",
+  "Gary",
+  "Amy",
 ];
 
 const membershipTiers = ["Bronze", "Silver", "Gold", "Platinum", "Diamond"];
@@ -46,7 +101,7 @@ const products = [
   "Mechanical Keyboard RGB",
   "Instant Film Camera",
   "Cast Iron Skillet Set",
-  "Smart Home Hub"
+  "Smart Home Hub",
 ];
 
 function randomElement<T>(arr: T[]): T {
@@ -74,8 +129,26 @@ function generateLastPurchaseDate(): string {
 }
 
 function generateUsername(): string {
-  const adjectives = ["happy", "clever", "swift", "bright", "cool", "epic", "mega", "super"];
-  const nouns = ["tiger", "eagle", "wolf", "bear", "fox", "hawk", "lion", "shark"];
+  const adjectives = [
+    "happy",
+    "clever",
+    "swift",
+    "bright",
+    "cool",
+    "epic",
+    "mega",
+    "super",
+  ];
+  const nouns = [
+    "tiger",
+    "eagle",
+    "wolf",
+    "bear",
+    "fox",
+    "hawk",
+    "lion",
+    "shark",
+  ];
   return `${randomElement(adjectives)}${randomElement(nouns)}${randomInt(1, 9999)}`;
 }
 
@@ -99,7 +172,7 @@ function generateContacts(count: number): ContactWithVariables[] {
     // Generate unique email
     let email: string;
     do {
-      email = `${generateUsername()}@gmail.com`;
+      email = `delivered+${generateUsername()}@kibamail.dev`;
     } while (usedEmails.has(email));
     usedEmails.add(email);
 
@@ -130,7 +203,9 @@ async function main() {
   console.log(`   HTML size: ${(html.length / 1024).toFixed(2)} KB`);
 
   // Step 2: Generate contacts with random variables
-  console.log(`\nStep 2: Generating ${CONTACT_COUNT} contacts with random variables...`);
+  console.log(
+    `\nStep 2: Generating ${CONTACT_COUNT} contacts with random variables...`
+  );
   const contacts = generateContacts(CONTACT_COUNT);
 
   // Show sample of generated data
@@ -143,7 +218,9 @@ async function main() {
     console.log(`      - loyaltyPoints: ${c.variables.loyaltyPoints}`);
     console.log(`      - membershipTier: ${c.variables.membershipTier}`);
     console.log(`      - lastPurchaseDate: ${c.variables.lastPurchaseDate}`);
-    console.log(`      - recommendedProduct: ${c.variables.recommendedProduct}`);
+    console.log(
+      `      - recommendedProduct: ${c.variables.recommendedProduct}`
+    );
     console.log(`      - discountCode: ${c.variables.discountCode}`);
   }
   if (CONTACT_COUNT > 3) {
@@ -160,16 +237,15 @@ async function main() {
 
   // Step 4: Initialize Kibamail SDK
   console.log("\nStep 4: Initializing Kibamail SDK...");
-  console.log(`   API URL: ${API_URL}`);
 
-  const kibamail = new Kibamail(API_KEY, {
-    baseURL: API_URL,
-  });
+  const kibamail = new Kibamail(API_KEY);
 
   // Step 5: Create and send broadcast
   console.log("\nStep 5: Creating and scheduling broadcast...");
   console.log(`   From: ${FROM_EMAIL}`);
-  console.log(`   Recipients: ${CONTACT_COUNT} contacts with per-email variables`);
+  console.log(
+    `   Recipients: ${CONTACT_COUNT} contacts with per-email variables`
+  );
 
   const startTime = Date.now();
 
@@ -201,7 +277,9 @@ async function main() {
   console.log(`   Broadcast ID: ${data?.id}`);
   console.log(`   API call took: ${elapsed}ms`);
   console.log(`   Scheduled for: ${sendAt.toLocaleString()}`);
-  console.log(`   (${Math.round((sendAt.getTime() - Date.now()) / 1000)} seconds from now)`);
+  console.log(
+    `   (${Math.round((sendAt.getTime() - Date.now()) / 1000)} seconds from now)`
+  );
   console.log("\n   The broadcast will be sent in ~2 minutes.");
   console.log("   Check your server logs for delivery status.\n");
 }

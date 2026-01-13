@@ -1,0 +1,776 @@
+/**
+ * Kibamail Custom CSS for Logto Sign-in Experience
+ * Based on Owly Design System
+ *
+ * Color Palette (Light Theme):
+ * - Brand Brown: #5b2f0e (primary), #49260b (hover), #371c08 (pressed)
+ * - Background: #ffffff (primary), #f6f3f1 (secondary), #faf7f5 (layout)
+ * - Content: #131111 (primary), #3d3b39 (secondary), #716d6a (tertiary)
+ * - Border: #e0dcd9 (tertiary/default), #b6b2af (secondary), #3b82f6 (focus)
+ * - Error: #ef4444
+ */
+
+/* Import Manrope font from Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap");
+
+/* ========================================
+   CSS Variables / Design Tokens
+   ======================================== */
+
+#app {
+  /* Brand Colors */
+  --color-brand-primary: #5b2f0e;
+  --color-brand-hover: #49260b;
+  --color-brand-pressed: #371c08;
+
+  /* Background Colors */
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f6f3f1;
+  --color-bg-layout: #faf7f5;
+  --color-bg-hover: #f6f3f1;
+  --color-bg-pressed: #ece9e7;
+  --color-bg-disabled: #f6f3f1;
+  --color-bg-negative-subtle: #fef8f8;
+
+  /* Content/Text Colors */
+  --color-content-primary: #131111;
+  --color-content-secondary: #3d3b39;
+  --color-content-tertiary: #716d6a;
+  --color-content-inverse: #ffffff;
+  --color-content-disabled: #b6b2af;
+  --color-content-negative: #ef4444;
+  --color-content-brand: #5b2f0e;
+
+  /* Border Colors */
+  --color-border-primary: #807c78;
+  --color-border-secondary: #b6b2af;
+  --color-border-tertiary: #e0dcd9;
+  --color-border-focus: #3b82f6;
+  --color-border-negative: #f9b4b4;
+  --color-border-brand: #49260b;
+
+  /* Spacing */
+  --sp-xs: 4px;
+  --sp-sm: 6px;
+  --sp-md: 8px;
+  --sp-lg: 12px;
+  --sp-xl: 16px;
+  --sp-2xl: 20px;
+  --sp-3xl: 24px;
+  --sp-4xl: 32px;
+
+  /* Border Radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-2xl: 20px;
+
+  /* Typography */
+  --font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-sm: 16px;
+  --line-height-md: 20px;
+  --line-height-lg: 24px;
+
+  /* Shadows */
+  --shadow-input: 0px 2px 0px 0px rgba(0, 0, 0, 0.05) inset;
+  --shadow-button: 0px 2px 0px 0px rgba(255, 255, 255, 0.05) inset,
+    0px 1px 0px 0px rgba(0, 0, 0, 0.1);
+  --shadow-card: 0px 2px 4px 0px rgba(0, 0, 0, 0.05);
+
+  /* Transitions */
+  --transition-default: 150ms ease-in-out;
+
+  /* Override Logto default colors */
+  --color-type-primary: var(--color-content-primary);
+  --color-type-secondary: var(--color-content-secondary);
+}
+
+/* ========================================
+   Global Styles
+   ======================================== */
+
+#app {
+  font-family: var(--font-family) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#app * {
+  font-family: inherit;
+}
+
+/* ========================================
+   Background / Layout
+   ======================================== */
+
+/* Main view background */
+#app > div[class$="viewBox"] {
+  background: var(--color-bg-layout) !important;
+}
+
+/* Main content area */
+#app main[class*="main"] {
+  background: var(--color-bg-primary) !important;
+  border: 1px solid var(--color-border-tertiary) !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+/* Content wrapper inside main */
+#app main[class*="main"] > div[class*="wrapper"] {
+  padding: var(--sp-3xl) !important;
+}
+
+/* Desktop main content dimensions */
+body.desktop .logto_main-content {
+  width: 450px !important;
+  min-height: 620px !important;
+}
+
+/* ========================================
+   Logo
+   ======================================== */
+
+#app main[class*="main"] img[class*="logo"] {
+  margin-bottom: var(--sp-xl) !important;
+}
+
+/* ========================================
+   Typography
+   ======================================== */
+
+/* Headings */
+#app h1,
+#app h2,
+#app main[class*="main"] div[class*="title"] {
+  font-family: var(--font-family) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  color: var(--color-content-primary) !important;
+  letter-spacing: -0.2px;
+}
+
+/* Body text */
+#app p,
+#app span,
+#app label {
+  font-family: var(--font-family) !important;
+  color: var(--color-content-secondary) !important;
+  font-size: var(--font-size-md) !important;
+  line-height: var(--line-height-md) !important;
+}
+
+/* Secondary/description text */
+#app main[class*="main"] div[class*="description"],
+#app main[class*="main"] div[class*="subtitle"] {
+  color: var(--color-content-tertiary) !important;
+  font-size: var(--font-size-sm) !important;
+  line-height: var(--line-height-sm) !important;
+}
+
+/* ========================================
+   Form Container
+   ======================================== */
+
+#app form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg) !important;
+}
+
+/* ========================================
+   Input Fields (Text Field Component Style)
+   ======================================== */
+
+/*
+INPUT STYLES COMMENTED OUT - leaving inputs untouched
+
+// Input field container
+#app form div[class*='inputField'] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm) !important;
+  width: 100%;
+}
+
+// Input wrapper (the border container)
+#app form div[class*='inputField'] > div:has(input),
+#app form div[class*='inputField'] > div[class*='input'] {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  border: 1px solid var(--color-border-tertiary) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-bg-hover) !important;
+  box-shadow: var(--shadow-input) !important;
+  transition: border-color var(--transition-default) !important;
+  padding: var(--sp-xs) var(--sp-md) !important;
+  min-height: 52px !important;
+}
+
+// Input wrapper focus state
+#app form div[class*='inputField'] > div:has(input:focus),
+#app form div[class*='inputField'] > div[class*='input']:focus-within {
+  border-color: var(--color-border-focus) !important;
+  outline: none !important;
+}
+
+// Input wrapper error state
+#app form div[class*='inputField'][class*='error'] > div:has(input),
+#app form div[class*='inputField'][class*='error'] > div[class*='input'],
+#app form div[class*='inputField']:has([class*='error']) > div:has(input) {
+  border-color: var(--color-border-negative) !important;
+  background: var(--color-bg-negative-subtle) !important;
+}
+
+// The actual input element
+#app form div[class*='inputField'] input {
+  height: 24px !important;
+  padding: 0 var(--sp-md) !important;
+  padding-top: var(--sp-xl) !important;
+  border: none !important;
+  background: transparent !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-md) !important;
+  font-weight: var(--font-weight-medium) !important;
+  color: var(--color-content-primary) !important;
+  line-height: var(--line-height-md) !important;
+  outline: none !important;
+  box-shadow: none !important;
+  flex: 1;
+  min-width: 0;
+}
+
+// Floating label styles
+#app form div[class*='inputField'] label[class*='floating'],
+#app form div[class*='inputField'] div[class*='input'] label {
+  position: absolute;
+  top: var(--sp-md) !important;
+  left: var(--sp-lg) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+  color: var(--color-content-tertiary) !important;
+  pointer-events: none;
+  transition: all var(--transition-default) !important;
+}
+
+// Input placeholder
+#app form div[class*='inputField'] input::placeholder {
+  color: var(--color-content-disabled) !important;
+  font-weight: var(--font-weight-regular) !important;
+  opacity: 1 !important;
+}
+
+// Input labels
+#app form div[class*='inputField'] label,
+#app form label {
+  font-size: var(--font-size-md) !important;
+  font-weight: var(--font-weight-medium) !important;
+  color: var(--color-content-secondary) !important;
+  line-height: var(--line-height-md) !important;
+}
+
+// Input icons/prefix/suffix
+#app form div[class*='inputField'] svg,
+#app form div[class*='inputField'] [class*='icon'] {
+  color: var(--color-content-tertiary) !important;
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
+}
+
+// Country code selector
+#app form div[class*='inputField'] div[class$='countryCodeSelector'] {
+  border-right: 1px solid var(--color-border-tertiary) !important;
+  margin-right: var(--sp-md) !important;
+  padding-right: var(--sp-md) !important;
+}
+
+// Error message text
+#app form div[class*='inputField'] div[class*='error'],
+#app form div[class*='errorMessage'],
+#app [class*='errorMessage'] {
+  color: var(--color-content-negative) !important;
+  font-size: var(--font-size-sm) !important;
+  line-height: var(--line-height-sm) !important;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs) !important;
+}
+
+// Hint text
+#app form div[class*='inputField'] div[class*='hint'] {
+  color: var(--color-content-tertiary) !important;
+  font-size: var(--font-size-sm) !important;
+  line-height: var(--line-height-sm) !important;
+}
+
+END INPUT STYLES COMMENTED OUT
+*/
+
+/* ========================================
+   Buttons (Button Component Style)
+   ======================================== */
+
+/* All buttons base styles */
+#app button {
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-md) !important;
+  font-weight: var(--font-weight-regular) !important;
+  line-height: var(--line-height-md) !important;
+  border-radius: var(--radius-md) !important;
+  transition: background-color var(--transition-default),
+    border-color var(--transition-default), outline var(--transition-default) !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-xs) !important;
+}
+
+/* Primary/Submit button (Brand style) */
+#app button[type="submit"],
+#app button[class*="primary"] {
+  background: var(--color-brand-primary) !important;
+  border: 1px solid var(--color-border-brand) !important;
+  border-bottom-width: 2px !important;
+  color: var(--color-content-inverse) !important;
+  padding: var(--sp-md) var(--sp-lg) !important;
+  min-height: 40px !important;
+  box-shadow: var(--shadow-button) !important;
+}
+
+/* Primary button text - override general span/p color */
+#app button[type="submit"] span,
+#app button[type="submit"] p,
+#app button[class*="primary"] span,
+#app button[class*="primary"] p {
+  color: var(--color-content-inverse) !important;
+}
+
+/* Primary button disabled text */
+#app button[type="submit"]:disabled span,
+#app button[type="submit"]:disabled p,
+#app button[class*="primary"]:disabled span,
+#app button[class*="primary"]:disabled p {
+  color: var(--color-content-disabled) !important;
+}
+
+#app button[type="submit"]:hover,
+#app button[class*="primary"]:hover {
+  background: var(--color-brand-hover) !important;
+}
+
+#app button[type="submit"]:active,
+#app button[class*="primary"]:active {
+  background: var(--color-brand-pressed) !important;
+}
+
+#app button[type="submit"]:focus-visible,
+#app button[class*="primary"]:focus-visible {
+  outline: 2px solid var(--color-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+#app button[type="submit"]:disabled,
+#app button[class*="primary"]:disabled {
+  background: var(--color-bg-disabled) !important;
+  border-color: var(--color-border-tertiary) !important;
+  color: var(--color-content-disabled) !important;
+  cursor: not-allowed !important;
+  box-shadow: none !important;
+}
+
+/* Secondary buttons */
+#app button[class*="secondary"],
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  ) {
+  background: transparent !important;
+  border: none !important;
+  border-bottom-width: 2px !important;
+  color: var(--color-content-tertiary) !important;
+  box-shadow: none !important;
+}
+
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  )
+  svg {
+  color: var(--color-brand-primary);
+  width: 16px !important;
+  height: 16px !important;
+  fill: currentColor;
+}
+
+/* Secondary button text - override general span/p color */
+#app button[class*="secondary"] span,
+#app button[class*="secondary"] p,
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  )
+  span,
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  )
+  p {
+  color: var(--color-content-secondary) !important;
+}
+
+#app button[class*="secondary"]:hover,
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  ):hover {
+  background: var(--color-bg-hover) !important;
+}
+
+#app button[class*="secondary"]:active,
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  ):active {
+  background: var(--color-bg-pressed) !important;
+}
+
+#app button[class*="secondary"]:focus-visible,
+#app
+  button:not([type="submit"]):not([class*="primary"]):not([class*="text"]):not(
+    [class*="link"]
+  ):focus-visible {
+  outline: 2px solid var(--color-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+/* Text/Link buttons */
+#app button[class*="text"],
+#app button[class*="link"] {
+  background: transparent !important;
+  border: none !important;
+  color: var(--color-content-secondary) !important;
+  padding: var(--sp-xs) var(--sp-md) !important;
+  box-shadow: none !important;
+}
+
+#app button[class*="text"]:hover,
+#app button[class*="link"]:hover {
+  background: var(--color-bg-hover) !important;
+  color: var(--color-content-primary) !important;
+}
+
+/* ========================================
+   Links
+   ======================================== */
+
+#app a {
+  color: var(--color-content-brand) !important;
+  text-decoration: none !important;
+  font-weight: var(--font-weight-medium) !important;
+  transition: color var(--transition-default) !important;
+}
+
+#app a:hover {
+  color: var(--color-brand-hover) !important;
+  text-decoration: underline !important;
+}
+
+#app a:focus-visible {
+  outline: 2px solid var(--color-border-focus) !important;
+  outline-offset: 2px !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ========================================
+   Dividers
+   ======================================== */
+
+#app main[class*="main"] > div[class*="divider"],
+#app div[class*="divider"] {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg) !important;
+  margin: var(--sp-xl) 0 !important;
+}
+
+#app main[class*="main"] > div[class*="divider"]::before,
+#app main[class*="main"] > div[class*="divider"]::after,
+#app div[class*="divider"]::before,
+#app div[class*="divider"]::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border-tertiary) !important;
+}
+
+#app div[class*="divider"] span {
+  color: var(--color-content-tertiary) !important;
+  font-size: var(--font-size-sm) !important;
+  font-weight: var(--font-weight-medium) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ========================================
+   Social Login Buttons
+   ======================================== */
+
+#app div[class*="socialLinkList"] {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg) !important;
+}
+
+#app div[class*="socialLinkList"] button,
+#app div[class*="socialLinkList"] a {
+  background: var(--color-bg-primary) !important;
+  border: 1px solid var(--color-border-tertiary) !important;
+  border-bottom-width: 2px !important;
+  border-radius: var(--radius-md) !important;
+  color: var(--color-content-secondary) !important;
+  font-family: var(--font-family) !important;
+  font-size: var(--font-size-md) !important;
+  font-weight: var(--font-weight-medium) !important;
+  padding: var(--sp-md) var(--sp-lg) !important;
+  min-height: 40px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-md) !important;
+  transition: background-color var(--transition-default),
+    border-color var(--transition-default) !important;
+  box-shadow: var(--shadow-button) !important;
+  text-decoration: none !important;
+}
+
+#app div[class*="socialLinkList"] button:hover,
+#app div[class*="socialLinkList"] a:hover {
+  background: var(--color-bg-hover) !important;
+  border-color: var(--color-border-secondary) !important;
+}
+
+/* Social button text - override general span/p color */
+#app div[class*="socialLinkList"] button span,
+#app div[class*="socialLinkList"] button p,
+#app div[class*="socialLinkList"] a span,
+#app div[class*="socialLinkList"] a p {
+  color: var(--color-content-secondary) !important;
+}
+
+#app div[class*="socialLinkList"] button:focus-visible,
+#app div[class*="socialLinkList"] a:focus-visible {
+  outline: 2px solid var(--color-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+/* Social button icons */
+#app div[class*="socialLinkList"] img,
+#app div[class*="socialLinkList"] svg {
+  width: 20px !important;
+  height: 20px !important;
+  flex-shrink: 0;
+}
+
+/* ========================================
+   Checkbox & Terms
+   ======================================== */
+
+#app input[type="checkbox"] {
+  width: 16px !important;
+  height: 16px !important;
+  border: 1px solid var(--color-border-secondary) !important;
+  border-radius: var(--radius-sm) !important;
+  background: var(--color-bg-primary) !important;
+  cursor: pointer;
+  accent-color: var(--color-brand-primary) !important;
+}
+
+#app input[type="checkbox"]:checked {
+  background: var(--color-brand-primary) !important;
+  border-color: var(--color-border-brand) !important;
+}
+
+#app input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--color-border-focus) !important;
+  outline-offset: 2px !important;
+}
+
+/* Terms/consent text */
+#app div[class*="terms"],
+#app div[class*="consent"] {
+  font-size: var(--font-size-sm) !important;
+  color: var(--color-content-tertiary) !important;
+  line-height: var(--line-height-sm) !important;
+}
+
+/* ========================================
+   Password Toggle Button
+   ======================================== */
+
+#app button[class*="password"],
+#app button[class*="toggle"] {
+  background: transparent !important;
+  border: none !important;
+  padding: var(--sp-xs) !important;
+  color: var(--color-content-tertiary) !important;
+  box-shadow: none !important;
+  min-height: auto !important;
+}
+
+#app button[class*="password"]:hover,
+#app button[class*="toggle"]:hover {
+  color: var(--color-content-secondary) !important;
+  background: transparent !important;
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+
+#app [class*="loading"],
+#app [class*="spinner"] {
+  color: var(--color-brand-primary) !important;
+}
+
+#app button[disabled] [class*="loading"],
+#app button[disabled] [class*="spinner"] {
+  color: var(--color-content-disabled) !important;
+}
+
+/* ========================================
+   Alerts / Notifications
+   ======================================== */
+
+#app div[class*="alert"],
+#app div[class*="notification"] {
+  border-radius: var(--radius-md) !important;
+  padding: var(--sp-lg) !important;
+  font-size: var(--font-size-sm) !important;
+  line-height: var(--line-height-sm) !important;
+}
+
+#app div[class*="alert"][class*="error"],
+#app div[class*="notification"][class*="error"] {
+  background: var(--color-bg-negative-subtle) !important;
+  border: 1px solid var(--color-border-negative) !important;
+  color: var(--color-content-negative) !important;
+}
+
+/* ========================================
+   Footer / Additional Links
+   ======================================== */
+
+#app footer,
+#app div[class*="footer"] {
+  margin-top: var(--sp-3xl) !important;
+  padding-top: var(--sp-xl) !important;
+  border-top: 1px solid var(--color-border-tertiary) !important;
+  text-align: center;
+}
+
+#app footer p,
+#app div[class*="footer"] p {
+  font-size: var(--font-size-sm) !important;
+  color: var(--color-content-tertiary) !important;
+}
+
+/* ========================================
+   Verification Code Input
+   ======================================== */
+
+#app input[class*="code"],
+#app div[class*="codeInput"] input,
+#app div[class*="passcode"] input {
+  width: 44px !important;
+  height: 52px !important;
+  text-align: center !important;
+  font-size: var(--font-size-xl) !important;
+  font-weight: var(--font-weight-semibold) !important;
+  border: 1px solid var(--color-border-tertiary) !important;
+  border-radius: var(--radius-md) !important;
+  background: var(--color-bg-hover) !important;
+  color: var(--color-content-primary) !important;
+  box-shadow: var(--shadow-input) !important;
+}
+
+#app input[class*="code"]:focus,
+#app div[class*="codeInput"] input:focus,
+#app div[class*="passcode"] input:focus {
+  border-color: var(--color-border-focus) !important;
+  outline: none !important;
+}
+
+/* ========================================
+   Mobile Responsive Adjustments
+   ======================================== */
+
+@media (max-width: 480px) {
+  #app main[class*="main"] > div[class*="wrapper"] {
+    padding: var(--sp-xl) !important;
+  }
+
+  #app main[class*="main"] {
+    border-radius: 0 !important;
+    border-left: none !important;
+    border-right: none !important;
+  }
+}
+
+/* ========================================
+   Reduced Motion
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  #app *,
+  #app *::before,
+  #app *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ========================================
+   Dark Mode Support
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+  #app {
+    /* Background Colors */
+    --color-bg-primary: #2d2b2a;
+    --color-bg-secondary: #3d3b39;
+    --color-bg-layout: #1f1e1d;
+    --color-bg-hover: #3d3b39;
+    --color-bg-pressed: #494745;
+    --color-bg-disabled: #3d3b39;
+    --color-bg-negative-subtle: #3d2b2b;
+
+    /* Content/Text Colors */
+    --color-content-primary: #ffffff;
+    --color-content-secondary: #e0dcd9;
+    --color-content-tertiary: #b6b2af;
+    --color-content-disabled: #716d6a;
+
+    /* Border Colors */
+    --color-border-primary: #aaa6a3;
+    --color-border-secondary: #716d6a;
+    --color-border-tertiary: #494745;
+    --color-border-brand: #5b2f0e;
+    --color-border-negative: #8f2929;
+  }
+}

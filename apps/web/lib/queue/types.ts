@@ -67,8 +67,8 @@ export type QueueJobs = {
       broadcastId: string;
       /** Workspace ID */
       workspaceId: string;
-      /** Contact ID for this recipient */
-      contactId: string;
+      /** Pre-generated sendingId for tracking (matches BroadcastSend record) */
+      sendingId: string;
       /** Recipient email address (sandbox address) */
       email: string;
       /** Sandbox outcome type (delivered, bounced, complained, etc.) */
@@ -85,6 +85,18 @@ export type QueueJobs = {
       previewText?: string;
       /** Transient variables from API request */
       transientVariables?: Record<string, string | number>;
+    };
+    /** Email-only broadcast batch sending (no contacts required) */
+    "send-broadcast-batch-emails": {
+      /** Broadcast ID */
+      broadcastId: string;
+      /** Batch ID for tracking */
+      batchId: string;
+      /** Email-only recipients (no contact records) */
+      emails: Array<{
+        email: string;
+        variables?: Record<string, string | number>;
+      }>;
     };
   };
   // Sending domains queue for domain verification checks
@@ -112,6 +124,13 @@ export type QueueJobs = {
     unsubscribe: {
       contactId: string;
       broadcastId: string;
+      source: "link" | "list-unsubscribe";
+    };
+    /** Unsubscribe by sendingId (for email-only sends without contacts) */
+    "unsubscribe-by-sending-id": {
+      /** The sendingId from the BroadcastSend record */
+      sendingId: string;
+      /** Source of the unsubscribe request */
       source: "link" | "list-unsubscribe";
     };
   };

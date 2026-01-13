@@ -1305,14 +1305,16 @@ model BroadcastSend {
   id                   String              @id @default(cuid())
   /// Broadcast this send belongs to
   broadcastId          String
-  /// Contact who received this email
-  contactId            String
+  /// Contact who received this email (null for email-only sends via create-and-send API)
+  contactId            String?
   /// Workspace ID for tenant segregation (denormalized for efficient queries)
   workspaceId          String
   /// MTA sending ID - links to Event records
   sendingId            String              @unique
   /// Recipient email (denormalized for exports after contact deletion)
   email                String
+  /// Per-send variables for personalization (stored as JSON, used for email-only sends)
+  variables            Json?
 
   // === Delivery Status (denormalized from Events) ===
   /// Current send status
@@ -1897,6 +1899,38 @@ enum InboxMessageStatus {
 }
 
 /// *
+///  * Template Groups Schema
+///  *
+///  * Organizes email templates into logical groups for easier management.
+///  * Groups are flat (no hierarchy) and provide categorization with visual customization.
+model TemplateGroup {
+  /// Unique identifier for the template group
+  id          String          @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId String
+  /// Group name for identification
+  name        String
+  /// Group description (optional)
+  description String?
+  /// Color for visual identification (hex color code)
+  color       String          @default("#6366F1")
+  /// Icon identifier for visual representation
+  icon        String          @default("folder")
+  /// When the group was created
+  createdAt   DateTime        @default(now())
+  /// When the group was last updated
+  updatedAt   DateTime        @updatedAt
+  /// Soft delete timestamp (NULL = active, non-NULL = deleted)
+  deletedAt   DateTime?       @map("deleted_at")
+  /// Templates belonging to this group
+  templates   EmailTemplate[]
+
+  @@unique([workspaceId, name])
+  @@index([workspaceId])
+  @@index([workspaceId, deletedAt])
+  @@map("template_groups")
+}
+
 ///  * Email Templates Schema
 ///  *
 ///  * Reusable transactional email templates with versioning support.
@@ -1912,6 +1946,9 @@ model EmailTemplate {
   name               String
   /// Template description
   description        String?
+  /// Unique slug identifier for API reference (only set on parent templates)
+  /// Users can provide this when creating templates, auto-generated from name if not provided
+  uniqueSlug         String?
   /// Current status of this version
   status             EmailTemplateStatus  @default(DRAFT)
   /// Version number (increments with each new version)
@@ -1928,6 +1965,8 @@ model EmailTemplate {
   senderIdentityId   String?
   /// Reply-to sender identity
   replyToIdentityId  String?
+  /// Template group for organization (optional)
+  templateGroupId    String?
   /// Whether to track clicks
   trackClicks        Boolean              @default(true)
   /// Whether to track opens
@@ -1954,6 +1993,8 @@ model EmailTemplate {
   senderIdentity     SenderIdentity?      @relation("TemplateSender", fields: [senderIdentityId], references: [id], onDelete: SetNull)
   /// Reply-to sender identity
   replyToIdentity    SenderIdentity?      @relation("TemplateReplyTo", fields: [replyToIdentityId], references: [id], onDelete: SetNull)
+  /// Template group relation (optional)
+  templateGroup      TemplateGroup?       @relation(fields: [templateGroupId], references: [id], onDelete: SetNull)
 
   /// Only enforce uniqueness for DRAFT and PUBLISHED status (allow multiple ARCHIVED)
   /// This allows version rollback/rollforward without constraint violations
@@ -1963,6 +2004,8 @@ model EmailTemplate {
   @@index([workspaceId, deletedAt])
   @@index([parentId])
   @@index([publishedVersionId])
+  @@index([templateGroupId])
+  @@unique([workspaceId, uniqueSlug], name: "unique_template_slug_per_workspace")
   @@map("email_templates")
 }
 

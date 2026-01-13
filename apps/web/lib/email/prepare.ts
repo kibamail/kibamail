@@ -34,6 +34,15 @@ export interface EmailContact {
 }
 
 /**
+ * Email-only recipient (no contact record required)
+ * Used for create-and-send API with emails array
+ */
+export interface EmailOnlyContact {
+  email: string;
+  variables?: Record<string, string | number>;
+}
+
+/**
  * Broadcast data needed for email preparation
  */
 export interface EmailBroadcast {
@@ -424,4 +433,252 @@ export function convertToMtaMessages(
       track_clicks: prepared.trackClicks,
     };
   });
+}
+
+// ============================================================================
+// Email-Only Preparation (no contact records required)
+// ============================================================================
+
+/**
+ * Result of preparing an email-only send (no contact required)
+ */
+export interface PreparedEmailOnly {
+  // Identifiers
+  emailSendId: string;
+  messageId: string;
+  workspaceId: string;
+  broadcastId: string;
+
+  // Recipient
+  recipientEmail: string;
+
+  // Sender
+  senderEmail: string;
+  senderName: string;
+  senderDomain: string;
+  envelopeSender: string;
+  replyTo: string;
+
+  // Content
+  subject: string;
+  previewText: string;
+  htmlBody: string;
+  textBody: string;
+
+  // Headers
+  headers: Record<string, string>;
+
+  // Tracking
+  trackOpens: boolean;
+  trackClicks: boolean;
+  links: Array<{ original: string; tracking: string }>;
+
+  // Variables (stored in BroadcastSend for personalization tracking)
+  variables?: Record<string, string | number>;
+}
+
+/**
+ * Build personalization variables for email-only recipients
+ *
+ * Uses sendingId-based URLs for unsubscribe since there's no contactId.
+ * The sendingId is generated before this function is called.
+ *
+ * @param email - Recipient email address
+ * @param broadcast - The broadcast data
+ * @param emailSendId - The unique send ID (used for unsubscribe URL)
+ * @param customVariables - Optional custom variables from API request
+ * @returns Variables map for template substitution
+ */
+function buildVariablesForEmailOnly(
+  email: string,
+  broadcast: EmailBroadcast,
+  emailSendId: string,
+  customVariables?: Record<string, string | number>,
+): Record<string, string> {
+  const domain = broadcast.sendingDomain.name;
+  const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
+
+  // Start with built-in variables (no firstName/lastName for email-only)
+  const variables: Record<string, string> = {
+    email,
+    firstName: "",
+    first_name: "",
+    lastName: "",
+    last_name: "",
+    // Use sendingId-based URL for unsubscribe (different from contact-based)
+    unsubscribe_url: `https://${trackingDomain}/us/${emailSendId}`,
+    preferences_url: "", // No preferences page for email-only (no contact)
+    view_in_browser_url: `https://${trackingDomain}/vs/${emailSendId}`,
+  };
+
+  // Override with custom variables from API request
+  if (customVariables) {
+    for (const [key, value] of Object.entries(customVariables)) {
+      variables[key] = String(value);
+      variables[`contact.${key}`] = String(value);
+    }
+  }
+
+  return variables;
+}
+
+/**
+ * Prepare a single email for email-only sending (no contact record)
+ *
+ * @param recipient - The email-only recipient
+ * @param broadcast - The broadcast data
+ * @returns Prepared email ready for injection
+ */
+async function prepareEmailOnly(
+  recipient: EmailOnlyContact,
+  broadcast: EmailBroadcast,
+): Promise<PreparedEmailOnly> {
+  const domain = broadcast.sendingDomain.name;
+  const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
+
+  // Generate IDs first so we can use sendingId in unsubscribe URL
+  const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);
+  const variables = buildVariablesForEmailOnly(
+    recipient.email,
+    broadcast,
+    emailSendId,
+    recipient.variables,
+  );
+
+  // Tracking settings
+  const trackOpens = broadcast.trackOpens ?? true;
+  const trackClicks = broadcast.trackClicks ?? true;
+
+  // Render HTML content
+  let htmlBody: string;
+  if (broadcast.emailContent.contentJson) {
+    const styles = broadcast.emailContent.styles ?? {};
+    htmlBody = await renderBroadcastToHtml(
+      broadcast.emailContent.contentJson as BroadcastDocument,
+      { variables },
+      styles,
+    );
+  } else if (broadcast.emailContent.contentHtml) {
+    htmlBody = substituteVariables(
+      broadcast.emailContent.contentHtml,
+      variables,
+    );
+  } else {
+    throw new Error(`Broadcast ${broadcast.id} has no content`);
+  }
+
+  // Apply tracking (link rewriting, open pixel)
+  const trackingResult = applyTracking(htmlBody, trackingDomain, emailSendId, {
+    clickTracking: trackClicks,
+    openTracking: trackOpens,
+  });
+
+  // Prepare plain text version
+  let textBody: string;
+  if (broadcast.emailContent.contentText) {
+    textBody = substituteVariables(broadcast.emailContent.contentText, variables);
+  } else {
+    textBody = htmlToPlainText(trackingResult.html);
+  }
+
+  // Build envelope sender for bounce handling
+  const envelopeSender = `bounces+${emailSendId}@${broadcast.sendingDomain.returnPathSubDomain}.${domain}`;
+
+  // Build List-Unsubscribe headers (RFC 8058)
+  const headers = buildListUnsubscribeHeaders(variables.unsubscribe_url);
+
+  // Substitute variables in subject and preview text
+  const subject = substituteVariables(broadcast.emailContent.subject, variables);
+  const previewText = broadcast.emailContent.previewText
+    ? substituteVariables(broadcast.emailContent.previewText, variables)
+    : "";
+
+  // Build reply-to (no inbox tracking for email-only sends)
+  const replyTo = `${broadcast.replyToLocalPart}@${broadcast.replyToDomain}`;
+
+  return {
+    emailSendId,
+    messageId,
+    workspaceId: broadcast.workspaceId,
+    broadcastId: broadcast.id,
+    recipientEmail: recipient.email,
+    senderEmail: broadcast.senderIdentity.email,
+    senderName: broadcast.senderIdentity.name ?? "",
+    senderDomain: domain,
+    envelopeSender,
+    replyTo,
+    subject,
+    previewText,
+    htmlBody: trackingResult.html,
+    textBody,
+    headers,
+    trackOpens,
+    trackClicks,
+    links: trackingResult.links,
+    variables: recipient.variables,
+  };
+}
+
+/**
+ * Prepare multiple email-only recipients for batch sending
+ *
+ * @param recipients - Array of email-only recipients
+ * @param broadcast - The broadcast data
+ * @returns Array of prepared emails
+ */
+export async function prepareEmailOnlyBatch(
+  recipients: EmailOnlyContact[],
+  broadcast: EmailBroadcast,
+): Promise<PreparedEmailOnly[]> {
+  const preparedEmails: PreparedEmailOnly[] = [];
+
+  for (const recipient of recipients) {
+    const prepared = await prepareEmailOnly(recipient, broadcast);
+    preparedEmails.push(prepared);
+  }
+
+  return preparedEmails;
+}
+
+/**
+ * Convert email-only prepared emails to MTA injection message format
+ *
+ * @param preparedEmails - Array of prepared email-only emails
+ * @returns Array of email messages ready for injection
+ */
+export function convertEmailOnlyToMtaMessages(
+  preparedEmails: PreparedEmailOnly[],
+): EmailMessage[] {
+  return preparedEmails.map((prepared) => ({
+    id: prepared.emailSendId,
+    tenant_id: prepared.workspaceId,
+    broadcast_id: prepared.broadcastId,
+    contact_id: "", // No contact for email-only sends
+    pool: "marketing" as const,
+    recipient: {
+      email: prepared.recipientEmail,
+      name: "", // No name for email-only recipients
+    },
+    sender: {
+      email: prepared.senderEmail,
+      name: prepared.senderName,
+      domain: prepared.senderDomain,
+    },
+    reply_to: {
+      email: prepared.replyTo,
+      name: "",
+    },
+    subject: prepared.subject,
+    preview_text: prepared.previewText,
+    html_body: prepared.htmlBody,
+    text_body: prepared.textBody,
+    attachments: [],
+    headers: prepared.headers,
+    metadata: {
+      message_id: prepared.messageId,
+      envelope_sender: prepared.envelopeSender,
+    },
+    track_opens: prepared.trackOpens,
+    track_clicks: prepared.trackClicks,
+  }));
 }

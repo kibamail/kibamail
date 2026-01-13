@@ -12,6 +12,7 @@ import type {
   Prisma,
   SenderIdentity,
 } from "@prisma/client";
+import { createId } from "@paralleldrive/cuid2";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { ErrorCode } from "@/lib/api/error-codes";
@@ -50,7 +51,9 @@ import {
 } from "@/lib/broadcasts/readiness";
 import {
   resolveRecipients,
+  resolveByEmails,
   type RecipientContact,
+  type EmailOnlyRecipient,
 } from "@/lib/broadcasts/recipient-resolver";
 import { scheduleBroadcast as createBatchSchedule } from "@/lib/broadcasts/batch-scheduler";
 import { prisma } from "@/lib/db";
@@ -754,11 +757,14 @@ export async function createAndSendBroadcast(
     request,
   );
 
+  // Determine if this is an email-only send (using emails array)
+  const isEmailOnlySend = data.recipients.emails && data.recipients.emails.length > 0;
+
   // Check for sandbox emails FIRST (only when using emails recipient type)
   // This allows us to skip sendAt validation for sandbox broadcasts
   let isSandboxBroadcast = false;
-  if (data.recipients.emails && data.recipients.emails.length > 0) {
-    const emails = data.recipients.emails.map((e) =>
+  if (isEmailOnlySend) {
+    const emails = data.recipients.emails!.map((e) =>
       typeof e === "string" ? e : e.email,
     );
     const sandboxEmails = emails.filter(isSandboxEmail);
@@ -784,21 +790,53 @@ export async function createAndSendBroadcast(
     );
   }
 
-  const { contactIds, contacts } = await resolveRecipients(
-    workspaceId,
-    data.recipients,
-  );
+  // Resolve recipients based on type (email-only vs contact-based)
+  let contactIds: string[] = [];
+  let contacts: RecipientContact[] = [];
+  let emailOnlyRecipients: EmailOnlyRecipient[] = [];
 
-  if (contactIds.length === 0) {
-    throw new BadRequestError(
-      "No valid recipients found",
-      ErrorCode.INVALID_PARAMETER,
-    );
-  }
+  if (isEmailOnlySend) {
+    // Email-only send: use resolveByEmails (does NOT create contacts)
+    const resolution = resolveByEmails(data.recipients.emails!);
+    emailOnlyRecipients = resolution.emails;
 
-  // Route to sandbox processing if applicable
-  if (isSandboxBroadcast) {
-    return processSandboxBroadcast(workspaceId, data, contacts);
+    if (emailOnlyRecipients.length === 0) {
+      throw new BadRequestError(
+        "No valid recipients found",
+        ErrorCode.INVALID_PARAMETER,
+      );
+    }
+
+    // Route to sandbox processing if applicable
+    if (isSandboxBroadcast) {
+      // For sandbox, we need to convert email-only recipients to contacts format
+      const sandboxContacts: RecipientContact[] = emailOnlyRecipients.map((e, i) => ({
+        id: `sandbox-${i}`, // Temporary ID for sandbox processing
+        email: e.email,
+        firstName: null,
+        lastName: null,
+        properties: {},
+        transientVariables: e.variables,
+      }));
+      return processSandboxBroadcast(workspaceId, data, sandboxContacts);
+    }
+  } else {
+    // Contact-based send: use resolveRecipients (contacts, segment, or topic)
+    const resolution = await resolveRecipients(workspaceId, data.recipients);
+    contactIds = resolution.contactIds;
+    contacts = resolution.contacts;
+
+    if (contactIds.length === 0) {
+      throw new BadRequestError(
+        "No valid recipients found",
+        ErrorCode.INVALID_PARAMETER,
+      );
+    }
+
+    // Route to sandbox processing if applicable (shouldn't happen for contact-based, but keep for safety)
+    if (isSandboxBroadcast) {
+      return processSandboxBroadcast(workspaceId, data, contacts);
+    }
   }
 
   let senderIdentityId: string | undefined;
@@ -877,36 +915,65 @@ export async function createAndSendBroadcast(
   const jobRunAt = new Date(sendAt.getTime() - 5 * 60 * 1000);
   const baseDelay = Math.max(0, jobRunAt.getTime() - Date.now());
 
-  // Create batch schedule using the batch scheduler
-  // This respects domain sending limits for warmup
-  const schedule = createBatchSchedule(contactIds, {
-    maxSendPerDay: sendingDomain.maxSendPerDay,
-    maxSendPerHour: sendingDomain.maxSendPerHour,
-  });
-
-  // Queue batch jobs directly with contacts (including transientVariables)
   const batchQueue = queue("broadcasts");
-  const batchJobs = schedule.batches.map((batch) => {
-    const batchContactIds = batch.contactIds;
-    // Filter contacts for this batch, preserving transientVariables
-    const batchContacts = contacts.filter((c) => batchContactIds.includes(c.id));
 
-    return {
-      name: "send-broadcast-batch" as const,
-      data: {
-        broadcastId: broadcast.id,
-        batchId: batch.batchId,
-        contactIds: batchContactIds,
-        contacts: batchContacts,
-      },
-      options: {
-        // Add baseDelay to the batch's scheduled delay
-        delay: baseDelay + batch.delayMs,
-      },
-    };
-  });
+  if (isEmailOnlySend) {
+    // Email-only send: create batch jobs with email-only recipients
+    // For simplicity, create synthetic IDs for batching (using email as ID)
+    const emailIds = emailOnlyRecipients.map((e) => e.email);
+    const schedule = createBatchSchedule(emailIds, {
+      maxSendPerDay: sendingDomain.maxSendPerDay,
+      maxSendPerHour: sendingDomain.maxSendPerHour,
+    });
 
-  await batchQueue.pushBulk(batchJobs);
+    const batchJobs = schedule.batches.map((batch) => {
+      // Get emails for this batch
+      const batchEmails = emailOnlyRecipients.filter((e) =>
+        batch.contactIds.includes(e.email),
+      );
+
+      return {
+        name: "send-broadcast-batch-emails" as const,
+        data: {
+          broadcastId: broadcast.id,
+          batchId: batch.batchId,
+          emails: batchEmails,
+        },
+        options: {
+          delay: baseDelay + batch.delayMs,
+        },
+      };
+    });
+
+    await batchQueue.pushBulk(batchJobs);
+  } else {
+    // Contact-based send: use existing batch job with contacts
+    const schedule = createBatchSchedule(contactIds, {
+      maxSendPerDay: sendingDomain.maxSendPerDay,
+      maxSendPerHour: sendingDomain.maxSendPerHour,
+    });
+
+    const batchJobs = schedule.batches.map((batch) => {
+      const batchContactIds = batch.contactIds;
+      // Filter contacts for this batch, preserving transientVariables
+      const batchContacts = contacts.filter((c) => batchContactIds.includes(c.id));
+
+      return {
+        name: "send-broadcast-batch" as const,
+        data: {
+          broadcastId: broadcast.id,
+          batchId: batch.batchId,
+          contactIds: batchContactIds,
+          contacts: batchContacts,
+        },
+        options: {
+          delay: baseDelay + batch.delayMs,
+        },
+      };
+    });
+
+    await batchQueue.pushBulk(batchJobs);
+  }
 
   return responseCreated({ id: broadcast.id }, "broadcast");
 }

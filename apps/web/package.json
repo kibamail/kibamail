@@ -24,7 +24,8 @@
     "seed:contacts": "dotenvx run -f .env.local -- tsx scripts/contact-seed.ts",
     "openapi:generate": "tsx scripts/openapi.ts",
     "worker": "dotenvx run -f .env.local -- tsx jobs/worker.ts",
-    "knip": "knip"
+    "knip": "knip",
+    "manual-test:create-and-send": "dotenvx run -f .env.local -- tsx manual-tests/broadcasts/create-and-send.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",

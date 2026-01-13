@@ -50,6 +50,11 @@ export interface UnsubscribeEvent {
   source: "link" | "list-unsubscribe";
 }
 
+export interface UnsubscribeBySendingIdEvent {
+  sendingId: string;
+  source: "link" | "list-unsubscribe";
+}
+
 /**
  * Record an email open event
  */
@@ -94,6 +99,22 @@ export async function dispatchUnsubscribe(
   event: UnsubscribeEvent
 ): Promise<void> {
   await contactsQueue.add("unsubscribe", event, {
+    removeOnComplete: 1000,
+    removeOnFail: 5000,
+  });
+}
+
+/**
+ * Dispatch an unsubscribe-by-sendingId job
+ *
+ * This pushes to the contacts queue which is processed by apps/web worker.
+ * Used for email-only sends where there is no contact record.
+ * The job will add the email to the suppression list.
+ */
+export async function dispatchUnsubscribeBySendingId(
+  event: UnsubscribeBySendingIdEvent
+): Promise<void> {
+  await contactsQueue.add("unsubscribe-by-sending-id", event, {
     removeOnComplete: 1000,
     removeOnFail: 5000,
   });

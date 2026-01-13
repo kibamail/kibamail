@@ -22,6 +22,33 @@ import { prisma } from "@/lib/db";
 import { createEmailTemplateSchema, updateEmailTemplateSchema } from "./schema";
 
 /**
+ * Validates that a template group ID belongs to the specified workspace.
+ * Throws NotFoundError if the group doesn't exist or belongs to a different workspace.
+ */
+async function validateTemplateGroup(
+  workspaceId: string,
+  templateGroupId?: string | null,
+): Promise<void> {
+  if (!templateGroupId) return;
+
+  const group = await prisma.templateGroup.findFirst({
+    where: {
+      id: templateGroupId,
+      workspaceId,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+
+  if (!group) {
+    throw new NotFoundError(
+      "Template group not found",
+      ErrorCode.RESOURCE_NOT_FOUND,
+    );
+  }
+}
+
+/**
  * Validates that sender identity IDs belong to the specified workspace.
  * Throws NotFoundError if any identity doesn't exist or belongs to a different workspace.
  */
@@ -75,34 +102,51 @@ export async function createEmailTemplate(
 ) {
   const data = await validateRequestBody(createEmailTemplateSchema, request);
 
-  // Create the template with its own EmailContent in a transaction
-  const template = await prisma.$transaction(async (tx) => {
-    // Create the email content for this template
-    const emailContent = await tx.emailContent.create({
-      data: {},
+  try {
+    // Create the template with its own EmailContent in a transaction
+    const template = await prisma.$transaction(async (tx) => {
+      // Create the email content for this template
+      const emailContent = await tx.emailContent.create({
+        data: {},
+      });
+
+      // Create the template linked to the content
+      return tx.emailTemplate.create({
+        data: {
+          workspaceId,
+          name: data.name,
+          description: data.description,
+          uniqueSlug: data.uniqueSlug,
+          emailContentId: emailContent.id,
+          trackClicks: data.trackClicks,
+          trackOpens: data.trackOpens,
+          status: "DRAFT",
+          version: 1,
+        },
+      });
     });
 
-    // Create the template linked to the content
-    return tx.emailTemplate.create({
-      data: {
-        workspaceId,
-        name: data.name,
-        description: data.description,
-        emailContentId: emailContent.id,
-        trackClicks: data.trackClicks,
-        trackOpens: data.trackOpens,
-        status: "DRAFT",
-        version: 1,
+    return responseCreated(
+      {
+        id: template.id,
       },
-    });
-  });
-
-  return responseCreated(
-    {
-      id: template.id,
-    },
-    "email_template",
-  );
+      "email_template",
+    );
+  } catch (error) {
+    // Handle unique constraint violation for uniqueSlug
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code: string }).code === "P2002"
+    ) {
+      throw new ConflictError(
+        "A template with this unique slug already exists in the workspace",
+        ErrorCode.RESOURCE_ALREADY_EXISTS,
+      );
+    }
+    throw error;
+  }
 }
 
 /**
@@ -151,8 +195,10 @@ export async function listEmailTemplates(
     id: template.id,
     name: template.name,
     description: template.description,
+    uniqueSlug: template.uniqueSlug,
     status: template.status,
     version: template.version,
+    templateGroupId: template.templateGroupId,
     createdAt: template.createdAt.toISOString(),
     updatedAt: template.updatedAt.toISOString(),
   }));
@@ -196,6 +242,14 @@ export async function getEmailTemplate(
           email: true,
         },
       },
+      templateGroup: {
+        select: {
+          id: true,
+          name: true,
+          color: true,
+          icon: true,
+        },
+      },
     },
   });
 
@@ -211,6 +265,7 @@ export async function getEmailTemplate(
       id: template.id,
       name: template.name,
       description: template.description,
+      uniqueSlug: template.uniqueSlug,
       status: template.status,
       version: template.version,
       emailContentId: template.emailContentId,
@@ -239,6 +294,15 @@ export async function getEmailTemplate(
             id: template.replyToIdentity.id,
             name: template.replyToIdentity.name,
             email: template.replyToIdentity.email,
+          }
+        : null,
+      templateGroupId: template.templateGroupId,
+      templateGroup: template.templateGroup
+        ? {
+            id: template.templateGroup.id,
+            name: template.templateGroup.name,
+            color: template.templateGroup.color,
+            icon: template.templateGroup.icon,
           }
         : null,
       trackClicks: template.trackClicks,
@@ -285,6 +349,14 @@ export async function updateEmailTemplate(
     );
   }
 
+  // uniqueSlug can only be set/modified on parent templates (root templates without a parentId)
+  if (data.uniqueSlug !== undefined && existingTemplate.parentId !== null) {
+    throw new BadRequestError(
+      "Unique slug can only be set on the parent template, not on versions.",
+      ErrorCode.INVALID_PARAMETER,
+    );
+  }
+
   // Validate sender identities exist and belong to this workspace
   // Only validate if the value is being set (not null or undefined)
   await validateSenderIdentities(
@@ -293,61 +365,89 @@ export async function updateEmailTemplate(
     data.replyToIdentityId === undefined ? undefined : data.replyToIdentityId,
   );
 
-  // Update template and email content in a transaction
-  const updatedTemplate = await prisma.$transaction(async (tx) => {
-    // Update the email content if provided
-    if (data.emailContent && existingTemplate.emailContentId) {
-      await tx.emailContent.update({
-        where: { id: existingTemplate.emailContentId },
+  // Validate template group exists and belongs to this workspace
+  // Only validate if a non-null value is being set
+  if (data.templateGroupId) {
+    await validateTemplateGroup(workspaceId, data.templateGroupId);
+  }
+
+  try {
+    // Update template and email content in a transaction
+    const updatedTemplate = await prisma.$transaction(async (tx) => {
+      // Update the email content if provided
+      if (data.emailContent && existingTemplate.emailContentId) {
+        await tx.emailContent.update({
+          where: { id: existingTemplate.emailContentId },
+          data: {
+            ...(data.emailContent.subject !== undefined && {
+              subject: data.emailContent.subject,
+            }),
+            ...(data.emailContent.previewText !== undefined && {
+              previewText: data.emailContent.previewText,
+            }),
+            ...(data.emailContent.contentJson !== undefined && {
+              contentJson:
+                data.emailContent.contentJson as Record<string, unknown>,
+            }),
+            ...(data.emailContent.styles !== undefined && {
+              styles: data.emailContent.styles as Record<string, unknown>,
+            }),
+            ...(data.emailContent.variables !== undefined && {
+              variables: data.emailContent.variables,
+            }),
+          },
+        });
+      }
+
+      // Update the template
+      return tx.emailTemplate.update({
+        where: {
+          id: templateId,
+        },
         data: {
-          ...(data.emailContent.subject !== undefined && {
-            subject: data.emailContent.subject,
+          ...(data.name !== undefined && { name: data.name }),
+          ...(data.description !== undefined && {
+            description: data.description,
           }),
-          ...(data.emailContent.previewText !== undefined && {
-            previewText: data.emailContent.previewText,
+          ...(data.uniqueSlug !== undefined && {
+            uniqueSlug: data.uniqueSlug,
           }),
-          ...(data.emailContent.contentJson !== undefined && {
-            contentJson:
-              data.emailContent.contentJson as Record<string, unknown>,
+          ...(data.senderIdentityId !== undefined && {
+            senderIdentityId: data.senderIdentityId,
           }),
-          ...(data.emailContent.styles !== undefined && {
-            styles: data.emailContent.styles as Record<string, unknown>,
+          ...(data.replyToIdentityId !== undefined && {
+            replyToIdentityId: data.replyToIdentityId,
           }),
-          ...(data.emailContent.variables !== undefined && {
-            variables: data.emailContent.variables,
+          ...(data.templateGroupId !== undefined && {
+            templateGroupId: data.templateGroupId,
           }),
+          ...(data.trackClicks !== undefined && { trackClicks: data.trackClicks }),
+          ...(data.trackOpens !== undefined && { trackOpens: data.trackOpens }),
         },
       });
-    }
-
-    // Update the template
-    return tx.emailTemplate.update({
-      where: {
-        id: templateId,
-      },
-      data: {
-        ...(data.name !== undefined && { name: data.name }),
-        ...(data.description !== undefined && {
-          description: data.description,
-        }),
-        ...(data.senderIdentityId !== undefined && {
-          senderIdentityId: data.senderIdentityId,
-        }),
-        ...(data.replyToIdentityId !== undefined && {
-          replyToIdentityId: data.replyToIdentityId,
-        }),
-        ...(data.trackClicks !== undefined && { trackClicks: data.trackClicks }),
-        ...(data.trackOpens !== undefined && { trackOpens: data.trackOpens }),
-      },
     });
-  });
 
-  return responseOk(
-    {
-      id: updatedTemplate.id,
-    },
-    "email_template",
-  );
+    return responseOk(
+      {
+        id: updatedTemplate.id,
+      },
+      "email_template",
+    );
+  } catch (error) {
+    // Handle unique constraint violation for uniqueSlug
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code: string }).code === "P2002"
+    ) {
+      throw new ConflictError(
+        "A template with this unique slug already exists in the workspace",
+        ErrorCode.RESOURCE_ALREADY_EXISTS,
+      );
+    }
+    throw error;
+  }
 }
 
 /**

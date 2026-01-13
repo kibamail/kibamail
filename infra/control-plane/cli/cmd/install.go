@@ -180,30 +180,7 @@ func runInstall(cmd *cobra.Command, args []string) error {
 		default:
 		}
 
-		// Check if already installed
-		installed, err := c.installer.IsInstalled(ctx, client)
-		if err != nil {
-			ui.PrintError(fmt.Sprintf("Failed to check %s: %v", c.installer.Name(), err))
-			results = append(results, ui.ComponentStatus{
-				Name:      c.installer.Name(),
-				Version:   c.installer.Version(),
-				Installed: false,
-				Skipped:   false,
-			})
-			continue
-		}
-
-		if installed {
-			results = append(results, ui.ComponentStatus{
-				Name:      c.installer.Name(),
-				Version:   c.installer.Version(),
-				Installed: false,
-				Skipped:   true,
-			})
-			continue
-		}
-
-		// Install component
+		// Install or upgrade component (helm upgrade --install is idempotent)
 		if err := c.installer.Install(ctx, client, kubeconfig); err != nil {
 			ui.PrintError(fmt.Sprintf("Failed to install %s: %v", c.installer.Name(), err))
 			results = append(results, ui.ComponentStatus{

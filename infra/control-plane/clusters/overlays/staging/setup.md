@@ -193,3 +193,14 @@ helm install longhorn longhorn/longhorn \
   --set defaultSettings.defaultDataPath="/mnt/longhorn" \
   --version 1.10.1
 ```
+
+# setup private vswitch traffic to control plane (allow injection and events from mta to go in private network and not over internet)
+
+```bash
+ # Block public access to port 30300 (allow only from private network)
+ sudo iptables -I INPUT -p tcp --dport 30300 ! -s 10.0.0.0/24 -j DROP
+
+ # Make persistent (Ubuntu)
+ sudo apt-get install iptables-persistent -y
+ sudo netfilter-persistent save
+```

@@ -119,7 +119,7 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(responseData.id).toBeDefined();
     });
 
-    test("should create and schedule broadcast to emails (upserts contacts)", async () => {
+    test("should create and schedule broadcast to emails (without creating contacts)", async () => {
       const domain = await createVerifiedDomain(
         fullAccessApiKey,
         "email-upsert.example.com",
@@ -145,14 +145,14 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(response.status).toBe(201);
       expect(responseData.object).toBe("broadcast");
 
+      // Verify NO contacts were created (email-only sends don't create contacts)
       const createdContacts = await prisma.contact.findMany({
         where: {
           workspaceId: testWorkspace.id,
           email: { in: ["new1@email-upsert.com", "new2@email-upsert.com"] },
         },
       });
-
-      expect(createdContacts.length).toBe(2);
+      expect(createdContacts.length).toBe(0);
     });
 
     test("should create and schedule broadcast to segment", async () => {
@@ -705,14 +705,14 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(responseData.object).toBe("broadcast");
       expect(responseData.id).toBeDefined();
 
-      // Verify contacts were created
+      // Verify NO contacts were created (email-only sends don't create contacts)
       const createdContacts = await prisma.contact.findMany({
         where: {
           workspaceId: testWorkspace.id,
           email: { in: ["user1@per-email-vars.com", "user2@per-email-vars.com"] },
         },
       });
-      expect(createdContacts.length).toBe(2);
+      expect(createdContacts.length).toBe(0);
     });
 
     test("should accept simple string array for backward compatibility", async () => {
@@ -890,14 +890,14 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(response.status).toBe(201);
       expect(responseData.object).toBe("broadcast");
 
-      // Verify all contacts were created
+      // Verify NO contacts were created (email-only sends don't create contacts)
       const createdContacts = await prisma.contact.findMany({
         where: {
           workspaceId: testWorkspace.id,
           email: { startsWith: "user", endsWith: "@many-recipients.com" },
         },
       });
-      expect(createdContacts.length).toBe(50);
+      expect(createdContacts.length).toBe(0);
     });
   });
 
@@ -1007,15 +1007,6 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
 
       expect(response.status).toBe(201);
       expect(responseData.object).toBe("broadcast");
-
-      // Verify contacts were created for sandbox emails
-      const contacts = await prisma.contact.findMany({
-        where: {
-          workspaceId: testWorkspace.id,
-          email: { endsWith: "@kibamail.dev" },
-        },
-      });
-      expect(contacts.length).toBeGreaterThanOrEqual(4);
     });
 
     test("should create sandbox broadcast with +label syntax", async () => {

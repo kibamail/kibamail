@@ -2758,6 +2758,7 @@ export interface EmailTemplateResponse {
   id: string;
   name: string;
   description?: string | null;
+  uniqueSlug?: string | null;
   status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
   version: number;
   emailContentId?: string | null;
@@ -2797,6 +2798,7 @@ export interface EmailTemplateListResponse {
     id: string;
     name: string;
     description?: string | null;
+    uniqueSlug?: string | null;
     status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
     version: number;
     createdAt: string;
@@ -2825,6 +2827,7 @@ class EmailTemplatesApi extends HttpClient {
   async create(data: {
     name: string;
     description?: string;
+    uniqueSlug?: string;
     trackClicks?: boolean;
     trackOpens?: boolean;
   }): Promise<{ object: "email_template"; id: string }> {
@@ -2905,6 +2908,7 @@ class EmailTemplatesApi extends HttpClient {
     data: {
       name?: string;
       description?: string | null;
+      uniqueSlug?: string | null;
       senderIdentityId?: string | null;
       replyToIdentityId?: string | null;
       trackClicks?: boolean;
