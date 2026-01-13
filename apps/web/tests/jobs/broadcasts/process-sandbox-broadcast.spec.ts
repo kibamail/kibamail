@@ -64,7 +64,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_delivered_${Date.now()}`,
           email: "delivered@kibamail.dev",
           sandboxOutcome: "delivered",
           sandboxLabel: null,
@@ -99,7 +99,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_bounced_${Date.now()}`,
           email: "bounced@kibamail.dev",
           sandboxOutcome: "bounced",
           sandboxLabel: null,
@@ -130,7 +130,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_opened_${Date.now()}`,
           email: "opened@kibamail.dev",
           sandboxOutcome: "opened",
           sandboxLabel: null,
@@ -162,7 +162,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_clicked_${Date.now()}`,
           email: "clicked@kibamail.dev",
           sandboxOutcome: "clicked",
           sandboxLabel: null,
@@ -195,7 +195,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_complained_${Date.now()}`,
           email: "complained@kibamail.dev",
           sandboxOutcome: "complained",
           sandboxLabel: null,
@@ -227,7 +227,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_failed_${Date.now()}`,
           email: "failed@kibamail.dev",
           sandboxOutcome: "failed",
           sandboxLabel: null,
@@ -259,7 +259,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_meta_${Date.now()}`,
           email: "delivered-meta@kibamail.dev",
           sandboxOutcome: "delivered",
           sandboxLabel: null,
@@ -289,7 +289,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_node_${Date.now()}`,
           email: "delivered-node@kibamail.dev",
           sandboxOutcome: "delivered",
           sandboxLabel: null,
@@ -320,7 +320,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_unknown_${Date.now()}`,
           email: "unknown@kibamail.dev",
           sandboxOutcome: "unknown-outcome",
           sandboxLabel: null,
@@ -354,7 +354,7 @@ describe("processSandboxBroadcast job", () => {
         {
           broadcastId: broadcast.id,
           workspaceId: testWorkspace.id,
-          contactId: contacts[0].id,
+          sendingId: `bs_test_complete_${Date.now()}`,
           email: "complete@kibamail.dev",
           sandboxOutcome: "delivered",
           sandboxLabel: null,

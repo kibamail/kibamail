@@ -73,7 +73,9 @@ export type ApiObjectType =
   | "transactional_email"
   | "transactional_email_list"
   | "event_list"
-  | "email_content";
+  | "email_content"
+  | "template_group"
+  | "template_group_list";
 
 /**
  * Standard API response structure (for external API v1)

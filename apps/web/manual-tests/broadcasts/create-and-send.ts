@@ -318,7 +318,6 @@ class CreateAndSendTest extends ManualTest {
     this.printSuccess("Broadcast created successfully!");
     this.printField("Broadcast ID", this.broadcastId || "N/A");
     this.printField("API call duration", `${apiDuration}s`);
-    this.printField("Status", data?.status || "N/A");
   }
 
   /**

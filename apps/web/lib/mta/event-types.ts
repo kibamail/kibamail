@@ -49,8 +49,8 @@ export interface EmailEvent {
   tenant_id: string;
   /** Broadcast ID */
   broadcast_id: string;
-  /** Contact ID */
-  contact_id: string;
+  /** Contact ID (null for sandbox broadcasts) */
+  contact_id: string | null;
   /** SMTP response details */
   response: EventResponse;
   /** Bounce classification (for bounce events) */

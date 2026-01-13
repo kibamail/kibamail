@@ -173,7 +173,7 @@ export type QueueJobs = {
         recipient: string;
         tenant_id: string;
         broadcast_id: string;
-        contact_id: string;
+        contact_id: string | null;
         response: {
           code: number;
           content: string;
