@@ -338,6 +338,16 @@ spec:
                 secretKeyRef:
                   name: control-plane-credentials
                   key: ACME_ACCOUNT_KEY
+            - name: KIBAMAIL_FROM_EMAIL
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: KIBAMAIL_FROM_EMAIL
+            - name: KIBAMAIL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: control-plane-credentials
+                  key: KIBAMAIL_API_KEY
             - name: MTA_INJECTION_URL
               valueFrom:
                 secretKeyRef:

@@ -25,6 +25,7 @@ COPY apps/web/package.json ./apps/web/
 COPY apps/broadcast-editor/package.json ./apps/broadcast-editor/
 COPY packages/owly/package.json ./packages/owly/
 COPY packages/tracking-utils/package.json ./packages/tracking-utils/
+COPY sdks/nodejs/package.json ./sdks/nodejs/
 
 # Install all dependencies
 RUN pnpm install --frozen-lockfile
@@ -42,6 +43,7 @@ COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY --from=deps /app/apps/broadcast-editor/node_modules ./apps/broadcast-editor/node_modules
 COPY --from=deps /app/packages/owly/node_modules ./packages/owly/node_modules
 COPY --from=deps /app/packages/tracking-utils/node_modules ./packages/tracking-utils/node_modules
+COPY --from=deps /app/sdks/nodejs/node_modules ./sdks/nodejs/node_modules
 
 # Copy source code
 COPY . .
@@ -53,6 +55,7 @@ RUN cd apps/web && DATABASE_URL="postgresql://build:build@localhost:5432/build" 
 RUN pnpm --filter @repo/tracking-utils build
 RUN cd packages/owly && pnpm build:clean && pnpm build:css && pnpm build:components
 RUN pnpm --filter @repo/broadcast-editor build
+RUN pnpm --filter kibamail build
 
 # Build the web application
 ENV NEXT_TELEMETRY_DISABLED=1
