@@ -55,16 +55,21 @@ export function clickLogger(data: {
 /**
  * Create a child logger for unsubscribe events
  */
-export function unsubscribeLogger(data: {
-  contactId: string;
-  broadcastId: string;
-  source: "link" | "list-unsubscribe";
-}) {
+export function unsubscribeLogger(
+  data:
+    | {
+        contactId: string;
+        broadcastId: string;
+        source: "link" | "list-unsubscribe";
+      }
+    | {
+        sendingId: string;
+        source: "link" | "list-unsubscribe";
+      },
+) {
   return logger.child({
     route: "unsubscribe",
-    contactId: data.contactId,
-    broadcastId: data.broadcastId,
-    source: data.source,
+    ...data,
   });
 }
 
