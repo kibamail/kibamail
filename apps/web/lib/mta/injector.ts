@@ -23,9 +23,19 @@ interface KumoMtaRecipient {
   name?: string;
 }
 
+interface KumoMtaEmailAddress {
+  email: string;
+  name?: string;
+}
+
 interface KumoMtaContent {
   text_body?: string;
   html_body?: string;
+  // Native KumoMTA fields for standard headers
+  from?: KumoMtaEmailAddress;
+  subject?: string;
+  reply_to?: KumoMtaEmailAddress;
+  // Only for custom/additional headers (X-*, List-Unsubscribe, Message-ID, etc.)
   headers?: Record<string, string>;
   attachments?: Array<{
     data: string;
@@ -55,24 +65,22 @@ interface KumoMtaInjectResponse {
 /**
  * Convert EmailMessage to KumoMTA native format
  *
- * Builds the native request format using content directly from the message.
+ * Uses KumoMTA's native schema fields for standard headers (from, subject, reply_to)
+ * to avoid duplicate headers. Only custom headers go in the headers object.
+ *
+ * KumoMTA auto-generates:
+ * - To: from the recipients array
+ * - From: from content.from
+ * - Subject: from content.subject
+ * - Reply-To: from content.reply_to
  */
 function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
   const senderEmail = `${message.sender.email}@${message.sender.domain}`;
 
+  // Only custom headers go here - standard headers use native KumoMTA fields
   const headers: Record<string, string> = {
-    Subject: message.subject,
-    From: message.sender.name
-      ? `${message.sender.name} <${senderEmail}>`
-      : senderEmail,
-    To: message.recipient.name
-      ? `${message.recipient.name} <${message.recipient.email}>`
-      : message.recipient.email,
-    "Reply-To": message.reply_to.name
-      ? `${message.reply_to.name} <${message.reply_to.email}>`
-      : message.reply_to.email,
     "Message-ID": message.metadata.message_id,
-    ...message.headers,
+    ...message.headers, // List-Unsubscribe headers from prepare.ts
   };
 
   // Only set tracking headers if they have valid values
@@ -89,6 +97,9 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
   if (message.id) {
     headers["X-Kibamail-Email-Send-Id"] = message.id;
   }
+  if (message.pool) {
+    headers["X-Kibamail-Pool"] = message.pool;
+  }
 
   const attachments = message.attachments?.map((att) => ({
     data: att.data || "",
@@ -98,7 +109,6 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
     content_id: att.content_id,
   }));
 
-  // KumoMTA expects a specific content format - only include supported fields
   return {
     envelope_sender: message.metadata.envelope_sender,
     recipients: [
@@ -108,8 +118,20 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
       },
     ],
     content: {
+      // Use native KumoMTA fields for standard headers
+      from: {
+        email: senderEmail,
+        name: message.sender.name || undefined,
+      },
+      subject: message.subject,
+      reply_to: {
+        email: message.reply_to.email,
+        name: message.reply_to.name || undefined,
+      },
+      // Content
       html_body: message.html_body,
       text_body: message.text_body,
+      // Only custom/tracking headers
       headers,
       attachments: attachments?.length ? attachments : undefined,
     },

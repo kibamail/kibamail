@@ -358,9 +358,15 @@ kumo.on('get_queue_config', function(domain, tenant, campaign, routing_domain)
     }
   end
 
-  -- Default: outbound marketing mail
+  -- Select egress pool based on campaign (set per-message in http_message_generated)
+  -- Campaign is set to 'marketing' or 'transactional' based on X-Kibamail-Pool header
+  local pool = 'marketing'  -- default
+  if campaign == 'transactional' then
+    pool = 'transactional'
+  end
+
   return kumo.make_queue_config {
-    egress_pool = 'marketing',
+    egress_pool = pool,
     max_age = '24 hours',
     retry_interval = '10 minutes',
     max_retry_interval = '2 hours',
@@ -730,8 +736,11 @@ kumo.on('http_message_generated', function(msg)
 
   -- Read pool from header (set by control plane)
   -- Valid values: 'marketing', 'transactional'
-  local pool = msg:get_meta('kibamail_pool') or 'marketing'
-  msg:set_meta('egress_pool', pool)
+  -- Note: import_x_headers converts X-Kibamail-Pool to x_kibamail_pool
+  local pool = msg:get_meta('x_kibamail_pool') or 'marketing'
+
+  -- Set the campaign to the pool name so get_queue_config can select the right pool
+  msg:set_meta('campaign', pool)
 
   -- Get sender domain
   local from_header = msg:from_header()
