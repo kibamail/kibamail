@@ -7305,6 +7305,450 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/broadcasts/{broadcastId}/sends": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Broadcast Sends
+         * @description Retrieve a paginated list of individual email sends for a specific broadcast.
+         *
+         *     **Use Cases:**
+         *     - Monitor delivery status for each recipient
+         *     - Debug delivery issues for specific recipients
+         *     - Export send data for reporting
+         *     - Track engagement at the recipient level
+         *
+         *     **Response Data:**
+         *     Each send includes:
+         *     - Delivery status (QUEUED, SENDING, DELIVERED, BOUNCED, COMPLAINED, FAILED)
+         *     - Timestamps (queuedAt, sentAt, deliveredAt, firstOpenedAt, firstClickedAt, bouncedAt, complainedAt)
+         *     - Engagement metrics (openCount, clickCount, uniqueLinksClicked)
+         *     - Bounce details (bounceClassification, lastResponseCode, lastResponseMessage)
+         *
+         *     **Filtering:**
+         *     Use the `status` query parameter to filter by delivery status:
+         *     - `QUEUED` - Waiting to be sent
+         *     - `SENDING` - Currently being sent
+         *     - `DELIVERED` - Successfully delivered
+         *     - `BOUNCED` - Delivery failed (hard or soft bounce)
+         *     - `COMPLAINED` - Recipient marked as spam
+         *     - `FAILED` - Permanent delivery failure
+         *
+         *     **Data Retention:**
+         *     Send details are retained for 60 days after broadcast completion. After this period, individual send records are pruned but aggregate statistics remain available via the /stats endpoint.
+         *
+         *     **Required Scope:** `read:broadcasts`
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Filter sends by delivery status */
+                    status?: "QUEUED" | "SENDING" | "DELIVERED" | "BOUNCED" | "COMPLAINED" | "FAILED";
+                    /** @description Number of items to return (default: 20, max: 100) */
+                    limit?: number;
+                    /** @description Cursor for pagination - ID of the last item from the previous page */
+                    after?: string;
+                    /** @description Cursor for reverse pagination - ID of the first item from the next page */
+                    before?: string;
+                };
+                header?: never;
+                path: {
+                    /** @description Unique identifier for the broadcast */
+                    broadcastId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description List of broadcast sends retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "broadcast_send_list",
+                         *       "data": [
+                         *         {
+                         *           "id": "bs_abc123",
+                         *           "email": "user@example.com",
+                         *           "contactId": "ct_xyz789",
+                         *           "status": "DELIVERED",
+                         *           "queuedAt": "2024-01-15T10:00:00Z",
+                         *           "sentAt": "2024-01-15T10:00:05Z",
+                         *           "deliveredAt": "2024-01-15T10:00:10Z",
+                         *           "firstOpenedAt": "2024-01-15T11:30:00Z",
+                         *           "firstClickedAt": "2024-01-15T11:35:00Z",
+                         *           "bouncedAt": null,
+                         *           "complainedAt": null,
+                         *           "openCount": 3,
+                         *           "clickCount": 2,
+                         *           "uniqueLinksClicked": 1,
+                         *           "bounceClassification": null,
+                         *           "lastResponseCode": 250,
+                         *           "lastResponseMessage": "OK"
+                         *         }
+                         *       ],
+                         *       "hasMore": true
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast_send_list";
+                            hasMore: boolean;
+                            data: {
+                                id: string;
+                                email: string;
+                                contactId: string | null;
+                                /** @enum {string} */
+                                status: "QUEUED" | "SENDING" | "SENT" | "DELIVERED" | "BOUNCED" | "COMPLAINED" | "FAILED";
+                                queuedAt: string;
+                                sentAt: string | null;
+                                deliveredAt: string | null;
+                                firstOpenedAt: string | null;
+                                firstClickedAt: string | null;
+                                bouncedAt: string | null;
+                                complainedAt: string | null;
+                                openCount: number;
+                                clickCount: number;
+                                uniqueLinksClicked: number;
+                                bounceClassification: string | null;
+                                lastResponseCode: number | null;
+                                lastResponseMessage: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Bad Request - Broadcast details have been pruned (older than 60 days). Use /stats endpoint for aggregate data. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Broadcast does not exist or does not belong to this workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/broadcasts/{broadcastId}/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Broadcast Statistics
+         * @description Retrieve aggregate statistics and performance metrics for a specific broadcast.
+         *
+         *     **Use Cases:**
+         *     - Monitor broadcast performance in real-time
+         *     - Generate campaign reports
+         *     - Track deliverability and engagement metrics
+         *     - Compare broadcast performance over time
+         *
+         *     **Statistics Included:**
+         *
+         *     **Recipients:**
+         *     - `total` - Total recipients queued for this broadcast
+         *     - `queued` - Recipients still waiting to be sent
+         *     - `sent` - Recipients where email was sent to MTA
+         *     - `delivered` - Successfully delivered emails
+         *     - `bounced` - Bounced emails (hard and soft)
+         *     - `complained` - Spam complaints received
+         *     - `failed` - Permanent delivery failures
+         *     - `unsubscribed` - Recipients who unsubscribed from this broadcast
+         *
+         *     **Engagement Metrics:**
+         *     - `opened` - Total unique opens
+         *     - `clicked` - Total unique clicks
+         *     - `openRate` - Percentage of delivered emails that were opened (0-1)
+         *     - `clickRate` - Percentage of delivered emails that were clicked (0-1)
+         *     - `clickToOpenRate` - Percentage of opened emails that were clicked (0-1)
+         *
+         *     **Deliverability Metrics:**
+         *     - `deliveryRate` - Percentage of sent emails that were delivered (0-1)
+         *     - `bounceRate` - Percentage of sent emails that bounced (0-1)
+         *     - `complaintRate` - Percentage of delivered emails that received complaints (0-1)
+         *
+         *     **Data Availability:**
+         *     The `detailsPruned` flag indicates whether individual send records are still available:
+         *     - `false` - Full send details available via /sends endpoint
+         *     - `true` - Send details pruned (after 60 days), only aggregate stats remain
+         *
+         *     **Required Scope:** `read:broadcasts`
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Unique identifier for the broadcast */
+                    broadcastId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Broadcast statistics retrieved successfully */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "broadcast_stats",
+                         *       "broadcastId": "brd_abc123xyz789",
+                         *       "recipients": {
+                         *         "total": 10000,
+                         *         "queued": 0,
+                         *         "sent": 10000,
+                         *         "delivered": 9500,
+                         *         "bounced": 300,
+                         *         "complained": 50,
+                         *         "failed": 150,
+                         *         "unsubscribed": 25
+                         *       },
+                         *       "engagement": {
+                         *         "opened": 4000,
+                         *         "clicked": 1200,
+                         *         "openRate": 0.4211,
+                         *         "clickRate": 0.1263,
+                         *         "clickToOpenRate": 0.3
+                         *       },
+                         *       "deliverability": {
+                         *         "deliveryRate": 0.95,
+                         *         "bounceRate": 0.03,
+                         *         "complaintRate": 0.0053
+                         *       },
+                         *       "detailsPruned": false
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast_stats";
+                            broadcastId: string;
+                            recipients: {
+                                total: number;
+                                queued: number;
+                                sent: number;
+                                delivered: number;
+                                bounced: number;
+                                complained: number;
+                                failed: number;
+                                unsubscribed: number;
+                            };
+                            engagement: {
+                                opened: number;
+                                clicked: number;
+                                openRate: number;
+                                clickRate: number;
+                                clickToOpenRate: number;
+                            };
+                            deliverability: {
+                                deliveryRate: number;
+                                bounceRate: number;
+                                complaintRate: number;
+                            };
+                            detailsPruned: boolean;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Broadcast does not exist or does not belong to this workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

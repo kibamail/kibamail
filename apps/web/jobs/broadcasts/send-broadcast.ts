@@ -15,6 +15,7 @@ import {
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queue, queueLogger } from "@/lib/queue";
+import { dispatchWebhook } from "@/webhooks";
 
 const logger = queueLogger.child({ job: "send-broadcast" });
 
@@ -89,6 +90,10 @@ export const sendBroadcast: JobProcessor<
     await prisma.broadcast.update({
       where: { id: broadcastId },
       data: { status: "SENT" },
+    });
+    // Dispatch webhook for broadcast sent (no recipients)
+    await dispatchWebhook(broadcast.workspaceId, "broadcast.sent", {
+      broadcastId,
     });
     return;
   }

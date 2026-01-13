@@ -28,6 +28,7 @@ import {
   searchContactsSchema,
   updateContactSchema,
 } from "./schema";
+import { dispatchWebhook } from "@/webhooks";
 
 /**
  * Map property names to slot columns for creating/updating contacts
@@ -139,6 +140,14 @@ export async function createContact(
       skipDuplicates: true,
     });
   }
+
+  // Dispatch webhook for contact creation
+  await dispatchWebhook(workspaceId, "contact.created", {
+    contactId: contact.id,
+    sourceType: sourceType as "MANUAL" | "IMPORT" | "FORM" | "API",
+    formId: sourceType === ContactSourceType.FORM ? sourceId ?? null : null,
+    importId: sourceType === ContactSourceType.IMPORT ? sourceId ?? null : null,
+  });
 
   return responseCreated(
     {
@@ -365,6 +374,15 @@ export async function updateContact(
 
   const { properties, topics, ...contactData } = data;
 
+  // Fetch current contact to capture previous values for webhook
+  const existingContact = await prisma.contact.findFirst({
+    where: { id: contactId, workspaceId },
+  });
+
+  if (!existingContact) {
+    throw new NotFoundError("Contact not found", ErrorCode.CONTACT_NOT_FOUND);
+  }
+
   let slotData = {};
   if (properties && Object.keys(properties).length > 0) {
     const contactProperties = await prisma.contactProperty.findMany({
@@ -403,6 +421,27 @@ export async function updateContact(
     }
   }
 
+  // Determine changed fields
+  const changedFields: string[] = [];
+  const previousValues: Record<string, unknown> = {};
+
+  for (const [key, value] of Object.entries({ ...contactData, ...slotData })) {
+    const existingValue = existingContact[key as keyof typeof existingContact];
+    if (existingValue !== value) {
+      changedFields.push(key);
+      previousValues[key] = existingValue;
+    }
+  }
+
+  // Dispatch webhook for contact update if there were changes
+  if (changedFields.length > 0) {
+    await dispatchWebhook(workspaceId, "contact.updated", {
+      contactId,
+      previousValues,
+      changedFields,
+    });
+  }
+
   return responseOk(
     {
       id: updatedContact.id,
@@ -424,6 +463,11 @@ export async function deleteContact(workspaceId: string, contactId: string) {
       id: contactId,
       workspaceId,
     },
+  });
+
+  // Dispatch webhook for contact deletion
+  await dispatchWebhook(workspaceId, "contact.deleted", {
+    contactId: deletedContact.id,
   });
 
   return responseOk(

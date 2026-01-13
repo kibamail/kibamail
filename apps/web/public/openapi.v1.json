@@ -15696,6 +15696,891 @@
           }
         }
       }
+    },
+    "/v1/broadcasts/{broadcastId}/sends": {
+      "get": {
+        "summary": "List Broadcast Sends",
+        "description": "Retrieve a paginated list of individual email sends for a specific broadcast.\n\n**Use Cases:**\n- Monitor delivery status for each recipient\n- Debug delivery issues for specific recipients\n- Export send data for reporting\n- Track engagement at the recipient level\n\n**Response Data:**\nEach send includes:\n- Delivery status (QUEUED, SENDING, DELIVERED, BOUNCED, COMPLAINED, FAILED)\n- Timestamps (queuedAt, sentAt, deliveredAt, firstOpenedAt, firstClickedAt, bouncedAt, complainedAt)\n- Engagement metrics (openCount, clickCount, uniqueLinksClicked)\n- Bounce details (bounceClassification, lastResponseCode, lastResponseMessage)\n\n**Filtering:**\nUse the `status` query parameter to filter by delivery status:\n- `QUEUED` - Waiting to be sent\n- `SENDING` - Currently being sent\n- `DELIVERED` - Successfully delivered\n- `BOUNCED` - Delivery failed (hard or soft bounce)\n- `COMPLAINED` - Recipient marked as spam\n- `FAILED` - Permanent delivery failure\n\n**Data Retention:**\nSend details are retained for 60 days after broadcast completion. After this period, individual send records are pruned but aggregate statistics remain available via the /stats endpoint.\n\n**Required Scope:** `read:broadcasts`",
+        "tags": [
+          "Broadcasts"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "broadcastId",
+            "in": "path",
+            "description": "Unique identifier for the broadcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter sends by delivery status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "QUEUED",
+                "SENDING",
+                "DELIVERED",
+                "BOUNCED",
+                "COMPLAINED",
+                "FAILED"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items to return (default: 20, max: 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Cursor for pagination - ID of the last item from the previous page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Cursor for reverse pagination - ID of the first item from the next page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of broadcast sends retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "object": "broadcast_send_list",
+                  "data": [
+                    {
+                      "id": "bs_abc123",
+                      "email": "user@example.com",
+                      "contactId": "ct_xyz789",
+                      "status": "DELIVERED",
+                      "queuedAt": "2024-01-15T10:00:00Z",
+                      "sentAt": "2024-01-15T10:00:05Z",
+                      "deliveredAt": "2024-01-15T10:00:10Z",
+                      "firstOpenedAt": "2024-01-15T11:30:00Z",
+                      "firstClickedAt": "2024-01-15T11:35:00Z",
+                      "bouncedAt": null,
+                      "complainedAt": null,
+                      "openCount": 3,
+                      "clickCount": 2,
+                      "uniqueLinksClicked": 1,
+                      "bounceClassification": null,
+                      "lastResponseCode": 250,
+                      "lastResponseMessage": "OK"
+                    }
+                  ],
+                  "hasMore": true
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "broadcast_send_list"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "contactId": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "QUEUED",
+                              "SENDING",
+                              "SENT",
+                              "DELIVERED",
+                              "BOUNCED",
+                              "COMPLAINED",
+                              "FAILED"
+                            ]
+                          },
+                          "queuedAt": {
+                            "type": "string"
+                          },
+                          "sentAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "deliveredAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "firstOpenedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "firstClickedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "bouncedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "complainedAt": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "openCount": {
+                            "type": "number"
+                          },
+                          "clickCount": {
+                            "type": "number"
+                          },
+                          "uniqueLinksClicked": {
+                            "type": "number"
+                          },
+                          "bounceClassification": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastResponseCode": {
+                            "anyOf": [
+                              {
+                                "type": "number"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "lastResponseMessage": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "email",
+                          "contactId",
+                          "status",
+                          "queuedAt",
+                          "sentAt",
+                          "deliveredAt",
+                          "firstOpenedAt",
+                          "firstClickedAt",
+                          "bouncedAt",
+                          "complainedAt",
+                          "openCount",
+                          "clickCount",
+                          "uniqueLinksClicked",
+                          "bounceClassification",
+                          "lastResponseCode",
+                          "lastResponseMessage"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "hasMore",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Broadcast details have been pruned (older than 60 days). Use /stats endpoint for aggregate data.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Broadcast does not exist or does not belong to this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/broadcasts/{broadcastId}/stats": {
+      "get": {
+        "summary": "Get Broadcast Statistics",
+        "description": "Retrieve aggregate statistics and performance metrics for a specific broadcast.\n\n**Use Cases:**\n- Monitor broadcast performance in real-time\n- Generate campaign reports\n- Track deliverability and engagement metrics\n- Compare broadcast performance over time\n\n**Statistics Included:**\n\n**Recipients:**\n- `total` - Total recipients queued for this broadcast\n- `queued` - Recipients still waiting to be sent\n- `sent` - Recipients where email was sent to MTA\n- `delivered` - Successfully delivered emails\n- `bounced` - Bounced emails (hard and soft)\n- `complained` - Spam complaints received\n- `failed` - Permanent delivery failures\n- `unsubscribed` - Recipients who unsubscribed from this broadcast\n\n**Engagement Metrics:**\n- `opened` - Total unique opens\n- `clicked` - Total unique clicks\n- `openRate` - Percentage of delivered emails that were opened (0-1)\n- `clickRate` - Percentage of delivered emails that were clicked (0-1)\n- `clickToOpenRate` - Percentage of opened emails that were clicked (0-1)\n\n**Deliverability Metrics:**\n- `deliveryRate` - Percentage of sent emails that were delivered (0-1)\n- `bounceRate` - Percentage of sent emails that bounced (0-1)\n- `complaintRate` - Percentage of delivered emails that received complaints (0-1)\n\n**Data Availability:**\nThe `detailsPruned` flag indicates whether individual send records are still available:\n- `false` - Full send details available via /sends endpoint\n- `true` - Send details pruned (after 60 days), only aggregate stats remain\n\n**Required Scope:** `read:broadcasts`",
+        "tags": [
+          "Broadcasts"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "broadcastId",
+            "in": "path",
+            "description": "Unique identifier for the broadcast",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Broadcast statistics retrieved successfully",
+            "content": {
+              "application/json": {
+                "example": {
+                  "object": "broadcast_stats",
+                  "broadcastId": "brd_abc123xyz789",
+                  "recipients": {
+                    "total": 10000,
+                    "queued": 0,
+                    "sent": 10000,
+                    "delivered": 9500,
+                    "bounced": 300,
+                    "complained": 50,
+                    "failed": 150,
+                    "unsubscribed": 25
+                  },
+                  "engagement": {
+                    "opened": 4000,
+                    "clicked": 1200,
+                    "openRate": 0.4211,
+                    "clickRate": 0.1263,
+                    "clickToOpenRate": 0.3
+                  },
+                  "deliverability": {
+                    "deliveryRate": 0.95,
+                    "bounceRate": 0.03,
+                    "complaintRate": 0.0053
+                  },
+                  "detailsPruned": false
+                },
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "broadcast_stats"
+                    },
+                    "broadcastId": {
+                      "type": "string"
+                    },
+                    "recipients": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "number"
+                        },
+                        "queued": {
+                          "type": "number"
+                        },
+                        "sent": {
+                          "type": "number"
+                        },
+                        "delivered": {
+                          "type": "number"
+                        },
+                        "bounced": {
+                          "type": "number"
+                        },
+                        "complained": {
+                          "type": "number"
+                        },
+                        "failed": {
+                          "type": "number"
+                        },
+                        "unsubscribed": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "queued",
+                        "sent",
+                        "delivered",
+                        "bounced",
+                        "complained",
+                        "failed",
+                        "unsubscribed"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "engagement": {
+                      "type": "object",
+                      "properties": {
+                        "opened": {
+                          "type": "number"
+                        },
+                        "clicked": {
+                          "type": "number"
+                        },
+                        "openRate": {
+                          "type": "number"
+                        },
+                        "clickRate": {
+                          "type": "number"
+                        },
+                        "clickToOpenRate": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "opened",
+                        "clicked",
+                        "openRate",
+                        "clickRate",
+                        "clickToOpenRate"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "deliverability": {
+                      "type": "object",
+                      "properties": {
+                        "deliveryRate": {
+                          "type": "number"
+                        },
+                        "bounceRate": {
+                          "type": "number"
+                        },
+                        "complaintRate": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "deliveryRate",
+                        "bounceRate",
+                        "complaintRate"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "detailsPruned": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "broadcastId",
+                    "recipients",
+                    "engagement",
+                    "deliverability",
+                    "detailsPruned"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Broadcast does not exist or does not belong to this workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

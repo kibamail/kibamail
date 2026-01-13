@@ -8,6 +8,7 @@
 
 import type {
   Broadcast,
+  BroadcastSendStatus,
   EmailContent,
   Prisma,
   SenderIdentity,
@@ -65,6 +66,7 @@ import {
   updateBroadcastSchema,
   type CreateAndSendBroadcastRequest,
 } from "./schema";
+import { dispatchWebhook } from "@/webhooks";
 
 /**
  * Prepare email content data with auto-generated plain text.
@@ -309,6 +311,11 @@ export async function createBroadcast(
         },
       },
     },
+  });
+
+  // Dispatch webhook for broadcast creation
+  await dispatchWebhook(workspaceId, "broadcast.created", {
+    broadcastId: broadcast.id,
   });
 
   return responseCreated(formatBroadcast(broadcast), "broadcast");
@@ -678,6 +685,12 @@ export async function scheduleBroadcast(workspaceId: string, broadcastId: string
 
   await queue("broadcasts").push("send-broadcast", { broadcastId }, { delay });
 
+  // Dispatch webhook for broadcast scheduled
+  await dispatchWebhook(workspaceId, "broadcast.scheduled", {
+    broadcastId,
+    scheduledFor: sendAt.toISOString(),
+  });
+
   return responseOk(formatBroadcast(updatedBroadcast), "broadcast");
 }
 
@@ -1006,4 +1019,200 @@ export async function createAndSendBroadcast(
   }
 
   return responseCreated({ id: broadcast.id }, "broadcast");
+}
+
+/**
+ * Format a BroadcastSend for API response
+ */
+function formatBroadcastSend(send: {
+  id: string;
+  email: string;
+  contactId: string | null;
+  status: string;
+  queuedAt: Date;
+  sentAt: Date | null;
+  deliveredAt: Date | null;
+  firstOpenedAt: Date | null;
+  firstClickedAt: Date | null;
+  bouncedAt: Date | null;
+  complainedAt: Date | null;
+  openCount: number;
+  clickCount: number;
+  uniqueLinksClicked: number;
+  bounceClassification: string | null;
+  lastResponseCode: number | null;
+  lastResponseMessage: string | null;
+}) {
+  return {
+    id: send.id,
+    email: send.email,
+    contactId: send.contactId,
+    status: send.status,
+    queuedAt: send.queuedAt.toISOString(),
+    sentAt: send.sentAt?.toISOString() ?? null,
+    deliveredAt: send.deliveredAt?.toISOString() ?? null,
+    firstOpenedAt: send.firstOpenedAt?.toISOString() ?? null,
+    firstClickedAt: send.firstClickedAt?.toISOString() ?? null,
+    bouncedAt: send.bouncedAt?.toISOString() ?? null,
+    complainedAt: send.complainedAt?.toISOString() ?? null,
+    openCount: send.openCount,
+    clickCount: send.clickCount,
+    uniqueLinksClicked: send.uniqueLinksClicked,
+    bounceClassification: send.bounceClassification,
+    lastResponseCode: send.lastResponseCode,
+    lastResponseMessage: send.lastResponseMessage,
+  };
+}
+
+/**
+ * Round a number to a specified number of decimal places
+ */
+function round(value: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round(value * factor) / factor;
+}
+
+/**
+ * GET /api/v1/broadcasts/[broadcastId]/sends
+ *
+ * List all sends for a broadcast with cursor-based pagination.
+ * Optionally filter by status.
+ */
+export async function listBroadcastSends(
+  workspaceId: string,
+  broadcastId: string,
+  request: NextRequest,
+) {
+  // Verify broadcast exists and belongs to workspace
+  const broadcast = await prisma.broadcast.findFirst({
+    where: { id: broadcastId, workspaceId },
+  });
+
+  if (!broadcast) {
+    throw new NotFoundError(
+      "Broadcast not found",
+      ErrorCode.BROADCAST_NOT_FOUND,
+    );
+  }
+
+  // Check if details have been pruned
+  if (broadcast.detailsPruned) {
+    throw new BadRequestError(
+      "Send details for this broadcast have been pruned. Only aggregate statistics are available via the /stats endpoint.",
+      ErrorCode.BROADCAST_DETAILS_PRUNED,
+    );
+  }
+
+  // Parse pagination and filter params
+  const { limit, after, before } = parseCursorPaginationParams(request);
+  const status = request.nextUrl.searchParams.get("status");
+
+  // Build where clause
+  const whereClause: { broadcastId: string; status?: BroadcastSendStatus } = { broadcastId };
+  if (status) {
+    whereClause.status = status as BroadcastSendStatus;
+  }
+
+  // Build base query
+  const baseQuery = {
+    where: whereClause,
+    orderBy: before ? { id: "asc" as const } : { id: "desc" as const },
+    take: limit + 1,
+  };
+
+  // Fetch sends with pagination
+  const sends = after
+    ? await prisma.broadcastSend.findMany({
+        ...baseQuery,
+        cursor: { id: after },
+        skip: 1,
+      })
+    : before
+      ? await prisma.broadcastSend.findMany({
+          ...baseQuery,
+          cursor: { id: before },
+          skip: 1,
+        })
+      : await prisma.broadcastSend.findMany(baseQuery);
+
+  const hasMore = sends.length > limit;
+  const items = hasMore ? sends.slice(0, -1) : sends;
+
+  if (before) {
+    items.reverse();
+  }
+
+  const formattedSends = items.map(formatBroadcastSend);
+
+  const paginatedResponse = createCursorPaginatedResponse(
+    formattedSends,
+    hasMore,
+    "broadcast_send_list",
+  );
+  return NextResponse.json(paginatedResponse, { status: 200 });
+}
+
+/**
+ * GET /api/v1/broadcasts/[broadcastId]/stats
+ *
+ * Get aggregate statistics for a broadcast.
+ * Returns counts, rates, and engagement metrics.
+ */
+export async function getBroadcastStats(
+  workspaceId: string,
+  broadcastId: string,
+) {
+  // Fetch broadcast with aggregate stats
+  const broadcast = await prisma.broadcast.findFirst({
+    where: { id: broadcastId, workspaceId },
+  });
+
+  if (!broadcast) {
+    throw new NotFoundError(
+      "Broadcast not found",
+      ErrorCode.BROADCAST_NOT_FOUND,
+    );
+  }
+
+  // Calculate rates (avoid division by zero)
+  const totalSent = broadcast.totalSent || 0;
+  const totalDelivered = broadcast.totalDelivered || 0;
+  const totalOpened = broadcast.totalOpened || 0;
+
+  const openRate = totalDelivered > 0 ? totalOpened / totalDelivered : 0;
+  const clickRate = totalDelivered > 0 ? broadcast.totalClicked / totalDelivered : 0;
+  const clickToOpenRate = totalOpened > 0 ? broadcast.totalClicked / totalOpened : 0;
+  const deliveryRate = totalSent > 0 ? totalDelivered / totalSent : 0;
+  const bounceRate = totalSent > 0 ? broadcast.totalBounced / totalSent : 0;
+  const complaintRate = totalDelivered > 0 ? broadcast.totalComplained / totalDelivered : 0;
+
+  return responseOk(
+    {
+      broadcastId: broadcast.id,
+      recipients: {
+        total: broadcast.totalQueued,
+        queued: broadcast.totalQueued - broadcast.totalSent,
+        sent: broadcast.totalSent,
+        delivered: broadcast.totalDelivered,
+        bounced: broadcast.totalBounced,
+        complained: broadcast.totalComplained,
+        failed: broadcast.totalFailed,
+        unsubscribed: broadcast.totalUnsubscribed,
+      },
+      engagement: {
+        opened: broadcast.totalOpened,
+        clicked: broadcast.totalClicked,
+        openRate: round(openRate, 4),
+        clickRate: round(clickRate, 4),
+        clickToOpenRate: round(clickToOpenRate, 4),
+      },
+      deliverability: {
+        deliveryRate: round(deliveryRate, 4),
+        bounceRate: round(bounceRate, 4),
+        complaintRate: round(complaintRate, 4),
+      },
+      detailsPruned: broadcast.detailsPruned,
+    },
+    "broadcast_stats",
+  );
 }

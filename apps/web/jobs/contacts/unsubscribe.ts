@@ -15,6 +15,7 @@ import type { EventType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
+import { dispatchWebhook } from "@/webhooks";
 
 const logger = queueLogger.child({ job: "unsubscribe" });
 
@@ -100,6 +101,20 @@ export const unsubscribe: JobProcessor<"contacts", "unsubscribe"> = async (
         recipient: contact.email,
       },
     });
+  });
+
+  // Dispatch webhooks for unsubscribe
+  await dispatchWebhook(contact.workspaceId, "contact.unsubscribed", {
+    contactId: contact.id,
+    method: source === "list-unsubscribe" ? "list_unsubscribe" : "link",
+    reason: null,
+  });
+
+  await dispatchWebhook(contact.workspaceId, "contact.status_changed", {
+    contactId: contact.id,
+    previousStatus: contact.status,
+    newStatus: "UNSUBSCRIBED",
+    reason: source === "list-unsubscribe" ? "List-Unsubscribe" : "Unsubscribe link clicked",
   });
 
   logger.info(

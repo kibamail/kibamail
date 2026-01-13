@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import { queueLogger } from "@/lib/queue";
 import type { EmailEvent } from "./event-types";
 import { mapEventType } from "./event-types";
+import { dispatchWebhook, dispatchWebhookBulk } from "@/webhooks";
 
 const logger = queueLogger.child({ module: "mta-event-processor" });
 
@@ -268,6 +269,48 @@ async function updateTransactionalEmailStatus(events: EmailEvent[]): Promise<voi
 
       if (result.count > 0) {
         updatedCount++;
+
+        // Fetch the transactional email to get ID and workspaceId for webhook dispatch
+        const transactionalEmail = await prisma.transactionalEmail.findUnique({
+          where: { sendingId },
+          select: { id: true, workspaceId: true },
+        });
+
+        if (transactionalEmail) {
+          // Dispatch webhooks based on status change
+          if (highestStatus === "DELIVERED" && deliveredAt) {
+            await dispatchWebhook(
+              transactionalEmail.workspaceId,
+              "transactional_email.delivered",
+              {
+                transactionalEmailId: transactionalEmail.id,
+                responseCode: lastResponseCode ?? 250,
+                responseMessage: lastResponseMessage ?? "OK",
+              }
+            );
+          } else if (highestStatus === "BOUNCED" && bouncedAt) {
+            await dispatchWebhook(
+              transactionalEmail.workspaceId,
+              "transactional_email.bounced",
+              {
+                transactionalEmailId: transactionalEmail.id,
+                bounceType: "hard",
+                bounceClassification: bounceClassification ?? "Unknown",
+                responseCode: lastResponseCode ?? 550,
+                responseMessage: lastResponseMessage ?? "Bounced",
+              }
+            );
+          } else if (highestStatus === "COMPLAINED" && complainedAt) {
+            await dispatchWebhook(
+              transactionalEmail.workspaceId,
+              "transactional_email.complained",
+              {
+                transactionalEmailId: transactionalEmail.id,
+                feedbackType: "abuse",
+              }
+            );
+          }
+        }
       }
     } catch (error) {
       logger.error(
@@ -474,20 +517,65 @@ async function updateBroadcastSendStatus(events: EmailEvent[]): Promise<void> {
 
       // Only count status transitions for delivery/bounce/complaint aggregates
       // Note: Open/Click/Unsubscribe aggregates are updated by tracking endpoints
-      if (highestStatus === "DELIVERED" && existingRecord.status !== "DELIVERED") {
+      const wasDelivered = highestStatus === "DELIVERED" && existingRecord.status !== "DELIVERED";
+      const wasBounced = highestStatus === "BOUNCED" && existingRecord.status !== "BOUNCED";
+      const wasComplained = highestStatus === "COMPLAINED" && existingRecord.status !== "COMPLAINED";
+      const wasFailed = highestStatus === "FAILED" && existingRecord.status !== "FAILED";
+
+      if (wasDelivered) {
         current.delivered++;
       }
-      if (highestStatus === "BOUNCED" && existingRecord.status !== "BOUNCED") {
+      if (wasBounced) {
         current.bounced++;
       }
-      if (highestStatus === "COMPLAINED" && existingRecord.status !== "COMPLAINED") {
+      if (wasComplained) {
         current.complained++;
       }
-      if (highestStatus === "FAILED" && existingRecord.status !== "FAILED") {
+      if (wasFailed) {
         current.failed++;
       }
 
       broadcastAggregates.set(broadcastId, current);
+
+      // Dispatch webhooks for status transitions
+      // Get workspaceId from the first event for this sendingId
+      const workspaceId = sendingEvents[0]?.tenant_id;
+      if (workspaceId && (wasDelivered || wasBounced || wasComplained || wasFailed)) {
+        if (wasDelivered) {
+          await dispatchWebhook(workspaceId, "email.delivered", {
+            sendingId,
+            contactId: existingRecord.id ? sendingEvents[0]?.contact_id ?? null : null,
+            broadcastId,
+            responseCode: lastResponseCode ?? 250,
+            responseMessage: lastResponseMessage ?? "OK",
+          });
+        } else if (wasBounced) {
+          await dispatchWebhook(workspaceId, "email.bounced", {
+            sendingId,
+            contactId: sendingEvents[0]?.contact_id ?? null,
+            broadcastId,
+            bounceType: "hard",
+            bounceClassification: bounceClassification ?? "Unknown",
+            responseCode: lastResponseCode ?? 550,
+            responseMessage: lastResponseMessage ?? "Bounced",
+          });
+        } else if (wasComplained) {
+          await dispatchWebhook(workspaceId, "email.complained", {
+            sendingId,
+            contactId: sendingEvents[0]?.contact_id ?? null,
+            broadcastId,
+            feedbackType: "abuse",
+          });
+        } else if (wasFailed) {
+          await dispatchWebhook(workspaceId, "email.failed", {
+            sendingId,
+            contactId: sendingEvents[0]?.contact_id ?? null,
+            broadcastId,
+            responseCode: lastResponseCode ?? 500,
+            responseMessage: lastResponseMessage ?? "Failed",
+          });
+        }
+      }
     } catch (error) {
       logger.error(
         { error, sendingId },
@@ -642,6 +730,28 @@ async function processBounces(bounces: EmailEvent[]): Promise<void> {
         { workspaceId, count: result.count },
         "Created suppression entries for bounces",
       );
+
+      // Dispatch webhooks for newly created suppression entries
+      if (result.count > 0) {
+        const emails = workspaceBounces.map((b) => b.recipient);
+        const createdSuppressions = await prisma.suppressionList.findMany({
+          where: {
+            workspaceId,
+            email: { in: emails },
+            reason: "BOUNCED",
+          },
+          select: { id: true },
+        });
+
+        // Dispatch webhooks in bulk
+        await dispatchWebhookBulk(
+          createdSuppressions.map((s) => ({
+            workspaceId,
+            topic: "suppression.added" as const,
+            payload: { suppressionId: s.id },
+          }))
+        );
+      }
     } catch (error) {
       logger.error(
         { error, workspaceId },
@@ -703,6 +813,28 @@ async function processComplaints(complaints: EmailEvent[]): Promise<void> {
         { workspaceId, count: result.count },
         "Created suppression entries for complaints",
       );
+
+      // Dispatch webhooks for newly created suppression entries
+      if (result.count > 0) {
+        const emails = workspaceComplaints.map((c) => c.recipient);
+        const createdSuppressions = await prisma.suppressionList.findMany({
+          where: {
+            workspaceId,
+            email: { in: emails },
+            reason: "COMPLAINED",
+          },
+          select: { id: true },
+        });
+
+        // Dispatch webhooks in bulk
+        await dispatchWebhookBulk(
+          createdSuppressions.map((s) => ({
+            workspaceId,
+            topic: "suppression.added" as const,
+            payload: { suppressionId: s.id },
+          }))
+        );
+      }
     } catch (error) {
       logger.error(
         { error, workspaceId },

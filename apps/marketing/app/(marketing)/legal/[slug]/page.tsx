@@ -40,7 +40,7 @@ export default async function LegalPage({ params }: LegalPageProps) {
     notFound();
   }
 
-  const contentHtml = renderMarkdown(document.content);
+  const contentHtml = await renderMarkdown(document.content);
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-8 sm:mt-12 lg:mt-16 px-6 md:px-0 mb-12 sm:mb-16 lg:mb-24">

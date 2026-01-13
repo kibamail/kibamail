@@ -18,6 +18,7 @@ import { sendTransactional } from "./emails/send-transactional";
 import { processSandbox } from "./emails/process-sandbox";
 import { processEvents } from "./mta/process-events";
 import { pruneBroadcastSends } from "./maintenance/prune-broadcast-sends";
+import { dispatchWebhook } from "./webhooks/dispatch-webhook";
 import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
@@ -113,6 +114,13 @@ configureWorker("maintenance", {
   concurrency: 1,
 });
 
+configureWorker("webhooks", {
+  processors: {
+    "dispatch-webhook": dispatchWebhook,
+  },
+  concurrency: 10,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -128,6 +136,7 @@ const queues = [
   "emails",
   "mta",
   "maintenance",
+  "webhooks",
 ] as const;
 
 for (const queueName of queues) {
@@ -209,6 +218,11 @@ logger.info(
       {
         queue: "mta",
         jobs: ["process-events"],
+        concurrency: 10,
+      },
+      {
+        queue: "webhooks",
+        jobs: ["dispatch-webhook"],
         concurrency: 10,
       },
     ],

@@ -58,6 +58,9 @@ import {
 import {
   createAndSendBroadcastSchema,
   createAndSendBroadcastResponseSchema,
+  broadcastSendResponseSchema,
+  broadcastSendListResponseSchema,
+  broadcastStatsResponseSchema,
 } from "@/app/(main)/api/v1/broadcasts/schema";
 
 /**
@@ -3739,6 +3742,220 @@ For testing without sending real emails, use \`@kibamail.dev\` test addresses. T
           "429": {
             description:
               "Rate Limit Exceeded - Too many broadcasts created. Wait before creating more.",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/broadcasts/{broadcastId}/sends": {
+      get: {
+        summary: "List Broadcast Sends",
+        description: `Retrieve a paginated list of individual email sends for a specific broadcast.
+
+**Use Cases:**
+- Monitor delivery status for each recipient
+- Debug delivery issues for specific recipients
+- Export send data for reporting
+- Track engagement at the recipient level
+
+**Response Data:**
+Each send includes:
+- Delivery status (QUEUED, SENDING, DELIVERED, BOUNCED, COMPLAINED, FAILED)
+- Timestamps (queuedAt, sentAt, deliveredAt, firstOpenedAt, firstClickedAt, bouncedAt, complainedAt)
+- Engagement metrics (openCount, clickCount, uniqueLinksClicked)
+- Bounce details (bounceClassification, lastResponseCode, lastResponseMessage)
+
+**Filtering:**
+Use the \`status\` query parameter to filter by delivery status:
+- \`QUEUED\` - Waiting to be sent
+- \`SENDING\` - Currently being sent
+- \`DELIVERED\` - Successfully delivered
+- \`BOUNCED\` - Delivery failed (hard or soft bounce)
+- \`COMPLAINED\` - Recipient marked as spam
+- \`FAILED\` - Permanent delivery failure
+
+**Data Retention:**
+Send details are retained for 60 days after broadcast completion. After this period, individual send records are pruned but aggregate statistics remain available via the /stats endpoint.
+
+**Required Scope:** \`read:broadcasts\``,
+        tags: ["Broadcasts"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "broadcastId",
+            in: "path",
+            description: "Unique identifier for the broadcast",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "status",
+            in: "query",
+            description: "Filter sends by delivery status",
+            required: false,
+            schema: {
+              type: "string",
+              enum: ["QUEUED", "SENDING", "DELIVERED", "BOUNCED", "COMPLAINED", "FAILED"],
+            },
+          },
+          ...paginationParameters,
+        ],
+        responses: {
+          "200": {
+            description: "List of broadcast sends retrieved successfully",
+            content: {
+              "application/json": {
+                schema: broadcastSendListResponseSchema,
+                example: {
+                  object: "broadcast_send_list",
+                  data: [
+                    {
+                      id: "bs_abc123",
+                      email: "user@example.com",
+                      contactId: "ct_xyz789",
+                      status: "DELIVERED",
+                      queuedAt: "2024-01-15T10:00:00Z",
+                      sentAt: "2024-01-15T10:00:05Z",
+                      deliveredAt: "2024-01-15T10:00:10Z",
+                      firstOpenedAt: "2024-01-15T11:30:00Z",
+                      firstClickedAt: "2024-01-15T11:35:00Z",
+                      bouncedAt: null,
+                      complainedAt: null,
+                      openCount: 3,
+                      clickCount: 2,
+                      uniqueLinksClicked: 1,
+                      bounceClassification: null,
+                      lastResponseCode: 250,
+                      lastResponseMessage: "OK",
+                    },
+                  ],
+                  hasMore: true,
+                },
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Broadcast details have been pruned (older than 60 days). Use /stats endpoint for aggregate data.",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Broadcast does not exist or does not belong to this workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/broadcasts/{broadcastId}/stats": {
+      get: {
+        summary: "Get Broadcast Statistics",
+        description: `Retrieve aggregate statistics and performance metrics for a specific broadcast.
+
+**Use Cases:**
+- Monitor broadcast performance in real-time
+- Generate campaign reports
+- Track deliverability and engagement metrics
+- Compare broadcast performance over time
+
+**Statistics Included:**
+
+**Recipients:**
+- \`total\` - Total recipients queued for this broadcast
+- \`queued\` - Recipients still waiting to be sent
+- \`sent\` - Recipients where email was sent to MTA
+- \`delivered\` - Successfully delivered emails
+- \`bounced\` - Bounced emails (hard and soft)
+- \`complained\` - Spam complaints received
+- \`failed\` - Permanent delivery failures
+- \`unsubscribed\` - Recipients who unsubscribed from this broadcast
+
+**Engagement Metrics:**
+- \`opened\` - Total unique opens
+- \`clicked\` - Total unique clicks
+- \`openRate\` - Percentage of delivered emails that were opened (0-1)
+- \`clickRate\` - Percentage of delivered emails that were clicked (0-1)
+- \`clickToOpenRate\` - Percentage of opened emails that were clicked (0-1)
+
+**Deliverability Metrics:**
+- \`deliveryRate\` - Percentage of sent emails that were delivered (0-1)
+- \`bounceRate\` - Percentage of sent emails that bounced (0-1)
+- \`complaintRate\` - Percentage of delivered emails that received complaints (0-1)
+
+**Data Availability:**
+The \`detailsPruned\` flag indicates whether individual send records are still available:
+- \`false\` - Full send details available via /sends endpoint
+- \`true\` - Send details pruned (after 60 days), only aggregate stats remain
+
+**Required Scope:** \`read:broadcasts\``,
+        tags: ["Broadcasts"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "broadcastId",
+            in: "path",
+            description: "Unique identifier for the broadcast",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          "200": {
+            description: "Broadcast statistics retrieved successfully",
+            content: {
+              "application/json": {
+                schema: broadcastStatsResponseSchema,
+                example: {
+                  object: "broadcast_stats",
+                  broadcastId: "brd_abc123xyz789",
+                  recipients: {
+                    total: 10000,
+                    queued: 0,
+                    sent: 10000,
+                    delivered: 9500,
+                    bounced: 300,
+                    complained: 50,
+                    failed: 150,
+                    unsubscribed: 25,
+                  },
+                  engagement: {
+                    opened: 4000,
+                    clicked: 1200,
+                    openRate: 0.4211,
+                    clickRate: 0.1263,
+                    clickToOpenRate: 0.3,
+                  },
+                  deliverability: {
+                    deliveryRate: 0.95,
+                    bounceRate: 0.03,
+                    complaintRate: 0.0053,
+                  },
+                  detailsPruned: false,
+                },
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Broadcast does not exist or does not belong to this workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },

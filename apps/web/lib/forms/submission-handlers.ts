@@ -9,6 +9,7 @@ import { prisma } from "@/lib/db";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import { transformToContactData } from "@/lib/forms/field-mapping";
 import { queue } from "@/lib/queue";
+import { dispatchWebhook } from "@/webhooks";
 
 export interface SubmissionMetadata {
   ipAddress: string | null;
@@ -183,6 +184,22 @@ export async function handleSignUpSubmission(
     });
   }
 
+  // Dispatch form submission webhook
+  await dispatchWebhook(workspaceId, "form.submission", {
+    formId,
+    submissionId: submission.id,
+  });
+
+  // Dispatch contact.created webhook if this was a new contact
+  if (!existingContact) {
+    await dispatchWebhook(workspaceId, "contact.created", {
+      contactId: contact.id,
+      sourceType: "FORM",
+      formId,
+      importId: null,
+    });
+  }
+
   return responseCreated({ id: submission.id }, "form_submission");
 }
 
@@ -252,6 +269,12 @@ export async function handleSurveySubmission(
       referrerUrl: metadata.referrerUrl,
       ...slotData,
     },
+  });
+
+  // Dispatch form submission webhook
+  await dispatchWebhook(workspaceId, "form.submission", {
+    formId,
+    submissionId: submission.id,
   });
 
   return responseCreated(

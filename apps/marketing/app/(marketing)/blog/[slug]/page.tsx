@@ -39,7 +39,7 @@ export default async function BlogArticle({ params }: BlogArticleProps) {
     notFound();
   }
 
-  const contentHtml = renderMarkdown(blogPost.content);
+  const contentHtml = await renderMarkdown(blogPost.content);
 
   return (
     <div className="w-full max-w-7xl mx-auto mt-8 sm:mt-12 lg:mt-16 px-6 md:px-0 mb-12">

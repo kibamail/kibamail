@@ -5,8 +5,10 @@
  */
 
 import dayjs from "dayjs";
+import { Kibamail } from "kibamail";
 import type { NextRequest } from "next/server";
 import { logto } from "@/auth/logto";
+import { env } from "@/env/schema";
 import { InternalServerError } from "@/lib/api/errors";
 import {
   responseBadRequest,
@@ -25,13 +27,13 @@ import { changeMemberRoleSchema, inviteMembersSchema } from "./schema";
  *
  * Invite a member to a workspace
  *
- * Creates organization invitation via Logto Management API.
- * Does NOT send emails - Logto handles email delivery based on connector config.
+ * Creates organization invitation via Logto Management API and sends
+ * invitation email via Kibamail SDK using the LogtoOrganizationInvitation template.
  */
 export async function inviteMembers(
   session: UserSession,
   request: NextRequest,
-  params: { id: string },
+  params: { id: string }
 ) {
   const data = await validateRequestBody(inviteMembersSchema, request);
 
@@ -45,7 +47,7 @@ export async function inviteMembers(
 
   if (!roleId) {
     return responseBadRequest(
-      "The role you provided does not seem to be valid. Please try again.",
+      "The role you provided does not seem to be valid. Please try again."
     );
   }
 
@@ -59,7 +61,7 @@ export async function inviteMembers(
 
     if (parsedError.code === "entity.unique_integrity_violation") {
       return responseBadRequest(
-        "This user was already invited. Please delete the current invitation to invite again.",
+        "This user was already invited. Please delete the current invitation to invite again."
       );
     }
 
@@ -73,7 +75,7 @@ export async function inviteMembers(
   if (!invitation) {
     throw new InternalServerError(
       "Failed to create member invitation. Please try again.",
-      error,
+      error
     );
   }
 
@@ -85,6 +87,30 @@ export async function inviteMembers(
       workspaceId,
     },
   });
+
+  // Send invitation email via Kibamail
+  const workspace = await logto.workspaces().get(workspaceId);
+
+  const kibamail = new Kibamail(env.KIBAMAIL_API_KEY);
+
+  const { error: sendEmailError } = await kibamail.emails.send({
+    from: env.KIBAMAIL_FROM_EMAIL,
+    to: data.email,
+    template: {
+      id: "LogtoOrganizationInvitation",
+      variables: {
+        organizationName: workspace?.name || "",
+      },
+    },
+  });
+
+  if (sendEmailError) {
+    console.error("[Workspace Invitation] Failed to send invitation email:", {
+      email: data.email,
+      workspaceId,
+      error: sendEmailError,
+    });
+  }
 
   return responseCreated({});
 }
@@ -99,7 +125,7 @@ export async function inviteMembers(
 export async function changeMemberRole(
   _session: UserSession,
   request: NextRequest,
-  params: { id: string; memberId: string },
+  params: { id: string; memberId: string }
 ) {
   const data = await validateRequestBody(changeMemberRoleSchema, request);
 
@@ -113,7 +139,7 @@ export async function changeMemberRole(
 
   if (!roleId) {
     return responseBadRequest(
-      "The role you provided does not seem to be valid. Please try again.",
+      "The role you provided does not seem to be valid. Please try again."
     );
   }
 
@@ -132,7 +158,7 @@ export async function changeMemberRole(
 
     throw new InternalServerError(
       "Failed to update member role. Please try again.",
-      error,
+      error
     );
   }
 

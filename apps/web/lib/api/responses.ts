@@ -75,7 +75,10 @@ export type ApiObjectType =
   | "event_list"
   | "email_content"
   | "template_group"
-  | "template_group_list";
+  | "template_group_list"
+  | "broadcast_send"
+  | "broadcast_send_list"
+  | "broadcast_stats";
 
 /**
  * Standard API response structure (for external API v1)

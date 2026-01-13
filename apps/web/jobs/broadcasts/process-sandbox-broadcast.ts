@@ -22,6 +22,7 @@ import { queueLogger } from "@/lib/queue";
 import { prisma } from "@/lib/db";
 import { processEventsWithSideEffects } from "@/lib/mta";
 import type { EmailEvent, EmailEventType } from "@/lib/mta/event-types";
+import { dispatchWebhook } from "@/webhooks";
 
 const logger = queueLogger.child({ job: "process-sandbox-broadcast" });
 
@@ -231,6 +232,10 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
     await prisma.broadcast.update({
       where: { id: broadcastId },
       data: { status: "SENT" },
+    });
+    // Dispatch webhook for broadcast sent
+    await dispatchWebhook(workspaceId, "broadcast.sent", {
+      broadcastId,
     });
   }
 

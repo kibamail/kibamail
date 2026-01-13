@@ -93,8 +93,6 @@ ehlo_domain = "mktg-mta-4.kbmta.net"
 [pool."marketing"."mktg-mta-5"]
 weight = 1
 
-[pool."marketing"."mktg-mta-6"]
-weight = 1
 
 # -----------------------------------------------------------------------------
 # Default Pool - Fallback pool when no specific pool is assigned
@@ -103,9 +101,6 @@ weight = 1
 [pool."default"]
 
 [pool."default"."mktg-mta-5"]
-weight = 1
-
-[pool."default"."mktg-mta-6"]
 weight = 1
 
 # =============================================================================
@@ -160,7 +155,4 @@ ehlo_domain = "trx-mta-6.kbmta.net"
 [pool."transactional"]
 
 [pool."transactional"."trx-mta-1"]
-weight = 1
-
-[pool."transactional"."trx-mta-2"]
 weight = 1

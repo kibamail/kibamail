@@ -48,3 +48,13 @@ export {
   type MailpitMessagesResponse,
   type MailpitMessageSummary,
 } from "./mailpit";
+
+// Webhook testing utilities
+export {
+  createWebhookMocks,
+  expectWebhookDispatched,
+  expectWebhookNotDispatched,
+  getWebhookCalls,
+  type MockDispatchWebhook,
+  type MockDispatchWebhookBulk,
+} from "./webhooks";

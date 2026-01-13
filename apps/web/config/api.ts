@@ -268,12 +268,20 @@ export const API_KEY_PRESETS: ApiKeyPreset[] = [
   {
     name: "read",
     displayName: "Read only",
-    scopes: ["read:api-keys"],
+    scopes: API_SCOPES.filter((scope) => scope.name.startsWith("read:")).map(
+      (scope) => scope.name
+    ),
   },
   {
     name: "write",
     displayName: "Write only",
-    scopes: ["write:api-keys"],
+    scopes: API_SCOPES.filter(
+      (scope) =>
+        scope.name.startsWith("write:") ||
+        scope.name.startsWith("update:") ||
+        scope.name.startsWith("delete:") ||
+        scope.name === "smtp:send"
+    ).map((scope) => scope.name),
   },
   {
     name: "all",

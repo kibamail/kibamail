@@ -15,6 +15,7 @@ import type { EventType } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
+import { dispatchWebhook } from "@/webhooks";
 
 const logger = queueLogger.child({ job: "unsubscribe-by-sending-id" });
 
@@ -106,6 +107,20 @@ export const unsubscribeBySendingId: JobProcessor<
       });
     });
 
+    // Dispatch webhooks for contact unsubscribe
+    await dispatchWebhook(contact.workspaceId, "contact.unsubscribed", {
+      contactId: contact.id,
+      method: source === "list-unsubscribe" ? "list_unsubscribe" : "link",
+      reason: null,
+    });
+
+    await dispatchWebhook(contact.workspaceId, "contact.status_changed", {
+      contactId: contact.id,
+      previousStatus: contact.status,
+      newStatus: "UNSUBSCRIBED",
+      reason: source === "list-unsubscribe" ? "List-Unsubscribe" : "Unsubscribe link clicked",
+    });
+
     logger.info(
       { jobId, contactId: contact.id, email: contact.email },
       "Contact unsubscribed successfully via sendingId",
@@ -137,8 +152,8 @@ export const unsubscribeBySendingId: JobProcessor<
   }
 
   // Add to suppression list
-  await prisma.$transaction(async (tx) => {
-    await tx.suppressionList.create({
+  const suppression = await prisma.$transaction(async (tx) => {
+    const newSuppression = await tx.suppressionList.create({
       data: {
         workspaceId: broadcastSend.workspaceId,
         email: broadcastSend.email,
@@ -159,6 +174,13 @@ export const unsubscribeBySendingId: JobProcessor<
         recipient: broadcastSend.email,
       },
     });
+
+    return newSuppression;
+  });
+
+  // Dispatch webhook for suppression entry
+  await dispatchWebhook(broadcastSend.workspaceId, "suppression.added", {
+    suppressionId: suppression.id,
   });
 
   logger.info(

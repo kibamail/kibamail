@@ -20,6 +20,7 @@ import { useMutation } from "@/hooks/use-mutation";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 import { ApiKeyCreatedModal } from "./api-key-created-modal";
+import { Text } from "@kibamail/owly";
 
 interface CreateApiKeyFormData {
   name: string;
@@ -68,7 +69,6 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
       setCreatedKey(data.key);
       setShowSuccessModal(true);
       onOpenChange?.(false);
-      router.refresh();
 
       toast("Api key created successfully.");
     },
@@ -79,7 +79,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
     if (currentScopes.includes(scope)) {
       setValue(
         "scopes",
-        currentScopes.filter((s) => s !== scope),
+        currentScopes.filter((s) => s !== scope)
       );
     } else {
       setValue("scopes", [...currentScopes, scope]);
@@ -95,6 +95,7 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
   function onSuccessModalClose() {
     setShowSuccessModal(false);
     setCreatedKey(null);
+    router.refresh();
   }
 
   function onSubmit(data: CreateApiKeyFormData) {
@@ -157,7 +158,9 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
                 {Object.entries(API_SCOPES_BY_CATEGORY).map(
                   ([category, scopes]) => (
                     <div key={category} className="space-y-3">
-                      <h4 className="text-sm font-medium">{category}</h4>
+                      <h4 className="text-sm font-medium">
+                        <Text as="span">{category}</Text>
+                      </h4>
                       <div className="grid grid-cols-2 gap-4">
                         {scopes.map((scope) => (
                           <div
@@ -175,13 +178,13 @@ export function CreateApiKeyModal({ open, onOpenChange }: ToggleState) {
                               htmlFor={`scope-${scope.name}`}
                               className="text-sm font-medium cursor-pointer"
                             >
-                              {scope.name}
+                              <Text as="span">{scope.name}</Text>
                             </label>
                           </div>
                         ))}
                       </div>
                     </div>
-                  ),
+                  )
                 )}
               </div>
               {errors.scopes && (

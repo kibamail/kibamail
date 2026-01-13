@@ -7,12 +7,13 @@ import * as Select from "@kibamail/owly/select-field";
 import * as TextField from "@kibamail/owly/text-field";
 import { useToast } from "@kibamail/owly/toast";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useMutation } from "@/hooks/use-mutation";
 import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 import type { WebhookDestinationType } from "@/webhooks/client/types";
+import { Text } from "@kibamail/owly";
 
 interface CreateWebhookFormData {
   destination_type: string;
@@ -69,6 +70,20 @@ export function CreateWebhookDialog({
     setValue("credentials", {});
     setValue("config", {});
   }, [destinationType, destinationTypes, setValue]);
+
+  const groupedTopics = useMemo(() => {
+    return topics.reduce(
+      (acc, topic) => {
+        const [prefix] = topic.split(".");
+        if (!acc[prefix]) {
+          acc[prefix] = [];
+        }
+        acc[prefix].push(topic);
+        return acc;
+      },
+      {} as Record<string, string[]>
+    );
+  }, [topics]);
 
   const createMutation = useMutation<
     unknown,
@@ -163,7 +178,9 @@ export function CreateWebhookDialog({
               selectedDestinationType.credential_fields.length > 0 && (
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium">
-                    {selectedDestinationType?.label} credentials
+                    <Text as="span">
+                      {selectedDestinationType?.label} credentials
+                    </Text>
                   </h4>
                   {selectedDestinationType.credential_fields.map(
                     (field, index) => {
@@ -283,7 +300,7 @@ export function CreateWebhookDialog({
                           />
                         </div>
                       );
-                    },
+                    }
                   )}
                 </div>
               )}
@@ -292,7 +309,9 @@ export function CreateWebhookDialog({
               selectedDestinationType.config_fields.length > 0 && (
                 <div className="space-y-4">
                   <h4 className="text-sm font-medium">
-                    {selectedDestinationType?.label} configuration
+                    <Text as="span">
+                      {selectedDestinationType?.label} configuration
+                    </Text>
                   </h4>
                   {selectedDestinationType.config_fields.map((field, index) => {
                     const fieldKey = field.key || `field_${index}`;
@@ -416,7 +435,7 @@ export function CreateWebhookDialog({
               <div className="space-y-4">
                 <div>
                   <h4 className="text-sm font-medium text-kb-content-secondary">
-                    Event Topics
+                    <Text as="span">Event Topics</Text>
                   </h4>
                   <p className="text-xs text-kb-content-tertiary mt-1">
                     Select the events you want to receive webhooks for
@@ -426,31 +445,45 @@ export function CreateWebhookDialog({
                   name="topics"
                   control={control}
                   render={({ field }) => (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                      {topics.map((topic) => (
-                        <div key={topic} className="flex items-center gap-2">
-                          <Checkbox
-                            id={`topic-${topic}`}
-                            checked={field.value?.includes(topic)}
-                            onCheckedChange={(checked) => {
-                              const currentTopics = field.value || [];
-                              if (checked) {
-                                field.onChange([...currentTopics, topic]);
-                              } else {
-                                field.onChange(
-                                  currentTopics.filter((t) => t !== topic),
-                                );
-                              }
-                            }}
-                          />
-                          <label
-                            htmlFor={`topic-${topic}`}
-                            className="text-sm cursor-pointer"
-                          >
-                            {topic}
-                          </label>
-                        </div>
-                      ))}
+                    <div className="space-y-6">
+                      {Object.entries(groupedTopics).map(
+                        ([category, categoryTopics]) => (
+                          <div key={category} className="space-y-3">
+                            <h5 className="text-sm font-medium capitalize">
+                              <Text as="span">{category.replace(/_/g, " ")}</Text>
+                            </h5>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              {categoryTopics.map((topic) => (
+                                <div
+                                  key={topic}
+                                  className="flex items-center gap-2"
+                                >
+                                  <Checkbox
+                                    id={`topic-${topic}`}
+                                    checked={field.value?.includes(topic)}
+                                    onCheckedChange={(checked) => {
+                                      const currentTopics = field.value || [];
+                                      if (checked) {
+                                        field.onChange([...currentTopics, topic]);
+                                      } else {
+                                        field.onChange(
+                                          currentTopics.filter((t) => t !== topic)
+                                        );
+                                      }
+                                    }}
+                                  />
+                                  <label
+                                    htmlFor={`topic-${topic}`}
+                                    className="text-sm cursor-pointer"
+                                  >
+                                    <Text as="span">{topic}</Text>
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )
+                      )}
                     </div>
                   )}
                 />

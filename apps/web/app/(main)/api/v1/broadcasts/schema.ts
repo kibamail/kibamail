@@ -199,3 +199,71 @@ export const createAndSendBroadcastResponseSchema = z.object({
 
 export type CreateAndSendBroadcastRequest = z.infer<typeof createAndSendBroadcastSchema>;
 export type CreateAndSendBroadcastResponse = z.infer<typeof createAndSendBroadcastResponseSchema>;
+
+/**
+ * Broadcast Send Response Schema
+ * Represents a single email send within a broadcast
+ */
+export const broadcastSendResponseSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  contactId: z.string().nullable(),
+  status: z.enum(["QUEUED", "SENDING", "SENT", "DELIVERED", "BOUNCED", "COMPLAINED", "FAILED"]),
+  queuedAt: z.string(),
+  sentAt: z.string().nullable(),
+  deliveredAt: z.string().nullable(),
+  firstOpenedAt: z.string().nullable(),
+  firstClickedAt: z.string().nullable(),
+  bouncedAt: z.string().nullable(),
+  complainedAt: z.string().nullable(),
+  openCount: z.number(),
+  clickCount: z.number(),
+  uniqueLinksClicked: z.number(),
+  bounceClassification: z.string().nullable(),
+  lastResponseCode: z.number().nullable(),
+  lastResponseMessage: z.string().nullable(),
+});
+
+/**
+ * Broadcast Sends List Response Schema
+ */
+export const broadcastSendListResponseSchema = z.object({
+  object: z.literal("broadcast_send_list"),
+  hasMore: z.boolean(),
+  data: z.array(broadcastSendResponseSchema),
+});
+
+/**
+ * Broadcast Stats Response Schema
+ */
+export const broadcastStatsResponseSchema = z.object({
+  object: z.literal("broadcast_stats"),
+  broadcastId: z.string(),
+  recipients: z.object({
+    total: z.number(),
+    queued: z.number(),
+    sent: z.number(),
+    delivered: z.number(),
+    bounced: z.number(),
+    complained: z.number(),
+    failed: z.number(),
+    unsubscribed: z.number(),
+  }),
+  engagement: z.object({
+    opened: z.number(),
+    clicked: z.number(),
+    openRate: z.number(),
+    clickRate: z.number(),
+    clickToOpenRate: z.number(),
+  }),
+  deliverability: z.object({
+    deliveryRate: z.number(),
+    bounceRate: z.number(),
+    complaintRate: z.number(),
+  }),
+  detailsPruned: z.boolean(),
+});
+
+export type BroadcastSendResponse = z.infer<typeof broadcastSendResponseSchema>;
+export type BroadcastSendListResponse = z.infer<typeof broadcastSendListResponseSchema>;
+export type BroadcastStatsResponse = z.infer<typeof broadcastStatsResponseSchema>;

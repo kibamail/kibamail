@@ -1,7 +1,132 @@
 topics:
-  - user.created
-  - user.updated
-  - user.deleted
+  # ============================================================================
+  # EMAIL DELIVERY EVENTS
+  # ============================================================================
+  - email.delivered
+  - email.bounced
+  - email.soft_bounced
+  - email.complained
+  - email.rejected
+  - email.failed
+  - email.queued
+
+  # ============================================================================
+  # EMAIL ENGAGEMENT EVENTS
+  # ============================================================================
+  - email.opened
+  - email.clicked
+  - email.unsubscribed
+  - email.list_unsubscribed
+
+  # ============================================================================
+  # CONTACT EVENTS
+  # ============================================================================
+  - contact.created
+  - contact.updated
+  - contact.deleted
+  - contact.subscribed
+  - contact.unsubscribed
+  - contact.status_changed
+
+  # ============================================================================
+  # TOPIC SUBSCRIPTION EVENTS
+  # ============================================================================
+  - contact.topic_subscribed
+  - contact.topic_unsubscribed
+  - topic.created
+  - topic.updated
+  - topic.deleted
+
+  # ============================================================================
+  # TAG EVENTS
+  # ============================================================================
+  - contact.tagged
+  - contact.untagged
+  - tag.created
+  - tag.updated
+  - tag.deleted
+
+  # ============================================================================
+  # BROADCAST/CAMPAIGN EVENTS
+  # ============================================================================
+  - broadcast.created
+  - broadcast.updated
+  - broadcast.scheduled
+  - broadcast.sent
+  - broadcast.paused
+  - broadcast.cancelled
+  - broadcast.failed
+
+  # ============================================================================
+  # TRANSACTIONAL EMAIL EVENTS
+  # ============================================================================
+  - transactional_email.sent
+  - transactional_email.delivered
+  - transactional_email.bounced
+  - transactional_email.complained
+  - transactional_email.opened
+  - transactional_email.clicked
+
+  # ============================================================================
+  # SEGMENT EVENTS
+  # ============================================================================
+  - segment.created
+  - segment.updated
+  - segment.deleted
+  - segment.contact_entered
+  - segment.contact_exited
+
+  # ============================================================================
+  # FORM EVENTS
+  # ============================================================================
+  - form.created
+  - form.updated
+  - form.published
+  - form.unpublished
+  - form.submission
+  - form.submission_verified
+  - form.submission_spam
+
+  # ============================================================================
+  # AUTOMATION EVENTS
+  # ============================================================================
+  - automation.created
+  - automation.updated
+  - automation.published
+  - automation.paused
+  - automation.contact_entered
+  - automation.contact_exited
+  - automation.step_completed
+  - automation.failed
+
+  # ============================================================================
+  # CONVERSATION/INBOX EVENTS
+  # ============================================================================
+  - conversation.created
+  - conversation.message_received
+  - conversation.message_sent
+  - conversation.closed
+  - conversation.archived
+
+  # ============================================================================
+  # DOMAIN EVENTS
+  # ============================================================================
+  - domain.created
+  - domain.verified
+  - domain.verification_failed
+  - domain.deleted
+
+  # ============================================================================
+  # SUPPRESSION LIST EVENTS
+  # ============================================================================
+  - suppression.added
+  - suppression.removed
+
+  # ============================================================================
+  # API KEY EVENTS
+  # ============================================================================
+  - api_key.created
+  - api_key.revoked
 
 mqs:
   delivery_retry_limit: 10
@@ -9,4 +134,4 @@ mqs:
 
 destinations:
   webhook:
-    header_prefix: "x-starterkit-"
+    header_prefix: "x-kibamail-"

@@ -199,6 +199,21 @@ export type QueueJobs = {
       retentionDays?: number;
     };
   };
+  // Webhooks queue for dispatching webhook events to Outpost
+  webhooks: {
+    "dispatch-webhook": {
+      /** Workspace ID for tenant routing */
+      workspaceId: string;
+      /** Webhook topic */
+      topic: string;
+      /** Topic-specific payload with IDs (type-safe via dispatchWebhook helper) */
+      payload: Record<string, unknown>;
+      /** ISO timestamp when the event occurred */
+      timestamp: string;
+      /** Optional idempotency key */
+      idempotencyKey?: string;
+    };
+  };
   // Emails queue for transactional email sending
   emails: {
     "send-transactional": {
