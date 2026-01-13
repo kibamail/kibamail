@@ -16,6 +16,7 @@ This guide walks you through sending email broadcasts programmatically with the 
 - Send broadcasts to email addresses, segments, or topics
 - Test broadcasts in sandbox mode without sending real emails
 - Personalize emails with per-recipient variables
+- Retrieve broadcast statistics and individual send data
 
 ## Prerequisites
 
@@ -395,6 +396,73 @@ console.log("Broadcast ID:", data.id);
 
 ---
 
+## Step 8: Retrieve Broadcast Statistics and Sends
+
+After sending a broadcast, you can retrieve delivery statistics and individual send records via the API. The dashboard view for this data is in development, but full access is available through the Node.js SDK.
+
+Your API key needs the `read:broadcasts` scope.
+
+### Get Aggregate Statistics
+
+```typescript
+const { data: stats } = await kibamail.broadcasts.stats.get("bc_abc123");
+
+// stats.recipients.total, stats.recipients.delivered, stats.recipients.bounced
+// stats.engagement.openRate, stats.engagement.clickRate, stats.engagement.clickToOpenRate
+// stats.deliverability.deliveryRate, stats.deliverability.bounceRate
+```
+
+**Available metrics:**
+
+| Category | Metrics |
+| --- | --- |
+| Recipients | `total`, `queued`, `sent`, `delivered`, `bounced`, `complained`, `failed`, `unsubscribed` |
+| Engagement | `opened`, `clicked`, `openRate`, `clickRate`, `clickToOpenRate` |
+| Deliverability | `deliveryRate`, `bounceRate`, `complaintRate` |
+
+### List Individual Sends
+
+Fetch per-recipient delivery data with cursor-based pagination:
+
+```typescript
+const { data: page } = await kibamail.broadcasts.sends.list("bc_abc123", {
+  limit: 50,
+});
+
+// Each send includes: email, status, queuedAt, sentAt, deliveredAt,
+// firstOpenedAt, firstClickedAt, openCount, clickCount,
+// bounceClassification, lastResponseCode, lastResponseMessage
+
+// Paginate with cursor
+if (page.hasMore) {
+  const lastId = page.data[page.data.length - 1].id;
+  const { data: nextPage } = await kibamail.broadcasts.sends.list("bc_abc123", {
+    limit: 50,
+    after: lastId,
+  });
+}
+```
+
+### Filter by Status
+
+```typescript
+const { data: bounced } = await kibamail.broadcasts.sends.list("bc_abc123", {
+  status: "BOUNCED",
+});
+
+const { data: complained } = await kibamail.broadcasts.sends.list("bc_abc123", {
+  status: "COMPLAINED",
+});
+```
+
+**Status values:** `QUEUED`, `SENDING`, `DELIVERED`, `BOUNCED`, `COMPLAINED`, `FAILED`
+
+### Data Retention
+
+Individual send records are retained for 60 days. After that, only aggregate statistics remain. The `stats.detailsPruned` flag indicates whether send data is still available.
+
+---
+
 ## Complete Example
 
 Here's a full working example that sends a personalized newsletter:
@@ -479,6 +547,8 @@ sendMonthlyNewsletter(subscribers)
 
 ## API Reference
 
+### Create and Send Broadcast
+
 **Endpoint:** `POST /v1/broadcasts/create-and-send`
 
 **Required scope:** `broadcasts:write`
@@ -487,5 +557,32 @@ sendMonthlyNewsletter(subscribers)
 
 - 100 broadcasts per hour per workspace
 - Maximum 100,000 recipients per broadcast
+
+### Get Broadcast Statistics
+
+**Endpoint:** `GET /v1/broadcasts/{broadcastId}/stats`
+
+**Required scope:** `read:broadcasts`
+
+Returns aggregate statistics including recipient counts, engagement metrics, and deliverability rates.
+
+### List Broadcast Sends
+
+**Endpoint:** `GET /v1/broadcasts/{broadcastId}/sends`
+
+**Required scope:** `read:broadcasts`
+
+**Query parameters:**
+
+| Parameter | Type | Description |
+| --- | --- | --- |
+| `limit` | number | Number of sends to return (default: 20, max: 100) |
+| `after` | string | Cursor for pagination - ID of last send from previous page |
+| `before` | string | Cursor for reverse pagination |
+| `status` | string | Filter by status: `QUEUED`, `SENDING`, `DELIVERED`, `BOUNCED`, `COMPLAINED`, `FAILED` |
+
+Returns paginated list of individual send records with delivery status and engagement data.
+
+---
 
 If you run into any issues or have questions, open an issue on [GitHub](https://github.com/kibamail/kibamail).
