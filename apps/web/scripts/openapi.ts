@@ -3273,6 +3273,37 @@ Find contacts missing a property:
 - Welcome emails
 - Any one-off automated email
 
+**Content Modes:**
+You can send emails in two ways:
+
+1. **Raw HTML Mode:** Provide \`html\` (required) and optionally \`text\` content directly
+2. **Template Mode:** Reference a published template by its \`uniqueSlug\` identifier
+
+These modes are mutually exclusive - provide either \`template\` or \`html\`, not both.
+
+**Template-Based Sending:**
+\`\`\`json
+{
+  "from": "noreply@yourdomain.com",
+  "to": "customer@example.com",
+  "template": {
+    "id": "order_confirmation",
+    "variables": {
+      "firstName": "John",
+      "orderNumber": "12345",
+      "total": 99.99
+    }
+  }
+}
+\`\`\`
+
+When using templates:
+- The template must be published (have a \`publishedVersionId\`)
+- Variables are substituted using \`{{variableName}}\` syntax
+- Missing variables are replaced with empty strings
+- Subject and previewText can be overridden by providing them in the request
+- The \`text\` field cannot be used with templates (it comes from the template)
+
 **Behavior:**
 - Email is queued and sent asynchronously
 - Returns immediately with the email send ID
@@ -3306,15 +3337,58 @@ Find contacts missing a property:
           content: {
             "application/json": {
               schema: sendTransactionalEmailSchema,
-              example: {
-                from: "noreply@yourdomain.com",
-                to: "customer@example.com",
-                subject: "Order Confirmation #12345",
-                html: "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>",
-                text: "Thank you for your order! Your order #12345 has been confirmed.",
-                metadata: {
-                  orderId: "12345",
-                  customerId: "cust_abc123",
+              examples: {
+                rawHtml: {
+                  summary: "Raw HTML content",
+                  description: "Send email with inline HTML content",
+                  value: {
+                    from: "noreply@yourdomain.com",
+                    to: "customer@example.com",
+                    subject: "Order Confirmation #12345",
+                    html: "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>",
+                    text: "Thank you for your order! Your order #12345 has been confirmed.",
+                    metadata: {
+                      orderId: "12345",
+                      customerId: "cust_abc123",
+                    },
+                  },
+                },
+                templateBased: {
+                  summary: "Template-based content",
+                  description: "Send email using a published template with variable substitution",
+                  value: {
+                    from: "noreply@yourdomain.com",
+                    to: "customer@example.com",
+                    template: {
+                      id: "order_confirmation",
+                      variables: {
+                        firstName: "John",
+                        orderNumber: "12345",
+                        total: 99.99,
+                      },
+                    },
+                    metadata: {
+                      orderId: "12345",
+                      customerId: "cust_abc123",
+                    },
+                  },
+                },
+                templateWithOverrides: {
+                  summary: "Template with subject override",
+                  description: "Send email using a template but override the subject line",
+                  value: {
+                    from: "noreply@yourdomain.com",
+                    to: "customer@example.com",
+                    subject: "Custom Subject Override",
+                    previewText: "Custom preview text",
+                    template: {
+                      id: "welcome_email",
+                      variables: {
+                        firstName: "Jane",
+                        companyName: "Acme Inc",
+                      },
+                    },
+                  },
                 },
               },
             },
@@ -3336,7 +3410,7 @@ Find contacts missing a property:
           },
           "400": {
             description:
-              "Bad Request - Invalid input data, such as malformed email addresses, missing required fields, or attachment size exceeded",
+              "Bad Request - Invalid input data, such as malformed email addresses, missing required fields, attachment size exceeded, template not published, or both template and html provided",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -3351,6 +3425,13 @@ Find contacts missing a property:
           "403": {
             description:
               "Forbidden - Sending domain not verified, or sending limits exceeded",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Template with the specified identifier not found, or sending domain not found for the from address",
             content: {
               "application/json": { schema: errorResponseSchema },
             },

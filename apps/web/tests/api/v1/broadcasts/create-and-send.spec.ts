@@ -1162,5 +1162,123 @@ describe("POST /api/v1/broadcasts/create-and-send", () => {
       expect(broadcast?.status).toBe("SENDING");
       expect(broadcast?.emailContent?.subject).toBe("Queue Test");
     });
+
+    test("should create BroadcastSend records for sandbox emails", async () => {
+      const broadcastData = {
+        name: "Sandbox BroadcastSend Test",
+        emailContent: {
+          subject: "Hello {{firstName}}!",
+          html: "<p>Hello {{firstName}}</p>",
+        },
+        recipients: {
+          emails: [
+            { email: "delivered@kibamail.dev", variables: { firstName: "John" } },
+            { email: "bounced@kibamail.dev", variables: { firstName: "Jane" } },
+          ],
+        },
+        sendAt: new Date().toISOString(), // Sandbox allows past dates
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+
+      // Verify BroadcastSend records were created
+      const broadcastSends = await prisma.broadcastSend.findMany({
+        where: { broadcastId: responseData.id },
+      });
+
+      expect(broadcastSends.length).toBe(2);
+
+      // Verify all have contactId=null
+      expect(broadcastSends.every((bs) => bs.contactId === null)).toBe(true);
+
+      // Verify variables are stored
+      expect(
+        broadcastSends.some(
+          (bs) => (bs.variables as Record<string, unknown>)?.firstName === "John",
+        ),
+      ).toBe(true);
+      expect(
+        broadcastSends.some(
+          (bs) => (bs.variables as Record<string, unknown>)?.firstName === "Jane",
+        ),
+      ).toBe(true);
+
+      // Verify status is QUEUED
+      expect(broadcastSends.every((bs) => bs.status === "QUEUED")).toBe(true);
+
+      // Verify emails are stored
+      expect(broadcastSends.some((bs) => bs.email === "delivered@kibamail.dev")).toBe(true);
+      expect(broadcastSends.some((bs) => bs.email === "bounced@kibamail.dev")).toBe(true);
+    });
+
+    test("should NOT create contacts for sandbox emails", async () => {
+      const sandboxEmails = [
+        "delivered+test1@kibamail.dev",
+        "opened+test2@kibamail.dev",
+        "clicked+test3@kibamail.dev",
+      ];
+
+      const broadcastData = {
+        name: "Sandbox No Contacts Test",
+        emailContent: {
+          subject: "Test",
+          html: "<p>Test</p>",
+        },
+        recipients: {
+          emails: sandboxEmails,
+        },
+        sendAt: new Date().toISOString(),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+
+      expect(response.status).toBe(201);
+
+      // Verify NO contacts were created
+      const contacts = await prisma.contact.findMany({
+        where: {
+          workspaceId: testWorkspace.id,
+          email: { in: sandboxEmails },
+        },
+      });
+
+      expect(contacts.length).toBe(0);
+    });
+
+    test("should update broadcast totalQueued for sandbox broadcasts", async () => {
+      const broadcastData = {
+        name: "Sandbox Aggregate Test",
+        emailContent: {
+          subject: "Test",
+          html: "<p>Test</p>",
+        },
+        recipients: {
+          emails: [
+            "delivered@kibamail.dev",
+            "delivered+a@kibamail.dev",
+            "delivered+b@kibamail.dev",
+          ],
+        },
+        sendAt: new Date().toISOString(),
+      };
+
+      const request = post("/broadcasts/create-and-send", broadcastData, fullAccessApiKey.key);
+      const response = await CreateAndSendBroadcast(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(201);
+
+      // Verify broadcast aggregate was updated
+      const broadcast = await prisma.broadcast.findUnique({
+        where: { id: responseData.id },
+      });
+
+      expect(broadcast?.totalQueued).toBe(3);
+    });
   });
 });

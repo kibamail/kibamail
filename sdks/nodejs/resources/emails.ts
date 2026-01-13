@@ -14,7 +14,8 @@ type SendEmailBody =
  * sent for specific purposes like order confirmations, password resets, or notifications.
  *
  * **Key Features:**
- * - Send HTML and plain text emails
+ * - Send HTML and plain text emails, or use pre-defined templates
+ * - Template-based sending with variable substitution
  * - Support for attachments (up to 25 files, 25MB total)
  * - Custom reply-to addresses
  * - Metadata for tracking and analytics
@@ -24,12 +25,26 @@ type SendEmailBody =
  * ```ts
  * const kibamail = new Kibamail("your-api-key");
  *
- * // Send a simple transactional email
+ * // Send a simple transactional email with raw HTML
  * const result = await kibamail.emails.send({
  *   from: "noreply@yourdomain.com",
  *   to: "customer@example.com",
  *   subject: "Order Confirmation",
  *   html: "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>"
+ * });
+ *
+ * // Send using a template with variable substitution
+ * const templateResult = await kibamail.emails.send({
+ *   from: "noreply@yourdomain.com",
+ *   to: "customer@example.com",
+ *   template: {
+ *     id: "order_confirmation",
+ *     variables: {
+ *       firstName: "John",
+ *       orderNumber: "12345",
+ *       total: 99.99
+ *     }
+ *   }
  * });
  * ```
  */
@@ -51,11 +66,16 @@ export class Emails {
    * - Welcome emails
    * - Any one-off automated email
    *
+   * **Content Modes:**
+   * You can send emails in two ways (mutually exclusive):
+   * 1. Raw HTML Mode: Provide `html` (required) and optionally `text`
+   * 2. Template Mode: Provide `template` with identifier and variables
+   *
    * **Behavior:**
    * - Email is queued and sent asynchronously
    * - Returns immediately with the email send ID
    * - Delivery status is tracked via webhooks
-   * - Supports HTML and plain text content
+   * - Supports HTML and plain text content, or template-based content
    * - Plain text is auto-generated from HTML if not provided
    * - Supports attachments (up to 25 files, 25MB total)
    * - Custom metadata can be attached for tracking
@@ -70,9 +90,12 @@ export class Emails {
    * @param params - Email parameters
    * @param params.from - Sender email address (must be from a verified sending domain)
    * @param params.to - Recipient email address(es) - single email or array of emails
-   * @param params.subject - Email subject line
-   * @param params.html - HTML email body content
-   * @param params.text - Plain text email body (auto-generated from HTML if not provided)
+   * @param params.subject - Email subject line (required for raw HTML, optional override for templates)
+   * @param params.html - HTML email body content (required when not using template)
+   * @param params.text - Plain text email body (auto-generated from HTML if not provided, cannot be used with template)
+   * @param params.template - Template reference for template-based sending (optional)
+   * @param params.template.id - Unique template identifier (uniqueSlug)
+   * @param params.template.variables - Variables to substitute in the template
    * @param params.replyTo - Custom reply-to address (optional)
    * @param params.replyTo.email - Reply-to email address
    * @param params.replyTo.name - Reply-to display name (optional)
@@ -84,17 +107,43 @@ export class Emails {
    *
    * @returns Promise containing the email send ID
    *
-   * @throws {BadRequestError} Invalid input data (e.g., invalid email format, unverified domain)
+   * @throws {BadRequestError} Invalid input data (e.g., invalid email format, unverified domain, template not published)
+   * @throws {NotFoundError} Template with specified identifier not found
    * @throws {UnauthorizedError} Invalid API key or missing smtp:send scope
    *
    * @example
    * ```ts
-   * // Simple email
+   * // Simple email with raw HTML
    * const result = await kibamail.emails.send({
    *   from: "noreply@yourdomain.com",
    *   to: "customer@example.com",
    *   subject: "Welcome!",
    *   html: "<h1>Welcome to our platform!</h1>"
+   * });
+   *
+   * // Email using a template with variables
+   * await kibamail.emails.send({
+   *   from: "noreply@yourdomain.com",
+   *   to: "customer@example.com",
+   *   template: {
+   *     id: "order_confirmation",
+   *     variables: {
+   *       firstName: "John",
+   *       orderNumber: "12345",
+   *       total: 99.99
+   *     }
+   *   }
+   * });
+   *
+   * // Template with subject override
+   * await kibamail.emails.send({
+   *   from: "noreply@yourdomain.com",
+   *   to: "customer@example.com",
+   *   subject: "Custom Subject Override",
+   *   template: {
+   *     id: "welcome_email",
+   *     variables: { firstName: "Jane" }
+   *   }
    * });
    *
    * // Email with multiple recipients

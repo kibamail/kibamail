@@ -17,7 +17,6 @@
  * All addresses support +label syntax for tracking: delivered+signup@kibamail.dev
  */
 
-import { createId } from "@paralleldrive/cuid2";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
 import { prisma } from "@/lib/db";
@@ -110,28 +109,28 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
   const {
     broadcastId,
     workspaceId,
-    contactId,
+    sendingId,
     email,
     sandboxOutcome,
     sandboxLabel,
   } = data;
 
   logger.info(
-    { jobId, broadcastId, email, sandboxOutcome, sandboxLabel },
+    { jobId, broadcastId, email, sandboxOutcome, sandboxLabel, sendingId },
     "Processing sandbox broadcast email"
   );
 
-  // Generate unique send ID for this broadcast send
-  const emailSendId = `bs_${createId()}`;
+  // Use the pre-generated sendingId from BroadcastSend record
   const queuedAt = new Date();
 
   // Create initial Queued event to mark the email as being processed
+  // Note: contactId is null for sandbox broadcasts (no contacts created)
   await prisma.event.create({
     data: {
-      sendingId: emailSendId,
+      sendingId: sendingId,
       workspaceId,
       broadcastId,
-      contactId,
+      contactId: null,
       type: "Queued",
       recipient: email,
       queue: "sandbox",
@@ -162,13 +161,14 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
       });
     } else {
       // MTA events go through the normal processing pipeline
+      // Note: contact_id is null for sandbox broadcasts (no contacts created)
       const event: EmailEvent = {
         type: eventDef.type as MtaEventType,
-        sending_id: emailSendId,
+        sending_id: sendingId,
         recipient: email,
         tenant_id: workspaceId,
         broadcast_id: broadcastId,
-        contact_id: contactId,
+        contact_id: null,
         response: {
           code: eventDef.extra?.responseCode || 0,
           content: eventDef.extra?.responseContent || "",
@@ -191,13 +191,14 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
   }
 
   // Insert tracking events directly into the database
+  // Note: contactId is null for sandbox broadcasts (no contacts created)
   for (const trackingEvent of trackingEventsToInsert) {
     await prisma.event.create({
       data: {
-        sendingId: emailSendId,
+        sendingId: sendingId,
         workspaceId,
         broadcastId,
-        contactId,
+        contactId: null,
         type: trackingEvent.type,
         recipient: email,
         nodeId: "sandbox",

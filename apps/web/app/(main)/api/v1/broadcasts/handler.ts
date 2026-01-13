@@ -684,8 +684,11 @@ export async function scheduleBroadcast(workspaceId: string, broadcastId: string
 /**
  * Process a sandbox broadcast
  *
- * Creates a broadcast record and queues sandbox processing jobs for each recipient.
+ * Creates a broadcast record, BroadcastSend records, and queues sandbox processing jobs.
  * Sandbox broadcasts auto-generate events based on the email prefix (e.g., delivered@, bounced@).
+ *
+ * Note: BroadcastSend records are created with contactId=null since sandbox broadcasts
+ * do not create contacts. This allows users to view recipient details on the broadcast page.
  */
 async function processSandboxBroadcast(
   workspaceId: string,
@@ -709,15 +712,42 @@ async function processSandboxBroadcast(
     },
   });
 
+  // Generate sendingIds and prepare BroadcastSend data
+  const now = new Date();
+  const recipientsWithSendingId = contacts.map((contact) => ({
+    ...contact,
+    sendingId: `bs_${createId()}`,
+  }));
+
+  // Create BroadcastSend records (contactId=null, no contacts created for sandbox)
+  await prisma.broadcastSend.createMany({
+    data: recipientsWithSendingId.map((r) => ({
+      broadcastId: broadcast.id,
+      workspaceId,
+      contactId: null,
+      email: r.email,
+      sendingId: r.sendingId,
+      variables: r.transientVariables || undefined,
+      status: "QUEUED",
+      queuedAt: now,
+    })),
+  });
+
+  // Update broadcast aggregate with total queued count
+  await prisma.broadcast.update({
+    where: { id: broadcast.id },
+    data: { totalQueued: contacts.length },
+  });
+
   // Queue sandbox processing job for each recipient
-  const jobs = contacts.map((contact) => {
+  const jobs = recipientsWithSendingId.map((contact) => {
     const { outcome, label } = parseSandboxEmail(contact.email);
     return {
       name: "process-sandbox-broadcast" as const,
       data: {
         broadcastId: broadcast.id,
         workspaceId,
-        contactId: contact.id,
+        sendingId: contact.sendingId,
         email: contact.email,
         sandboxOutcome: outcome,
         sandboxLabel: label,

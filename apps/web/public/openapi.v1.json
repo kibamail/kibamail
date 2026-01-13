@@ -14183,7 +14183,7 @@
     "/v1/emails/send": {
       "post": {
         "summary": "Send Transactional Email",
-        "description": "Send a transactional email to one or more recipients.\n\n**Use Cases:**\n- Order confirmation emails\n- Password reset emails\n- Account verification emails\n- Payment receipts\n- Shipping notifications\n- Welcome emails\n- Any one-off automated email\n\n**Behavior:**\n- Email is queued and sent asynchronously\n- Returns immediately with the email send ID\n- Delivery status is tracked via webhooks\n- Supports HTML and plain text content\n- Plain text is auto-generated from HTML if not provided\n- Supports attachments (up to 25 files, 25MB total)\n- Custom metadata can be attached for tracking\n\n**Required Scope:** `smtp:send`\n\n**Rate Limits:**\n- 100 emails per minute per API key\n- Maximum 10MB HTML content\n- Maximum 25 attachments (total 25MB)\n\n**Delivery Tracking:**\n- Use the returned email ID to track delivery status\n- Configure webhooks to receive delivery notifications\n- Events: delivered, bounced, complained, opened, clicked\n\n**Best Practices:**\n- Always include a plain text version for accessibility\n- Keep HTML under 100KB for best deliverability\n- Use verified sending domains only\n- Include unsubscribe links for marketing content",
+        "description": "Send a transactional email to one or more recipients.\n\n**Use Cases:**\n- Order confirmation emails\n- Password reset emails\n- Account verification emails\n- Payment receipts\n- Shipping notifications\n- Welcome emails\n- Any one-off automated email\n\n**Content Modes:**\nYou can send emails in two ways:\n\n1. **Raw HTML Mode:** Provide `html` (required) and optionally `text` content directly\n2. **Template Mode:** Reference a published template by its `uniqueSlug` identifier\n\nThese modes are mutually exclusive - provide either `template` or `html`, not both.\n\n**Template-Based Sending:**\n```json\n{\n  \"from\": \"noreply@yourdomain.com\",\n  \"to\": \"customer@example.com\",\n  \"template\": {\n    \"id\": \"order_confirmation\",\n    \"variables\": {\n      \"firstName\": \"John\",\n      \"orderNumber\": \"12345\",\n      \"total\": 99.99\n    }\n  }\n}\n```\n\nWhen using templates:\n- The template must be published (have a `publishedVersionId`)\n- Variables are substituted using `{{variableName}}` syntax\n- Missing variables are replaced with empty strings\n- Subject and previewText can be overridden by providing them in the request\n- The `text` field cannot be used with templates (it comes from the template)\n\n**Behavior:**\n- Email is queued and sent asynchronously\n- Returns immediately with the email send ID\n- Delivery status is tracked via webhooks\n- Supports HTML and plain text content\n- Plain text is auto-generated from HTML if not provided\n- Supports attachments (up to 25 files, 25MB total)\n- Custom metadata can be attached for tracking\n\n**Required Scope:** `smtp:send`\n\n**Rate Limits:**\n- 100 emails per minute per API key\n- Maximum 10MB HTML content\n- Maximum 25 attachments (total 25MB)\n\n**Delivery Tracking:**\n- Use the returned email ID to track delivery status\n- Configure webhooks to receive delivery notifications\n- Events: delivered, bounced, complained, opened, clicked\n\n**Best Practices:**\n- Always include a plain text version for accessibility\n- Keep HTML under 100KB for best deliverability\n- Use verified sending domains only\n- Include unsubscribe links for marketing content",
         "tags": [
           "Transactional Emails"
         ],
@@ -14196,17 +14196,6 @@
           "required": true,
           "content": {
             "application/json": {
-              "example": {
-                "from": "noreply@yourdomain.com",
-                "to": "customer@example.com",
-                "subject": "Order Confirmation #12345",
-                "html": "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>",
-                "text": "Thank you for your order! Your order #12345 has been confirmed.",
-                "metadata": {
-                  "orderId": "12345",
-                  "customerId": "cust_abc123"
-                }
-              },
               "schema": {
                 "type": "object",
                 "properties": {
@@ -14258,26 +14247,57 @@
                     ]
                   },
                   "subject": {
-                    "description": "Email subject line",
+                    "description": "Email subject line (required when not using template, optional override when using template)",
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 500
                   },
                   "previewText": {
-                    "description": "Preview text shown in email clients (optional)",
+                    "description": "Preview text shown in email clients (optional, overrides template value if provided)",
                     "type": "string",
                     "maxLength": 150
                   },
                   "html": {
-                    "description": "HTML email body content",
+                    "description": "HTML email body content (required when not using template)",
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 10000000
                   },
                   "text": {
-                    "description": "Plain text email body content (auto-generated from HTML if not provided)",
+                    "description": "Plain text email body content (auto-generated from HTML if not provided, cannot be used with template)",
                     "type": "string",
                     "maxLength": 10000000
+                  },
+                  "template": {
+                    "description": "Template-based sending: provide template identifier and variables instead of html/text",
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "description": "Unique template identifier (uniqueSlug)",
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "variables": {
+                        "description": "Variables to substitute in the template",
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    "required": [
+                      "id"
+                    ]
                   },
                   "attachments": {
                     "description": "Email attachments (max 25 files, 25MB total)",
@@ -14323,10 +14343,62 @@
                 },
                 "required": [
                   "from",
-                  "to",
-                  "subject",
-                  "html"
+                  "to"
                 ]
+              },
+              "examples": {
+                "rawHtml": {
+                  "summary": "Raw HTML content",
+                  "description": "Send email with inline HTML content",
+                  "value": {
+                    "from": "noreply@yourdomain.com",
+                    "to": "customer@example.com",
+                    "subject": "Order Confirmation #12345",
+                    "html": "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>",
+                    "text": "Thank you for your order! Your order #12345 has been confirmed.",
+                    "metadata": {
+                      "orderId": "12345",
+                      "customerId": "cust_abc123"
+                    }
+                  }
+                },
+                "templateBased": {
+                  "summary": "Template-based content",
+                  "description": "Send email using a published template with variable substitution",
+                  "value": {
+                    "from": "noreply@yourdomain.com",
+                    "to": "customer@example.com",
+                    "template": {
+                      "id": "order_confirmation",
+                      "variables": {
+                        "firstName": "John",
+                        "orderNumber": "12345",
+                        "total": 99.99
+                      }
+                    },
+                    "metadata": {
+                      "orderId": "12345",
+                      "customerId": "cust_abc123"
+                    }
+                  }
+                },
+                "templateWithOverrides": {
+                  "summary": "Template with subject override",
+                  "description": "Send email using a template but override the subject line",
+                  "value": {
+                    "from": "noreply@yourdomain.com",
+                    "to": "customer@example.com",
+                    "subject": "Custom Subject Override",
+                    "previewText": "Custom preview text",
+                    "template": {
+                      "id": "welcome_email",
+                      "variables": {
+                        "firstName": "Jane",
+                        "companyName": "Acme Inc"
+                      }
+                    }
+                  }
+                }
               }
             }
           }
@@ -14363,7 +14435,7 @@
             }
           },
           "400": {
-            "description": "Bad Request - Invalid input data, such as malformed email addresses, missing required fields, or attachment size exceeded",
+            "description": "Bad Request - Invalid input data, such as malformed email addresses, missing required fields, attachment size exceeded, template not published, or both template and html provided",
             "content": {
               "application/json": {
                 "schema": {
@@ -14536,6 +14608,92 @@
           },
           "403": {
             "description": "Forbidden - Sending domain not verified, or sending limits exceeded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Template with the specified identifier not found, or sending domain not found for the from address",
             "content": {
               "application/json": {
                 "schema": {

@@ -6575,6 +6575,37 @@ export interface paths {
          *     - Welcome emails
          *     - Any one-off automated email
          *
+         *     **Content Modes:**
+         *     You can send emails in two ways:
+         *
+         *     1. **Raw HTML Mode:** Provide `html` (required) and optionally `text` content directly
+         *     2. **Template Mode:** Reference a published template by its `uniqueSlug` identifier
+         *
+         *     These modes are mutually exclusive - provide either `template` or `html`, not both.
+         *
+         *     **Template-Based Sending:**
+         *     ```json
+         *     {
+         *       "from": "noreply@yourdomain.com",
+         *       "to": "customer@example.com",
+         *       "template": {
+         *         "id": "order_confirmation",
+         *         "variables": {
+         *           "firstName": "John",
+         *           "orderNumber": "12345",
+         *           "total": 99.99
+         *         }
+         *       }
+         *     }
+         *     ```
+         *
+         *     When using templates:
+         *     - The template must be published (have a `publishedVersionId`)
+         *     - Variables are substituted using `{{variableName}}` syntax
+         *     - Missing variables are replaced with empty strings
+         *     - Subject and previewText can be overridden by providing them in the request
+         *     - The `text` field cannot be used with templates (it comes from the template)
+         *
          *     **Behavior:**
          *     - Email is queued and sent asynchronously
          *     - Returns immediately with the email send ID
@@ -6611,19 +6642,6 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    /**
-                     * @example {
-                     *       "from": "noreply@yourdomain.com",
-                     *       "to": "customer@example.com",
-                     *       "subject": "Order Confirmation #12345",
-                     *       "html": "<h1>Thank you for your order!</h1><p>Your order #12345 has been confirmed.</p>",
-                     *       "text": "Thank you for your order! Your order #12345 has been confirmed.",
-                     *       "metadata": {
-                     *         "orderId": "12345",
-                     *         "customerId": "cust_abc123"
-                     *       }
-                     *     }
-                     */
                     "application/json": {
                         /**
                          * Format: email
@@ -6642,14 +6660,23 @@ export interface paths {
                             /** @description Reply-to display name (optional) */
                             name?: string;
                         };
-                        /** @description Email subject line */
-                        subject: string;
-                        /** @description Preview text shown in email clients (optional) */
+                        /** @description Email subject line (required when not using template, optional override when using template) */
+                        subject?: string;
+                        /** @description Preview text shown in email clients (optional, overrides template value if provided) */
                         previewText?: string;
-                        /** @description HTML email body content */
-                        html: string;
-                        /** @description Plain text email body content (auto-generated from HTML if not provided) */
+                        /** @description HTML email body content (required when not using template) */
+                        html?: string;
+                        /** @description Plain text email body content (auto-generated from HTML if not provided, cannot be used with template) */
                         text?: string;
+                        /** @description Template-based sending: provide template identifier and variables instead of html/text */
+                        template?: {
+                            /** @description Unique template identifier (uniqueSlug) */
+                            id: string;
+                            /** @description Variables to substitute in the template */
+                            variables?: {
+                                [key: string]: string | number;
+                            };
+                        };
                         /**
                          * @description Email attachments (max 25 files, 25MB total)
                          * @default []
@@ -6696,7 +6723,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Bad Request - Invalid input data, such as malformed email addresses, missing required fields, or attachment size exceeded */
+                /** @description Bad Request - Invalid input data, such as malformed email addresses, missing required fields, attachment size exceeded, template not published, or both template and html provided */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -6770,6 +6797,42 @@ export interface paths {
                 };
                 /** @description Forbidden - Sending domain not verified, or sending limits exceeded */
                 403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Template with the specified identifier not found, or sending domain not found for the from address */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -6965,6 +7028,27 @@ export interface paths {
          *     - sendAt must be a future ISO 8601 datetime
          *     - Broadcast will be processed at the scheduled time
          *     - Cannot be modified after creation (create a new broadcast instead)
+         *
+         *     **Sandbox/Test Mode:**
+         *     For testing without sending real emails, use `@kibamail.dev` test addresses. These addresses simulate different delivery outcomes:
+         *
+         *     | Address | Simulated Outcome |
+         *     |---------|-------------------|
+         *     | `delivered@kibamail.dev` | Successful delivery |
+         *     | `bounced@kibamail.dev` | Hard bounce |
+         *     | `softbounce@kibamail.dev` | Soft bounce (transient failure) |
+         *     | `complained@kibamail.dev` | Spam complaint |
+         *     | `failed@kibamail.dev` | Permanent delivery failure |
+         *     | `delayed@kibamail.dev` | Delayed delivery (retries then succeeds) |
+         *     | `opened@kibamail.dev` | Delivered + opened |
+         *     | `clicked@kibamail.dev` | Delivered + opened + clicked |
+         *
+         *     **Sandbox features:**
+         *     - Add `+label` for tracking: `delivered+campaign1@kibamail.dev`
+         *     - Events are generated instantly (no actual email sent)
+         *     - `sendAt` can be any time (processed immediately)
+         *     - Cannot mix sandbox and real email addresses in the same broadcast
+         *     - Per-email variables work with sandbox addresses
          *
          *     **Best Practices:**
          *     - Always test with a small segment first
