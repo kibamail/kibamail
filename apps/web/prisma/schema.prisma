@@ -1996,9 +1996,10 @@ model EmailTemplate {
   /// Template group relation (optional)
   templateGroup      TemplateGroup?       @relation(fields: [templateGroupId], references: [id], onDelete: SetNull)
 
-  /// Only enforce uniqueness for DRAFT and PUBLISHED status (allow multiple ARCHIVED)
-  /// This allows version rollback/rollforward without constraint violations
-  @@unique([workspaceId, parentId, status], name: "one_template_status_per_parent")
+  /// Note: Versioning logic (only one PUBLISHED per parent) is enforced in application code
+  /// in the publishEmailTemplate handler, not via database constraint.
+  /// A database constraint on [workspaceId, parentId, status] would incorrectly group
+  /// all root templates (parentId=null) together, preventing multiple published templates.
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@index([workspaceId, deletedAt])

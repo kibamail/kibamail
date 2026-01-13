@@ -39,7 +39,7 @@ API keys authenticate your application with Kibamail. Each key has specific perm
 2. Go to **Settings** → **API Keys**
 3. Click **Create API Key**
 
-<!-- Screenshot: API Keys settings page showing the Create API Key button -->
+![API Keys settings page](/blog/broadcasts-api/api-keys-settings.png)
 
 ### Configure Your Key
 
@@ -47,7 +47,7 @@ Give your key a descriptive name like "Broadcast Server" or "Newsletter App".
 
 For sending broadcasts, select the `broadcasts:write` scope. If you also want to read contact data, add `read:contacts`.
 
-<!-- Screenshot: API Key creation form with name field and scope selection -->
+![API Key creation form](/blog/broadcasts-api/api-key-creation-form.png)
 
 ### Save Your Key Securely
 
@@ -153,7 +153,7 @@ sendNewsletter();
 
 The `sendAt` field must be a future ISO 8601 timestamp. Kibamail queues the broadcast and sends it at the scheduled time.
 
-<!-- Screenshot: Broadcast confirmation in the Kibamail dashboard -->
+![Broadcast confirmation in dashboard](/blog/broadcasts-api/broadcast-confirmation.png)
 
 ---
 
@@ -264,7 +264,7 @@ const { data, error } = await kibamail.broadcasts.createAndSend({
 
 Find segment IDs in your Kibamail dashboard under **Audience** → **Segments**.
 
-<!-- Screenshot: Segment list showing segment IDs -->
+<!-- TODO: Add screenshot of segment list showing segment IDs -->
 
 ### Send to Topic Subscribers
 

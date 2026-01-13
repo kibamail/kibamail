@@ -52,7 +52,7 @@ API keys authenticate your application with Kibamail. For transactional emails, 
 2. Go to **Settings** → **API Keys**
 3. Click **Create API Key**
 
-<!-- Screenshot: API Keys settings page showing the Create API Key button -->
+![API Keys settings page](/blog/transactional-api/api-keys-settings.png)
 
 ### Configure Your Key
 
@@ -60,7 +60,7 @@ Give your key a descriptive name like "Transactional Email Server" or "Order Not
 
 Select the `smtp:send` scope. This scope grants permission to send transactional emails.
 
-<!-- Screenshot: API Key creation form with smtp:send scope selected -->
+![API Key creation form](/blog/transactional-api/api-key-creation-form.png)
 
 ### Save Your Key Securely
 
@@ -153,7 +153,7 @@ sendWelcomeEmail("newuser@example.com", "John");
 
 The API queues the email and returns immediately with an email ID. Use this ID to track delivery status via webhooks.
 
-<!-- Screenshot: Email delivery confirmation in the Kibamail dashboard -->
+![Email delivery confirmation](/blog/transactional-api/email-delivery-confirmation.png)
 
 ---
 
@@ -187,7 +187,7 @@ Templates separate email design from application code. Create templates in your 
 5. Add variables using `{{variableName}}` syntax
 6. Publish the template
 
-<!-- Screenshot: Template editor showing variable placeholders -->
+![Template editor with variables](/blog/transactional-api/template-editor-variables.png)
 
 ### Send with a Template
 
@@ -390,7 +390,7 @@ After sending emails, you can inspect them in your Kibamail dashboard. This help
 2. Go to **Emails** in the main navigation
 3. You'll see a list of all transactional emails sent from your workspace
 
-<!-- Screenshot: Emails list showing recent transactional emails -->
+![Emails list](/blog/transactional-api/emails-list.png)
 
 The list displays each email's recipient, subject, status, and timestamp. Use the search and filters to find specific emails.
 
@@ -403,7 +403,7 @@ Click on any email to open its detail view. Here you can see:
 - **Metadata** - Any custom metadata you attached when sending
 - **Current status** - Whether the email was delivered, bounced, or is still pending
 
-<!-- Screenshot: Email detail view showing recipient info and status -->
+![Email detail view](/blog/transactional-api/email-detail-view.png)
 
 ### Event Timeline
 
@@ -421,7 +421,7 @@ Each email has a timeline showing every event that occurred:
 
 The timeline shows the exact timestamp for each event, making it easy to diagnose delivery delays or issues.
 
-<!-- Screenshot: Event timeline showing queued, sent, delivered, opened events -->
+<!-- TODO: Add screenshot of event timeline -->
 
 ### Preview Email Content
 
@@ -432,7 +432,7 @@ Use this to verify:
 - HTML renders as expected
 - Links and images display properly
 
-<!-- Screenshot: Email preview showing rendered HTML content -->
+<!-- TODO: Add screenshot of email preview -->
 
 ---
 
