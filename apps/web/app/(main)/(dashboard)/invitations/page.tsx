@@ -5,9 +5,8 @@
  * Users can view and accept invitations to join workspaces.
  */
 
-import { Button } from "@kibamail/owly";
+import { Button, Text } from "@kibamail/owly";
 import { ArrowRight } from "iconoir-react";
-import Image from "next/image";
 import { redirect } from "next/navigation";
 import { type LogtoWorkspace, logto } from "@/auth/logto";
 import { getSession } from "@/lib/auth/get-session";
@@ -28,7 +27,7 @@ export default async function InvitationsPage() {
   }
 
   const workspaces = await Promise.allSettled(
-    invitations.map((invite) => logto.workspaces().get(invite.workspaceId)),
+    invitations.map((invite) => logto.workspaces().get(invite.workspaceId))
   );
 
   const knownWorkspaces: Record<string, LogtoWorkspace> = {};
@@ -48,18 +47,17 @@ export default async function InvitationsPage() {
       {/* <Invitations /> */}
 
       <div className="w-full mb-8 flex justify-center">
-        <Image
+        <img
           src="/assets/logo-full-light.png"
           alt="Logo"
           width={200}
           height={50}
-          priority
         />
       </div>
       <div className="w-full max-w-lg bg-kb-bg-secondary mx-auto h-fit rounded-md border border-kb-border-tertiary shadow-sm">
         <div className="w-full border border-transparent p-6">
-          <h1 className="mb-8 text-xl font-semibold font-heading text-kb-bg-brand">
-            You've been invited
+          <h1 className="mb-8 text-xl font-semibold font-heading">
+            <Text as="span">You've been invited</Text>
           </h1>
           <div className="grid grid-cols-1 gap-3">
             {invitations.map((invite) => {

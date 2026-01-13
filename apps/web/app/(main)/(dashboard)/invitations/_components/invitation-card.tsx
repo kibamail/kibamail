@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { LogtoWorkspace } from "@/auth/logto";
 import { useMutation } from "@/hooks/use-mutation";
 import { internalApi } from "@/lib/api/client";
+import { Text } from "@kibamail/owly";
 
 interface InvitationCardProps {
   invitation: {
@@ -44,7 +45,9 @@ export function InvitationCard({ invitation, workspace }: InvitationCardProps) {
 
   return (
     <div className="w-full border border-kb-border-tertiary px-4 p-2 rounded-md flex items-center justify-between">
-      <p className="text-sm">{workspace?.name}</p>
+      <p className="text-sm">
+        <Text as="span">{workspace?.name}</Text>
+      </p>
 
       <div className="flex items-center gap-4">
         <Button

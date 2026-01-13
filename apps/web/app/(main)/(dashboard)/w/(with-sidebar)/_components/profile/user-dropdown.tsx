@@ -13,7 +13,6 @@ import { useToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 import type { UserSession } from "@/lib/auth/get-session";
 import { hasPermission } from "@/lib/auth/permissions";
-import { Image } from "@/lib/components/image";
 
 interface UserDropdownComponentProps {
   session: UserSession;
@@ -38,7 +37,7 @@ export function UserSessionDropdown({ session }: UserDropdownComponentProps) {
     },
     onSuccess(_, workspaceId) {
       const workspace = session.organizations.find(
-        (org) => org.id === workspaceId,
+        (org) => org.id === workspaceId
       );
       toast.success(`Switched to workspace ${workspace?.name}`);
       router.refresh();
@@ -75,7 +74,7 @@ export function UserSessionDropdown({ session }: UserDropdownComponentProps) {
                 onClick={() => activateWorkspace(org.id)}
               >
                 {org.branding?.logoUrl ? (
-                  <Image
+                  <img
                     src={org.branding.logoUrl}
                     alt={org.name}
                     width={20}

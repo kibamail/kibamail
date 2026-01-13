@@ -10,6 +10,10 @@ import { NotFoundError } from "@/lib/api/errors";
 import { responseBadRequest, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import type { UserSession } from "@/lib/auth/get-session";
+import {
+  invalidateUserCache,
+  invalidateOrganizationCache,
+} from "@/lib/auth/user-cache";
 import { prisma } from "@/lib/db";
 import { toLogtoError } from "@/lib/logto/errors";
 import { updateInvitationStatusSchema } from "./schema";
@@ -80,6 +84,12 @@ export async function updateInvitationStatus(
       where: { id: invitationId },
       data: { status: "ACCEPTED" },
     });
+
+    // Clear user and organization cache so dashboard shows updated data
+    await Promise.all([
+      invalidateUserCache(session.user.sub),
+      invalidateOrganizationCache(invitation.workspaceId),
+    ]);
   } else {
     // Delete revoked invitations
     await prisma.invitation.delete({
