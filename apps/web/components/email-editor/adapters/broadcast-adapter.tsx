@@ -1,6 +1,10 @@
 "use client";
 
-import type { BroadcastStatus, SendingDomain } from "@prisma/client";
+import type {
+  BroadcastSource,
+  BroadcastStatus,
+  SendingDomain,
+} from "@prisma/client";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 
@@ -19,6 +23,7 @@ interface BroadcastEditorAdapterProps {
   broadcastId: string;
   broadcastName: string;
   status: BroadcastStatus;
+  sourceType: BroadcastSource;
   initialContent?: Record<string, unknown>;
   initialStyles?: Record<string, unknown>;
   initialSubject: string;
@@ -38,6 +43,7 @@ export function BroadcastEditorAdapter({
   broadcastId,
   broadcastName,
   status,
+  sourceType,
   initialContent,
   initialStyles,
   initialSubject,
@@ -127,6 +133,7 @@ export function BroadcastEditorAdapter({
       entityId={broadcastId}
       entityName={broadcastName}
       isReadonly={isReadonly}
+      sourceType={sourceType}
       initialContent={initialContent}
       initialStyles={initialStyles}
       initialDetails={initialDetails}

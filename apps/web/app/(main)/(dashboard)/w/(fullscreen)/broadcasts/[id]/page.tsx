@@ -76,6 +76,7 @@ export default async function BroadcastEditorPage({
       initialTrackClicks={broadcast?.trackClicks ?? undefined}
       initialTrackOpens={broadcast?.trackOpens ?? undefined}
       initialReplyToIdentityId={broadcast?.replyToIdentityId ?? undefined}
+      sourceType={broadcast?.sourceType ?? "DASHBOARD"}
       senderIdentities={senderIdentities}
       domains={domains}
     />

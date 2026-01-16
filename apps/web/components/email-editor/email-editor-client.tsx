@@ -27,6 +27,7 @@ import {
   getDefaultLabels,
   getTabsForMode,
 } from "./types";
+import { Analytics } from "./analytics";
 
 interface EmailEditorClientProps<T extends EmailEditorMode>
   extends EmailEditorProps<T> {
@@ -38,6 +39,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   entityId,
   entityName,
   isReadonly = false,
+  sourceType,
   initialContent,
   initialStyles,
   initialDetails,
@@ -55,8 +57,9 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   onVariableDelete,
 }: EmailEditorClientProps<T>) {
   const labels = { ...getDefaultLabels(mode), ...customLabels };
-  const tabs = getTabsForMode(mode);
+  const tabs = getTabsForMode(mode, sourceType);
   const validTabs = tabs.filter((t) => t.enabled).map((t) => t.id);
+  const isApiCreated = sourceType === "API";
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -65,8 +68,16 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   const queryClient = useQueryClient();
   const { success: toast } = useToast();
 
+  // Default tab logic:
+  // - Readonly broadcasts: analytics tab
+  // - API-created broadcasts: preview tab (no content tab available)
+  // - All other cases: content tab
   const defaultTab: EditorTab =
-    isReadonly && mode === "broadcast" ? "analytics" : "content";
+    isReadonly && mode === "broadcast"
+      ? "analytics"
+      : isApiCreated
+      ? "preview"
+      : "content";
   const tabParam = searchParams.get("tab");
   const activeTab: EditorTab = validTabs.includes(tabParam as EditorTab)
     ? (tabParam as EditorTab)
@@ -95,12 +106,12 @@ export function EmailEditorClient<T extends EmailEditorMode>({
 
   const allDomains = useMemo(
     () => [...domains, ...addedDomains],
-    [domains, addedDomains],
+    [domains, addedDomains]
   );
 
   const allSenderIdentities = useMemo(
     () => [...senderIdentities, ...addedSenderIdentities],
-    [senderIdentities, addedSenderIdentities],
+    [senderIdentities, addedSenderIdentities]
   );
 
   const onDetailsChange = useCallback(
@@ -114,10 +125,10 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           updates.senderIdentityId !== prev.senderIdentityId
         ) {
           const prevSender = allSenderIdentities.find(
-            (s) => s.id === prev.senderIdentityId,
+            (s) => s.id === prev.senderIdentityId
           );
           const nextSender = allSenderIdentities.find(
-            (s) => s.id === updates.senderIdentityId,
+            (s) => s.id === updates.senderIdentityId
           );
 
           if (prevSender?.domainId !== nextSender?.domainId) {
@@ -128,7 +139,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
         return next;
       });
     },
-    [allSenderIdentities],
+    [allSenderIdentities]
   );
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {
@@ -139,7 +150,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
     (identity: TransformedSenderIdentity) => {
       setAddedSenderIdentities((prev) => [...prev, identity]);
     },
-    [],
+    []
   );
 
   const getSavePayload = useCallback(() => {
@@ -379,7 +390,10 @@ export function EmailEditorClient<T extends EmailEditorMode>({
                 : "invisible pointer-events-none"
             }`}
           >
-            <AnalyticsPlaceholder />
+            <Analytics
+              broadcastId={entityId}
+              isActive={activeTab === "analytics"}
+            />
           </div>
         )}
       </div>
@@ -393,23 +407,6 @@ export function EmailEditorClient<T extends EmailEditorMode>({
           onSaveDraft={onSaveDraftAsync}
         />
       )}
-    </div>
-  );
-}
-
-function AnalyticsPlaceholder() {
-  return (
-    <div className="h-full w-full bg-kb-bg-primary flex items-center justify-center">
-      <div className="text-center">
-        <StatUp className="w-12 h-12 text-kb-content-tertiary mx-auto mb-4" />
-        <h2 className="text-lg font-semibold text-kb-content-primary mb-2">
-          Analytics coming soon
-        </h2>
-        <p className="text-kb-content-secondary max-w-md">
-          Track opens, clicks, and engagement metrics for your broadcast once it
-          has been sent.
-        </p>
-      </div>
     </div>
   );
 }

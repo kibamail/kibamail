@@ -714,6 +714,7 @@ async function processSandboxBroadcast(
       workspaceId,
       name: data.name,
       status: "SENDING",
+      sourceType: "API",
       emailContent: {
         create: {
           subject: data.emailContent.subject,
@@ -941,6 +942,7 @@ export async function createAndSendBroadcast(
       topicId: data.recipients.topic ?? null,
       sendAt,
       status: "QUEUED_FOR_SENDING",
+      sourceType: "API",
     },
     include: {
       emailContent: true,

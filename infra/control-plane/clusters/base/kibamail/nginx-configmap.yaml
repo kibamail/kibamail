@@ -95,6 +95,12 @@ data:
                 include /etc/nginx/proxy_params.conf;
             }
 
+            # Pass through API requests as-is (no rewrite)
+            location /api {
+                proxy_pass http://control_plane;
+                include /etc/nginx/proxy_params.conf;
+            }
+
             # Rewrite form URLs: /<form-id> -> /p/forms/<form-id>
             location / {
                 rewrite ^/(.*)$ /p/forms/$1 break;

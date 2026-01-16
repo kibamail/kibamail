@@ -32,7 +32,7 @@ import {
 } from "../lib";
 
 const prisma = new PrismaClient();
-const DEFAULT_RECIPIENT_COUNT = 500;
+const DEFAULT_RECIPIENT_COUNT = 2000;
 
 type RecipientMode = "contacts" | "emails";
 
@@ -47,22 +47,56 @@ class CreateAndSendTest extends ManualTest {
   private recipientCount: number;
   private mode: RecipientMode;
   private broadcastId: string | null = null;
+  private useRealDomains: boolean;
+
+  /**
+   * Real domains that have MX records pointing to smtp.test.local.
+   * These emails will be delivered to the local test SMTP server.
+   */
+  private static readonly REAL_DOMAINS = [
+    "gmail.com",
+    "yahoo.com",
+    "outlook.com",
+    "hotmail.com",
+    "icloud.com",
+    "example.com",
+    "test.com",
+  ];
+
+  /**
+   * Random domains that will bounce (no valid MX records).
+   */
+  private static readonly BOUNCE_DOMAINS = [
+    "nonexistent-domain-12345.com",
+    "fake-mail-server-xyz.net",
+    "invalid-domain-test.org",
+    "no-mx-record-here.co",
+    "bouncy-mail-test.io",
+  ];
 
   constructor(
     recipientCount: number = DEFAULT_RECIPIENT_COUNT,
-    mode: RecipientMode = "contacts"
+    mode: RecipientMode = "contacts",
+    useRealDomains: boolean = false
   ) {
     super();
     this.recipientCount = recipientCount;
     this.mode = mode;
+    this.useRealDomains = useRealDomains;
   }
 
   get name(): string {
+    if (this.useRealDomains) {
+      return "Create and Send Broadcast Test (Real Domains)";
+    }
     const modeLabel = this.mode === "emails" ? "Email-Only" : "Contact-Based";
     return `Create and Send Broadcast Test (${modeLabel})`;
   }
 
   get description(): string {
+    if (this.useRealDomains) {
+      return `Tests real email sending with ${this.recipientCount} recipients via smtp.test.local`;
+    }
     if (this.mode === "emails") {
       return `Tests email-only broadcast with ${this.recipientCount} emails - verifies NO contacts created`;
     }
@@ -139,17 +173,71 @@ class CreateAndSendTest extends ManualTest {
   }
 
   /**
+   * Sandbox email outcome types with their approximate distribution weights.
+   * The weights determine how likely each outcome is when randomly selecting.
+   */
+  private static readonly SANDBOX_OUTCOMES: Array<{
+    prefix: string;
+    weight: number;
+  }> = [
+    { prefix: "delivered", weight: 70 }, // 70% delivered
+    { prefix: "bounced", weight: 5 }, // 5% hard bounce
+    { prefix: "softbounce", weight: 3 }, // 3% soft bounce
+    { prefix: "complained", weight: 2 }, // 2% spam complaint
+    { prefix: "failed", weight: 2 }, // 2% permanent failure
+    { prefix: "delayed", weight: 3 }, // 3% delayed delivery
+    { prefix: "opened", weight: 10 }, // 10% opened
+    { prefix: "clicked", weight: 5 }, // 5% clicked
+  ];
+
+  /**
+   * Get a random sandbox outcome based on weighted distribution.
+   */
+  private getRandomSandboxOutcome(): string {
+    const totalWeight = CreateAndSendTest.SANDBOX_OUTCOMES.reduce(
+      (sum, o) => sum + o.weight,
+      0
+    );
+    let random = Math.random() * totalWeight;
+
+    for (const outcome of CreateAndSendTest.SANDBOX_OUTCOMES) {
+      random -= outcome.weight;
+      if (random <= 0) {
+        return outcome.prefix;
+      }
+    }
+
+    return "delivered"; // Fallback
+  }
+
+  /**
    * Generate email-only recipients (no contacts in DB).
+   * Uses either sandbox domains or real domains based on configuration.
    */
   private generateEmailRecipients(): EmailRecipient[] {
+    if (this.useRealDomains) {
+      return this.generateRealEmailRecipients();
+    }
+    return this.generateSandboxEmailRecipients();
+  }
+
+  /**
+   * Generate sandbox email recipients using kibamail.dev domain.
+   */
+  private generateSandboxEmailRecipients(): EmailRecipient[] {
     const recipients: EmailRecipient[] = [];
     const usedEmails = new Set<string>();
 
     for (let i = 0; i < this.recipientCount; i++) {
-      let email: string;
-      do {
-        email = faker.internet.email().toLowerCase();
-      } while (usedEmails.has(email));
+      const outcome = this.getRandomSandboxOutcome();
+      // Use +label syntax to make each email unique: delivered+abc123@kibamail.dev
+      const uniqueLabel = faker.string.alphanumeric(8).toLowerCase();
+      const email = `${outcome}+${uniqueLabel}@kibamail.dev`;
+
+      // Ensure uniqueness (should always be unique with random label, but just in case)
+      if (usedEmails.has(email)) {
+        continue;
+      }
       usedEmails.add(email);
 
       recipients.push({
@@ -159,6 +247,59 @@ class CreateAndSendTest extends ManualTest {
     }
 
     return recipients;
+  }
+
+  /**
+   * Generate real email recipients using domains with MX records pointing to smtp.test.local.
+   * Also includes some bounce domains to test bounce handling.
+   */
+  private generateRealEmailRecipients(): EmailRecipient[] {
+    const recipients: EmailRecipient[] = [];
+    const usedEmails = new Set<string>();
+
+    // Calculate how many emails to generate for each category
+    // ~85% real domains (will be delivered), ~15% bounce domains (will bounce)
+    const bounceCount = Math.floor(this.recipientCount * 0.15);
+    const realCount = this.recipientCount - bounceCount;
+
+    // Generate real domain emails
+    for (let i = 0; i < realCount; i++) {
+      const domain = faker.helpers.arrayElement(CreateAndSendTest.REAL_DOMAINS);
+      const localPart = faker.internet.username().toLowerCase().replace(/[^a-z0-9]/g, "") +
+        faker.string.alphanumeric(4).toLowerCase();
+      const email = `${localPart}@${domain}`;
+
+      if (usedEmails.has(email)) {
+        continue;
+      }
+      usedEmails.add(email);
+
+      recipients.push({
+        email,
+        variables: this.generateRecipientVariables(),
+      });
+    }
+
+    // Generate bounce domain emails
+    for (let i = 0; i < bounceCount; i++) {
+      const domain = faker.helpers.arrayElement(CreateAndSendTest.BOUNCE_DOMAINS);
+      const localPart = faker.internet.username().toLowerCase().replace(/[^a-z0-9]/g, "") +
+        faker.string.alphanumeric(4).toLowerCase();
+      const email = `${localPart}@${domain}`;
+
+      if (usedEmails.has(email)) {
+        continue;
+      }
+      usedEmails.add(email);
+
+      recipients.push({
+        email,
+        variables: this.generateRecipientVariables(),
+      });
+    }
+
+    // Shuffle to mix real and bounce emails
+    return faker.helpers.shuffle(recipients);
   }
 
   /**
@@ -229,10 +370,22 @@ class CreateAndSendTest extends ManualTest {
     const { workspaceId, apiKey, domain } = this.context;
 
     // Step 1: Generate email recipients (NOT creating contacts)
-    this.printSection(`Generating ${this.recipientCount} Email Recipients`);
-    console.log("  Note: These emails will NOT be inserted as contacts.\n");
+    if (this.useRealDomains) {
+      this.printSection(`Generating ${this.recipientCount} Real Email Recipients`);
+      console.log("  Using real domains with MX records pointing to smtp.test.local.\n");
+    } else {
+      this.printSection(`Generating ${this.recipientCount} Sandbox Email Recipients`);
+      console.log("  Using kibamail.dev sandbox domain with various outcomes.\n");
+    }
 
     this.emailRecipients = this.generateEmailRecipients();
+
+    // Calculate and display distribution
+    const domainCounts: Record<string, number> = {};
+    for (const recipient of this.emailRecipients) {
+      const emailDomain = recipient.email.split("@")[1];
+      domainCounts[emailDomain] = (domainCounts[emailDomain] || 0) + 1;
+    }
 
     this.printField("Emails generated", this.emailRecipients.length);
     this.printField("Sample email", this.emailRecipients[0].email);
@@ -240,6 +393,33 @@ class CreateAndSendTest extends ManualTest {
       "Sample variables",
       JSON.stringify(this.emailRecipients[0].variables)
     );
+
+    if (this.useRealDomains) {
+      console.log("\n  Domain Distribution:");
+      for (const [emailDomain, count] of Object.entries(domainCounts).sort(
+        (a, b) => b[1] - a[1]
+      )) {
+        const percent = ((count / this.emailRecipients.length) * 100).toFixed(1);
+        const isBounce = CreateAndSendTest.BOUNCE_DOMAINS.includes(emailDomain);
+        const marker = isBounce ? " (will bounce)" : "";
+        console.log(`    ${emailDomain}: ${count} (${percent}%)${marker}`.padEnd(50));
+      }
+    } else {
+      // Calculate sandbox outcome distribution
+      const outcomeCounts: Record<string, number> = {};
+      for (const recipient of this.emailRecipients) {
+        const outcome = recipient.email.split("+")[0];
+        outcomeCounts[outcome] = (outcomeCounts[outcome] || 0) + 1;
+      }
+
+      console.log("\n  Sandbox Outcome Distribution:");
+      for (const [outcome, count] of Object.entries(outcomeCounts).sort(
+        (a, b) => b[1] - a[1]
+      )) {
+        const percent = ((count / this.emailRecipients.length) * 100).toFixed(1);
+        console.log(`    ${outcome}: ${count} (${percent}%)`.padEnd(35));
+      }
+    }
 
     // Step 2: Verify no contacts exist for these emails (pre-check)
     this.printSection("Pre-Check: Verifying No Contacts Exist");
@@ -544,17 +724,22 @@ function parseArgs(): {
   cleanup: boolean;
   count: number;
   mode: RecipientMode;
+  useRealDomains: boolean;
 } {
   const args = process.argv.slice(2);
   let cleanup = false;
   let count = DEFAULT_RECIPIENT_COUNT;
   let mode: RecipientMode = "contacts";
+  let useRealDomains = false;
 
   for (const arg of args) {
     if (arg === "--cleanup") {
       cleanup = true;
     } else if (arg === "--emails") {
       mode = "emails";
+    } else if (arg === "--real") {
+      useRealDomains = true;
+      mode = "emails"; // Real domains implies email mode
     } else if (arg.startsWith("--count=")) {
       count = parseInt(arg.split("=")[1], 10);
       if (isNaN(count) || count < 1) {
@@ -571,7 +756,7 @@ function parseArgs(): {
     }
   }
 
-  return { cleanup, count, mode };
+  return { cleanup, count, mode, useRealDomains };
 }
 
 /**
@@ -582,16 +767,17 @@ function printUsage(): void {
 Usage: pnpm manual-test:create-and-send [options]
 
 Options:
-  --emails        Use email-only mode (no contacts created)
-  --count=N       Number of recipients (default: 500)
+  --emails        Use email-only mode with sandbox domains (kibamail.dev)
+  --real          Use real domains (gmail.com, yahoo.com, etc.) via smtp.test.local
+  --count=N       Number of recipients (default: 2000)
   --contacts=N    Alias for --count (legacy)
   --cleanup       Remove test data after completion
 
 Examples:
-  pnpm manual-test:create-and-send                     # Contact mode, 500 contacts
-  pnpm manual-test:create-and-send --emails            # Email mode, 500 emails
-  pnpm manual-test:create-and-send --emails --count=10 # Email mode, 10 emails
-  pnpm manual-test:create-and-send --cleanup           # Clean up after test
+  pnpm manual-test:create-and-send                      # Contact mode, 2000 contacts
+  pnpm manual-test:create-and-send --emails             # Sandbox mode, 2000 emails
+  pnpm manual-test:create-and-send --real --count=594   # Real domains, 594 emails
+  pnpm manual-test:create-and-send --cleanup            # Clean up after test
 `);
 }
 
@@ -604,9 +790,9 @@ async function main(): Promise<void> {
     process.exit(0);
   }
 
-  const { cleanup, count, mode } = parseArgs();
+  const { cleanup, count, mode, useRealDomains } = parseArgs();
 
-  const test = new CreateAndSendTest(count, mode);
+  const test = new CreateAndSendTest(count, mode, useRealDomains);
   await test.run({ cleanup });
   await prisma.$disconnect();
 }

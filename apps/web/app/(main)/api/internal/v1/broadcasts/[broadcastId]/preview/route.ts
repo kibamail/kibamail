@@ -55,50 +55,59 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       if (!broadcast) {
         throw new NotFoundError(
           "Broadcast not found",
-          ErrorCode.BROADCAST_NOT_FOUND,
+          ErrorCode.BROADCAST_NOT_FOUND
         );
       }
 
       // Check if there's content to render
       const contentJson = broadcast.emailContent?.contentJson;
-      if (!contentJson) {
+      const contentHtml = broadcast.emailContent?.contentHtml;
+
+      if (!contentJson && !contentHtml) {
         return NextResponse.json(
           {
             html: "<html><body><p>No content to preview</p></body></html>",
             hasContent: false,
           },
-          { status: 200 },
+          { status: 200 }
         );
       }
 
-      // Get styles from the email content (if stored)
-      const storedStyles =
-        (broadcast.emailContent?.styles as BroadcastStyles) || {};
+      let html: string;
 
-      // Render the broadcast to HTML with styles
-      const html = await renderBroadcastToHtml(
-        contentJson as unknown as BroadcastDocument,
-        {
-          // Provide sample variables for preview
-          variables: {
-            "contact.email": "preview@example.com",
-            "contact.first_name": "John",
-            "contact.last_name": "Doe",
-            unsubscribe_url: "#unsubscribe",
-            preferences_url: "#preferences",
-            view_in_browser_url: "#view-in-browser",
+      if (contentJson) {
+        // Get styles from the email content (if stored)
+        const storedStyles =
+          (broadcast.emailContent?.styles as BroadcastStyles) || {};
+
+        // Render the broadcast to HTML with styles
+        html = await renderBroadcastToHtml(
+          contentJson as unknown as BroadcastDocument,
+          {
+            // Provide sample variables for preview
+            variables: {
+              "contact.email": "preview@example.com",
+              "contact.first_name": "John",
+              "contact.last_name": "Doe",
+              unsubscribe_url: "#unsubscribe",
+              preferences_url: "#preferences",
+              view_in_browser_url: "#view-in-browser",
+            },
           },
-        },
-        storedStyles,
-      );
+          storedStyles
+        );
+      } else {
+        // Use raw HTML for API-created broadcasts
+        html = contentHtml!;
+      }
 
       return NextResponse.json(
         {
           html,
           hasContent: true,
         },
-        { status: 200 },
+        { status: 200 }
       );
-    }),
+    })
   );
 }

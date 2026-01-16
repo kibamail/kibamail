@@ -1207,6 +1207,8 @@ model Broadcast {
   waitingTimeToPickWinner Int?             @default(4)
   /// Broadcast status
   status                  BroadcastStatus  @default(DRAFT)
+  /// Source of broadcast creation (UI or API)
+  sourceType              BroadcastSource  @default(DASHBOARD)
   /// Whether this is an A/B test broadcast
   isAbTest                Boolean          @default(false)
   /// Criteria for picking A/B test winner
@@ -1612,6 +1614,12 @@ enum BroadcastStatus {
   SENDING_FAILED // Sending failed
   DRAFT_ARCHIVED // Archived draft
   ARCHIVED // Archived sent broadcast
+}
+
+/// Source of broadcast creation
+enum BroadcastSource {
+  DASHBOARD // Created via UI dashboard
+  API // Created via external API
 }
 
 /// Broadcast send status (per-recipient)

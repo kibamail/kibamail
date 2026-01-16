@@ -1,11 +1,16 @@
-import type { SendingDomain } from "@prisma/client";
+import type { SendingDomain, BroadcastSource } from "@prisma/client";
 import type {
   CreatedDomain,
   TransformedSenderIdentity,
 } from "@/components/sender-select";
 import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 
-export type { TransformedSenderIdentity, CreatedDomain, VariableDefinition };
+export type {
+  TransformedSenderIdentity,
+  CreatedDomain,
+  VariableDefinition,
+  BroadcastSource,
+};
 
 /**
  * The mode of the email editor determines which features are available.
@@ -87,23 +92,30 @@ export interface TabConfig {
 }
 
 /**
- * Get available tabs based on mode
+ * Get available tabs based on mode and source type
+ * For API-created broadcasts, the Content tab is hidden since TipTap cannot render raw HTML
  */
-export function getTabsForMode(mode: EmailEditorMode): TabConfig[] {
+export function getTabsForMode(
+  mode: EmailEditorMode,
+  sourceType?: BroadcastSource,
+): TabConfig[] {
+  const isApiCreated = sourceType === "API";
+
   const baseTabs: TabConfig[] = [
-    { id: "content", label: "Content", enabled: true },
+    { id: "content", label: "Content", enabled: !isApiCreated },
     { id: "details", label: "Details", enabled: true },
     { id: "preview", label: "Preview", enabled: true },
   ];
 
   if (mode === "broadcast") {
-    return [
+    const allTabs = [
       ...baseTabs,
-      { id: "analytics", label: "Analytics", enabled: true },
+      { id: "analytics" as const, label: "Analytics", enabled: true },
     ];
+    return allTabs.filter((tab) => tab.enabled);
   }
 
-  return baseTabs;
+  return baseTabs.filter((tab) => tab.enabled);
 }
 
 /**
@@ -197,6 +209,7 @@ export interface EmailEditorProps<T extends EmailEditorMode> {
   entityId: string;
   entityName: string;
   isReadonly?: boolean;
+  sourceType?: BroadcastSource;
 
   // Initial data
   initialContent?: Record<string, unknown>;

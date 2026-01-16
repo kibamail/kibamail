@@ -191,8 +191,19 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
     await processEventsWithSideEffects(mtaEventsToProcess);
   }
 
-  // Insert tracking events directly into the database
+  // Increment totalSent for this sandbox email (similar to send-broadcast-batch.ts)
+  await prisma.broadcast.update({
+    where: { id: broadcastId },
+    data: { totalSent: { increment: 1 } },
+  });
+
+  // Insert tracking events directly into the database and update counters
   // Note: contactId is null for sandbox broadcasts (no contacts created)
+  let hasOpen = false;
+  let hasClick = false;
+  let firstOpenTime: Date | undefined;
+  let firstClickTime: Date | undefined;
+
   for (const trackingEvent of trackingEventsToInsert) {
     await prisma.event.create({
       data: {
@@ -205,6 +216,50 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
         nodeId: "sandbox",
         createdAt: trackingEvent.timestamp,
       },
+    });
+
+    if (trackingEvent.type === "Open") {
+      hasOpen = true;
+      if (!firstOpenTime) firstOpenTime = trackingEvent.timestamp;
+    } else if (trackingEvent.type === "Click") {
+      hasClick = true;
+      if (!firstClickTime) firstClickTime = trackingEvent.timestamp;
+    }
+  }
+
+  // Update BroadcastSend with open/click data (if record exists)
+  if (hasOpen || hasClick) {
+    const broadcastSendUpdate: Parameters<typeof prisma.broadcastSend.update>[0]["data"] = {};
+
+    if (hasOpen) {
+      broadcastSendUpdate.openCount = { increment: 1 };
+      broadcastSendUpdate.firstOpenedAt = firstOpenTime;
+    }
+    if (hasClick) {
+      broadcastSendUpdate.clickCount = { increment: 1 };
+      broadcastSendUpdate.firstClickedAt = firstClickTime;
+    }
+
+    await prisma.broadcastSend.updateMany({
+      where: { sendingId },
+      data: broadcastSendUpdate,
+    });
+  }
+
+  // Update Broadcast aggregates for opens/clicks
+  if (hasOpen || hasClick) {
+    const broadcastUpdate: Parameters<typeof prisma.broadcast.update>[0]["data"] = {};
+
+    if (hasOpen) {
+      broadcastUpdate.totalOpened = { increment: 1 };
+    }
+    if (hasClick) {
+      broadcastUpdate.totalClicked = { increment: 1 };
+    }
+
+    await prisma.broadcast.update({
+      where: { id: broadcastId },
+      data: broadcastUpdate,
     });
   }
 

@@ -25,7 +25,7 @@ export function MobileDocsNav({ children }: { children: React.ReactNode }) {
   }, [isOpen]);
 
   return (
-    <div className="flex h-14 items-center border-t border-gray-950/5 bg-white px-4 sm:px-6 lg:hidden dark:border-white/10 dark:bg-gray-950">
+    <div className="flex h-14 items-center border-t border-kb-border-tertiary bg-white px-4 sm:px-6 lg:hidden bg-kb-bg-primary">
       {/* Menu toggle button */}
       <button
         type="button"

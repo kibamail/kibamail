@@ -17,3 +17,4 @@ resources:
   - kibamail-tracking
   - deployment-rbac
   - signoz-infra
+  - agent-monitor-rbac

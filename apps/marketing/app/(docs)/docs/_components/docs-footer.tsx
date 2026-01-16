@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export function DocsFooterSitemap({ className }: { className?: string }) {
   return (
-    <footer className="bg-white text-sm/loose text-gray-950 dark:bg-gray-950 dark:text-white">
+    <footer className="text-sm/loose text-kb-content-secondary bg-kb-bg-primary">
       {/* Mobile layout */}
       <div className={clsx("flex gap-4 p-4 md:hidden", className)}>
         <div className="flex flex-1 flex-col gap-10">
@@ -49,42 +49,14 @@ export function DocsFooterMeta({ className }: { className?: string }) {
           className
         )}
       >
-        <ThemeToggle />
-        <div className="flex flex-col gap-4 text-sm/6 text-gray-700 sm:flex-row sm:gap-2 sm:pr-4 dark:text-gray-400">
+        <div />
+        <div className="flex flex-col gap-4 text-sm/6 text-kb-content-secondary sm:flex-row sm:gap-2 sm:pr-4">
           <span>Copyright &copy; {new Date().getFullYear()} Kibamail.</span>
           <span className="max-sm:hidden">&middot;</span>
-          <Link href="/privacy" className="hover:underline">
+          <Link href="/legal/privacy-policy" className="hover:underline">
             Privacy Policy
           </Link>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function ThemeToggle() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-      <span>Theme</span>
-      <div className="flex rounded-lg bg-gray-950/5 p-1 dark:bg-white/10">
-        <button
-          type="button"
-          className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-950 dark:text-gray-400 dark:hover:text-white"
-        >
-          Light
-        </button>
-        <button
-          type="button"
-          className="rounded-md px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-950 dark:text-gray-400 dark:hover:text-white"
-        >
-          Dark
-        </button>
-        <button
-          type="button"
-          className="rounded-md bg-white px-2 py-1 text-xs font-medium text-gray-950 shadow-sm ring-1 ring-gray-950/10 dark:bg-gray-800 dark:text-white dark:ring-white/10"
-        >
-          System
-        </button>
       </div>
     </div>
   );
