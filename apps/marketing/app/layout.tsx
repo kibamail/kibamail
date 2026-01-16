@@ -20,7 +20,7 @@ const description =
 
 export const metadata: Metadata = {
   title: {
-    default: "kibamail · the open source aws ses alternative",
+    default: "Kibamail",
     template: "%s | Kibamail"
   },
   description,
