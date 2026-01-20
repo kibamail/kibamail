@@ -12,6 +12,7 @@ import { Kibamail } from "kibamail";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { env } from "@/env/schema";
+import { createApiLogger } from "@/lib/api/logger";
 
 /**
  * Logto email request payload structure
@@ -225,6 +226,8 @@ export async function handleLogtoWebhook(request: NextRequest) {
   const body = (await request.json()) as LogtoEmailRequest;
   const { to, type, payload } = body;
 
+  const logger = createApiLogger("internal/logto-webhook", { to, type });
+
   const kibamail = new Kibamail(env.KIBAMAIL_API_KEY);
 
   const variables = flattenPayloadToVariables(payload);
@@ -239,14 +242,14 @@ export async function handleLogtoWebhook(request: NextRequest) {
   });
 
   if (error) {
-    console.error("[Logto Webhook] Failed to send email:", error);
+    logger.error("Failed to send email", error);
     return NextResponse.json(
       { success: false, error: "Failed to send email" },
       { status: 500 },
     );
   }
 
-  console.log({ data });
+  logger.info("Email sent successfully", { emailId: data?.id });
 
   return NextResponse.json(
     { success: true, emailId: data?.id },
