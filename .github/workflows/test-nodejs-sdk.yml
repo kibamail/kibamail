@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     name: test on node.js ${{ matrix.node-version }}
-    runs-on: ubuntu-latest
+    runs-on: depot-ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
