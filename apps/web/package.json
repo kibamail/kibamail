@@ -94,7 +94,7 @@
     "libphonenumber-js": "^1.12.33",
     "lucide-react": "^0.562.0",
     "mailparser": "^3.9.1",
-    "next": "16.0.1",
+    "next": "16.1.4",
     "openapi-fetch": "^0.14.0",
     "openapi-typescript": "^7.10.1",
     "pino": "^10.1.0",
