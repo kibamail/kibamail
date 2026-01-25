@@ -32,6 +32,19 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Rewrite all paths to /api/* when API_REWRITE_MODE is enabled
+  // Used for api.kibamail.com subdomain deployment
+  async rewrites() {
+    if (process.env.API_REWRITE_MODE !== "true") {
+      return [];
+    }
+    return [
+      {
+        source: "/:path*",
+        destination: "/api/:path*",
+      },
+    ];
+  },
 };
 
 export default nextConfig;
