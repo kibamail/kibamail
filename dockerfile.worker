@@ -1,7 +1,9 @@
 # ============================================
-# Worker Dockerfile - Production Build
-# Bundles worker.ts with esbuild and runs with node
+# Railway Dockerfile for Worker Process
 # ============================================
+# Multi-stage build optimized for Railway deployment
+# Bundles worker.ts with esbuild and runs with node
+
 FROM node:22-alpine AS base
 
 RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
@@ -10,7 +12,7 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # ============================================
-# Install dependencies
+# Stage 2: Install dependencies
 # ============================================
 FROM base AS deps
 
@@ -23,7 +25,7 @@ COPY packages/tracking-utils/package.json ./packages/tracking-utils/
 RUN pnpm install --frozen-lockfile
 
 # ============================================
-# Build worker bundle
+# Stage 3: Build worker bundle
 # ============================================
 FROM base AS builder
 
@@ -58,7 +60,7 @@ RUN mkdir -p /app/runtime_modules/@prisma && \
     cp -rL /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client /app/runtime_modules/.prisma/
 
 # ============================================
-# Production runner
+# Stage 4: Production runner
 # ============================================
 FROM node:22-alpine AS runner
 
@@ -79,7 +81,16 @@ COPY --from=builder --chown=worker:nodejs /app/runtime_modules ./node_modules
 COPY --from=builder --chown=worker:nodejs /app/apps/web/prisma ./prisma
 
 ENV NODE_ENV=production
+# Worker exposes metrics on port 9090
+ENV METRICS_PORT=9090
 
 USER worker
+
+# Railway can use this port for health checks
+EXPOSE 9090
+
+# Health check using the worker's health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:9090/health || exit 1
 
 CMD ["node", "worker.js"]
