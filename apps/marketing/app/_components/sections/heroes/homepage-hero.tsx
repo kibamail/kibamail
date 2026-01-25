@@ -20,7 +20,7 @@ export function HomePageHero() {
 
           <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-6 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
             <Button className="w-full! lg:w-fit! px-[42px]!" asChild>
-              <Link href="/w?action=register">Get started for free</Link>
+              <Link href="https://app.kibamail.com/w?action=register">Get started for free</Link>
             </Button>
             <Button variant="secondary" className="w-full! lg:w-fit!">
               Calculate your email savings

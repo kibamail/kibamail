@@ -20,10 +20,10 @@ export function Header() {
 
         <div className="hidden lg:flex items-center gap-4">
           <Button variant="tertiary" asChild>
-            <Link href="/w?action=signin">Sign in</Link>
+            <Link href="https://app.kibamail.com/w?action=signin">Sign in</Link>
           </Button>
           <Button asChild>
-            <Link href="/w?action=register">
+            <Link href="https://app.kibamail.com/w?action=register">
               Get started
               <NavArrowRight />
             </Link>

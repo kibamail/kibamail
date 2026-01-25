@@ -138,7 +138,7 @@ export default function InboundProductPage() {
 
               <div className="flex flex-col sm:flex-row gap-4 lg:gap-3 mt-8 items-center lg:justify-center w-full sm:max-w-lg lg:max-w-none">
                 <Button className="w-full! lg:w-fit! px-[42px]!" asChild>
-                  <Link href="/w?action=register">Get started for free</Link>
+                  <Link href="https://app.kibamail.com/w?action=register">Get started for free</Link>
                 </Button>
                 <Button variant="secondary" className="w-full! lg:w-fit!">
                   View documentation
@@ -183,7 +183,7 @@ export default function InboundProductPage() {
         title="Email as an input for your application."
         description="Stop building email infrastructure from scratch. Kibamail handles the complexity of receiving, parsing, and routing emails so you can focus on building your product."
         buttonText="Start receiving emails"
-        buttonHref="/w?action=register"
+        buttonHref="https://app.kibamail.com/w?action=register"
         features={ctaFeatures}
         showCommunitySection={false}
       />
