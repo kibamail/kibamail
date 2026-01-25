@@ -1,0 +1,96 @@
+# ============================================
+# Railway Dockerfile for Worker Process
+# ============================================
+# Multi-stage build optimized for Railway deployment
+# Bundles worker.ts with esbuild and runs with node
+
+FROM node:22-alpine AS base
+
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# ============================================
+# Stage 2: Install dependencies
+# ============================================
+FROM base AS deps
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/broadcast-editor/package.json ./apps/broadcast-editor/
+COPY packages/owly/package.json ./packages/owly/
+COPY packages/tracking-utils/package.json ./packages/tracking-utils/
+
+RUN pnpm install --frozen-lockfile
+
+# ============================================
+# Stage 3: Build worker bundle
+# ============================================
+FROM base AS builder
+
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/tracking-utils/node_modules ./packages/tracking-utils/node_modules
+
+COPY apps/web ./apps/web
+COPY packages/tracking-utils ./packages/tracking-utils
+
+# Generate Prisma client
+RUN cd apps/web && DATABASE_URL="postgresql://build:build@localhost:5432/build" pnpm exec prisma generate
+
+# Build tracking-utils
+RUN pnpm --filter @repo/tracking-utils build
+
+# Bundle worker with esbuild - only externalize prisma (native bindings)
+RUN cd apps/web && ./node_modules/.bin/esbuild jobs/worker.ts \
+    --bundle \
+    --platform=node \
+    --target=node22 \
+    --outfile=dist/worker.js \
+    --external:@prisma/client \
+    --external:prisma
+
+# Prepare prisma for runtime - copy actual files (not symlinks)
+RUN mkdir -p /app/runtime_modules/@prisma && \
+    mkdir -p /app/runtime_modules/.prisma && \
+    cp -rL /app/node_modules/.pnpm/@prisma+client*/node_modules/@prisma/client /app/runtime_modules/@prisma/ && \
+    cp -rL /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma/client /app/runtime_modules/.prisma/
+
+# ============================================
+# Stage 4: Production runner
+# ============================================
+FROM node:22-alpine AS runner
+
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 worker
+
+# Copy bundled worker
+COPY --from=builder --chown=worker:nodejs /app/apps/web/dist/worker.js ./worker.js
+
+# Copy prisma runtime (actual files, not symlinks)
+COPY --from=builder --chown=worker:nodejs /app/runtime_modules ./node_modules
+
+# Copy Prisma schema
+COPY --from=builder --chown=worker:nodejs /app/apps/web/prisma ./prisma
+
+ENV NODE_ENV=production
+# Worker exposes metrics on port 9090
+ENV METRICS_PORT=9090
+
+USER worker
+
+# Railway can use this port for health checks
+EXPOSE 9090
+
+# Health check using the worker's health endpoint
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:9090/health || exit 1
+
+CMD ["node", "worker.js"]

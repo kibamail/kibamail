@@ -160,17 +160,6 @@ export const env = createEnv({
       .default("development"),
 
     /**
-     * HyperDX Ingestion API Key
-     *
-     * API key for HyperDX ingestion. Used for sending telemetry data to HyperDX.
-     *
-     * @example "your-hyperdx-api-key"
-     */
-    OTEL_INGESTION_API_KEY: z
-      .string()
-      .min(1, "OTEL_INGESTION_API_KEY is required"),
-
-    /**
      * Database Connection URL
      *
      * PostgreSQL connection string used to connect to your database.
@@ -983,7 +972,6 @@ export const env = createEnv({
     ACME_CONTACT_EMAIL: process.env.ACME_CONTACT_EMAIL,
     ACME_ACCOUNT_KEY: process.env.ACME_ACCOUNT_KEY,
     INTERNAL_SERVICE_KEY: process.env.INTERNAL_SERVICE_KEY,
-    OTEL_INGESTION_API_KEY: process.env.OTEL_INGESTION_API_KEY,
     MTA_INJECTION_URL: process.env.MTA_INJECTION_URL,
     MTA_INJECTION_TIMEOUT_MS: process.env.MTA_INJECTION_TIMEOUT_MS,
     MTA_INJECTION_RETRY_ATTEMPTS: process.env.MTA_INJECTION_RETRY_ATTEMPTS,

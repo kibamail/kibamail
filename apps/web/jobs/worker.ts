@@ -19,7 +19,6 @@ import { processSandbox } from "./emails/process-sandbox";
 import { processEvents } from "./mta/process-events";
 import { pruneBroadcastSends } from "./maintenance/prune-broadcast-sends";
 import { dispatchWebhook } from "./webhooks/dispatch-webhook";
-import { shutdownOtel } from "./instrumentation";
 import { computeContactsCount } from "./segments/compute-contacts-count";
 import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
 import { checkVerification } from "./sending-domains/check-verification";
@@ -270,7 +269,6 @@ const shutdown = async (signal: string) => {
 
   metricsServer.close();
   await closeAll();
-  await shutdownOtel();
 
   logger.info("All workers stopped");
   process.exit(0);
