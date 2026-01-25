@@ -1,0 +1,72 @@
+[
+  {
+    "event_name": "user_signed_in",
+    "description": "User successfully signed in via Logto OAuth callback",
+    "file_path": "app/(main)/(auth)/callback/route.ts"
+  },
+  {
+    "event_name": "user_signed_out",
+    "description": "User signed out of the application",
+    "file_path": "app/(main)/(auth)/actions/sign-out.ts"
+  },
+  {
+    "event_name": "workspace_created",
+    "description": "User created a new workspace (server-side)",
+    "file_path": "app/(main)/api/internal/v1/workspaces/route.ts"
+  },
+  {
+    "event_name": "workspace_switched",
+    "description": "User switched to a different workspace (server-side)",
+    "file_path": "app/(main)/api/internal/v1/workspaces/[id]/activate/route.ts"
+  },
+  {
+    "event_name": "broadcast_created",
+    "description": "User created a new email broadcast (server-side)",
+    "file_path": "app/(main)/api/internal/v1/broadcasts/route.ts"
+  },
+  {
+    "event_name": "domain_added",
+    "description": "User added a new sending domain (server-side)",
+    "file_path": "app/(main)/api/internal/v1/domains/route.ts"
+  },
+  {
+    "event_name": "domain_verified",
+    "description": "User verified DNS configuration for a sending domain (server-side)",
+    "file_path": "app/(main)/api/internal/v1/domains/[domainId]/verify/route.ts"
+  },
+  {
+    "event_name": "domain_deleted",
+    "description": "User deleted a sending domain",
+    "file_path": "app/(main)/(dashboard)/w/(with-sidebar)/domains/[id]/_components/domain-actions-dropdown.tsx"
+  },
+  {
+    "event_name": "tracking_settings_updated",
+    "description": "User toggled open/click tracking settings for a domain",
+    "file_path": "app/(main)/(dashboard)/w/(with-sidebar)/domains/[id]/_components/tracking-toggle.tsx"
+  },
+  {
+    "event_name": "api_key_created",
+    "description": "User created a new API key (server-side)",
+    "file_path": "app/(main)/api/internal/v1/api-keys/route.ts"
+  },
+  {
+    "event_name": "contact_import_started",
+    "description": "User started importing contacts from CSV (server-side)",
+    "file_path": "app/(main)/api/internal/v1/contact-imports/route.ts"
+  },
+  {
+    "event_name": "automation_created",
+    "description": "User created a new email automation",
+    "file_path": "app/(main)/(dashboard)/w/(with-sidebar)/automations/_components/create-automation-button.tsx"
+  },
+  {
+    "event_name": "team_member_invited",
+    "description": "User invited a team member to the workspace (server-side)",
+    "file_path": "app/(main)/api/internal/v1/workspaces/[id]/members/route.ts"
+  },
+  {
+    "event_name": "invitation_responded",
+    "description": "User accepted or revoked a workspace invitation (server-side)",
+    "file_path": "app/(main)/api/internal/v1/invitations/[id]/status/route.ts"
+  }
+]

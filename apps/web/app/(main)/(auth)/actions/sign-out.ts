@@ -18,11 +18,20 @@ import { getLogtoContext, signOut } from "@logto/next/server-actions";
 import { logtoConfig } from "@/config/logto";
 import { invalidateUserCache } from "@/lib/auth/user-cache";
 import { CookieKey, Cookies } from "@/lib/cookies";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export async function signOutAction() {
   const context = await getLogtoContext(logtoConfig);
 
   if (context.isAuthenticated && context.claims?.sub) {
+    getPostHogClient().capture({
+      distinctId: context.claims.sub,
+      event: "user_signed_out",
+      properties: {
+        email: context.claims.email,
+      },
+    });
+
     await invalidateUserCache(context.claims.sub);
   }
 

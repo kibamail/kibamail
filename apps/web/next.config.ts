@@ -32,20 +32,29 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // Rewrite all paths to /api/* when API_REWRITE_MODE is enabled
-  // Used for api.kibamail.com subdomain deployment
   async rewrites() {
+    const posthogRewrites = [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
+
     if (process.env.API_REWRITE_MODE !== "true") {
-      return [];
+      return posthogRewrites;
     }
     return [
       {
-        // Only rewrite paths that have at least one segment (exclude root /)
         source: "/:path+",
         destination: "/api/:path+",
       },
     ];
   },
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;

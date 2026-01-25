@@ -11,6 +11,7 @@
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
 import { createApiKey, listApiKeys } from "./handler";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * POST /api/internal/v1/api-keys
@@ -20,9 +21,24 @@ import { createApiKey, listApiKeys } from "./handler";
  */
 export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
-    withSession(request, (session) => createApiKey(session, request), [
-      "manage:api-keys",
-    ]),
+    withSession(
+      request,
+      async (session) => {
+        const response = await createApiKey(session, request);
+
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: session.user.sub,
+          event: "api_key_created",
+          properties: {
+            workspace_id: session.currentOrganization?.id,
+          },
+        });
+
+        return response;
+      },
+      ["manage:api-keys"],
+    ),
   );
 }
 

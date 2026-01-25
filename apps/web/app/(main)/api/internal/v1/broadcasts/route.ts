@@ -17,6 +17,7 @@ import {
   listBroadcasts,
 } from "@/app/(main)/api/v1/broadcasts/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * GET /api/internal/v1/broadcasts
@@ -43,11 +44,26 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   return withErrorHandling(request, () =>
-    withSession(request, (session, request) => {
+    withSession(request, async (session, request) => {
       if (!session.currentOrganization) {
         throw new Error("No active workspace found");
       }
-      return createBroadcast(session.currentOrganization.id, request);
+      const response = await createBroadcast(
+        session.currentOrganization.id,
+        request,
+      );
+
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: session.user.sub,
+        event: "broadcast_created",
+        properties: {
+          workspace_id: session.currentOrganization.id,
+          workspace_name: session.currentOrganization.name,
+        },
+      });
+
+      return response;
     }),
   );
 }

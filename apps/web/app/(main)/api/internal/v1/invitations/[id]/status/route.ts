@@ -6,6 +6,7 @@
 
 import type { NextRequest } from "next/server";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
+import { getPostHogClient } from "@/lib/posthog-server";
 import { updateInvitationStatus } from "./handler";
 
 /**
@@ -19,8 +20,23 @@ export async function PUT(
 ) {
   const resolvedParams = await params;
   return withErrorHandling(request, () =>
-    withSession(request, (session) =>
-      updateInvitationStatus(session, request, resolvedParams),
-    ),
+    withSession(request, async (session) => {
+      const response = await updateInvitationStatus(
+        session,
+        request,
+        resolvedParams,
+      );
+
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: session.user.sub,
+        event: "invitation_responded",
+        properties: {
+          invitation_id: resolvedParams.id,
+        },
+      });
+
+      return response;
+    }),
   );
 }

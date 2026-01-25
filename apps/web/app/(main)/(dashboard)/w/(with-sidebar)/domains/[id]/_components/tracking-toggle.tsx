@@ -3,6 +3,7 @@
 import * as Switch from "@kibamail/owly/switch";
 import { useToast } from "@kibamail/owly/toast";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 import { useState } from "react";
 
 import { useMutation } from "@/hooks/use-mutation";
@@ -35,6 +36,13 @@ export function TrackingToggle({
     },
     onSuccess: () => {
       toast(`${label} ${checked ? "disabled" : "enabled"}`);
+
+      posthog.capture("tracking_settings_updated", {
+        domain_id: domainId,
+        setting: field,
+        enabled: !checked,
+      });
+
       router.refresh();
     },
     onError: (error) => {

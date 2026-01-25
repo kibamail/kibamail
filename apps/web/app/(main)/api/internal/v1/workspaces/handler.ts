@@ -15,6 +15,7 @@ import type { UserSession } from "@/lib/auth/get-session";
 import { invalidateUserOrganizationMembership } from "@/lib/auth/user-cache";
 import { CookieKey, Cookies } from "@/lib/cookies";
 import { createWorkspaceSchema } from "./schema";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 export async function createWorkspaceViaLogto(
   data: { name: string; description?: string },
@@ -65,6 +66,16 @@ export async function createWorkspace(
 
   await invalidateUserOrganizationMembership(session.user.sub);
   await Cookies.set(CookieKey.ACTIVE_WORKSPACE_ID, workspace.id);
+
+  const posthog = getPostHogClient();
+  posthog.capture({
+    distinctId: session.user.sub,
+    event: "workspace_created",
+    properties: {
+      workspace_id: workspace.id,
+      workspace_name: workspace.name,
+    },
+  });
 
   return responseCreated({
     data: {

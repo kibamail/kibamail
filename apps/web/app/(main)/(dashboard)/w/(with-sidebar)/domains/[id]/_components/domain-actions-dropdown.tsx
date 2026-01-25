@@ -6,6 +6,7 @@ import * as DropdownMenu from "@kibamail/owly/dropdown-menu";
 import { useToast } from "@kibamail/owly/toast";
 import { MoreHoriz, Trash } from "iconoir-react";
 import { useRouter } from "next/navigation";
+import posthog from "posthog-js";
 
 import { useMutation } from "@/hooks/use-mutation";
 import { useToggleState } from "@/hooks/utils/useToggleState";
@@ -30,6 +31,12 @@ export function DomainActionsDropdown({
     },
     onSuccess: () => {
       toast("Domain deleted successfully");
+
+      posthog.capture("domain_deleted", {
+        domain_id: domainId,
+        domain_name: domainName,
+      });
+
       deleteDialogState.onOpenChange?.(false);
       router.push("/w/domains");
     },

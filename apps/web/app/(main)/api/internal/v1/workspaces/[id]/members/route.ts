@@ -10,6 +10,7 @@
 import type { NextRequest } from "next/server";
 
 import { withErrorHandling, withSession } from "@/lib/api/requests";
+import { getPostHogClient } from "@/lib/posthog-server";
 import { inviteMembers } from "./handler";
 
 /**
@@ -26,7 +27,20 @@ export async function POST(
   return withErrorHandling(request, () =>
     withSession(
       request,
-      (session) => inviteMembers(session, request, resolvedParams),
+      async (session) => {
+        const response = await inviteMembers(session, request, resolvedParams);
+
+        const posthog = getPostHogClient();
+        posthog.capture({
+          distinctId: session.user.sub,
+          event: "team_member_invited",
+          properties: {
+            workspace_id: resolvedParams.id,
+          },
+        });
+
+        return response;
+      },
       ["invite:members"],
     ),
   );

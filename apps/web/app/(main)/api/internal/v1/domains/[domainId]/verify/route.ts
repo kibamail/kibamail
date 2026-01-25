@@ -11,6 +11,7 @@ import type { NextRequest } from "next/server";
 
 import { verifySendingDomain } from "@/app/(main)/api/v1/domains/handler";
 import { withErrorHandling, withSession } from "@/lib/api/requests";
+import { getPostHogClient } from "@/lib/posthog-server";
 
 /**
  * POST /api/internal/v1/domains/[domainId]/verify
@@ -25,11 +26,26 @@ export async function POST(
   const { domainId } = await params;
 
   return withErrorHandling(request, () =>
-    withSession(request, (session) => {
+    withSession(request, async (session) => {
       if (!session.currentOrganization) {
         throw new Error("No active workspace found");
       }
-      return verifySendingDomain(session.currentOrganization.id, domainId);
+      const response = await verifySendingDomain(
+        session.currentOrganization.id,
+        domainId,
+      );
+
+      const posthog = getPostHogClient();
+      posthog.capture({
+        distinctId: session.user.sub,
+        event: "domain_verified",
+        properties: {
+          workspace_id: session.currentOrganization.id,
+          domain_id: domainId,
+        },
+      });
+
+      return response;
     }),
   );
 }
