@@ -60,6 +60,8 @@ RUN pnpm --filter kibamail build
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV SKIP_ENV_VALIDATION=true
+# Enable API rewrite mode at BUILD TIME (rewrites are baked into the build)
+ENV API_REWRITE_MODE=true
 
 RUN pnpm --filter web build
 

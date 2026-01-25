@@ -40,8 +40,9 @@ const nextConfig: NextConfig = {
     }
     return [
       {
-        source: "/:path*",
-        destination: "/api/:path*",
+        // Only rewrite paths that have at least one segment (exclude root /)
+        source: "/:path+",
+        destination: "/api/:path+",
       },
     ];
   },
