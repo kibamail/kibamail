@@ -1,6 +1,6 @@
 # Helsinki Cluster-wide Variables
 #
-# Production MTA cluster in Hetzner Helsinki
+# Production MTA cluster at Hostkey
 #
 ---
 # Cluster identification
@@ -9,36 +9,25 @@ cluster_id: "helsinki-prod"
 cluster_region: "eu-north-1"
 
 # =============================================================================
-# Hetzner vSwitch Configuration
+# Proxy Configuration
 # =============================================================================
-# VLAN ID from Hetzner Robot panel (must be 4000-4091)
-vswitch_vlan_id: 4000
-
-# MTU must be 1400 for Hetzner vSwitch (mandatory)
-vswitch_mtu: 1400
-
-# Private network for inter-server communication
-vswitch_private_subnet: "10.0.0.0/24"
-
-# Netplan configuration file path
-vswitch_netplan_file: "/etc/netplan/60-vswitch.yaml"
-
-# Network configuration
-# Egress IP range: 37.27.167.40/29 (37.27.167.40 - 37.27.167.47)
-cluster_network: "37.27.167.40/29"
-# Proxy is accessed via vSwitch private network
-proxy_host: "10.0.0.2"
+# Proxy runs on same server as MTA (localhost)
+proxy_host: "127.0.0.1"
 proxy_socks5_port: 5000
 
-# Sending IP configuration
-sending_ip_subnet: "37.27.167.40/29"
-sending_ip_range_start: 40
-sending_ip_range_end: 47
-
-# Redis configuration (runs on first MTA node)
-# Use private vSwitch IP for inter-node communication
-redis_host: "10.0.0.1"
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+# Redis runs locally on the MTA server
+redis_host: "127.0.0.1"
 redis_port: 6379
+
+# =============================================================================
+# Nginx Injection Proxy Configuration
+# =============================================================================
+nginx_injection_domain: "inject.kbmta.net"
+nginx_injection_secret_header: "X-Kibamail-Injection-Key"
+cloudflare_api_token_env: "CLOUDFLARE_API_TOKEN"
 
 # geerlingguy.security role configuration
 security_ssh_port: 22

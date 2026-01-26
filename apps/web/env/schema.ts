@@ -870,6 +870,29 @@ export const env = createEnv({
       .default(100)
       .describe("Maximum emails per batch injection request"),
 
+    /**
+     * MTA Injection Secret Key
+     *
+     * Secret key for authenticating HTTP injection requests to the MTA.
+     * This key is sent in the X-Kibamail-Injection-Key header.
+     *
+     * Generate a secure key:
+     * ```bash
+     * openssl rand -base64 24
+     * ```
+     *
+     * ⚠️ SECURITY:
+     * - Keep secret and never commit to version control
+     * - Must match the key configured on the MTA nginx proxy
+     * - Rotate periodically
+     *
+     * @example "DOqTtyRHceCnpxoYXVsR8t3EIVN8CW1R"
+     */
+    INJECTION_SECRET_KEY: z
+      .string()
+      .min(16, "INJECTION_SECRET_KEY must be at least 16 characters")
+      .describe("Secret key for MTA HTTP injection authentication"),
+
     // ============================================================================
     // KIBAMAIL TRANSACTIONAL EMAIL CONFIGURATION
     // ============================================================================
@@ -976,6 +999,7 @@ export const env = createEnv({
     MTA_INJECTION_TIMEOUT_MS: process.env.MTA_INJECTION_TIMEOUT_MS,
     MTA_INJECTION_RETRY_ATTEMPTS: process.env.MTA_INJECTION_RETRY_ATTEMPTS,
     MTA_INJECTION_BATCH_SIZE: process.env.MTA_INJECTION_BATCH_SIZE,
+    INJECTION_SECRET_KEY: process.env.INJECTION_SECRET_KEY,
     KIBAMAIL_API_KEY: process.env.KIBAMAIL_API_KEY,
     KIBAMAIL_FROM_EMAIL: process.env.KIBAMAIL_FROM_EMAIL,
     // Map client environment variables here

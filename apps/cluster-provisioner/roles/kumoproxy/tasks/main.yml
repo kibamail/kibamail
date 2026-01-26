@@ -1,9 +1,17 @@
-# KumoProxy Installation
+# KumoProxy Role Tasks
 #
 # Installs KumoMTA package (includes proxy-server) and configures
-# KumoProxy as a systemd service.
+# KumoProxy as a systemd service on the MTA server.
+#
+# Note: IPs are already bound on Hostkey server, no ip-binding needed.
 #
 ---
+- name: Display kumoproxy setup info
+  ansible.builtin.debug:
+    msg: |
+      Setting up KumoProxy on {{ inventory_hostname }}
+      - Listen: {{ kumoproxy_listen_ip }}:{{ kumoproxy_listen_port }}
+
 - name: Install KumoMTA dependencies
   ansible.builtin.apt:
     name:

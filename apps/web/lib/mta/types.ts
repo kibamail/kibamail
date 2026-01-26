@@ -95,4 +95,5 @@ export interface MtaInjectionOptions {
   timeoutMs: number;
   retryAttempts: number;
   batchSize: number;
+  secretKey: string;
 }

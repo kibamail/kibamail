@@ -1,14 +1,19 @@
 # Provision MTA Node
 #
-# This playbook provisions the first MTA node with:
+# This playbook provisions the MTA node with:
 # - Base system configuration
 # - Security hardening
 # - Redis (for TSA shared state)
-# - Nginx
+# - KumoProxy SOCKS5 server (localhost)
+# - Nginx with SSL injection proxy
 # - KumoMTA (installed but not started)
 #
 # Usage:
-#   ansible-playbook playbooks/provision-mta.yml
+#   ansible-playbook playbooks/provision-mta.yml -e mta_cluster=helsinki
+#
+# Required environment variables:
+#   CLOUDFLARE_API_TOKEN - Cloudflare API token for DNS-01 challenge
+#   INJECTION_SECRET_KEY - Secret key for HTTP injection authentication
 #
 # To provision only the first MTA node:
 #   ansible-playbook playbooks/provision-mta.yml --limit mta-1
@@ -18,14 +23,32 @@
   hosts: mta-1
   become: yes
 
+  vars:
+    # Pull secrets from environment variables
+    cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+    injection_secret_key: "{{ lookup('env', 'INJECTION_SECRET_KEY') }}"
+
   pre_tasks:
+    - name: Validate required environment variables
+      ansible.builtin.assert:
+        that:
+          - cloudflare_api_token | length > 0
+          - injection_secret_key | length > 0
+        fail_msg: |
+          Missing required environment variables.
+          Please set:
+            export CLOUDFLARE_API_TOKEN=<your-cloudflare-api-token>
+            export INJECTION_SECRET_KEY=<32-char-secret-key>
+
     - name: Display provisioning info
       ansible.builtin.debug:
         msg: |
           Provisioning MTA node: {{ inventory_hostname }}
           - Host: {{ ansible_host }}
           - Node index: {{ mta_node_index }}
-          - Redis port: {{ redis_port }}
+          - Redis: 127.0.0.1:{{ redis_port }}
+          - KumoProxy: {{ kumoproxy_listen_ip }}:{{ kumoproxy_listen_port }}
+          - Injection domain: {{ nginx_injection_domain }}
 
   roles:
     - role: common
@@ -37,8 +60,14 @@
     - role: geerlingguy.redis
       tags: [redis]
 
+    - role: kumoproxy
+      tags: [kumoproxy, proxy]
+
     - role: nginx
       tags: [nginx]
+
+    - role: nginx-injection
+      tags: [nginx, nginx-injection, injection]
 
     - role: kumomta
       tags: [kumomta]
@@ -52,8 +81,18 @@
         msg: |
           MTA node provisioned successfully.
 
-          Redis: {{ redis_bind_interface }}:{{ redis_port }}
-          KumoMTA: Installed (not started - requires configuration)
+          Services:
+          - Redis: 127.0.0.1:{{ redis_port }}
+          - KumoProxy: {{ kumoproxy_listen_ip }}:{{ kumoproxy_listen_port }}
+          - Nginx injection: https://{{ nginx_injection_domain }}
+          - KumoMTA: Installed (not started - requires configuration)
+
+          Verification:
+          - systemctl status redis
+          - systemctl status kumoproxy
+          - systemctl status nginx
+          - systemctl status injection-auth
+          - curl -I https://{{ nginx_injection_domain }}/ (should return 403)
 
           Next steps:
           - Configure KumoMTA policy

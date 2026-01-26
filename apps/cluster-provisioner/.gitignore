@@ -20,3 +20,6 @@
 
 # Local overrides
 *.local.yml
+
+# Environment files with secrets
+**/.env

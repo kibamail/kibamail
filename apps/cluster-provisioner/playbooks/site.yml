@@ -1,11 +1,13 @@
 # Site Playbook - Full Cluster Provisioning
 #
-# This playbook provisions the entire cluster:
-# - Proxy machine
-# - MTA nodes (to be added)
+# This playbook provisions the entire cluster.
 #
 # Usage:
-#   ansible-playbook playbooks/site.yml
+#   ansible-playbook playbooks/site.yml -e mta_cluster=helsinki
+#
+# Required environment variables:
+#   CLOUDFLARE_API_TOKEN - Cloudflare API token for DNS-01 challenge
+#   INJECTION_SECRET_KEY - Secret key for HTTP injection authentication
 #
 ---
 - name: Provision all machines with common setup
@@ -17,17 +19,5 @@
     - role: geerlingguy.security
       tags: [security]
 
-- name: Provision proxy machine
-  hosts: proxy
-  become: yes
-  roles:
-    - role: proxy
-      tags: [proxy]
-
-# MTA node provisioning will be added here
-# - name: Provision MTA nodes
-#   hosts: mta
-#   become: yes
-#   roles:
-#     - role: mta
-#       tags: [mta]
+- name: Import MTA provisioning
+  ansible.builtin.import_playbook: provision-mta.yml

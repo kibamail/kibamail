@@ -62,5 +62,6 @@ export function getMtaOptions(): MtaInjectionOptions {
     timeoutMs: env.MTA_INJECTION_TIMEOUT_MS,
     retryAttempts: env.MTA_INJECTION_RETRY_ATTEMPTS,
     batchSize: env.MTA_INJECTION_BATCH_SIZE,
+    secretKey: env.INJECTION_SECRET_KEY,
   };
 }

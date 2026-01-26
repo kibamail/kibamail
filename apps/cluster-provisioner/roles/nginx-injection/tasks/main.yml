@@ -1,0 +1,127 @@
+# nginx-injection Role Tasks
+#
+# Sets up nginx reverse proxy with SSL and authentication for KumoMTA HTTP injection.
+# Uses Let's Encrypt with Cloudflare DNS-01 challenge for SSL certificates.
+#
+# Auth is done via nginx map directive (zero latency overhead, no subrequest).
+#
+---
+- name: Display nginx-injection setup info
+  ansible.builtin.debug:
+    msg: |
+      Setting up nginx injection proxy on {{ inventory_hostname }}
+      - Domain: {{ nginx_injection_domain }}
+      - Upstream: 127.0.0.1:{{ kumomta_http_port }}
+      - Auth header: {{ nginx_injection_secret_header }}
+
+# =============================================================================
+# Install certbot and Cloudflare DNS plugin
+# =============================================================================
+- name: Install certbot and cloudflare plugin
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+    update_cache: yes
+
+# =============================================================================
+# Configure Cloudflare credentials
+# =============================================================================
+- name: Create certbot config directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Deploy Cloudflare credentials file
+  ansible.builtin.template:
+    src: cloudflare.ini.j2
+    dest: /etc/letsencrypt/cloudflare.ini
+    owner: root
+    group: root
+    mode: "0600"
+
+# =============================================================================
+# Obtain SSL certificate via DNS-01 challenge
+# =============================================================================
+- name: Check if certificate already exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ nginx_injection_domain }}/fullchain.pem"
+  register: cert_exists
+
+- name: Obtain SSL certificate for {{ nginx_injection_domain }}
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
+      --dns-cloudflare-propagation-seconds 30
+      -d {{ nginx_injection_domain }}
+      --email {{ nginx_tls_cert_email }}
+      --agree-tos
+      --non-interactive
+  when: not cert_exists.stat.exists
+  register: certbot_result
+
+- name: Display certbot result
+  ansible.builtin.debug:
+    msg: "{{ certbot_result.stdout_lines | default(['Certificate already exists']) }}"
+  when: certbot_result is defined and certbot_result.stdout_lines is defined
+
+# =============================================================================
+# Set up certificate auto-renewal
+# =============================================================================
+- name: Ensure certbot renewal timer is enabled
+  ansible.builtin.systemd:
+    name: certbot.timer
+    state: started
+    enabled: yes
+
+# =============================================================================
+# Configure nginx site
+# =============================================================================
+- name: Deploy nginx site configuration
+  ansible.builtin.template:
+    src: inject-site.conf.j2
+    dest: "/etc/nginx/sites-available/{{ nginx_injection_domain }}"
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Reload nginx
+
+- name: Enable nginx site
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ nginx_injection_domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ nginx_injection_domain }}"
+    state: link
+  notify: Reload nginx
+
+- name: Validate nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is running
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+# =============================================================================
+# Verification
+# =============================================================================
+- name: Display setup complete
+  ansible.builtin.debug:
+    msg: |
+      nginx injection proxy configured successfully.
+
+      Endpoint: https://{{ nginx_injection_domain }}
+      Health check: https://{{ nginx_injection_domain }}/health
+      Auth header: {{ nginx_injection_secret_header }}
+
+      Test commands:
+        - Health check: curl -I https://{{ nginx_injection_domain }}/health
+        - Reject (no auth): curl -I https://{{ nginx_injection_domain }}/
+        - Accept (with auth): curl -H "{{ nginx_injection_secret_header }}: <key>" https://{{ nginx_injection_domain }}/

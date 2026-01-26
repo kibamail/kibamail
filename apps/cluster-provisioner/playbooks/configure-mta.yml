@@ -46,7 +46,7 @@
     kumomta_internal_service_key: "{{ lookup('env', 'INTERNAL_SERVICE_KEY') }}"
     kumomta_webhook_url: "{{ lookup('env', 'WEBHOOK_URL') }}"
     kumomta_mta_hostname: "{{ mta_hostname }}"
-    kumomta_trusted_hosts: "127.0.0.1,::1,10.0.0.0/8"
+    kumomta_trusted_hosts: "127.0.0.1,::1"
 
   pre_tasks:
     - name: Validate mta_cluster is defined
@@ -472,4 +472,6 @@
 
           Next steps:
           - Add the DKIM DNS TXT record above
-          - Start KumoMTA services: sudo systemctl start kumod
+          - Start KumoMTA services:
+              sudo systemctl start kumomta
+              sudo systemctl start kumo-tsa-daemon

@@ -34,11 +34,13 @@ export class MtaClient {
   private readonly url: string;
   private readonly timeoutMs: number;
   private readonly retryAttempts: number;
+  private readonly secretKey: string;
 
   constructor(options: MtaInjectionOptions) {
     this.url = options.url;
     this.timeoutMs = options.timeoutMs;
     this.retryAttempts = options.retryAttempts;
+    this.secretKey = options.secretKey;
   }
 
   /**
@@ -57,6 +59,7 @@ export class MtaClient {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "X-Kibamail-Injection-Key": this.secretKey,
           },
           body: JSON.stringify(body),
           signal: controller.signal,
