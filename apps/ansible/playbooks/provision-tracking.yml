@@ -59,15 +59,6 @@
           - Port: {{ tracking_port }}
           - Redis: {{ redis_host }}:{{ redis_port | default(6379) }}
 
-    - name: Create log directory for tracking service
-      ansible.builtin.file:
-        path: /var/log/tracking
-        state: directory
-        owner: "{{ tracking_user }}"
-        group: "{{ tracking_user }}"
-        mode: "0755"
-      ignore_errors: yes
-
   roles:
     - role: common
       tags: [common]

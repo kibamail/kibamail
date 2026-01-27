@@ -50,8 +50,8 @@
       become_user: "{{ tracking_user }}"
       when: git_pull.changed
 
-    - name: Build tracking application
-      ansible.builtin.command: pnpm --filter @repo/tracking build
+    - name: Build tracking application and dependencies
+      ansible.builtin.command: pnpm turbo run build --filter=@repo/tracking
       args:
         chdir: "{{ tracking_app_dir }}"
       become_user: "{{ tracking_user }}"

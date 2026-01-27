@@ -12,6 +12,14 @@
     home: "/home/{{ tracking_user }}"
     create_home: yes
 
+- name: Create log directory
+  ansible.builtin.file:
+    path: /var/log/tracking
+    state: directory
+    owner: "{{ tracking_user }}"
+    group: "{{ tracking_user }}"
+    mode: "0755"
+
 - name: Create application directory
   ansible.builtin.file:
     path: "{{ tracking_app_dir }}"
@@ -37,8 +45,8 @@
   when: git_clone.changed
   register: pnpm_install
 
-- name: Build tracking application
-  ansible.builtin.command: pnpm --filter @repo/tracking build
+- name: Build tracking application and dependencies
+  ansible.builtin.command: pnpm turbo run build --filter=@repo/tracking
   args:
     chdir: "{{ tracking_app_dir }}"
   become_user: "{{ tracking_user }}"

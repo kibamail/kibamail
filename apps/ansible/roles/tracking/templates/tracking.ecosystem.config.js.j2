@@ -5,6 +5,7 @@ module.exports = {
     name: 'tracking',
     script: './apps/tracking/dist/server.js',
     cwd: '{{ tracking_app_dir }}',
+    node_args: '--env-file=./apps/tracking/.env',
     instances: 1,
     exec_mode: 'fork',
     max_memory_restart: '512M',
