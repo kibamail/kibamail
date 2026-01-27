@@ -1,0 +1,19 @@
+# tracking Role Handlers
+---
+- name: Reload Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+
+- name: Restart Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    state: restarted
+
+- name: Restart PM2 tracking
+  ansible.builtin.command: pm2 reload tracking
+  become_user: "{{ tracking_user }}"
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes

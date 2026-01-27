@@ -1,0 +1,32 @@
+# Tracking Service Variables
+#
+# Configuration specific to the tracking service deployment
+#
+---
+# =============================================================================
+# Domain Configuration
+# =============================================================================
+tracking_domain: e.kbmta.net
+
+# =============================================================================
+# Secrets (from environment variables)
+# =============================================================================
+# Application secrets
+app_key: "{{ lookup('env', 'APP_KEY') }}"
+internal_service_key: "{{ lookup('env', 'INTERNAL_SERVICE_KEY') }}"
+
+# Cloudflare API token for DNS-01 challenge
+cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+
+# =============================================================================
+# Redis Configuration
+# =============================================================================
+redis_host: "{{ lookup('env', 'REDIS_HOST') }}"
+redis_port: "{{ lookup('env', 'REDIS_PORT') | default(6379, true) }}"
+redis_password: "{{ lookup('env', 'REDIS_PASSWORD') | default('', true) }}"
+redis_database: "{{ lookup('env', 'REDIS_DATABASE') | default(0, true) }}"
+
+# =============================================================================
+# Certbot Configuration
+# =============================================================================
+certbot_email: engineering@kibamail.com

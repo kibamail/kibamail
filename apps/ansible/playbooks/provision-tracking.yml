@@ -1,0 +1,101 @@
+# Provision Tracking Server
+#
+# This playbook provisions a Hetzner VPS with:
+# - Base system configuration
+# - Security hardening
+# - Node.js 22 + pnpm + PM2
+# - Tracking application deployment
+# - SSL certificate (Let's Encrypt + Cloudflare DNS)
+# - Nginx reverse proxy
+#
+# Usage:
+#   ansible-playbook playbooks/provision-tracking.yml -i inventory/tracking
+#
+# Required environment variables:
+#   CLOUDFLARE_API_TOKEN - Cloudflare API token for DNS-01 challenge
+#   APP_KEY - 32+ character HMAC signing key
+#   INTERNAL_SERVICE_KEY - 32+ character service key
+#   REDIS_HOST - Redis hostname
+#
+# Optional environment variables:
+#   REDIS_PORT - Redis port (default: 6379)
+#   REDIS_PASSWORD - Redis password
+#   REDIS_DATABASE - Redis database number (default: 0)
+#
+---
+- name: Provision Tracking Server
+  hosts: tracking
+  become: yes
+
+  vars:
+    # Pull secrets from environment variables
+    cloudflare_api_token: "{{ lookup('env', 'CLOUDFLARE_API_TOKEN') }}"
+    app_key: "{{ lookup('env', 'APP_KEY') }}"
+    internal_service_key: "{{ lookup('env', 'INTERNAL_SERVICE_KEY') }}"
+    redis_host: "{{ lookup('env', 'REDIS_HOST') }}"
+
+  pre_tasks:
+    - name: Validate required environment variables
+      ansible.builtin.assert:
+        that:
+          - cloudflare_api_token | length > 0
+          - app_key | length >= 32
+          - internal_service_key | length >= 32
+          - redis_host | length > 0
+        fail_msg: |
+          Missing or invalid required environment variables.
+          Please set:
+            export CLOUDFLARE_API_TOKEN=<your-cloudflare-api-token>
+            export APP_KEY=<32-character-hmac-key>
+            export INTERNAL_SERVICE_KEY=<32-character-service-key>
+            export REDIS_HOST=<redis-hostname>
+
+    - name: Display provisioning info
+      ansible.builtin.debug:
+        msg: |
+          Provisioning tracking server: {{ inventory_hostname }}
+          - Host: {{ ansible_host }}
+          - Domain: {{ tracking_domain }}
+          - Port: {{ tracking_port }}
+          - Redis: {{ redis_host }}:{{ redis_port | default(6379) }}
+
+    - name: Create log directory for tracking service
+      ansible.builtin.file:
+        path: /var/log/tracking
+        state: directory
+        owner: "{{ tracking_user }}"
+        group: "{{ tracking_user }}"
+        mode: "0755"
+      ignore_errors: yes
+
+  roles:
+    - role: common
+      tags: [common]
+
+    - role: geerlingguy.security
+      tags: [security]
+
+    - role: tracking
+      tags: [tracking]
+
+  post_tasks:
+    - name: Display provisioning complete
+      ansible.builtin.debug:
+        msg: |
+          Tracking server provisioned successfully.
+
+          Service:
+          - URL: https://{{ tracking_domain }}
+          - Health: https://{{ tracking_domain }}/health
+          - Port: {{ tracking_port }}
+
+          Verification commands:
+          - Health check: curl https://{{ tracking_domain }}/health
+          - SSL check: curl -vI https://{{ tracking_domain }} 2>&1 | grep "SSL certificate"
+          - PM2 status: pm2 status
+          - PM2 logs: pm2 logs tracking --lines 50
+
+          Service management:
+          - pm2 restart tracking
+          - pm2 stop tracking
+          - pm2 start tracking

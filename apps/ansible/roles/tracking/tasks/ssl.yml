@@ -1,0 +1,59 @@
+# tracking Role - SSL Certificate Setup
+#
+# Uses Let's Encrypt with Cloudflare DNS-01 challenge for SSL certificates.
+# Follows the same pattern as nginx-injection role.
+#
+---
+- name: Install certbot and Cloudflare plugin
+  ansible.builtin.apt:
+    name:
+      - certbot
+      - python3-certbot-dns-cloudflare
+    state: present
+    update_cache: yes
+
+- name: Create certbot config directory
+  ansible.builtin.file:
+    path: /etc/letsencrypt
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Deploy Cloudflare credentials file
+  ansible.builtin.template:
+    src: cloudflare.ini.j2
+    dest: /etc/letsencrypt/cloudflare.ini
+    owner: root
+    group: root
+    mode: "0600"
+
+- name: Check if certificate already exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ tracking_domain }}/fullchain.pem"
+  register: cert_exists
+
+- name: Obtain SSL certificate for {{ tracking_domain }}
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --dns-cloudflare
+      --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini
+      --dns-cloudflare-propagation-seconds 30
+      -d {{ tracking_domain }}
+      --email {{ certbot_email }}
+      --agree-tos
+      --non-interactive
+  when: not cert_exists.stat.exists
+  register: certbot_result
+
+- name: Display certbot result
+  ansible.builtin.debug:
+    msg: "{{ certbot_result.stdout_lines | default(['Certificate already exists']) }}"
+  when: certbot_result is defined and certbot_result.stdout_lines is defined
+
+- name: Ensure certbot renewal timer is enabled
+  ansible.builtin.systemd:
+    name: certbot.timer
+    state: started
+    enabled: yes

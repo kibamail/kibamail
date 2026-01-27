@@ -1,0 +1,55 @@
+# tracking Role - Nginx Configuration
+#
+# Configures Nginx as a reverse proxy for the tracking service.
+# SSL termination with Let's Encrypt certificates.
+#
+---
+- name: Install Nginx
+  ansible.builtin.apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Deploy Nginx site configuration
+  ansible.builtin.template:
+    src: tracking.nginx.conf.j2
+    dest: "/etc/nginx/sites-available/{{ tracking_domain }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload Nginx
+
+- name: Enable tracking site
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ tracking_domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ tracking_domain }}"
+    state: link
+  notify: Reload Nginx
+
+- name: Remove default Nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: Reload Nginx
+
+- name: Validate Nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure Nginx is running
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: Display Nginx setup complete
+  ansible.builtin.debug:
+    msg: |
+      Nginx reverse proxy configured successfully.
+
+      Endpoint: https://{{ tracking_domain }}
+      Health check: https://{{ tracking_domain }}/health
+
+      Test commands:
+        - Health check: curl https://{{ tracking_domain }}/health
+        - SSL check: curl -vI https://{{ tracking_domain }} 2>&1 | grep "SSL certificate"

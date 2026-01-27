@@ -1,0 +1,21 @@
+// PM2 Ecosystem Configuration for Tracking Service
+// Managed by Ansible - do not edit manually
+module.exports = {
+  apps: [{
+    name: 'tracking',
+    script: './apps/tracking/dist/server.js',
+    cwd: '{{ tracking_app_dir }}',
+    instances: 1,
+    exec_mode: 'fork',
+    max_memory_restart: '512M',
+    restart_delay: 4000,
+    watch: false,
+    env: {
+      NODE_ENV: 'production'
+    },
+    log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
+    error_file: '/var/log/tracking/error.log',
+    out_file: '/var/log/tracking/out.log',
+    merge_logs: true
+  }]
+}

@@ -1,0 +1,31 @@
+# Tracking Cluster-wide Variables
+#
+# Common settings for tracking service deployment
+#
+---
+# Cluster identification
+cluster_name: "tracking"
+cluster_id: "tracking-prod"
+
+# =============================================================================
+# Security Configuration
+# =============================================================================
+# geerlingguy.security role configuration
+security_ssh_port: 22
+security_ssh_password_authentication: "no"
+security_ssh_permit_root_login: "yes"
+security_autoupdate_enabled: false
+security_fail2ban_enabled: true
+
+# =============================================================================
+# Common Packages
+# =============================================================================
+common_packages:
+  - curl
+  - wget
+  - vim
+  - htop
+  - net-tools
+  - jq
+  - unzip
+  - git

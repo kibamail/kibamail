@@ -1,0 +1,60 @@
+# tracking Role - Node.js Installation
+#
+# Installs Node.js 22, pnpm package manager, and PM2 process manager.
+#
+---
+- name: Install dependencies for NodeSource
+  ansible.builtin.apt:
+    name:
+      - curl
+      - gnupg
+      - ca-certificates
+    state: present
+    update_cache: yes
+
+- name: Check if Node.js is installed
+  ansible.builtin.command: node --version
+  register: node_version_check
+  changed_when: false
+  failed_when: false
+
+- name: Add NodeSource repository
+  ansible.builtin.shell: |
+    curl -fsSL https://deb.nodesource.com/setup_{{ nodejs_version }}.x | bash -
+  args:
+    creates: /etc/apt/sources.list.d/nodesource.list
+  when: node_version_check.rc != 0 or ('v' + nodejs_version) not in node_version_check.stdout
+
+- name: Install Node.js
+  ansible.builtin.apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+
+- name: Install pnpm globally
+  community.general.npm:
+    name: pnpm
+    global: yes
+    state: present
+
+- name: Install PM2 globally
+  community.general.npm:
+    name: pm2
+    global: yes
+    state: present
+
+- name: Verify installations
+  ansible.builtin.command: "{{ item }}"
+  loop:
+    - node --version
+    - pnpm --version
+    - pm2 --version
+  register: version_checks
+  changed_when: false
+
+- name: Display installed versions
+  ansible.builtin.debug:
+    msg: |
+      Node.js: {{ version_checks.results[0].stdout }}
+      pnpm: {{ version_checks.results[1].stdout }}
+      PM2: {{ version_checks.results[2].stdout }}

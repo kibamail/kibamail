@@ -1,0 +1,26 @@
+# tracking Role Tasks
+#
+# Deploys the Kibamail tracking service (email opens/clicks tracking).
+# Uses Node.js 22, pnpm, PM2 for process management, and Nginx with SSL.
+#
+---
+- name: Display tracking setup info
+  ansible.builtin.debug:
+    msg: |
+      Setting up tracking service on {{ inventory_hostname }}
+      - Domain: {{ tracking_domain }}
+      - Port: {{ tracking_port }}
+      - App directory: {{ tracking_app_dir }}
+      - Repository: {{ tracking_repo }}
+
+- name: Install Node.js and tools
+  ansible.builtin.include_tasks: nodejs.yml
+
+- name: Deploy application
+  ansible.builtin.include_tasks: app.yml
+
+- name: Setup SSL certificate
+  ansible.builtin.include_tasks: ssl.yml
+
+- name: Configure Nginx
+  ansible.builtin.include_tasks: nginx.yml

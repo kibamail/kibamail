@@ -1,0 +1,85 @@
+# Deploy Tracking Updates
+#
+# This playbook deploys updates to the tracking service:
+# - Pulls latest code from git
+# - Installs dependencies
+# - Builds the application
+# - Reloads PM2 (zero-downtime restart)
+#
+# Usage:
+#   ansible-playbook playbooks/deploy-tracking.yml -i inventory/tracking
+#
+# Optional parameters:
+#   --extra-vars "tracking_branch=feature-branch"  # Deploy specific branch
+#
+---
+- name: Deploy Tracking Updates
+  hosts: tracking
+  become: yes
+
+  vars:
+    tracking_user: tracking
+    tracking_app_dir: /opt/tracking
+    tracking_branch: main
+
+  tasks:
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg: |
+          Deploying tracking updates on {{ inventory_hostname }}
+          - Branch: {{ tracking_branch }}
+          - Directory: {{ tracking_app_dir }}
+
+    - name: Pull latest code
+      ansible.builtin.git:
+        repo: "{{ tracking_repo | default('https://github.com/kibamail/kibamail') }}"
+        dest: "{{ tracking_app_dir }}"
+        version: "{{ tracking_branch }}"
+        force: yes
+      become_user: "{{ tracking_user }}"
+      register: git_pull
+
+    - name: Display git status
+      ansible.builtin.debug:
+        msg: "Git pull result: {{ 'Updated to ' + git_pull.after[:8] if git_pull.changed else 'Already up to date' }}"
+
+    - name: Install dependencies
+      ansible.builtin.command: pnpm install --frozen-lockfile
+      args:
+        chdir: "{{ tracking_app_dir }}"
+      become_user: "{{ tracking_user }}"
+      when: git_pull.changed
+
+    - name: Build tracking application
+      ansible.builtin.command: pnpm --filter @repo/tracking build
+      args:
+        chdir: "{{ tracking_app_dir }}"
+      become_user: "{{ tracking_user }}"
+      when: git_pull.changed
+      register: build_result
+
+    - name: Reload PM2 (zero-downtime)
+      ansible.builtin.command: pm2 reload tracking
+      become_user: "{{ tracking_user }}"
+      when: git_pull.changed
+
+    - name: Verify application is running
+      ansible.builtin.command: pm2 describe tracking
+      become_user: "{{ tracking_user }}"
+      register: pm2_status
+      changed_when: false
+
+    - name: Display deployment complete
+      ansible.builtin.debug:
+        msg: |
+          Deployment {{ 'completed' if git_pull.changed else 'skipped (no changes)' }}.
+
+          {% if git_pull.changed %}
+          Changes deployed:
+          - Previous commit: {{ git_pull.before[:8] }}
+          - Current commit: {{ git_pull.after[:8] }}
+          {% endif %}
+
+          Verification:
+          - curl https://{{ tracking_domain | default('e.kbmta.net') }}/health
+          - pm2 logs tracking --lines 20

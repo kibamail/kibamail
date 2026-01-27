@@ -1,0 +1,25 @@
+# tracking Role Defaults
+---
+# Application user and directories
+tracking_user: tracking
+tracking_app_dir: /opt/tracking
+
+# Application settings
+tracking_port: 3100
+tracking_domain: e.kbmta.net
+
+# Repository settings
+tracking_repo: https://github.com/kibamail/kibamail
+tracking_branch: main
+
+# Node.js settings
+nodejs_version: "22"
+
+# Email for Let's Encrypt certificates
+certbot_email: engineering@kibamail.com
+
+# Cloudflare API token environment variable name
+cloudflare_api_token_env: "CLOUDFLARE_API_TOKEN"
+
+# Log level
+log_level: info
