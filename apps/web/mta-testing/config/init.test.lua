@@ -185,11 +185,10 @@ kumo.on('init', function()
     banner = MTA_HOSTNAME .. ' Kibamail ESMTP (Test)',
   }
 
-  -- Port 587: Submission
+  -- Port 587: Submission — relay only granted after successful SMTP AUTH
   kumo.start_esmtp_listener {
     listen = '0.0.0.0:587',
     hostname = MTA_HOSTNAME,
-    relay_hosts = { '0.0.0.0/0' },
     tls_private_key = TLS_KEY_PATH,
     tls_certificate = TLS_CERT_PATH,
     max_messages_per_connection = 10000,
@@ -251,6 +250,14 @@ end)
 -- =============================================================================
 
 kumo.on('get_listener_domain', function(domain, listener, conn_meta)
+  -- Authenticated connections (port 587) can relay to any domain
+  local auth_user = conn_meta:get_meta('auth_user')
+  if auth_user then
+    return kumo.make_listener_domain {
+      relay_to = true,
+    }
+  end
+
   -- Accept DMARC reports
   if domain == 'dmarc.kbmta.net' then
     return kumo.make_listener_domain {
@@ -292,6 +299,41 @@ kumo.on('smtp_server_message_received', function(msg)
   -- Set pool from header or default
   local pool = msg:get_meta('kibamail_pool') or 'marketing'
   msg:set_meta('egress_pool', pool)
+
+  -- Determine if connection is authenticated
+  local conn_meta_ok, conn_meta = pcall(function() return msg:conn_meta() end)
+  local is_authenticated = false
+  if conn_meta_ok and conn_meta then
+    local auth_user = conn_meta:get('auth_user') or ''
+    is_authenticated = (auth_user ~= '')
+  end
+
+  -- Tenant DKIM signing with enforcement for authenticated senders
+  local from_header = msg:from_header()
+  local sender_domain = from_header and from_header.domain or nil
+
+  if sender_domain then
+    local ok, tenant_dkim = pcall(get_tenant_dkim_key, sender_domain)
+
+    if ok and tenant_dkim and tenant_dkim.private_key then
+      local tenant_signer = kumo.dkim.rsa_sha256_signer {
+        domain = tenant_dkim.domain,
+        selector = tenant_dkim.selector,
+        key = {
+          key_data = tenant_dkim.private_key,
+        },
+        headers = {
+          'From', 'To', 'Subject', 'Date', 'Message-ID',
+          'Reply-To', 'Cc', 'Content-Type', 'MIME-Version',
+        },
+        over_sign = true,
+      }
+      msg:dkim_sign(tenant_signer)
+    elseif is_authenticated then
+      kumo.reject(550, '5.7.1 DKIM not configured or verified for sender domain')
+      return
+    end
+  end
 
   -- Sign with MTA DKIM
   sign_with_mta_dkim(msg)

@@ -246,6 +246,33 @@ end, {
   capacity = 10000,
 })
 
+-- Cache for sender domain ownership (24 hour TTL)
+-- Returns the workspace ID that owns a given sending domain
+local get_domain_workspace_id = kumo.memoize(function(domain)
+  local client = kumo.http.build_client { timeout = '10s' }
+
+  local response = client:post(CONTROL_PLANE_URL .. '/api/internal/v1/tenants/by-domain')
+    :header('Authorization', 'Bearer ' .. INTERNAL_SERVICE_KEY)
+    :header('Content-Type', 'application/json')
+    :body(kumo.json_encode({ domain = domain }))
+    :send()
+
+  if response:status_code() ~= 200 then
+    error('Domain lookup failed: ' .. domain)
+  end
+
+  local data = kumo.json_parse(response:text())
+  if not data or not data.id then
+    error('Domain not found: ' .. domain)
+  end
+
+  return data.id  -- workspace ID
+end, {
+  name = 'domain_workspace_cache',
+  ttl = '24 hours',
+  capacity = 10000,
+})
+
 -- Validate credentials via Control Plane (no caching - always verify)
 -- Uses endpoint: POST /api/internal/v1/mta/auth/validate
 -- This endpoint accepts raw password and hashes it internally
@@ -318,11 +345,10 @@ kumo.on('init', function()
     banner = MTA_HOSTNAME .. ' Kibamail ESMTP',
   }
 
-  -- Port 587: Submission with authentication
+  -- Port 587: Submission — relay only granted after successful SMTP AUTH
   kumo.start_esmtp_listener {
     listen = '0.0.0.0:587',
     hostname = MTA_HOSTNAME,
-    relay_hosts = { '0.0.0.0/0' },  -- Relay allowed (with auth)
     tls_private_key = TLS_KEY_PATH,
     tls_certificate = TLS_CERT_PATH,
     max_messages_per_connection = 10000,
@@ -443,25 +469,26 @@ end)
 -- =============================================================================
 
 kumo.on('smtp_server_auth_plain', function(authz, authc, password, conn_meta)
-  -- Reject empty passwords
   if password == '' then
-    kumo.log_warn('Auth rejected: empty password for user ' .. authc)
     return false
   end
 
-  -- Validate credentials via Control Plane (always verify, no caching)
-  local auth_result = validate_credentials(authc, password)
+  local ok, auth_result = pcall(validate_credentials, authc, password)
+
+  if not ok then
+    kumo.log_error(string.format(
+      'AUTH ERROR: control plane unreachable for user=%s error=%s',
+      authc, tostring(auth_result)
+    ))
+    return false
+  end
 
   if not auth_result or not auth_result.valid then
-    kumo.log_warn('Auth rejected: invalid credentials for user ' .. authc)
     return false
   end
 
-  -- Store auth metadata for later use
   conn_meta:set('workspace_id', auth_result.workspaceId or '')
   conn_meta:set('auth_user', authc)
-
-  kumo.log_info('Auth successful for user ' .. authc .. ' workspace ' .. (auth_result.workspaceId or 'unknown'))
   return true
 end)
 
@@ -470,6 +497,14 @@ end)
 -- =============================================================================
 
 kumo.on('get_listener_domain', function(domain, listener, conn_meta)
+  -- Authenticated connections (port 587) can relay to any domain
+  local auth_user = conn_meta:get_meta('auth_user')
+  if auth_user then
+    return kumo.make_listener_domain {
+      relay_to = true,
+    }
+  end
+
   -- DMARC aggregate reports - accept and relay to queue for processing
   -- Reports sent to: re+<tracking>@dmarc.kbmta.net
   if domain == 'dmarc.kbmta.net' then
@@ -526,16 +561,71 @@ kumo.on('smtp_server_message_received', function(msg)
     'X-Kibamail-Pool',
   }
 
-  -- Get the workspace ID from auth metadata (if available)
-  -- Note: conn_meta method may not exist for unauthenticated inbound connections (e.g., DMARC reports on port 25)
-  -- We use pcall to safely handle this case
-  local ok, conn_meta = pcall(function() return msg:conn_meta() end)
-  if ok and conn_meta then
+  -- RELAY GUARD: reject unauthenticated outbound messages
+  -- Inbound traffic (bounces, DMARC, inbox) is identified by listener domain
+  -- metadata set in get_listener_domain. Any message without auth AND without
+  -- inbound metadata is an unauthorized relay attempt.
+  local conn_meta_ok, conn_meta = pcall(function() return msg:conn_meta() end)
+
+  local is_authenticated = false
+  local is_inbound = false
+
+  if conn_meta_ok and conn_meta then
+    local auth_user = conn_meta:get('auth_user') or ''
+    is_authenticated = (auth_user ~= '')
+
+    local inbox_domain = conn_meta:get('inbox_domain') or ''
+    is_inbound = (inbox_domain == 'true')
+  end
+
+  -- Check if recipient is a known inbound domain (DMARC, bounces)
+  if not is_inbound then
+    local recipient = msg:recipient()
+    local rd = recipient and recipient.domain or nil
+    if rd then
+      if rd == 'dmarc.kbmta.net' then
+        is_inbound = true
+      elseif validate_listener_domain(rd) then
+        is_inbound = true
+      end
+    end
+  end
+
+  if not is_authenticated and not is_inbound then
+    kumo.reject(550, '5.7.1 Relay denied — authentication required')
+    return
+  end
+
+  -- Set workspace metadata from auth
+  if is_authenticated and conn_meta_ok and conn_meta then
     local workspace_id = conn_meta:get('workspace_id') or ''
     if workspace_id ~= '' then
       msg:set_meta('workspace_id', workspace_id)
     end
+  end
 
+  -- SENDER DOMAIN VERIFICATION: ensure authenticated workspace owns the From domain
+  if is_authenticated and conn_meta_ok and conn_meta then
+    local workspace_id = conn_meta:get('workspace_id') or ''
+    local from_header = msg:from_header()
+    local sender_domain = from_header and from_header.domain or nil
+
+    if sender_domain and workspace_id ~= '' then
+      local domain_ok, domain_workspace = pcall(get_domain_workspace_id, sender_domain)
+
+      if not domain_ok then
+        kumo.reject(550, '5.7.1 Sender domain not authorized')
+        return
+      end
+
+      if domain_workspace ~= workspace_id then
+        kumo.reject(550, '5.7.1 Sender domain not authorized for this account')
+        return
+      end
+    end
+  end
+
+  if conn_meta_ok and conn_meta then
     -- ==========================================================================
     -- INBOX MESSAGE HANDLING
     -- ==========================================================================
@@ -672,8 +762,9 @@ kumo.on('smtp_server_message_received', function(msg)
 
       msg:dkim_sign(tenant_signer)
       kumo.log_debug('Tenant DKIM signed for domain: ' .. sender_domain)
-    else
-      kumo.log_warn('No tenant DKIM key available for domain: ' .. sender_domain)
+    elseif is_authenticated then
+      kumo.reject(550, '5.7.1 DKIM not configured or verified for sender domain')
+      return
     end
   end
 
