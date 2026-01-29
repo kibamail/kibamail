@@ -1,0 +1,17 @@
+# nftables firewall hardening defaults
+---
+# IPs to block unconditionally (known scanners/abusers)
+nftables_blocked_ips:
+  - 213.209.159.42
+  - 78.153.140.207
+
+# SMTP submission (port 587) rate limits
+nftables_smtp_submission_rate: "10/minute"
+nftables_smtp_submission_burst: 5
+
+# SMTP inbound (port 25) rate limits
+nftables_smtp_inbound_rate: "20/minute"
+nftables_smtp_inbound_burst: 10
+
+# HTTP API port to restrict to localhost
+nftables_http_api_port: 8000

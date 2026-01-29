@@ -1,0 +1,45 @@
+# Managed by Ansible - do not edit manually
+# nftables firewall hardening rules for MTA server
+
+# =============================================================================
+# Blocklist: drop traffic from known scanner/abuser IPs
+# =============================================================================
+table inet blocklist {
+  chain input {
+    type filter hook input priority filter - 1; policy accept;
+{% for ip in nftables_blocked_ips %}
+    ip saddr {{ ip }} drop
+{% endfor %}
+  }
+}
+
+# =============================================================================
+# SMTP rate-limiting: throttle new connections per source IP
+# =============================================================================
+table inet smtp-ratelimit {
+  chain input {
+    type filter hook input priority filter; policy accept;
+
+    # Allow established connections through without rate checks
+    ct state established,related accept
+
+    # Port 587 (submission): authenticated customers only
+    tcp dport 587 ct state new meter smtp587-conn-rate size 65535 { ip saddr limit rate {{ nftables_smtp_submission_rate }} burst {{ nftables_smtp_submission_burst }} packets } accept
+    tcp dport 587 ct state new drop
+
+    # Port 25 (inbound): higher limit for legitimate bounce bursts
+    tcp dport 25 ct state new meter smtp25-conn-rate size 65535 { ip saddr limit rate {{ nftables_smtp_inbound_rate }} burst {{ nftables_smtp_inbound_burst }} packets } accept
+    tcp dport 25 ct state new drop
+  }
+}
+
+# =============================================================================
+# HTTP API: restrict injection port to localhost only
+# =============================================================================
+table inet http-api {
+  chain input {
+    type filter hook input priority filter; policy accept;
+    tcp dport {{ nftables_http_api_port }} ip saddr 127.0.0.1 accept
+    tcp dport {{ nftables_http_api_port }} ip saddr != 127.0.0.1 drop
+  }
+}

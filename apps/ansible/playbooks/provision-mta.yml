@@ -57,6 +57,9 @@
     - role: geerlingguy.security
       tags: [security]
 
+    - role: nftables
+      tags: [security, nftables]
+
     - role: geerlingguy.redis
       tags: [redis]
 

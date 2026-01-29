@@ -1,0 +1,33 @@
+# nftables firewall hardening
+#
+# Applies IP blocklist, SMTP rate-limiting, and HTTP API restriction rules.
+# Preserves any existing fail2ban nftables rules.
+#
+---
+- name: Install nftables
+  ansible.builtin.apt:
+    name: nftables
+    state: present
+
+- name: Enable nftables service
+  ansible.builtin.systemd:
+    name: nftables
+    enabled: yes
+
+- name: Deploy nftables rules
+  ansible.builtin.template:
+    src: nftables-rules.conf.j2
+    dest: /etc/nftables-rules.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart nftables
+
+- name: Deploy nftables boot config
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    owner: root
+    group: root
+    mode: "0755"
+  notify: Restart nftables

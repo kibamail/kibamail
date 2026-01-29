@@ -117,7 +117,7 @@ ehlo_domain = "mktg-mta-7.kbmta.net"
 
 [pool."marketing"]
 
-[pool."marketing"."mktg-mta-1"]
+[pool."marketing"."mktg-mta-7"]
 weight = 1
 
 # -----------------------------------------------------------------------------
@@ -126,7 +126,7 @@ weight = 1
 
 [pool."default"]
 
-[pool."default"."mktg-mta-1"]
+[pool."default"."mktg-mta-7"]
 weight = 1
 
 # -----------------------------------------------------------------------------

@@ -499,7 +499,7 @@ end)
 kumo.on('get_listener_domain', function(domain, listener, conn_meta)
   -- Authenticated connections (port 587) can relay to any domain
   local auth_user = conn_meta:get_meta('auth_user')
-  if auth_user then
+  if auth_user and auth_user ~= '' then
     return kumo.make_listener_domain {
       relay_to = true,
     }
