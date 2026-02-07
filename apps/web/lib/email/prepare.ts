@@ -80,6 +80,8 @@ export interface PreparedEmail {
   workspaceId: string;
   broadcastId: string;
   contactId: string;
+  sendingDomainId: string;
+  senderIdentityId: string;
 
   // Recipient
   recipientEmail: string;
@@ -329,6 +331,8 @@ async function prepareEmail(
     workspaceId: broadcast.workspaceId,
     broadcastId: broadcast.id,
     contactId: contact.id,
+    sendingDomainId: broadcast.sendingDomain.id,
+    senderIdentityId: broadcast.senderIdentity.id,
 
     // Recipient
     recipientEmail: contact.email,
@@ -431,6 +435,8 @@ export function convertToMtaMessages(
       },
       track_opens: prepared.trackOpens,
       track_clicks: prepared.trackClicks,
+      sending_domain_id: prepared.sendingDomainId,
+      sender_identity_id: prepared.senderIdentityId,
     };
   });
 }
@@ -448,6 +454,8 @@ export interface PreparedEmailOnly {
   messageId: string;
   workspaceId: string;
   broadcastId: string;
+  sendingDomainId: string;
+  senderIdentityId: string;
 
   // Recipient
   recipientEmail: string;
@@ -601,6 +609,8 @@ async function prepareEmailOnly(
     messageId,
     workspaceId: broadcast.workspaceId,
     broadcastId: broadcast.id,
+    sendingDomainId: broadcast.sendingDomain.id,
+    senderIdentityId: broadcast.senderIdentity.id,
     recipientEmail: recipient.email,
     senderEmail: broadcast.senderIdentity.email,
     senderName: broadcast.senderIdentity.name ?? "",
@@ -680,5 +690,7 @@ export function convertEmailOnlyToMtaMessages(
     },
     track_opens: prepared.trackOpens,
     track_clicks: prepared.trackClicks,
+    sending_domain_id: prepared.sendingDomainId,
+    sender_identity_id: prepared.senderIdentityId,
   }));
 }

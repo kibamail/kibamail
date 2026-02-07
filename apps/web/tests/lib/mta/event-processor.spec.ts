@@ -64,6 +64,20 @@ function createMockEvent(
     bounce_classification: "",
     timestamp: new Date().toISOString(),
     node_id: "node-1",
+    queue: "test.com",
+    site_name: "",
+    size: null,
+    num_attempts: null,
+    peer_address_name: "",
+    peer_address_addr: "",
+    egress_pool: "",
+    egress_source: "",
+    delivery_protocol: "",
+    reception_protocol: "",
+    sending_domain_id: "",
+    sender_identity_id: "",
+    click_tracking_enabled: null,
+    open_tracking_enabled: null,
     ...overrides,
   };
 }
@@ -712,5 +726,159 @@ describe("Event Processor - BroadcastSend Status Updates", () => {
     // COMPLAINED should win over DELIVERED
     expect(updatedSend?.status).toBe("COMPLAINED");
     expect(updatedSend?.complainedAt).toBeDefined();
+  });
+});
+
+// ============================================================
+// OOB (Out-of-Band Bounce) Webhook Metadata Tests
+// ============================================================
+// Verifies that OOB events carrying workspace metadata from
+// bounce domain lookup and VERP email_send_id are processed
+// correctly through the event pipeline.
+
+describe("Event Processor - OOB Webhook Metadata Propagation", () => {
+  test("should store OOB event with correct workspaceId and sendingId", async () => {
+    const sendingId = `test-oob-meta-${Date.now()}`;
+    const email = await createTestTransactionalEmail(sendingId);
+
+    const events: EmailEvent[] = [
+      createMockEvent(sendingId, "OOB", {
+        tenant_id: testWorkspace.id,
+        bounce_classification: "InvalidRecipient",
+        response: { code: 550, content: "No such user" },
+      }),
+    ];
+
+    await processEventsWithSideEffects(events);
+
+    // Verify Event record was created with correct metadata
+    const storedEvent = await prisma.event.findFirst({
+      where: {
+        sendingId,
+        workspaceId: testWorkspace.id,
+        type: "OOB",
+      },
+    });
+
+    expect(storedEvent).toBeDefined();
+    expect(storedEvent?.workspaceId).toBe(testWorkspace.id);
+    expect(storedEvent?.sendingId).toBe(sendingId);
+    expect(storedEvent?.bounceClassification).toBe("InvalidRecipient");
+    expect(storedEvent?.responseCode).toBe(550);
+    expect(storedEvent?.responseContent).toBe("No such user");
+  });
+
+  test("should update TransactionalEmail to BOUNCED on OOB with workspace metadata", async () => {
+    const sendingId = `test-oob-status-${Date.now()}`;
+    const email = await createTestTransactionalEmail(sendingId);
+
+    const events: EmailEvent[] = [
+      createMockEvent(sendingId, "OOB", {
+        tenant_id: testWorkspace.id,
+        bounce_classification: "InvalidRecipient",
+        response: { code: 550, content: "Mailbox not found" },
+      }),
+    ];
+
+    await processEventsWithSideEffects(events);
+
+    const updatedEmail = await prisma.transactionalEmail.findUnique({
+      where: { id: email.id },
+    });
+
+    expect(updatedEmail?.status).toBe("BOUNCED");
+    expect(updatedEmail?.bouncedAt).toBeDefined();
+    expect(updatedEmail?.bounceClassification).toBe("InvalidRecipient");
+  });
+
+  test("should create suppression entry for OOB hard bounce with workspace metadata", async () => {
+    const sendingId = `test-oob-suppress-${Date.now()}`;
+    const recipientEmail = `oob-bounce-${Date.now()}@example.com`;
+    await createTestTransactionalEmail(sendingId);
+
+    const events: EmailEvent[] = [
+      createMockEvent(sendingId, "Bounce", {
+        tenant_id: testWorkspace.id,
+        recipient: recipientEmail,
+        bounce_classification: "InvalidRecipient",
+        response: { code: 550, content: "No such user" },
+      }),
+    ];
+
+    await processEventsWithSideEffects(events);
+
+    // Verify suppression was created for the workspace
+    const suppression = await prisma.suppressionList.findFirst({
+      where: {
+        workspaceId: testWorkspace.id,
+        email: recipientEmail,
+        reason: "BOUNCED",
+      },
+    });
+
+    expect(suppression).toBeDefined();
+    expect(suppression?.workspaceId).toBe(testWorkspace.id);
+    expect(suppression?.email).toBe(recipientEmail);
+  });
+
+  test("should handle OOB event with empty workspace metadata gracefully", async () => {
+    const sendingId = `test-oob-no-meta-${Date.now()}`;
+
+    const events: EmailEvent[] = [
+      createMockEvent(sendingId, "OOB", {
+        tenant_id: "",
+        bounce_classification: "UndeterminedBounce",
+      }),
+    ];
+
+    // Should not throw
+    await expect(processEventsWithSideEffects(events)).resolves.not.toThrow();
+
+    // Event should still be inserted (with empty workspaceId)
+    const storedEvent = await prisma.event.findFirst({
+      where: { sendingId, type: "OOB" },
+    });
+
+    expect(storedEvent).toBeDefined();
+    expect(storedEvent?.sendingId).toBe(sendingId);
+  });
+
+  test("should process OOB and Delivery events for same sending_id correctly", async () => {
+    const sendingId = `test-oob-delivery-combo-${Date.now()}`;
+    const email = await createTestTransactionalEmail(sendingId);
+
+    // Simulate: delivery first, then OOB bounce (delayed DSN)
+    const deliveryEvents: EmailEvent[] = [
+      createMockEvent(sendingId, "Delivery", {
+        tenant_id: testWorkspace.id,
+        response: { code: 250, content: "Accepted" },
+      }),
+    ];
+
+    await processEventsWithSideEffects(deliveryEvents);
+
+    let updatedEmail = await prisma.transactionalEmail.findUnique({
+      where: { id: email.id },
+    });
+    expect(updatedEmail?.status).toBe("DELIVERED");
+
+    // OOB bounce arrives later
+    const oobEvents: EmailEvent[] = [
+      createMockEvent(sendingId, "OOB", {
+        tenant_id: testWorkspace.id,
+        bounce_classification: "InactiveMailbox",
+        response: { code: 550, content: "Mailbox inactive" },
+      }),
+    ];
+
+    await processEventsWithSideEffects(oobEvents);
+
+    updatedEmail = await prisma.transactionalEmail.findUnique({
+      where: { id: email.id },
+    });
+
+    // BOUNCED has higher priority than DELIVERED
+    expect(updatedEmail?.status).toBe("BOUNCED");
+    expect(updatedEmail?.bouncedAt).toBeDefined();
   });
 });

@@ -100,6 +100,14 @@ function convertToKumoMtaFormat(message: EmailMessage): KumoMtaRequest {
   if (message.pool) {
     headers["X-Kibamail-Pool"] = message.pool;
   }
+  if (message.sending_domain_id) {
+    headers["X-Kibamail-Sending-Domain-Id"] = message.sending_domain_id;
+  }
+  if (message.sender_identity_id) {
+    headers["X-Kibamail-Sender-Identity-Id"] = message.sender_identity_id;
+  }
+  headers["X-Kibamail-Click-Tracking"] = message.track_clicks ? "1" : "0";
+  headers["X-Kibamail-Open-Tracking"] = message.track_opens ? "1" : "0";
 
   const attachments = message.attachments?.map((att) => ({
     data: att.data || "",

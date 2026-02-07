@@ -192,6 +192,8 @@ export const sendTransactional: JobProcessor<
     },
     track_opens: sendingDomain.openTrackingEnabled,
     track_clicks: sendingDomain.clickTrackingEnabled,
+    sending_domain_id: sendingDomain.id,
+    sender_identity_id: senderIdentity.id,
   };
 
   const mtaOptions = getMtaOptions();

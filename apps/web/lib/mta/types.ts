@@ -66,6 +66,8 @@ export interface EmailMessage {
   metadata: Record<string, string>;
   track_opens: boolean;
   track_clicks: boolean;
+  sending_domain_id?: string;
+  sender_identity_id?: string;
 }
 
 /**

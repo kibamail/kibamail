@@ -242,6 +242,69 @@
         mode: "0644"
       notify: restart tsa
 
+    - name: Copy config.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/config.lua"
+        dest: "{{ kumomta_policy_dir }}/config.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy control_plane.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/control_plane.lua"
+        dest: "{{ kumomta_policy_dir }}/control_plane.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy dkim.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/dkim.lua"
+        dest: "{{ kumomta_policy_dir }}/dkim.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy dmarc.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/dmarc.lua"
+        dest: "{{ kumomta_policy_dir }}/dmarc.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy http.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/http.lua"
+        dest: "{{ kumomta_policy_dir }}/http.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy listener_domains.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/listener_domains.lua"
+        dest: "{{ kumomta_policy_dir }}/listener_domains.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
+    - name: Copy smtp.lua policy file
+      ansible.builtin.copy:
+        src: "{{ mta_config_path }}/kumomta/policy/smtp.lua"
+        dest: "{{ kumomta_policy_dir }}/smtp.lua"
+        owner: kumod
+        group: kumod
+        mode: "0644"
+      notify: restart kumomta
+
     # Copy DKIM configuration
     - name: Copy DKIM configuration
       ansible.builtin.copy:

@@ -319,8 +319,15 @@ services:
     volumes:
       # Startup script
       - ./mta-testing/scripts/start-kumomta.sh:/opt/kumomta/scripts/start-kumomta.sh:ro
-      # PRODUCTION init.lua policy
+      # PRODUCTION policy modules
       - ../mta/kumomta/policy/init.lua:/opt/kumomta/etc/policy/init.lua:ro
+      - ../mta/kumomta/policy/config.lua:/opt/kumomta/etc/policy/config.lua:ro
+      - ../mta/kumomta/policy/control_plane.lua:/opt/kumomta/etc/policy/control_plane.lua:ro
+      - ../mta/kumomta/policy/dkim.lua:/opt/kumomta/etc/policy/dkim.lua:ro
+      - ../mta/kumomta/policy/dmarc.lua:/opt/kumomta/etc/policy/dmarc.lua:ro
+      - ../mta/kumomta/policy/listener_domains.lua:/opt/kumomta/etc/policy/listener_domains.lua:ro
+      - ../mta/kumomta/policy/smtp.lua:/opt/kumomta/etc/policy/smtp.lua:ro
+      - ../mta/kumomta/policy/http.lua:/opt/kumomta/etc/policy/http.lua:ro
       # PRODUCTION TSA daemon configuration
       - ../mta/kumomta/policy/tsa_init.lua:/opt/kumomta/etc/policy/tsa_init.lua:ro
       # Test sources.toml (with marketing + transactional pools for local testing)

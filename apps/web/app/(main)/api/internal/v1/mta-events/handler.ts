@@ -29,10 +29,11 @@ const logger = queueLogger.child({ module: "mta-events-webhook" });
 /**
  * KumoMTA log record format (as received from webhook)
  */
-interface KumoLogRecord {
+export interface KumoLogRecord {
   type: string;
   id: string;
   recipient: string | string[];
+  sender?: string;
   meta?: Record<string, string>;
   headers?: Record<string, string>;
   response?: {
@@ -49,6 +50,15 @@ interface KumoLogRecord {
   nodeid?: string;
   timestamp?: number;
   event_time?: string;
+  queue?: string;
+  site?: string;
+  size?: number;
+  num_attempts?: number;
+  peer_address?: { name?: string; addr?: string };
+  egress_pool?: string;
+  egress_source?: string;
+  delivery_protocol?: string;
+  reception_protocol?: string;
 }
 
 /**
@@ -62,7 +72,17 @@ interface KumoLogRecord {
  * internal spool ID (record.id). This allows us to correlate events with our
  * TransactionalEmail records.
  */
-function transformKumoLogRecord(record: KumoLogRecord): EmailEvent {
+/**
+ * Parse a string meta value to a boolean.
+ * Returns true for "1"/"true", false for "0"/"false", null otherwise.
+ */
+function parseBooleanMeta(value: string | undefined | null): boolean | null {
+  if (value === "1" || value === "true") return true;
+  if (value === "0" || value === "false") return false;
+  return null;
+}
+
+export function transformKumoLogRecord(record: KumoLogRecord): EmailEvent {
   const recipient = Array.isArray(record.recipient)
     ? record.recipient[0]
     : record.recipient;
@@ -113,6 +133,34 @@ function transformKumoLogRecord(record: KumoLogRecord): EmailEvent {
     bounce_classification: record.bounce_classification || "",
     timestamp: record.event_time || new Date(record.timestamp ? record.timestamp * 1000 : Date.now()).toISOString(),
     node_id: record.nodeid || "",
+
+    // KumoMTA standard fields (sent automatically in every webhook)
+    queue: record.queue || "",
+    site_name: record.site || "",
+    size: record.size ?? null,
+    num_attempts: record.num_attempts ?? null,
+    peer_address_name: record.peer_address?.name || "",
+    peer_address_addr: record.peer_address?.addr || "",
+    egress_pool: record.egress_pool || "",
+    egress_source: record.egress_source || "",
+    delivery_protocol: record.delivery_protocol || "",
+    reception_protocol: record.reception_protocol || "",
+
+    // Application metadata (from X-Kibamail-* headers → meta)
+    sending_domain_id:
+      record.headers?.["X-Kibamail-Sending-Domain-Id"] ||
+      record.meta?.x_kibamail_sending_domain_id || "",
+    sender_identity_id:
+      record.headers?.["X-Kibamail-Sender-Identity-Id"] ||
+      record.meta?.x_kibamail_sender_identity_id || "",
+    click_tracking_enabled: parseBooleanMeta(
+      record.headers?.["X-Kibamail-Click-Tracking"] ||
+      record.meta?.x_kibamail_click_tracking
+    ),
+    open_tracking_enabled: parseBooleanMeta(
+      record.headers?.["X-Kibamail-Open-Tracking"] ||
+      record.meta?.x_kibamail_open_tracking
+    ),
   };
 }
 

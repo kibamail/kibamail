@@ -179,6 +179,20 @@ export const processSandboxBroadcast: JobProcessor<"broadcasts", "process-sandbo
         bounce_classification: eventDef.extra?.bounceClassification || "Uncategorized",
         timestamp: eventTime.toISOString(),
         node_id: "sandbox",
+        queue: "",
+        site_name: "",
+        size: null,
+        num_attempts: null,
+        peer_address_name: "",
+        peer_address_addr: "",
+        egress_pool: "",
+        egress_source: "",
+        delivery_protocol: "",
+        reception_protocol: "",
+        sending_domain_id: "",
+        sender_identity_id: "",
+        click_tracking_enabled: null,
+        open_tracking_enabled: null,
       };
 
       mtaEventsToProcess.push(event);

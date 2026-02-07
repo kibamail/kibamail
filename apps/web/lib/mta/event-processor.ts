@@ -41,6 +41,16 @@ function transformEvent(event: EmailEvent): Prisma.EventCreateManyInput {
       ? event.contact_id
       : null;
 
+  // Validate application metadata IDs
+  const sendingDomainId =
+    event.sending_domain_id && isValidCuid(event.sending_domain_id)
+      ? event.sending_domain_id
+      : null;
+  const senderIdentityId =
+    event.sender_identity_id && isValidCuid(event.sender_identity_id)
+      ? event.sender_identity_id
+      : null;
+
   return {
     sendingId: event.sending_id,
     workspaceId: event.tenant_id,
@@ -57,6 +67,24 @@ function transformEvent(event: EmailEvent): Prisma.EventCreateManyInput {
     bounceClassification: event.bounce_classification || null,
     nodeId: event.node_id,
     createdAt: new Date(event.timestamp),
+
+    // KumoMTA standard fields
+    queue: event.queue || null,
+    siteName: event.site_name || null,
+    size: event.size,
+    totalAttempts: event.num_attempts,
+    peerAddressName: event.peer_address_name || null,
+    peerAddressAddr: event.peer_address_addr || null,
+    egressPool: event.egress_pool || null,
+    egressSource: event.egress_source || null,
+    deliveryProtocol: event.delivery_protocol || null,
+    receptionProtocol: event.reception_protocol || null,
+
+    // Application metadata
+    sendingDomainId,
+    senderIdentityId,
+    clickTrackingEnabled: event.click_tracking_enabled,
+    openTrackingEnabled: event.open_tracking_enabled,
   };
 }
 
