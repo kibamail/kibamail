@@ -1,7 +1,7 @@
 {
   "name": "kibamail",
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Official Node.js SDK for Kibamail API",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
