@@ -20,6 +20,7 @@
 
 import { getLogtoContext } from "@logto/next/server-actions";
 import type { IdTokenClaims } from "@logto/node";
+import { isRedirectError } from "next/dist/client/components/redirect";
 import { redirect } from "next/navigation";
 import { logtoConfig } from "@/config/logto";
 import { type Permission, ROLES } from "@/config/rbac";
@@ -175,6 +176,10 @@ export async function getSession(): Promise<UserSession> {
       permissions: uniquePermissions,
     };
   } catch (error) {
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
     console.error(error);
     redirect("/");
   }
