@@ -24,8 +24,10 @@ import { redirect } from "next/navigation";
 import { logtoConfig } from "@/config/logto";
 import { type Permission, ROLES } from "@/config/rbac";
 import { UnauthorizedError } from "@/lib/api/errors";
-import { getUserWithOrganizations } from "@/lib/auth/user-cache";
+import { getUserWithOrganizations, invalidateUserCache } from "@/lib/auth/user-cache";
 import { CookieKey, Cookies } from "@/lib/cookies";
+import { createApiLogger } from "@/lib/api/logger";
+import { getRedisClient } from "@/lib/storage/redis-client";
 
 export type UserSession = {
   user: {
@@ -120,6 +122,22 @@ export async function getSession(): Promise<UserSession> {
 
     if (!currentOrganization && organizations.length > 0) {
       currentOrganization = organizations[0];
+    }
+
+    // Check if workspace is suspended (Redis kill switch)
+    if (currentOrganization) {
+      const redis = getRedisClient();
+      const suspended = await redis.get(`suspended:workspace:${currentOrganization.id}`);
+
+      if (suspended) {
+        const log = createApiLogger("auth/get-session", { workspaceId: currentOrganization.id, userId });
+        log.warn("Suspended workspace access attempted");
+
+        await invalidateUserCache(userId);
+        await Cookies.delete(CookieKey.ACTIVE_WORKSPACE_ID);
+
+        redirect("https://kibamail.com");
+      }
     }
 
     const permissions: Permission[] = [];
