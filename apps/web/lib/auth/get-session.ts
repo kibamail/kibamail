@@ -20,7 +20,7 @@
 
 import { getLogtoContext } from "@logto/next/server-actions";
 import type { IdTokenClaims } from "@logto/node";
-import { isRedirectError } from "next/dist/client/components/redirect";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { redirect } from "next/navigation";
 import { logtoConfig } from "@/config/logto";
 import { type Permission, ROLES } from "@/config/rbac";
