@@ -141,5 +141,5 @@ weight = 1
 
 [pool."transactional"]
 
-[pool."transactional"."trx-mta-32"]
+[pool."transactional"."trx-mta-1"]
 weight = 1
