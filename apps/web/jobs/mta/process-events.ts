@@ -17,14 +17,24 @@ const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 3000; // 3 seconds
 
 /**
+ * Check if an event was injected via SMTP (not HTTP API).
+ * SMTP events won't have pre-existing TransactionalEmail records —
+ * they'll be created reactively during event processing.
+ */
+function isSmtpInjected(event: EmailEvent): boolean {
+  return event.reception_protocol === "ESMTP" || event.reception_protocol === "ESMTP_STARTTLS";
+}
+
+/**
  * Check if any events have corresponding TransactionalEmail records
  * Returns the sendingIds that don't have records yet
  */
 async function findMissingTransactionalSendingIds(events: EmailEvent[]): Promise<Set<string>> {
   // Get unique sendingIds that look like transactional email IDs (not es_ prefixed IDs from broadcasts)
+  // Exclude SMTP-injected events — those are expected to not have pre-existing records
   const transactionalSendingIds = [...new Set(
     events
-      .filter(e => e.sending_id && !e.sending_id.startsWith("es_"))
+      .filter(e => e.sending_id && !e.sending_id.startsWith("es_") && !isSmtpInjected(e))
       .map(e => e.sending_id)
   )];
 

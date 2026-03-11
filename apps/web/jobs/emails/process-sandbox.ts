@@ -236,6 +236,8 @@ export const processSandbox: JobProcessor<"emails", "process-sandbox"> = async (
         sender_identity_id: "",
         click_tracking_enabled: null,
         open_tracking_enabled: null,
+        from_email: "",
+        subject: "",
       };
 
       mtaEventsToProcess.push(event);

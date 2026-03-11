@@ -295,49 +295,91 @@ async function updateTransactionalEmailStatus(events: EmailEvent[]): Promise<voi
         "Update result"
       );
 
+      // If no record was updated, this may be an SMTP-injected email.
+      // Create the TransactionalEmail record reactively from webhook data.
+      if (result.count === 0) {
+        const firstEvent = sendingEvents[0];
+        if (firstEvent && firstEvent.tenant_id) {
+          try {
+            await prisma.transactionalEmail.create({
+              data: {
+                workspaceId: firstEvent.tenant_id,
+                sendingId,
+                fromEmail: firstEvent.from_email || "",
+                toEmail: firstEvent.recipient,
+                subject: firstEvent.subject || "",
+                status: highestStatus || "SENDING",
+                sendingDomainId: isValidCuid(firstEvent.sending_domain_id) ? firstEvent.sending_domain_id : undefined,
+                openTrackingEnabled: firstEvent.open_tracking_enabled ?? false,
+                clickTrackingEnabled: firstEvent.click_tracking_enabled ?? false,
+                sentAt: new Date(firstEvent.timestamp),
+                ...(deliveredAt && { deliveredAt }),
+                ...(bouncedAt && { bouncedAt, bounceClassification }),
+                ...(complainedAt && { complainedAt }),
+                ...(lastResponseCode !== undefined && { lastResponseCode, lastResponseMessage }),
+                totalEvents: sendingEvents.length,
+              },
+            });
+
+            logger.info(
+              { sendingId, workspaceId: firstEvent.tenant_id, recipient: firstEvent.recipient },
+              "Created TransactionalEmail record from SMTP webhook event"
+            );
+            updatedCount++;
+          } catch (createError: any) {
+            // Unique constraint violation means another event already created it — that's fine
+            if (createError?.code === "P2002") {
+              logger.debug({ sendingId }, "TransactionalEmail already exists (concurrent create)");
+            } else {
+              logger.error({ error: createError, sendingId }, "Failed to create TransactionalEmail from webhook");
+            }
+          }
+        }
+      }
+
       if (result.count > 0) {
         updatedCount++;
+      }
 
-        // Fetch the transactional email to get ID and workspaceId for webhook dispatch
-        const transactionalEmail = await prisma.transactionalEmail.findUnique({
-          where: { sendingId },
-          select: { id: true, workspaceId: true },
-        });
+      // Fetch the transactional email for webhook dispatch
+      const transactionalEmail = await prisma.transactionalEmail.findUnique({
+        where: { sendingId },
+        select: { id: true, workspaceId: true },
+      });
 
-        if (transactionalEmail) {
-          // Dispatch webhooks based on status change
-          if (highestStatus === "DELIVERED" && deliveredAt) {
-            await dispatchWebhook(
-              transactionalEmail.workspaceId,
-              "transactional_email.delivered",
-              {
-                transactionalEmailId: transactionalEmail.id,
-                responseCode: lastResponseCode ?? 250,
-                responseMessage: lastResponseMessage ?? "OK",
-              }
-            );
-          } else if (highestStatus === "BOUNCED" && bouncedAt) {
-            await dispatchWebhook(
-              transactionalEmail.workspaceId,
-              "transactional_email.bounced",
-              {
-                transactionalEmailId: transactionalEmail.id,
-                bounceType: "hard",
-                bounceClassification: bounceClassification ?? "Unknown",
-                responseCode: lastResponseCode ?? 550,
-                responseMessage: lastResponseMessage ?? "Bounced",
-              }
-            );
-          } else if (highestStatus === "COMPLAINED" && complainedAt) {
-            await dispatchWebhook(
-              transactionalEmail.workspaceId,
-              "transactional_email.complained",
-              {
-                transactionalEmailId: transactionalEmail.id,
-                feedbackType: "abuse",
-              }
-            );
-          }
+      if (transactionalEmail && highestStatus) {
+        // Dispatch webhooks based on status change
+        if (highestStatus === "DELIVERED" && deliveredAt) {
+          await dispatchWebhook(
+            transactionalEmail.workspaceId,
+            "transactional_email.delivered",
+            {
+              transactionalEmailId: transactionalEmail.id,
+              responseCode: lastResponseCode ?? 250,
+              responseMessage: lastResponseMessage ?? "OK",
+            }
+          );
+        } else if (highestStatus === "BOUNCED" && bouncedAt) {
+          await dispatchWebhook(
+            transactionalEmail.workspaceId,
+            "transactional_email.bounced",
+            {
+              transactionalEmailId: transactionalEmail.id,
+              bounceType: "hard",
+              bounceClassification: bounceClassification ?? "Unknown",
+              responseCode: lastResponseCode ?? 550,
+              responseMessage: lastResponseMessage ?? "Bounced",
+            }
+          );
+        } else if (highestStatus === "COMPLAINED" && complainedAt) {
+          await dispatchWebhook(
+            transactionalEmail.workspaceId,
+            "transactional_email.complained",
+            {
+              transactionalEmailId: transactionalEmail.id,
+              feedbackType: "abuse",
+            }
+          );
         }
       }
     } catch (error) {

@@ -56,10 +56,13 @@ control_plane.get_tenant_dkim_key = kumo.memoize(function(domain)
     algorithm = 'rsa-sha256',
     workspace_id = data.id,
     sending_domain_id = sd.id,
+    return_path_sub_domain = sd.return_path_sub_domain or '',
+    return_path_domain_verified_at = sd.return_path_domain_verified_at,
+    dkim_verified_at = sd.dkim_verified_at,
   }
 end, {
   name = 'tenant_dkim_cache',
-  ttl = '24 hours',
+  ttl = '5 minutes',
   capacity = 10000,
 })
 
@@ -93,7 +96,7 @@ control_plane.validate_listener_domain = kumo.memoize(function(domain)
   return { valid = false }
 end, {
   name = 'listener_domain_cache',
-  ttl = '24 hours',
+  ttl = '5 minutes',
   capacity = 10000,
 })
 
@@ -139,7 +142,7 @@ control_plane.validate_inbox_domain = kumo.memoize(function(domain)
   return { valid = false }
 end, {
   name = 'inbox_domain_cache',
-  ttl = '24 hours',
+  ttl = '5 minutes',
   capacity = 10000,
 })
 
@@ -166,7 +169,7 @@ control_plane.get_domain_workspace_id = kumo.memoize(function(domain)
   return data.id  -- workspace ID
 end, {
   name = 'domain_workspace_cache',
-  ttl = '24 hours',
+  ttl = '5 minutes',
   capacity = 10000,
 })
 

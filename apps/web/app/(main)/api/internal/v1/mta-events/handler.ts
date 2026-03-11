@@ -161,6 +161,8 @@ export function transformKumoLogRecord(record: KumoLogRecord): EmailEvent {
       record.headers?.["X-Kibamail-Open-Tracking"] ||
       record.meta?.x_kibamail_open_tracking
     ),
+    from_email: record.meta?.x_kibamail_from_email || "",
+    subject: record.meta?.x_kibamail_subject || "",
   };
 }
 

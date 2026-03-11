@@ -48,6 +48,7 @@ log_hooks:new_json {
       'x_kibamail_email_send_id', 'x_kibamail_pool', 'workspace_id',
       'x_kibamail_sending_domain_id', 'x_kibamail_sender_identity_id',
       'x_kibamail_click_tracking', 'x_kibamail_open_tracking',
+      'x_kibamail_from_email', 'x_kibamail_subject',
     },
   },
 }

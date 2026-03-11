@@ -91,6 +91,10 @@ export interface EmailEvent {
   click_tracking_enabled: boolean | null;
   /** Whether open tracking was enabled */
   open_tracking_enabled: boolean | null;
+  /** Sender email (from SMTP injection metadata) */
+  from_email: string;
+  /** Email subject (from SMTP injection metadata) */
+  subject: string;
 }
 
 /**
