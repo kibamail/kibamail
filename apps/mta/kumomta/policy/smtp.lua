@@ -103,6 +103,9 @@ kumo.on('smtp_server_message_received', function(msg, conn_meta)
     msg:remove_all_named_headers(header_name)
   end
 
+  -- Strip client-injected Return-Path — the receiving MX adds it from the SMTP envelope
+  msg:remove_all_named_headers('Return-Path')
+
   -- RELAY GUARD: reject unauthenticated outbound messages
   -- Inbound traffic (bounces, DMARC, inbox) is identified by listener domain
   -- metadata set in get_listener_domain. Any message without auth AND without
