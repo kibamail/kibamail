@@ -38,7 +38,7 @@ jobs:
         run: |
           docker compose up -d
           # Wait for Prism to be ready
-          timeout 30 bash -c 'until curl -s http://localhost:4010 > /dev/null; do sleep 1; done'
+          timeout 60 bash -c 'until curl -s http://localhost:4010 > /dev/null; do sleep 1; done'
           echo "Prism is ready"
 
       - name: run tests

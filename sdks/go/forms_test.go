@@ -11,86 +11,15 @@ import (
 // This is a complex nested structure as required by the API
 func validFormFields() map[string]interface{} {
 	return map[string]interface{}{
-		"id":      "form_fields_1",
-		"version": 1,
-		"title":   "Newsletter Signup Form",
-		"pages": []map[string]interface{}{
-			{
-				"id": "page_1",
-				"sections": []map[string]interface{}{
-					{
-						"id":               "section_1",
-						"collapsible":      false,
-						"defaultCollapsed": false,
-						"fields": []map[string]interface{}{
-							{
-								"id":    "field_email",
-								"type":  "email",
-								"name":  "email",
-								"label": "Email Address",
-								"appearance": map[string]interface{}{
-									"width":         "full",
-									"labelPosition": "top",
-									"size":          "default",
-								},
-							},
-						},
-					},
-				},
-			},
+		"email": map[string]interface{}{
+			"contactPropertyId":   "email",
+			"contactPropertyType": "standard",
+			"fieldType":           "string",
 		},
-		"settings": map[string]interface{}{
-			"submitButton": map[string]interface{}{
-				"text":        "Subscribe",
-				"loadingText": "Subscribing...",
-				"variant":     "default",
-				"size":        "default",
-				"fullWidth":   true,
-				"position":    "center",
-			},
-			"successAction": map[string]interface{}{
-				"type":    "message",
-				"message": "Thank you for subscribing!",
-			},
-			"showProgressBar":             false,
-			"allowSaveAndContinue":        false,
-			"preventDuplicateSubmissions": false,
-			"theme": map[string]interface{}{
-				"mode":   "light",
-				"radius": "0.5rem",
-				"colors": map[string]interface{}{
-					"background":          "#ffffff",
-					"foreground":          "#000000",
-					"card":                "#ffffff",
-					"cardForeground":      "#000000",
-					"popover":             "#ffffff",
-					"popoverForeground":   "#000000",
-					"primary":             "#007bff",
-					"primaryForeground":   "#ffffff",
-					"secondary":           "#6c757d",
-					"secondaryForeground": "#ffffff",
-					"muted":               "#f8f9fa",
-					"mutedForeground":     "#6c757d",
-					"accent":              "#e9ecef",
-					"accentForeground":    "#000000",
-					"destructive":         "#dc3545",
-					"border":              "#dee2e6",
-					"input":               "#dee2e6",
-					"ring":                "#007bff",
-				},
-				"font": map[string]interface{}{
-					"family": "Inter",
-					"url":    "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap",
-				},
-				"body":      map[string]interface{}{},
-				"container": map[string]interface{}{},
-			},
-		},
-		"styling": map[string]interface{}{
-			"layout":       "stacked",
-			"labelStyle":   "floating",
-			"borderRadius": "md",
-			"spacing":      "default",
+		"first_name": map[string]interface{}{
+			"contactPropertyId":   "firstName",
+			"contactPropertyType": "standard",
+			"fieldType":           "string",
 		},
 	}
 }
@@ -99,10 +28,16 @@ func TestFormsCreate(t *testing.T) {
 	client := setupTest()
 
 	t.Run("should create a form with basic information", func(t *testing.T) {
-		// Only name is required for form creation
 		result, err := client.Forms.Create(&CreateFormRequest{
 			Name:        "Newsletter Signup",
 			Description: "Subscribe to our weekly newsletter",
+			FieldMapping: map[string]interface{}{
+				"email": map[string]interface{}{
+					"contactPropertyId":   "email",
+					"contactPropertyType": "standard",
+					"fieldType":           "string",
+				},
+			},
 		})
 
 		require.NoError(t, err)
@@ -114,7 +49,7 @@ func TestFormsCreate(t *testing.T) {
 		result, err := client.Forms.Create(&CreateFormRequest{
 			Name:        "Contact Form",
 			Description: "General contact form",
-			Fields:      validFormFields(),
+			FieldMapping: validFormFields(),
 		})
 
 		require.NoError(t, err)
