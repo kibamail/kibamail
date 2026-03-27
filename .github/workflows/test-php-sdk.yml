@@ -9,7 +9,7 @@ on:
 jobs:
   test:
     name: test on php ${{ matrix.php-version }}
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
