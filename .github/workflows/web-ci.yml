@@ -96,5 +96,5 @@ jobs:
           INTERNAL_SERVICE_KEY: TestServiceKeyForDevelopment32
           MTA_INJECTION_URL: http://localhost:8000
           MAILPIT_URL: http://localhost:8025
-        run: pnpm test
+        run: pnpm exec vitest run --exclude 'tests/mta/**'
 

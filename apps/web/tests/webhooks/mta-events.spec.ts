@@ -246,18 +246,19 @@ describe("MTA Webhooks - TransactionalEmail Events", () => {
     );
   });
 
-  test("should NOT dispatch transactional webhook for non-existent TransactionalEmail", async () => {
-    const sendingId = `non-existent-te-${Date.now()}`;
+  test("should create TransactionalEmail reactively and dispatch webhook for SMTP-injected email", async () => {
+    const sendingId = `smtp-injected-${Date.now()}`;
 
     const events: EmailEvent[] = [createMockEvent(sendingId, "Delivery")];
 
     await processEventsWithSideEffects(events);
 
-    // Should not dispatch transactional_email webhooks
+    // SMTP-injected emails get a TransactionalEmail record created reactively,
+    // which then dispatches a transactional_email webhook
     const transactionalCalls = mockDispatchWebhook.mock.calls.filter((call) =>
       call[1].startsWith("transactional_email.")
     );
-    expect(transactionalCalls.length).toBe(0);
+    expect(transactionalCalls.length).toBe(1);
   });
 });
 
