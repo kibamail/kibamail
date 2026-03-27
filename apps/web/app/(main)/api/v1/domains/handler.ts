@@ -263,6 +263,12 @@ export async function updateSendingDomain(
       ...(data.clickTrackingEnabled !== undefined && {
         clickTrackingEnabled: data.clickTrackingEnabled,
       }),
+      ...(data.dmarcEnabled !== undefined && {
+        dmarcEnabled: data.dmarcEnabled,
+      }),
+      ...(data.inboxEnabled !== undefined && {
+        inboxEnabled: data.inboxEnabled,
+      }),
     },
   });
 

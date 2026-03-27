@@ -10,7 +10,7 @@ export interface FormTabConfig {
 
 export function getFormTabs(status: FormStatus): FormTabConfig[] {
   const tabs: FormTabConfig[] = [
-    { id: "upload", label: "Upload form", enabled: status === "DRAFT" },
+    { id: "upload", label: "Upload form", enabled: true },
     { id: "details", label: "Details", enabled: true },
     { id: "preview", label: "Preview", enabled: true },
     { id: "analytics", label: "Analytics", enabled: true },

@@ -12,9 +12,9 @@ import type {
 } from "@/components/email-editor/types";
 import { internalApi } from "@/lib/api/client";
 import {
-  TemplateVersionDropdown,
-  type TemplateVersionItem,
-} from "@/app/(main)/(dashboard)/w/(fullscreen)/templates/[id]/_components/template-version-dropdown";
+  VersionDropdown,
+  type VersionItem,
+} from "@/components/version-dropdown";
 import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 
 interface TemplateEditorAdapterProps {
@@ -24,7 +24,7 @@ interface TemplateEditorAdapterProps {
   status: EmailTemplateStatus;
   version: number;
   rootTemplateId: string;
-  versions: TemplateVersionItem[];
+  versions: VersionItem[];
   isLiveVersion: boolean;
   initialContent?: Record<string, unknown>;
   initialStyles?: Record<string, unknown>;
@@ -136,13 +136,17 @@ export function TemplateEditorAdapter({
   };
 
   const versionDropdown = (
-    <TemplateVersionDropdown
-      currentTemplateId={templateId}
+    <VersionDropdown
+      currentId={templateId}
       currentVersion={version}
       currentStatus={status}
-      rootTemplateId={rootTemplateId}
+      rootId={rootTemplateId}
       versions={versions}
       isLiveVersion={isLiveVersion}
+      basePath="/w/templates"
+      queryKey="email-template"
+      onCreateVersion={(rootId) => internalApi.emailTemplates().createVersion(rootId)}
+      onPublish={(id) => internalApi.emailTemplates().publish(id)}
     />
   );
 

@@ -42,23 +42,9 @@ export default async function DomainDetailPage({
   const dkimVerified = Boolean(domain.dkimVerifiedAt);
   const returnPathVerified = Boolean(domain.returnPathDomainVerifiedAt);
   const trackingVerified = Boolean(domain.trackingDomainVerifiedAt);
-  const dmarcVerified = Boolean(domain.dmarcVerifiedAt);
-  const inboxMxVerified = Boolean(domain.inboxMxVerifiedAt);
 
-  const isFullyVerified =
-    dkimVerified &&
-    returnPathVerified &&
-    trackingVerified &&
-    dmarcVerified &&
-    inboxMxVerified;
-
-  const verifiedCount = [
-    dkimVerified,
-    returnPathVerified,
-    trackingVerified,
-    dmarcVerified,
-    inboxMxVerified,
-  ].filter(Boolean).length;
+  const requiredCount = [dkimVerified, returnPathVerified, trackingVerified].filter(Boolean).length;
+  const isReadyToSend = requiredCount === 3;
 
   return (
     <div className="py-6">
@@ -68,7 +54,7 @@ export default async function DomainDetailPage({
             Status
           </div>
           <div className="text-sm text-kb-content-primary">
-            {isFullyVerified ? "Ready to send" : `${verifiedCount}/5 verified`}
+            {isReadyToSend ? "Ready to send" : `${requiredCount}/3 verified`}
           </div>
         </div>
 
@@ -118,9 +104,33 @@ export default async function DomainDetailPage({
             help="Track when recipients click links in your emails"
           />
         </div>
+
+        <div>
+          <TrackingToggle
+            domainId={domain.id}
+            field="dmarcEnabled"
+            initialValue={domain.dmarcEnabled}
+            label="DMARC"
+            help="Monitor email authentication with DMARC aggregate reports"
+          />
+        </div>
+
+        <div>
+          <TrackingToggle
+            domainId={domain.id}
+            field="inboxEnabled"
+            initialValue={domain.inboxEnabled}
+            label="Inbox"
+            help="Receive email replies directly to your domain"
+          />
+        </div>
       </div>
 
-      <DnsRecordsSection domain={domain} />
+      <DnsRecordsSection
+        domain={domain}
+        dmarcEnabled={domain.dmarcEnabled}
+        inboxEnabled={domain.inboxEnabled}
+      />
 
       <SslStatusSection
         domainId={domain.id}

@@ -11,7 +11,7 @@ import { internalApi } from "@/lib/api/client";
 
 interface TrackingToggleProps {
   domainId: string;
-  field: "openTrackingEnabled" | "clickTrackingEnabled";
+  field: "openTrackingEnabled" | "clickTrackingEnabled" | "dmarcEnabled" | "inboxEnabled";
   initialValue: boolean;
   label: string;
   help?: string;

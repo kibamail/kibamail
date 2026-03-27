@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@kibamail/owly/button";
-import { Badge } from "@kibamail/owly/badge";
 import { useToast } from "@kibamail/owly/toast";
 import * as Tooltip from "@kibamail/owly/tooltip";
 import { useMutation } from "@tanstack/react-query";
@@ -10,6 +9,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 import { internalApi } from "@/lib/api/client";
+import {
+  VersionDropdown,
+  type VersionItem,
+} from "@/components/version-dropdown";
 import {
   type FormEditorTab,
   type FormEditorData,
@@ -23,9 +26,19 @@ import { AnalyticsTab } from "./analytics-tab";
 
 interface FormEditorClientProps {
   form: FormEditorData;
+  version: number;
+  rootFormId: string;
+  versions: VersionItem[];
+  isLiveVersion: boolean;
 }
 
-export function FormEditorClient({ form }: FormEditorClientProps) {
+export function FormEditorClient({
+  form,
+  version,
+  rootFormId,
+  versions,
+  isLiveVersion,
+}: FormEditorClientProps) {
   const isReadonly = form.status !== "DRAFT";
   const tabs = getFormTabs(form.status);
   const validTabs = tabs.map((t) => t.id);
@@ -68,13 +81,6 @@ export function FormEditorClient({ form }: FormEditorClientProps) {
     },
   });
 
-  const statusBadgeVariant =
-    form.status === "PUBLISHED"
-      ? "success"
-      : form.status === "ARCHIVED"
-        ? "warning"
-        : "info";
-
   return (
     <div className="flex h-screen w-full flex-col bg-kb-bg-layout px-2 pb-2">
       {/* Header */}
@@ -90,7 +96,21 @@ export function FormEditorClient({ form }: FormEditorClientProps) {
             {form.name}
           </h1>
 
-          <Badge size="sm" variant={statusBadgeVariant}>{form.status}</Badge>
+          <VersionDropdown
+            currentId={form.id}
+            currentVersion={version}
+            currentStatus={form.status}
+            rootId={rootFormId}
+            versions={versions}
+            isLiveVersion={isLiveVersion}
+            basePath="/w/forms"
+            pathSuffix="/edit"
+            queryKey="form"
+            onCreateVersion={(rootId) =>
+              internalApi.forms().createVersion(rootId).then((r) => ({ id: r.id }))
+            }
+            onPublish={(id) => internalApi.forms().publish(id)}
+          />
         </div>
 
         {/* Tab Navigation */}

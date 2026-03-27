@@ -13,9 +13,10 @@ interface DnsRecordRowProps {
   hostname: string;
   value: string;
   verified: boolean;
+  disabled?: boolean;
 }
 
-function DnsRecordRow({ type, hostname, value, verified }: DnsRecordRowProps) {
+function DnsRecordRow({ type, hostname, value, verified, disabled }: DnsRecordRowProps) {
   const { success: toast } = useToast();
 
   async function copyToClipboard(text: string) {
@@ -28,7 +29,7 @@ function DnsRecordRow({ type, hostname, value, verified }: DnsRecordRowProps) {
   }
 
   return (
-    <tr className="border-b border-kb-border-tertiary last:border-b-0">
+    <tr className={`border-b border-kb-border-tertiary last:border-b-0 ${disabled ? "opacity-30 pointer-events-none" : ""}`}>
       <td className="py-4 pr-4 align-top">
         <span className="text-xs font-medium text-kb-content-tertiary uppercase">
           {type}
@@ -92,9 +93,10 @@ interface MxRecordRowProps {
   priority: number;
   value: string;
   verified: boolean;
+  disabled?: boolean;
 }
 
-function MxRecordRow({ hostname, priority, value, verified }: MxRecordRowProps) {
+function MxRecordRow({ hostname, priority, value, verified, disabled }: MxRecordRowProps) {
   const { success: toast } = useToast();
 
   async function copyToClipboard(text: string) {
@@ -107,7 +109,7 @@ function MxRecordRow({ hostname, priority, value, verified }: MxRecordRowProps) 
   }
 
   return (
-    <tr className="border-b border-kb-border-tertiary last:border-b-0">
+    <tr className={`border-b border-kb-border-tertiary last:border-b-0 ${disabled ? "opacity-30 pointer-events-none" : ""}`}>
       <td className="py-4 pr-4 align-top">
         <span className="text-xs font-medium text-kb-content-tertiary uppercase">
           MX
@@ -173,6 +175,8 @@ function MxRecordRow({ hostname, priority, value, verified }: MxRecordRowProps) 
 
 interface DnsRecordsSectionProps {
   domain: SendingDomain;
+  dmarcEnabled: boolean;
+  inboxEnabled: boolean;
 }
 
 /**
@@ -220,7 +224,7 @@ function cleanupPublicKey(publicKey: string): string {
   return lines.join("");
 }
 
-export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
+export function DnsRecordsSection({ domain, dmarcEnabled, inboxEnabled }: DnsRecordsSectionProps) {
   const dkimValue = `k=rsa;p=${
     domain.dkimPublicKey.includes("-----BEGIN")
       ? cleanupPublicKey(domain.dkimPublicKey)
@@ -349,7 +353,9 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
             DMARC Record
           </h3>
           <span className="text-sm text-kb-content-tertiary">
-            Protect your domain from email spoofing and improve deliverability.
+            {dmarcEnabled
+              ? "Protect your domain from email spoofing and improve deliverability."
+              : "Enable DMARC above to configure this record."}
           </span>
         </div>
         <table className="w-full">
@@ -375,6 +381,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               hostname={getDnsHostname("_dmarc", domain.name)}
               value={buildDmarcPolicy(domain.dmarcReportingCode)}
               verified={Boolean(domain.dmarcVerifiedAt)}
+              disabled={!dmarcEnabled}
             />
           </tbody>
         </table>
@@ -386,8 +393,9 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
             MX Record (Inbox)
           </h3>
           <span className="text-sm text-kb-content-tertiary">
-            Receive email replies directly to your domain for two-way
-            conversations.
+            {inboxEnabled
+              ? "Receive email replies directly to your domain for two-way conversations."
+              : "Enable Inbox above to configure this record."}
           </span>
         </div>
         <table className="w-full">
@@ -416,6 +424,7 @@ export function DnsRecordsSection({ domain }: DnsRecordsSectionProps) {
               priority={10}
               value="mail.kbmta.net"
               verified={Boolean(domain.inboxMxVerifiedAt)}
+              disabled={!inboxEnabled}
             />
           </tbody>
         </table>

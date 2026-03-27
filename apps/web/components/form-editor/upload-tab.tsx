@@ -86,18 +86,23 @@ export function UploadTab({
   return (
     <div className="h-full overflow-auto bg-kb-surface-primary">
       <div className="max-w-xl mx-auto py-8 px-6">
-        {!readonly && (
-          <section>
-            <SectionHeader
-              title="Upload form"
-              description="Upload your site bundle containing one HTML file and any CSS, JS, images, fonts, or video assets."
-            />
+        <section>
+          <SectionHeader
+            title="Upload form"
+            description={readonly
+              ? "This form is published. Create a new version to upload changes."
+              : "Upload your site bundle containing one HTML file and any CSS, JS, images, fonts, or video assets."}
+          />
 
-            <div {...getRootProps()}>
-              <div
-                {...getDropzoneProps()}
-                className="w-full h-72 rounded-3xl bg-kb-bg-secondary border border-dashed border-kb-border-secondary data-dragging:border-kb-border-focus data-dragging:bg-kb-bg-info-subtle transition-[border,background] ease-in-out flex items-center justify-center flex-col cursor-pointer hover:bg-kb-bg-tertiary"
-              >
+          <div {...(readonly ? {} : getRootProps())}>
+            <div
+              {...(readonly ? {} : getDropzoneProps())}
+              className={`w-full h-72 rounded-3xl border border-dashed transition-[border,background] ease-in-out flex items-center justify-center flex-col ${
+                readonly
+                  ? "bg-kb-bg-disabled border-kb-border-tertiary cursor-not-allowed opacity-60"
+                  : "bg-kb-bg-secondary border-kb-border-secondary data-dragging:border-kb-border-focus data-dragging:bg-kb-bg-info-subtle cursor-pointer hover:bg-kb-bg-tertiary"
+              }`}
+            >
                 <CloudUpload className="w-8 h-8 text-kb-content-tertiary mb-2" />
 
                 <Text size="lg" className="font-semibold">
@@ -121,16 +126,15 @@ export function UploadTab({
                 </Text>
               </div>
 
-              {state.rejectedFiles.length > 0 && (
+              {!readonly && state.rejectedFiles.length > 0 && (
                 <Text className="mt-2 text-kb-content-error text-sm">
                   Some files were rejected. Accepted types: {ACCEPTED_EXTENSIONS.join(", ")}
                 </Text>
               )}
 
-              <input {...getHiddenInputProps()} />
+              {!readonly && <input {...getHiddenInputProps()} />}
             </div>
           </section>
-        )}
 
         {deployMutation.isError && (
           <div className="mt-4 rounded-md bg-red-50 p-4">
@@ -142,7 +146,7 @@ export function UploadTab({
 
         {content && (
           <>
-            {!readonly && <SectionDivider />}
+            <SectionDivider />
 
             <section>
               <SectionHeader title="Current deployment" />
@@ -151,7 +155,9 @@ export function UploadTab({
                 <div className="space-y-2">
                   {content.files.map((file) => (
                     <div key={file.name} className="flex items-center gap-2">
-                      <Text className="shrink-0 font-mono">{file.name}</Text>
+                      <pre className="text-sm font-mono">
+                        <code>{file.name}</code>
+                      </pre>
                       <div className="w-full grow h-px bg-kb-border-tertiary" />
                       <Text variant="tertiary" className="shrink-0">
                         {formatFileSize(file.size)}
@@ -164,10 +170,6 @@ export function UploadTab({
                   HTML content deployed (no additional assets)
                 </Text>
               )}
-
-              <Text size="sm" className="mt-4 text-kb-content-tertiary">
-                Deploy ID: {content.deployId}
-              </Text>
             </section>
           </>
         )}

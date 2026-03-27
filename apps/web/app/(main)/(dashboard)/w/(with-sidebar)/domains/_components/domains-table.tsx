@@ -182,29 +182,20 @@ function StatusDropdown({ domain }: { domain: DomainListItem }) {
   const sslStatus = domain.sslIssuanceStatus as SslStatus;
   const sslVerified = getSslStatusVerified(sslStatus);
 
-  const allVerified =
-    dkimVerified &&
-    returnPathVerified &&
-    trackingVerified &&
-    dmarcVerified &&
-    inboxMxVerified &&
-    sslVerified;
+  const requiredChecks = [dkimVerified, returnPathVerified, trackingVerified, sslVerified];
+  if (domain.dmarcEnabled) requiredChecks.push(dmarcVerified);
+  if (domain.inboxEnabled) requiredChecks.push(inboxMxVerified);
 
-  const verifiedCount = [
-    dkimVerified,
-    returnPathVerified,
-    trackingVerified,
-    dmarcVerified,
-    inboxMxVerified,
-    sslVerified,
-  ].filter(Boolean).length;
+  const totalRequired = requiredChecks.length;
+  const verifiedCount = requiredChecks.filter(Boolean).length;
+  const allVerified = verifiedCount === totalRequired;
 
   const statuses = [
-    { label: "DKIM", verified: dkimVerified },
-    { label: "Return Path", verified: returnPathVerified },
-    { label: "Tracking", verified: trackingVerified },
-    { label: "DMARC", verified: dmarcVerified },
-    { label: "MX (Inbox)", verified: inboxMxVerified },
+    { label: "DKIM", verified: dkimVerified, enabled: true },
+    { label: "Return Path", verified: returnPathVerified, enabled: true },
+    { label: "Tracking", verified: trackingVerified, enabled: true },
+    { label: "DMARC", verified: dmarcVerified, enabled: domain.dmarcEnabled },
+    { label: "MX (Inbox)", verified: inboxMxVerified, enabled: domain.inboxEnabled },
   ];
 
   return (
@@ -215,7 +206,7 @@ function StatusDropdown({ domain }: { domain: DomainListItem }) {
           className="flex items-center gap-1.5 text-left"
         >
           <Badge variant={allVerified ? "success" : "warning"} size="sm">
-            {allVerified ? "Ready to send" : `${verifiedCount}/6 verified`}
+            {allVerified ? "Ready to send" : `${verifiedCount}/${totalRequired} verified`}
           </Badge>
           <NavArrowDown className="w-3.5 h-3.5 text-kb-content-tertiary" />
         </button>
@@ -225,7 +216,7 @@ function StatusDropdown({ domain }: { domain: DomainListItem }) {
           {statuses.map((status) => (
             <div
               key={status.label}
-              className="flex items-center justify-between px-3 py-2"
+              className={`flex items-center justify-between px-3 py-2 ${!status.enabled ? "opacity-30" : ""}`}
             >
               <span className="text-sm text-kb-content-secondary">
                 {status.label}

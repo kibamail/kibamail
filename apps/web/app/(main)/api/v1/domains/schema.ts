@@ -33,6 +33,7 @@ export const updateSendingDomainSchema = z.object({
   openTrackingEnabled: z.boolean().optional(),
   clickTrackingEnabled: z.boolean().optional(),
   dmarcEnabled: z.boolean().optional(),
+  inboxEnabled: z.boolean().optional(),
 });
 
 /**

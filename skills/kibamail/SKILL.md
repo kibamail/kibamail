@@ -240,3 +240,12 @@ Read these on demand when you need detailed information:
 | `references/events.md` | Custom events for automation triggers |
 | `references/error-recovery.md` | Every error code with recovery commands |
 | `references/workflows.md` | Multi-step task recipes |
+
+## TypeScript SDK
+
+For integrating Kibamail into TypeScript/Node.js applications, see the **kibamail-typescript-sdk** skill. It covers the `kibamail` npm package with typed methods for all resources.
+
+```typescript
+import { Kibamail } from "kibamail";
+const kibamail = new Kibamail("kb_your_api_key");
+```
