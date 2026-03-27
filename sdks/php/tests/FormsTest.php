@@ -3,12 +3,24 @@
 use Kibamail\Collection;
 use Kibamail\Form;
 
+function validFieldMapping(): array
+{
+    return [
+        'email' => [
+            'contactPropertyId' => 'email',
+            'contactPropertyType' => 'standard',
+            'fieldType' => 'string',
+        ],
+    ];
+}
+
 it('can create a form', function () {
     $client = createClient();
 
     $result = $client->forms->create([
         'name' => 'Newsletter Signup',
         'description' => 'Subscribe to our newsletter',
+        'fieldMapping' => validFieldMapping(),
     ]);
 
     expect($result)->toBeInstanceOf(Form::class)
@@ -29,6 +41,7 @@ it('can get a form', function () {
 
     $form = $client->forms->create([
         'name' => 'Contact Form',
+        'fieldMapping' => validFieldMapping(),
     ]);
 
     $result = $client->forms->get($form->id);
@@ -42,6 +55,7 @@ it('can update a form', function () {
 
     $form = $client->forms->create([
         'name' => 'Original Form',
+        'fieldMapping' => validFieldMapping(),
     ]);
 
     $result = $client->forms->update($form->id, [
@@ -56,6 +70,7 @@ it('can delete a form', function () {
 
     $form = $client->forms->create([
         'name' => 'Form to Delete',
+        'fieldMapping' => validFieldMapping(),
     ]);
 
     $result = $client->forms->delete($form->id);
