@@ -14,6 +14,40 @@ type DefaultError struct {
 	Code    string `json:"code,omitempty"`
 }
 
+// APIError represents a structured error response from the Kibamail API.
+// It preserves the full error envelope including code, hint, and validation details.
+type APIError struct {
+	StatusCode       int                    `json:"-"`
+	Type             string                 `json:"type"`
+	Code             string                 `json:"code"`
+	Message          string                 `json:"message"`
+	Hint             string                 `json:"hint,omitempty"`
+	RequestID        string                 `json:"requestId,omitempty"`
+	ValidationErrors []APIValidationError   `json:"validationErrors,omitempty"`
+	Details          map[string]interface{} `json:"details,omitempty"`
+}
+
+// APIValidationError represents a single field-level validation error.
+type APIValidationError struct {
+	Field   string `json:"field"`
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// Error implements the error interface.
+func (e *APIError) Error() string {
+	if e.Hint != "" {
+		return e.Message + " — " + e.Hint
+	}
+	return e.Message
+}
+
+// Is implements errors.Is for detecting API errors.
+func (e *APIError) Is(target error) bool {
+	_, ok := target.(*APIError)
+	return ok
+}
+
 // RateLimitError is a sentinel error for rate limit detection with errors.Is
 var ErrRateLimit = errors.New("rate limit exceeded")
 
@@ -80,7 +114,11 @@ var (
 	ErrFailedToCreateFormsListRequest   = errors.New("[ERROR]: Failed to create Forms.List request")
 	ErrFailedToCreateFormsGetRequest    = errors.New("[ERROR]: Failed to create Forms.Get request")
 	ErrFailedToCreateFormsUpdateRequest = errors.New("[ERROR]: Failed to create Forms.Update request")
-	ErrFailedToCreateFormsDeleteRequest = errors.New("[ERROR]: Failed to create Forms.Delete request")
+	ErrFailedToCreateFormsDeleteRequest  = errors.New("[ERROR]: Failed to create Forms.Delete request")
+	ErrFailedToCreateFormsDeployRequest  = errors.New("[ERROR]: Failed to create Forms.Deploy request")
+	ErrFailedToCreateFormsPublishRequest       = errors.New("[ERROR]: Failed to create Forms.Publish request")
+	ErrFailedToCreateFormsCreateVersionRequest = errors.New("[ERROR]: Failed to create Forms.CreateVersion request")
+	ErrFailedToCreateFormsListVersionsRequest  = errors.New("[ERROR]: Failed to create Forms.ListVersions request")
 )
 
 // ApiKeysSvc errors
@@ -99,59 +137,113 @@ var (
 	ErrFailedToCreateContactPropertiesDeleteRequest = errors.New("[ERROR]: Failed to create ContactProperties.Delete request")
 )
 
-// handleError tries to handle errors based on HTTP status codes
+// EmailsSvc errors
+var (
+	ErrFailedToCreateEmailsSendRequest    = errors.New("[ERROR]: Failed to create Emails.Send request")
+	ErrFailedToCreateEmailsListRequest    = errors.New("[ERROR]: Failed to create Emails.List request")
+	ErrFailedToCreateEmailsGetRequest     = errors.New("[ERROR]: Failed to create Emails.Get request")
+	ErrFailedToCreateEmailsEventsRequest  = errors.New("[ERROR]: Failed to create Emails.Events request")
+	ErrFailedToCreateEmailsContentRequest = errors.New("[ERROR]: Failed to create Emails.Content request")
+)
+
+// DomainsSvc errors
+var (
+	ErrFailedToCreateDomainsCreateRequest = errors.New("[ERROR]: Failed to create Domains.Create request")
+	ErrFailedToCreateDomainsListRequest   = errors.New("[ERROR]: Failed to create Domains.List request")
+	ErrFailedToCreateDomainsGetRequest    = errors.New("[ERROR]: Failed to create Domains.Get request")
+	ErrFailedToCreateDomainsUpdateRequest = errors.New("[ERROR]: Failed to create Domains.Update request")
+	ErrFailedToCreateDomainsDeleteRequest = errors.New("[ERROR]: Failed to create Domains.Delete request")
+	ErrFailedToCreateDomainsVerifyRequest = errors.New("[ERROR]: Failed to create Domains.Verify request")
+)
+
+// BroadcastsSvc errors
+var (
+	ErrFailedToCreateBroadcastsCreateRequest        = errors.New("[ERROR]: Failed to create Broadcasts.Create request")
+	ErrFailedToCreateBroadcastsListRequest          = errors.New("[ERROR]: Failed to create Broadcasts.List request")
+	ErrFailedToCreateBroadcastsGetRequest           = errors.New("[ERROR]: Failed to create Broadcasts.Get request")
+	ErrFailedToCreateBroadcastsUpdateRequest        = errors.New("[ERROR]: Failed to create Broadcasts.Update request")
+	ErrFailedToCreateBroadcastsDeleteRequest        = errors.New("[ERROR]: Failed to create Broadcasts.Delete request")
+	ErrFailedToCreateBroadcastsSendRequest          = errors.New("[ERROR]: Failed to create Broadcasts.Send request")
+	ErrFailedToCreateBroadcastsCreateAndSendRequest = errors.New("[ERROR]: Failed to create Broadcasts.CreateAndSend request")
+	ErrFailedToCreateBroadcastsListSendsRequest     = errors.New("[ERROR]: Failed to create Broadcasts.ListSends request")
+	ErrFailedToCreateBroadcastsStatsRequest         = errors.New("[ERROR]: Failed to create Broadcasts.Stats request")
+)
+
+// AutomationsSvc errors
+var (
+	ErrFailedToCreateAutomationsCreateRequest  = errors.New("[ERROR]: Failed to create Automations.Create request")
+	ErrFailedToCreateAutomationsListRequest    = errors.New("[ERROR]: Failed to create Automations.List request")
+	ErrFailedToCreateAutomationsGetRequest     = errors.New("[ERROR]: Failed to create Automations.Get request")
+	ErrFailedToCreateAutomationsUpdateRequest  = errors.New("[ERROR]: Failed to create Automations.Update request")
+	ErrFailedToCreateAutomationsDeleteRequest  = errors.New("[ERROR]: Failed to create Automations.Delete request")
+	ErrFailedToCreateAutomationsPublishRequest = errors.New("[ERROR]: Failed to create Automations.Publish request")
+	ErrFailedToCreateAutomationsArchiveRequest = errors.New("[ERROR]: Failed to create Automations.Archive request")
+	ErrFailedToCreateAutomationsTriggerRequest  = errors.New("[ERROR]: Failed to create Automations.Trigger request")
+	ErrFailedToCreateAutomationsSimulateRequest = errors.New("[ERROR]: Failed to create Automations.Simulate request")
+)
+
+// EventsSvc errors
+var (
+	ErrFailedToCreateEventsCreateRequest = errors.New("[ERROR]: Failed to create Events.Create request")
+)
+
+// handleError tries to handle errors based on HTTP status codes.
+// It preserves the full structured error response from the API.
 func handleError(resp *http.Response) error {
-	switch resp.StatusCode {
-
-	// Handle rate limit errors (429)
-	case http.StatusTooManyRequests:
-		r := &DefaultError{}
-		if strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
-			err := json.NewDecoder(resp.Body).Decode(r)
-			if err != nil {
-				r.Message = resp.Status
-			}
-		} else {
-			r.Message = resp.Status
-		}
-
+	// Handle rate limit errors (429) separately for RateLimitError type
+	if resp.StatusCode == http.StatusTooManyRequests {
+		apiErr := parseAPIError(resp)
 		return &RateLimitError{
-			Message:    r.Message,
+			Message:    apiErr.Message,
 			Limit:      resp.Header.Get("ratelimit-limit"),
 			Remaining:  resp.Header.Get("ratelimit-remaining"),
 			Reset:      resp.Header.Get("ratelimit-reset"),
 			RetryAfter: resp.Header.Get("retry-after"),
 		}
+	}
 
-	// Handles errors most likely caused by the client
-	case http.StatusUnprocessableEntity, http.StatusBadRequest, http.StatusNotFound, http.StatusConflict:
-		r := &DefaultError{}
-		if strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
-			err := json.NewDecoder(resp.Body).Decode(r)
-			if err != nil {
-				r.Message = resp.Status
-			}
-		} else {
-			r.Message = resp.Status
+	return parseAPIError(resp)
+}
+
+// parseAPIError reads the response body and extracts the structured error envelope.
+func parseAPIError(resp *http.Response) *APIError {
+	if !strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
+		return &APIError{
+			StatusCode: resp.StatusCode,
+			Code:       "UNKNOWN_ERROR",
+			Message:    resp.Status,
 		}
+	}
 
-		return errors.New("[ERROR]: " + r.Message)
-	default:
-		// Tries to parse `message` attr from error
-		r := &DefaultError{}
+	// Try to parse the full { "error": { ... } } envelope
+	var envelope struct {
+		Error struct {
+			Type             string                 `json:"type"`
+			Code             string                 `json:"code"`
+			Message          string                 `json:"message"`
+			Hint             string                 `json:"hint"`
+			RequestID        string                 `json:"requestId"`
+			ValidationErrors []APIValidationError   `json:"validationErrors"`
+			Details          map[string]interface{} `json:"details"`
+		} `json:"error"`
+	}
 
-		if strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
-			err := json.NewDecoder(resp.Body).Decode(r)
-			if err != nil {
-				r.Message = resp.Status
-			}
-		} else {
-			r.Message = resp.Status
+	if err := json.NewDecoder(resp.Body).Decode(&envelope); err != nil {
+		return &APIError{
+			StatusCode: resp.StatusCode,
+			Code:       "PARSE_ERROR",
+			Message:    "Failed to parse API error response",
 		}
+	}
 
-		if r.Message != "" {
-			return errors.New("[ERROR]: " + r.Message)
-		}
-		return errors.New("[ERROR]: Unknown Error")
+	return &APIError{
+		StatusCode:       resp.StatusCode,
+		Type:             envelope.Error.Type,
+		Code:             envelope.Error.Code,
+		Message:          envelope.Error.Message,
+		Hint:             envelope.Error.Hint,
+		RequestID:        envelope.Error.RequestID,
+		ValidationErrors: envelope.Error.ValidationErrors,
+		Details:          envelope.Error.Details,
 	}
 }

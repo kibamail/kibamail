@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Join Our Newsletter</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <div class="logo-wrapper">
+        <img src="logo.svg" alt="Kibamail" class="logo" />
+      </div>
+
+      <h1 class="title">Stay in the loop</h1>
+      <p class="subtitle">Get weekly insights on email marketing, deliverability tips, and product updates. No spam, unsubscribe anytime.</p>
+
+      <form>
+        <div class="field">
+          <label for="email">Email address</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="you@company.com"
+            required
+          />
+          <span data-kibamail-error="email" class="field-error" hidden></span>
+        </div>
+
+        <div class="field">
+          <label for="first_name">First name</label>
+          <input
+            type="text"
+            id="first_name"
+            name="first_name"
+            placeholder="Jane"
+          />
+          <span data-kibamail-error="first_name" class="field-error" hidden></span>
+        </div>
+
+        <div data-kibamail-error-summary class="error-summary" hidden>
+          <p>Something went wrong. <span data-kibamail-error-message></span></p>
+        </div>
+
+        <button type="submit" class="submit-btn">Subscribe</button>
+
+        <p class="disclaimer">We respect your privacy. Unsubscribe at any time.</p>
+      </form>
+
+      <div data-kibamail-success class="success-message" hidden>
+        <div class="success-icon">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="24" r="24" fill="#10B981" opacity="0.1"/>
+            <path d="M16 24L22 30L32 18" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2>You're in!</h2>
+        <p>Check your inbox to confirm your subscription.</p>
+      </div>
+    </div>
+
+    <p class="footer">Powered by <a href="https://kibamail.com">Kibamail</a></p>
+  </div>
+</body>
+</html>

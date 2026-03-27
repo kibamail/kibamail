@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "../forms.css";
 
 export const metadata: Metadata = {
   title: "Form",

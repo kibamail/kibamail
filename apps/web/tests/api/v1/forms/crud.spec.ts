@@ -26,8 +26,8 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  validFormSpec,
   validFormFieldMapping,
+  validFormContent,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -58,7 +58,6 @@ describe("GET /api/v1/forms/[formId]", () => {
         description: "Get in touch",
         type: "SURVEY",
         display: "POPUP",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -86,7 +85,7 @@ describe("GET /api/v1/forms/[formId]", () => {
     expect(responseData.type).toBe("SURVEY");
     expect(responseData.display).toBe("POPUP");
     expect(responseData.status).toBe("DRAFT");
-    expect(responseData.spec).toEqual(validFormSpec);
+    expect(responseData.html).toBeNull(); // No deployed content yet
   });
 
   test("should return default type and display values", async () => {
@@ -95,7 +94,6 @@ describe("GET /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Default Form",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -167,7 +165,6 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         name: "Original Name",
         description: "Original description",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -202,7 +199,6 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Type Test Form",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -248,7 +244,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -281,7 +277,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -290,35 +286,10 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const createResponse = await POST(createRequest);
     const createdForm = await createResponse.json();
 
-    // New spec with updated structure
-    const newSpec = {
-      root: "form",
-      elements: {
-        form: {
-          type: "FormRoot",
-          props: { submitLabel: "Submit" },
-          children: ["email-field", "firstName-field", "lastName-field"],
-        },
-        "email-field": {
-          type: "Input",
-          props: { name: "email", label: "Email Address", type: "email" },
-        },
-        "firstName-field": {
-          type: "Input",
-          props: { name: "firstName", label: "First Name" },
-        },
-        "lastName-field": {
-          type: "Input",
-          props: { name: "lastName", label: "Last Name" },
-        },
-      },
-    };
-
-    // Update the form spec and fieldMapping together
+    // Update the fieldMapping
     const updateRequest = put(
       `/forms/${createdForm.id}`,
       {
-        spec: newSpec,
         fieldMapping: {
           email: {
             contactPropertyId: "email",
@@ -353,7 +324,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -409,7 +380,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -452,7 +423,7 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -533,7 +504,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Form to Delete",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -599,7 +570,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Root Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -644,7 +615,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         workspaceId: testWorkspace.id,
         parentId: rootForm.id,
         name: "Root Form",
-        fields: validFormSpec as never,
+        fields: validFormContent as never,
         version: 3,
         status: "ARCHIVED",
       },
@@ -689,7 +660,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Root Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -704,7 +675,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         workspaceId: testWorkspace.id,
         parentId: rootForm.id,
         name: "Root Form",
-        fields: validFormSpec as never,
+        fields: validFormContent as never,
         version: 2,
         status: "PUBLISHED",
         publishedAt: new Date(),
@@ -717,7 +688,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         workspaceId: testWorkspace.id,
         parentId: rootForm.id,
         name: "Root Form",
-        fields: validFormSpec as never,
+        fields: validFormContent as never,
         version: 3,
         status: "ARCHIVED",
       },
@@ -759,7 +730,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Published Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -797,7 +768,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Archived Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,

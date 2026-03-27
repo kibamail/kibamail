@@ -50,6 +50,7 @@ async function createTestDomainInDb(
     dkimVerifiedAt: Date | null;
     returnPathDomainVerifiedAt: Date | null;
     trackingDomainVerifiedAt: Date | null;
+    dmarcEnabled: boolean;
     dmarcVerifiedAt: Date | null;
     inboxEnabled: boolean;
     inboxMxVerifiedAt: Date | null;
@@ -70,6 +71,7 @@ async function createTestDomainInDb(
       dkimVerifiedAt: overrides.dkimVerifiedAt ?? null,
       returnPathDomainVerifiedAt: overrides.returnPathDomainVerifiedAt ?? null,
       trackingDomainVerifiedAt: overrides.trackingDomainVerifiedAt ?? null,
+      dmarcEnabled: overrides.dmarcEnabled ?? false,
       dmarcVerifiedAt: overrides.dmarcVerifiedAt ?? null,
       inboxEnabled: overrides.inboxEnabled ?? false,
       inboxMxVerifiedAt: overrides.inboxMxVerifiedAt ?? null,
@@ -129,6 +131,7 @@ describe("check-verification job", () => {
       dkimVerifiedAt: now,
       returnPathDomainVerifiedAt: now,
       trackingDomainVerifiedAt: now,
+      dmarcEnabled: true,
       dmarcVerifiedAt: now,
     });
 
@@ -182,7 +185,7 @@ describe("check-verification job", () => {
   });
 
   test("should not re-dispatch if fully verified", async () => {
-    await createTestDomainInDb();
+    await createTestDomainInDb({ dmarcEnabled: true });
 
     mockVerifyDnsRecords.mockResolvedValue(verifiedDnsResult());
 

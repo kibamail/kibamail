@@ -4596,49 +4596,29 @@ export interface paths {
         put?: never;
         /**
          * Create Form
-         * @description Create a new embeddable form for lead capture and contact collection.
-         *
-         *     **Use Cases:**
-         *     - Build newsletter signup forms for your website
-         *     - Create lead generation forms
-         *     - Capture event registrations
-         *     - Collect customer feedback
-         *     - Build preference center forms
+         * @description Create a new form for lead capture and contact collection.
          *
          *     **Behavior:**
          *     - Form is created in DRAFT status (not yet public)
-         *     - Uses form builder JSON schema for flexibility
-         *     - Form gets a unique ID and slug for embedding
-         *     - Initial version is created automatically
-         *     - Form must be published to make it publicly accessible
-         *     - Submissions are tracked and stored
+         *     - Content (HTML) is uploaded separately via the deploy endpoint
+         *     - Form must be deployed and published to accept submissions
          *
          *     **Required Scope:** `write:forms`
          *
-         *     **Form Configuration:**
+         *     **Request Body:**
          *     - **name:** Internal form name for identification
-         *     - **title:** Display title shown to users
+         *     - **fieldMapping:** Maps form input field names to contact properties
          *     - **description:** Form purpose/instructions (optional)
-         *     - **fields:** Form builder JSON schema defining fields
-         *     - **redirectUrl:** Where to send users after submission (optional)
-         *     - **submitText:** Custom submit button text (optional)
-         *
-         *     **Form Builder Features:**
-         *     - Supports all standard field types (text, email, number, phone, etc.)
-         *     - Flexible field validation and conditional logic
-         *     - Multi-page and multi-section forms
-         *     - Custom styling and appearance options
+         *     - **settings:** Behavioral settings like success action, double opt-in (optional)
          *
          *     **Form Lifecycle:**
-         *     1. Create form (DRAFT status)
-         *     2. Configure fields and settings
-         *     3. Test form submission
-         *     4. Publish form (PUBLISHED status)
-         *     5. Embed on website
-         *     6. Create versions for updates
-         *     7. Publish new versions (previous auto-archived)
+         *     1. Create form with name + fieldMapping (DRAFT status)
+         *     2. Deploy site bundle via POST /v1/forms/{formId}/deploy (HTML + CSS + JS + assets)
+         *     3. Publish form (PUBLISHED status)
+         *     4. Form is live at /p/forms/{formId}
+         *     5. Create versions for updates, deploy new content, publish
          *
-         *     **Note:** Forms in DRAFT status cannot receive public submissions. Publish the form to make it live.
+         *     **Note:** Forms in DRAFT status cannot receive public submissions. Deploy content and publish to make the form live.
          */
         post: {
             parameters: {
@@ -4662,209 +4642,33 @@ export interface paths {
                          * @enum {string}
                          */
                         display?: "POPUP" | "INLINE_EMBED";
-                        fields?: {
-                            id: string;
-                            version: number;
-                            title: string;
-                            description?: string;
-                            pages: {
-                                id: string;
-                                title?: string;
-                                description?: string;
-                                sections: {
-                                    id: string;
-                                    title?: string;
-                                    description?: string;
-                                    fields: {
-                                        id: string;
-                                        /** @enum {string} */
-                                        type: "text" | "email" | "number" | "phone" | "url" | "textarea" | "select" | "multi_select" | "radio" | "choice_card" | "checkbox" | "checkbox_group" | "date" | "time" | "datetime" | "file" | "rating" | "slider" | "hidden" | "content";
-                                        name: string;
-                                        label: string;
-                                        placeholder?: string;
-                                        description?: string;
-                                        defaultValue?: string | number | boolean | string[];
-                                        options?: {
-                                            id: string;
-                                            label: string;
-                                            value: string;
-                                            description?: string;
-                                        }[];
-                                        validation?: {
-                                            required?: boolean;
-                                            requiredMessage?: string;
-                                            text?: {
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                                patternMessage?: string;
-                                            };
-                                            number?: {
-                                                min?: number;
-                                                max?: number;
-                                                step?: number;
-                                                integer?: boolean;
-                                            };
-                                            date?: {
-                                                minDate?: string;
-                                                maxDate?: string;
-                                                disablePastDates?: boolean;
-                                                disableFutureDates?: boolean;
-                                            };
-                                            file?: {
-                                                maxSize?: number;
-                                                maxFiles?: number;
-                                                allowedTypes?: string[];
-                                            };
-                                            rating?: {
-                                                maxRating?: number;
-                                            };
-                                            slider?: {
-                                                min?: number;
-                                                max?: number;
-                                                step?: number;
-                                            };
-                                        };
-                                        conditionalLogic?: {
-                                            enabled: boolean;
-                                            /** @enum {string} */
-                                            action: "show" | "hide";
-                                            /** @enum {string} */
-                                            logicalOperator: "and" | "or";
-                                            conditions: {
-                                                fieldId: string;
-                                                /** @enum {string} */
-                                                operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                                value?: string | number | boolean | string[];
-                                            }[];
-                                        };
-                                        appearance: {
-                                            /** @enum {string} */
-                                            width: "full" | "half" | "third" | "quarter";
-                                            /** @enum {string} */
-                                            labelPosition: "top" | "left" | "hidden";
-                                            /** @enum {string} */
-                                            size: "sm" | "default" | "lg";
-                                        };
-                                        richContent?: {
-                                            [key: string]: unknown;
-                                        };
-                                        contactProperty?: {
-                                            /** @enum {string} */
-                                            type: "standard" | "custom";
-                                            id: string;
-                                            name: string;
-                                        };
-                                    }[];
-                                    conditionalLogic?: {
-                                        enabled: boolean;
-                                        /** @enum {string} */
-                                        action: "show" | "hide";
-                                        /** @enum {string} */
-                                        logicalOperator: "and" | "or";
-                                        conditions: {
-                                            fieldId: string;
-                                            /** @enum {string} */
-                                            operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                            value?: string | number | boolean | string[];
-                                        }[];
-                                    };
-                                    collapsible: boolean;
-                                    defaultCollapsed: boolean;
-                                }[];
-                                conditionalLogic?: {
-                                    enabled: boolean;
-                                    /** @enum {string} */
-                                    action: "show" | "hide";
-                                    /** @enum {string} */
-                                    logicalOperator: "and" | "or";
-                                    conditions: {
-                                        fieldId: string;
-                                        /** @enum {string} */
-                                        operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                        value?: string | number | boolean | string[];
-                                    }[];
-                                };
-                            }[];
-                            settings: {
-                                submitButton: {
-                                    text: string;
-                                    loadingText: string;
-                                    /** @enum {string} */
-                                    variant: "default" | "secondary" | "outline" | "ghost";
-                                    /** @enum {string} */
-                                    size: "sm" | "default" | "lg";
-                                    fullWidth: boolean;
-                                    /** @enum {string} */
-                                    position: "left" | "center" | "right";
-                                };
-                                successAction: {
-                                    /** @constant */
-                                    type: "message";
-                                    message?: string;
-                                    richContent?: {
-                                        [key: string]: unknown;
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "redirect";
-                                    /** Format: uri */
-                                    url: string;
-                                    openInNewTab: boolean;
-                                };
-                                doubleOptIn: {
-                                    enabled: boolean;
-                                };
-                                showProgressBar: boolean;
-                                allowSaveAndContinue: boolean;
-                                preventDuplicateSubmissions: boolean;
-                                theme: {
-                                    /** @enum {string} */
-                                    mode: "light" | "dark";
-                                    radius: string;
-                                    colors: {
-                                        background: string;
-                                        foreground: string;
-                                        card: string;
-                                        cardForeground: string;
-                                        popover: string;
-                                        popoverForeground: string;
-                                        primary: string;
-                                        primaryForeground: string;
-                                        secondary: string;
-                                        secondaryForeground: string;
-                                        muted: string;
-                                        mutedForeground: string;
-                                        accent: string;
-                                        accentForeground: string;
-                                        destructive: string;
-                                        border: string;
-                                        input: string;
-                                        ring: string;
-                                    };
-                                    font: {
-                                        family: string;
-                                        /** Format: uri */
-                                        url: string;
-                                    };
-                                    body: {
-                                        [key: string]: string | number;
-                                    };
-                                    container: {
-                                        [key: string]: string | number;
-                                    };
-                                };
+                        fieldMapping: {
+                            [key: string]: {
+                                contactPropertyId: string;
+                                /** @enum {string} */
+                                contactPropertyType: "standard" | "custom";
+                                /** @enum {string} */
+                                fieldType: "string" | "number";
                             };
-                            styling: {
-                                /** @enum {string} */
-                                layout: "stacked" | "inline";
-                                /** @enum {string} */
-                                labelStyle: "default" | "floating";
-                                /** @enum {string} */
-                                borderRadius: "none" | "sm" | "md" | "lg" | "full";
-                                /** @enum {string} */
-                                spacing: "compact" | "default" | "relaxed";
+                        };
+                        settings?: {
+                            successAction?: {
+                                /** @constant */
+                                type: "message";
+                                message?: string;
+                            } | {
+                                /** @constant */
+                                type: "redirect";
+                                /** Format: uri */
+                                url: string;
+                                /** @default false */
+                                openInNewTab?: boolean;
                             };
+                            doubleOptIn?: {
+                                enabled: boolean;
+                            };
+                            /** @default false */
+                            preventDuplicateSubmissions?: boolean;
                         };
                     };
                 };
@@ -4890,7 +4694,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Bad Request - Invalid form builder JSON configuration or malformed input */
+                /** @description Bad Request - Invalid spec, fieldMapping, or malformed input */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -4962,7 +4766,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Validation Error - Invalid field values, missing required fields, or invalid form builder schema */
+                /** @description Validation Error - Invalid field values, missing required fields, or invalid form configuration */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -5026,7 +4830,7 @@ export interface paths {
          *
          *     **Behavior:**
          *     - Returns forms in any status (DRAFT, PUBLISHED, ARCHIVED)
-         *     - Includes complete form builder configuration
+         *     - Includes complete form configuration
          *     - Shows form version information
          *     - Published forms include publishedAt timestamp
          *     - Includes submission statistics
@@ -5162,41 +4966,32 @@ export interface paths {
          * @description Update an existing form's configuration (DRAFT forms only).
          *
          *     **Use Cases:**
-         *     - Modify form fields and layout
-         *     - Update form title or description
-         *     - Change redirect URL after submission
-         *     - Customize submit button text
-         *     - Refine form builder configuration
+         *     - Update fieldMapping (contact property mappings)
+         *     - Update the fieldMapping (contact property mappings)
+         *     - Update form name, description, or settings
+         *     - Configure SEO metadata
          *
          *     **Behavior:**
          *     - Only DRAFT forms can be updated
          *     - PUBLISHED and ARCHIVED forms are immutable
          *     - To update published forms, create a new version first
          *     - All fields are optional (partial updates supported)
-         *     - UpdatedAt timestamp is automatically refreshed
-         *     - Returns the complete updated form object
+         *     - If fieldMapping changes and form has deployed HTML, cross-validation runs automatically
          *
          *     **Required Scope:** `write:forms`
          *
          *     **Updatable Fields (DRAFT only):**
          *     - name (internal identifier)
-         *     - title (displayed to users)
-         *     - description (form instructions)
-         *     - fields (form builder configuration)
-         *     - redirectUrl (post-submission redirect)
-         *     - submitText (button text)
+         *     - description (form purpose)
+         *     - fieldMapping (field name to contact property mapping)
+         *     - settings (success action, double opt-in)
+         *     - SEO fields (seoTitle, seoDescription, seoImageUrl, seoFaviconUrl, slug)
          *
          *     **Update Workflow for Published Forms:**
          *     1. Create new version: POST /v1/forms/{formId}/versions
          *     2. Update the new DRAFT version: PUT /v1/forms/{newVersionId}
          *     3. Publish the updated version: POST /v1/forms/{newVersionId}/publish
          *     4. Previous published version automatically becomes ARCHIVED
-         *
-         *     **Important:**
-         *     - Cannot update PUBLISHED or ARCHIVED forms
-         *     - Changes to DRAFT don't affect live form until published
-         *     - Test changes before publishing
-         *     - Form builder configuration must be valid JSON
          *
          *     **Note:** For published forms, create a new version instead of updating directly.
          */
@@ -5219,211 +5014,34 @@ export interface paths {
                         type?: "SIGN_UP" | "SURVEY";
                         /** @enum {string} */
                         display?: "POPUP" | "INLINE_EMBED";
-                        fields?: {
-                            id: string;
-                            version: number;
-                            title: string;
-                            description?: string;
-                            pages: {
-                                id: string;
-                                title?: string;
-                                description?: string;
-                                sections: {
-                                    id: string;
-                                    title?: string;
-                                    description?: string;
-                                    fields: {
-                                        id: string;
-                                        /** @enum {string} */
-                                        type: "text" | "email" | "number" | "phone" | "url" | "textarea" | "select" | "multi_select" | "radio" | "choice_card" | "checkbox" | "checkbox_group" | "date" | "time" | "datetime" | "file" | "rating" | "slider" | "hidden" | "content";
-                                        name: string;
-                                        label: string;
-                                        placeholder?: string;
-                                        description?: string;
-                                        defaultValue?: string | number | boolean | string[];
-                                        options?: {
-                                            id: string;
-                                            label: string;
-                                            value: string;
-                                            description?: string;
-                                        }[];
-                                        validation?: {
-                                            required?: boolean;
-                                            requiredMessage?: string;
-                                            text?: {
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                                patternMessage?: string;
-                                            };
-                                            number?: {
-                                                min?: number;
-                                                max?: number;
-                                                step?: number;
-                                                integer?: boolean;
-                                            };
-                                            date?: {
-                                                minDate?: string;
-                                                maxDate?: string;
-                                                disablePastDates?: boolean;
-                                                disableFutureDates?: boolean;
-                                            };
-                                            file?: {
-                                                maxSize?: number;
-                                                maxFiles?: number;
-                                                allowedTypes?: string[];
-                                            };
-                                            rating?: {
-                                                maxRating?: number;
-                                            };
-                                            slider?: {
-                                                min?: number;
-                                                max?: number;
-                                                step?: number;
-                                            };
-                                        };
-                                        conditionalLogic?: {
-                                            enabled: boolean;
-                                            /** @enum {string} */
-                                            action: "show" | "hide";
-                                            /** @enum {string} */
-                                            logicalOperator: "and" | "or";
-                                            conditions: {
-                                                fieldId: string;
-                                                /** @enum {string} */
-                                                operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                                value?: string | number | boolean | string[];
-                                            }[];
-                                        };
-                                        appearance: {
-                                            /** @enum {string} */
-                                            width: "full" | "half" | "third" | "quarter";
-                                            /** @enum {string} */
-                                            labelPosition: "top" | "left" | "hidden";
-                                            /** @enum {string} */
-                                            size: "sm" | "default" | "lg";
-                                        };
-                                        richContent?: {
-                                            [key: string]: unknown;
-                                        };
-                                        contactProperty?: {
-                                            /** @enum {string} */
-                                            type: "standard" | "custom";
-                                            id: string;
-                                            name: string;
-                                        };
-                                    }[];
-                                    conditionalLogic?: {
-                                        enabled: boolean;
-                                        /** @enum {string} */
-                                        action: "show" | "hide";
-                                        /** @enum {string} */
-                                        logicalOperator: "and" | "or";
-                                        conditions: {
-                                            fieldId: string;
-                                            /** @enum {string} */
-                                            operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                            value?: string | number | boolean | string[];
-                                        }[];
-                                    };
-                                    collapsible: boolean;
-                                    defaultCollapsed: boolean;
-                                }[];
-                                conditionalLogic?: {
-                                    enabled: boolean;
-                                    /** @enum {string} */
-                                    action: "show" | "hide";
-                                    /** @enum {string} */
-                                    logicalOperator: "and" | "or";
-                                    conditions: {
-                                        fieldId: string;
-                                        /** @enum {string} */
-                                        operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                        value?: string | number | boolean | string[];
-                                    }[];
-                                };
-                            }[];
-                            settings: {
-                                submitButton: {
-                                    text: string;
-                                    loadingText: string;
-                                    /** @enum {string} */
-                                    variant: "default" | "secondary" | "outline" | "ghost";
-                                    /** @enum {string} */
-                                    size: "sm" | "default" | "lg";
-                                    fullWidth: boolean;
-                                    /** @enum {string} */
-                                    position: "left" | "center" | "right";
-                                };
-                                successAction: {
-                                    /** @constant */
-                                    type: "message";
-                                    message?: string;
-                                    richContent?: {
-                                        [key: string]: unknown;
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "redirect";
-                                    /** Format: uri */
-                                    url: string;
-                                    openInNewTab: boolean;
-                                };
-                                doubleOptIn: {
-                                    enabled: boolean;
-                                };
-                                showProgressBar: boolean;
-                                allowSaveAndContinue: boolean;
-                                preventDuplicateSubmissions: boolean;
-                                theme: {
-                                    /** @enum {string} */
-                                    mode: "light" | "dark";
-                                    radius: string;
-                                    colors: {
-                                        background: string;
-                                        foreground: string;
-                                        card: string;
-                                        cardForeground: string;
-                                        popover: string;
-                                        popoverForeground: string;
-                                        primary: string;
-                                        primaryForeground: string;
-                                        secondary: string;
-                                        secondaryForeground: string;
-                                        muted: string;
-                                        mutedForeground: string;
-                                        accent: string;
-                                        accentForeground: string;
-                                        destructive: string;
-                                        border: string;
-                                        input: string;
-                                        ring: string;
-                                    };
-                                    font: {
-                                        family: string;
-                                        /** Format: uri */
-                                        url: string;
-                                    };
-                                    body: {
-                                        [key: string]: string | number;
-                                    };
-                                    container: {
-                                        [key: string]: string | number;
-                                    };
-                                };
-                            };
-                            styling: {
+                        fieldMapping?: {
+                            [key: string]: {
+                                contactPropertyId: string;
                                 /** @enum {string} */
-                                layout: "stacked" | "inline";
+                                contactPropertyType: "standard" | "custom";
                                 /** @enum {string} */
-                                labelStyle: "default" | "floating";
-                                /** @enum {string} */
-                                borderRadius: "none" | "sm" | "md" | "lg" | "full";
-                                /** @enum {string} */
-                                spacing: "compact" | "default" | "relaxed";
+                                fieldType: "string" | "number";
                             };
                         };
-                        settings?: unknown;
+                        settings?: {
+                            successAction?: {
+                                /** @constant */
+                                type: "message";
+                                message?: string;
+                            } | {
+                                /** @constant */
+                                type: "redirect";
+                                /** Format: uri */
+                                url: string;
+                                /** @default false */
+                                openInNewTab?: boolean;
+                            };
+                            doubleOptIn?: {
+                                enabled: boolean;
+                            };
+                            /** @default false */
+                            preventDuplicateSubmissions?: boolean;
+                        };
                         doubleOptInEmailId?: string | null;
                         seoTitle?: string | null;
                         seoDescription?: string | null;
@@ -5556,7 +5174,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Validation Error - Invalid form builder configuration or field values */
+                /** @description Validation Error - Invalid form configuration or field values */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -5968,211 +5586,34 @@ export interface paths {
                         type?: "SIGN_UP" | "SURVEY";
                         /** @enum {string} */
                         display?: "POPUP" | "INLINE_EMBED";
-                        fields?: {
-                            id: string;
-                            version: number;
-                            title: string;
-                            description?: string;
-                            pages: {
-                                id: string;
-                                title?: string;
-                                description?: string;
-                                sections: {
-                                    id: string;
-                                    title?: string;
-                                    description?: string;
-                                    fields: {
-                                        id: string;
-                                        /** @enum {string} */
-                                        type: "text" | "email" | "number" | "phone" | "url" | "textarea" | "select" | "multi_select" | "radio" | "choice_card" | "checkbox" | "checkbox_group" | "date" | "time" | "datetime" | "file" | "rating" | "slider" | "hidden" | "content";
-                                        name: string;
-                                        label: string;
-                                        placeholder?: string;
-                                        description?: string;
-                                        defaultValue?: string | number | boolean | string[];
-                                        options?: {
-                                            id: string;
-                                            label: string;
-                                            value: string;
-                                            description?: string;
-                                        }[];
-                                        validation?: {
-                                            required?: boolean;
-                                            requiredMessage?: string;
-                                            text?: {
-                                                minLength?: number;
-                                                maxLength?: number;
-                                                pattern?: string;
-                                                patternMessage?: string;
-                                            };
-                                            number?: {
-                                                min?: number;
-                                                max?: number;
-                                                step?: number;
-                                                integer?: boolean;
-                                            };
-                                            date?: {
-                                                minDate?: string;
-                                                maxDate?: string;
-                                                disablePastDates?: boolean;
-                                                disableFutureDates?: boolean;
-                                            };
-                                            file?: {
-                                                maxSize?: number;
-                                                maxFiles?: number;
-                                                allowedTypes?: string[];
-                                            };
-                                            rating?: {
-                                                maxRating?: number;
-                                            };
-                                            slider?: {
-                                                min?: number;
-                                                max?: number;
-                                                step?: number;
-                                            };
-                                        };
-                                        conditionalLogic?: {
-                                            enabled: boolean;
-                                            /** @enum {string} */
-                                            action: "show" | "hide";
-                                            /** @enum {string} */
-                                            logicalOperator: "and" | "or";
-                                            conditions: {
-                                                fieldId: string;
-                                                /** @enum {string} */
-                                                operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                                value?: string | number | boolean | string[];
-                                            }[];
-                                        };
-                                        appearance: {
-                                            /** @enum {string} */
-                                            width: "full" | "half" | "third" | "quarter";
-                                            /** @enum {string} */
-                                            labelPosition: "top" | "left" | "hidden";
-                                            /** @enum {string} */
-                                            size: "sm" | "default" | "lg";
-                                        };
-                                        richContent?: {
-                                            [key: string]: unknown;
-                                        };
-                                        contactProperty?: {
-                                            /** @enum {string} */
-                                            type: "standard" | "custom";
-                                            id: string;
-                                            name: string;
-                                        };
-                                    }[];
-                                    conditionalLogic?: {
-                                        enabled: boolean;
-                                        /** @enum {string} */
-                                        action: "show" | "hide";
-                                        /** @enum {string} */
-                                        logicalOperator: "and" | "or";
-                                        conditions: {
-                                            fieldId: string;
-                                            /** @enum {string} */
-                                            operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                            value?: string | number | boolean | string[];
-                                        }[];
-                                    };
-                                    collapsible: boolean;
-                                    defaultCollapsed: boolean;
-                                }[];
-                                conditionalLogic?: {
-                                    enabled: boolean;
-                                    /** @enum {string} */
-                                    action: "show" | "hide";
-                                    /** @enum {string} */
-                                    logicalOperator: "and" | "or";
-                                    conditions: {
-                                        fieldId: string;
-                                        /** @enum {string} */
-                                        operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "greater_than_or_equals" | "less_than_or_equals" | "is_empty" | "is_not_empty" | "starts_with" | "ends_with";
-                                        value?: string | number | boolean | string[];
-                                    }[];
-                                };
-                            }[];
-                            settings: {
-                                submitButton: {
-                                    text: string;
-                                    loadingText: string;
-                                    /** @enum {string} */
-                                    variant: "default" | "secondary" | "outline" | "ghost";
-                                    /** @enum {string} */
-                                    size: "sm" | "default" | "lg";
-                                    fullWidth: boolean;
-                                    /** @enum {string} */
-                                    position: "left" | "center" | "right";
-                                };
-                                successAction: {
-                                    /** @constant */
-                                    type: "message";
-                                    message?: string;
-                                    richContent?: {
-                                        [key: string]: unknown;
-                                    };
-                                } | {
-                                    /** @constant */
-                                    type: "redirect";
-                                    /** Format: uri */
-                                    url: string;
-                                    openInNewTab: boolean;
-                                };
-                                doubleOptIn: {
-                                    enabled: boolean;
-                                };
-                                showProgressBar: boolean;
-                                allowSaveAndContinue: boolean;
-                                preventDuplicateSubmissions: boolean;
-                                theme: {
-                                    /** @enum {string} */
-                                    mode: "light" | "dark";
-                                    radius: string;
-                                    colors: {
-                                        background: string;
-                                        foreground: string;
-                                        card: string;
-                                        cardForeground: string;
-                                        popover: string;
-                                        popoverForeground: string;
-                                        primary: string;
-                                        primaryForeground: string;
-                                        secondary: string;
-                                        secondaryForeground: string;
-                                        muted: string;
-                                        mutedForeground: string;
-                                        accent: string;
-                                        accentForeground: string;
-                                        destructive: string;
-                                        border: string;
-                                        input: string;
-                                        ring: string;
-                                    };
-                                    font: {
-                                        family: string;
-                                        /** Format: uri */
-                                        url: string;
-                                    };
-                                    body: {
-                                        [key: string]: string | number;
-                                    };
-                                    container: {
-                                        [key: string]: string | number;
-                                    };
-                                };
-                            };
-                            styling: {
+                        fieldMapping?: {
+                            [key: string]: {
+                                contactPropertyId: string;
                                 /** @enum {string} */
-                                layout: "stacked" | "inline";
+                                contactPropertyType: "standard" | "custom";
                                 /** @enum {string} */
-                                labelStyle: "default" | "floating";
-                                /** @enum {string} */
-                                borderRadius: "none" | "sm" | "md" | "lg" | "full";
-                                /** @enum {string} */
-                                spacing: "compact" | "default" | "relaxed";
+                                fieldType: "string" | "number";
                             };
                         };
-                        settings?: unknown;
+                        settings?: {
+                            successAction?: {
+                                /** @constant */
+                                type: "message";
+                                message?: string;
+                            } | {
+                                /** @constant */
+                                type: "redirect";
+                                /** Format: uri */
+                                url: string;
+                                /** @default false */
+                                openInNewTab?: boolean;
+                            };
+                            doubleOptIn?: {
+                                enabled: boolean;
+                            };
+                            /** @default false */
+                            preventDuplicateSubmissions?: boolean;
+                        };
                         doubleOptInEmailId?: string | null;
                         seoTitle?: string | null;
                         seoDescription?: string | null;
@@ -6305,7 +5746,7 @@ export interface paths {
                         };
                     };
                 };
-                /** @description Validation Error - Invalid field values or form builder configuration */
+                /** @description Validation Error - Invalid field values or form configuration */
                 422: {
                     headers: {
                         [name: string]: unknown;

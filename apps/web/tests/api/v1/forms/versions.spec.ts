@@ -22,8 +22,8 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  validFormSpec,
   validFormFieldMapping,
+  validFormContent,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -71,7 +71,7 @@ describe("POST /api/v1/forms/[formId]/versions - Authentication & Authorization"
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -110,7 +110,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Root Form",
         description: "Original description",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -149,7 +149,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
 
     expect(versionDetails.name).toBe("Root Form");
     expect(versionDetails.description).toBe("Original description");
-    expect(versionDetails.spec).toEqual(validFormSpec);
+    expect(versionDetails.html).toBeNull(); // No deployed content yet
     expect(versionDetails.status).toBe("DRAFT");
     expect(versionDetails.version).toBe(2);
   });
@@ -160,7 +160,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Root Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -241,7 +241,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Original Name",
         description: "Original description",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -250,33 +250,12 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const createResponse = await POST(createRequest);
     const rootForm = await createResponse.json();
 
-    // New spec with updated structure
-    const newSpec = {
-      root: "form",
-      elements: {
-        form: {
-          type: "FormRoot",
-          props: { submitLabel: "Submit" },
-          children: ["email-field", "firstName-field"],
-        },
-        "email-field": {
-          type: "Input",
-          props: { name: "email", label: "Email Address", type: "email" },
-        },
-        "firstName-field": {
-          type: "Input",
-          props: { name: "firstName", label: "First Name" },
-        },
-      },
-    };
-
-    // Create version with custom spec and matching fieldMapping
+    // Create version with updated name, description, and fieldMapping
     const versionRequest = post(
       `/forms/${rootForm.id}/versions`,
       {
         name: "Updated Name",
         description: "Updated description",
-        spec: newSpec,
         fieldMapping: {
           email: {
             contactPropertyId: "email",
@@ -298,7 +277,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     });
     const version = await versionResponse.json();
 
-    // Verify version uses provided spec
+    // Verify version uses provided overrides
     const getRequest = apiRequest(`/forms/${version.id}`)
       .method("GET")
       .auth(fullAccessApiKey.key)
@@ -311,7 +290,6 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
 
     expect(versionDetails.name).toBe("Updated Name");
     expect(versionDetails.description).toBe("Updated description");
-    expect(versionDetails.spec).toEqual(newSpec);
     expect(versionDetails.version).toBe(2);
   });
 
@@ -322,7 +300,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Original Name",
         description: "Original description",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -358,7 +336,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
 
     expect(versionDetails.name).toBe("Updated Name Only");
     expect(versionDetails.description).toBe("Original description");
-    expect(versionDetails.spec).toEqual(validFormSpec);
+    expect(versionDetails.html).toBeNull(); // No deployed content yet
   });
 
   test("should return 404 for non-existent form", async () => {
@@ -386,7 +364,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Multi-version Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -482,7 +460,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -534,7 +512,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "SEO Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -620,7 +598,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Double Opt-In Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -681,7 +659,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Full Copy Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -749,7 +727,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "No SEO Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,

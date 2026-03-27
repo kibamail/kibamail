@@ -48,7 +48,7 @@ import type { NextRequest, NextResponse } from "next/server";
 import { NextResponse as NextResp } from "next/server";
 import { ZodError } from "zod";
 import type { Permission } from "@/config/rbac";
-import { ErrorCode } from "@/lib/api/error-codes";
+import { ErrorCode, ERROR_HINTS } from "@/lib/api/error-codes";
 import {
   ApiError,
   ConflictError,
@@ -255,6 +255,7 @@ export async function withErrorHandling(
             type: error.errorType,
             code: error.errorCode,
             message: error.message,
+            hint: ERROR_HINTS[error.errorCode] ?? null,
             requestId,
             ...(error.validationErrors &&
               error.validationErrors.length > 0 && {
@@ -287,6 +288,7 @@ export async function withErrorHandling(
             type: validationError.errorType,
             code: validationError.errorCode,
             message: validationError.message,
+            hint: ERROR_HINTS[ErrorCode.VALIDATION_FAILED],
             requestId,
             validationErrors: validationError.validationErrors,
           },
@@ -312,6 +314,7 @@ export async function withErrorHandling(
               type: conflictError.errorType,
               code: conflictError.errorCode,
               message: conflictError.message,
+              hint: ERROR_HINTS[ErrorCode.RESOURCE_ALREADY_EXISTS],
               requestId,
             },
           },
@@ -332,6 +335,7 @@ export async function withErrorHandling(
               type: notFoundError.errorType,
               code: notFoundError.errorCode,
               message: notFoundError.message,
+              hint: ERROR_HINTS[ErrorCode.RESOURCE_NOT_FOUND],
               requestId,
             },
           },
@@ -351,6 +355,7 @@ export async function withErrorHandling(
             type: dbError.errorType,
             code: dbError.errorCode,
             message: dbError.message,
+            hint: ERROR_HINTS[ErrorCode.DATABASE_ERROR],
             requestId,
             details: {
               prismaCode: prismaError.code,
@@ -373,6 +378,7 @@ export async function withErrorHandling(
           type: unexpectedError.errorType,
           code: unexpectedError.errorCode,
           message: unexpectedError.message,
+          hint: ERROR_HINTS[ErrorCode.UNEXPECTED_ERROR],
           requestId,
         },
       },

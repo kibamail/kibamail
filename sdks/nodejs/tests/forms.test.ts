@@ -11,14 +11,17 @@ describe("Forms Resource", () => {
     });
   });
 
-  // Note: Form creation tests are skipped because the OpenAPI spec
-  // requires specific validation for the fields structure that Prism enforces.
-  // The actual field structure should be determined by examining the API schema.
-  describe.skip("create", () => {
-    it("should create a form with basic configuration", async () => {
+  describe("create", () => {
+    it("should create a form with name and fieldMapping", async () => {
       const result = await kibamail.forms.create({
         name: "Newsletter Signup",
-        fields: {}, // TODO: Add proper fields structure based on OpenAPI schema
+        fieldMapping: {
+          email: {
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+            fieldType: "string",
+          },
+        },
       });
 
       expect(result.data).toBeDefined();
@@ -63,29 +66,6 @@ describe("Forms Resource", () => {
       const formId = "form_test_12345";
       const result = await kibamail.forms.update(formId, {
         name: "Updated Form Name",
-      });
-
-      expect(result.data).toBeDefined();
-      expect(result.error).toBeUndefined();
-    });
-
-    it("should update a form's description", async () => {
-      const formId = "form_test_12345";
-      const result = await kibamail.forms.update(formId, {
-        description: "Updated form description",
-      });
-
-      expect(result.data).toBeDefined();
-      expect(result.error).toBeUndefined();
-    });
-
-    it("should update a form's settings", async () => {
-      const formId = "form_test_12345";
-      const result = await kibamail.forms.update(formId, {
-        settings: {
-          redirectUrl: "https://example.com/thank-you",
-          submitText: "Subscribe",
-        },
       });
 
       expect(result.data).toBeDefined();

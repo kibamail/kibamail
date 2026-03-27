@@ -13,38 +13,10 @@ import type { ToggleState } from "@/hooks/utils/useToggleState";
 import { internalApi } from "@/lib/api/client";
 
 /**
- * Default empty spec for new forms created from the dashboard.
- * Creates a minimal form with an email field.
+ * Default fieldMapping for new forms created from the dashboard.
  */
-function createDefaultSpec(formName: string) {
+function createDefaultFieldMapping() {
   return {
-    spec: {
-      root: "form",
-      elements: {
-        form: {
-          type: "FormRoot",
-          props: { submitLabel: "Submit", loadingLabel: "Submitting..." },
-          children: ["title", "email-field"],
-        },
-        title: {
-          type: "Heading",
-          props: { level: 2, text: formName },
-        },
-        "email-field": {
-          type: "Input",
-          props: {
-            name: "email",
-            label: "Email address",
-            placeholder: "you@example.com",
-            type: "email",
-            checks: [
-              { type: "required", message: "Email is required" },
-              { type: "email", message: "Please enter a valid email" },
-            ],
-          },
-        },
-      },
-    },
     fieldMapping: {
       email: {
         contactPropertyId: "email",
@@ -91,7 +63,7 @@ export function CreateFormModal({ open, onOpenChange }: CreateFormModalProps) {
 
   const mutation = useMutation<{ id: string }, Error, FormData>({
     async mutationFn(data: FormData) {
-      const defaults = createDefaultSpec(data.name);
+      const defaults = createDefaultFieldMapping();
       return internalApi.forms().create({
         name: data.name,
         type: data.type,

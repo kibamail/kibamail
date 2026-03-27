@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { formSettingsSchema } from "@/lib/json-render/settings-schema";
+import { formSettingsSchema } from "@/lib/forms/settings-schema";
 
 /**
  * Form type enum values
@@ -10,25 +10,6 @@ const formTypeEnum = z.enum(["SIGN_UP", "SURVEY"]);
  * Form display enum values
  */
 const formDisplayEnum = z.enum(["POPUP", "INLINE_EMBED"]);
-
-/**
- * json-render spec schema.
- * A flat tree of elements with a root reference and keyed elements map.
- */
-const specSchema = z.object({
-  root: z.string().min(1, "Spec must have a root element"),
-  elements: z.record(
-    z.string(),
-    z.object({
-      type: z.string().min(1),
-      props: z.record(z.string(), z.unknown()).optional().default({}),
-      children: z.array(z.string()).optional(),
-      visible: z.unknown().optional(),
-      on: z.record(z.string(), z.unknown()).optional(),
-    }),
-  ),
-  state: z.record(z.string(), z.unknown()).optional(),
-});
 
 /**
  * Field mapping sidecar schema.
@@ -44,6 +25,9 @@ const fieldMappingSchema = z.record(z.string(), fieldMappingEntrySchema);
 
 /**
  * Create Form Request Schema
+ *
+ * Creates a form with metadata and fieldMapping.
+ * Content (HTML) is uploaded separately via the deploy endpoint.
  */
 export const createFormSchema = z.object({
   name: z
@@ -59,7 +43,6 @@ export const createFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional().default("SIGN_UP"),
   display: formDisplayEnum.optional().default("INLINE_EMBED"),
-  spec: specSchema,
   fieldMapping: fieldMappingSchema,
   settings: formSettingsSchema.optional(),
 });
@@ -116,7 +99,6 @@ export const updateFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional(),
   display: formDisplayEnum.optional(),
-  spec: specSchema.optional(),
   fieldMapping: fieldMappingSchema.optional(),
   settings: formSettingsSchema.optional(),
   doubleOptInEmailId: z.string().optional().nullable(),
@@ -125,7 +107,6 @@ export const updateFormSchema = z.object({
 
 /**
  * Form Response Schema
- * Returns only the generated form ID after creation
  */
 export const formResponseSchema = z.object({
   object: z.literal("form"),
@@ -133,7 +114,7 @@ export const formResponseSchema = z.object({
 });
 
 /**
- * Form List Item Schema (simplified for list endpoints)
+ * Form List Item Schema
  */
 const formListItemSchema = z.object({
   id: z.string(),
@@ -154,7 +135,7 @@ export const formListResponseSchema = z.object({
 });
 
 /**
- * Form Version Item Schema (for versions list)
+ * Form Version Item Schema
  */
 const formVersionItemSchema = z.object({
   id: z.string(),
@@ -195,7 +176,7 @@ export const formSubmissionResponseSchema = z.object({
 /**
  * Type exports
  */
-export type CreateFormRequest = z.infer<typeof createFormSchema>;
+export type CreateFormRequest = z.input<typeof createFormSchema>;
 export type FormResponse = z.infer<typeof formResponseSchema>;
 export type FormListResponse = z.infer<typeof formListResponseSchema>;
 export type FormSubmissionResponse = z.infer<

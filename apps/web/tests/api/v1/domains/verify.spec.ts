@@ -49,7 +49,7 @@ vi.mock("@/lib/queue", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/queue")>();
   return {
     ...actual,
-    queue: (queueName: string) => ({
+    queue: (_queueName: string) => ({
       push: mockQueuePush,
     }),
   };

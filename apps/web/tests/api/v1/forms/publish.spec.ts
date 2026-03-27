@@ -21,8 +21,8 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  validFormSpec,
   validFormFieldMapping,
+  validFormContent,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -50,7 +50,7 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -89,7 +89,7 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
       "/forms",
       {
         name: "Test Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -97,6 +97,12 @@ describe("POST /api/v1/forms/[formId]/publish - Authentication & Authorization",
 
     const createResponse = await CREATE_FORM(createRequest);
     const createdForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     // Publish with write:forms key
     const publishRequest = post(
@@ -124,7 +130,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       {
         name: "Newsletter Form",
         description: "Subscribe to our newsletter",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -132,6 +138,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     const createResponse = await CREATE_FORM(createRequest);
     const createdForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     // Publish the form
     const publishRequest = post(
@@ -166,7 +178,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       "/forms",
       {
         name: "Already Published Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -174,6 +186,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     const createResponse = await CREATE_FORM(createRequest);
     const createdForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     // First publish
     const publishRequest1 = post(
@@ -208,7 +226,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       "/forms",
       {
         name: "Contact Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -216,6 +234,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     // Publish root form
     const publishRequest1 = post(
@@ -278,7 +302,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       "/forms",
       {
         name: "Survey Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -286,6 +310,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     // Publish root
     await PUBLISH_FORM(
@@ -358,7 +388,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       "/forms",
       {
         name: "Feedback Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -366,6 +396,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
@@ -435,7 +471,7 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
       "/forms",
       {
         name: "Registration Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -443,6 +479,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
@@ -509,25 +551,12 @@ describe("POST /api/v1/forms/[formId]/publish - Publishing Logic", () => {
 
 describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () => {
   test("should reject publishing form with unmapped fields", async () => {
-    // Create a form with a spec that has fields not covered by fieldMapping
-    const unmappedSpec = {
-      root: "form",
-      elements: {
-        form: {
-          type: "FormRoot",
-          props: { submitLabel: "Submit" },
-          children: ["email-field", "name-field"],
-        },
-        "email-field": {
-          type: "Input",
-          props: { name: "email", label: "Email", type: "email" },
-        },
-        "name-field": {
-          type: "Input",
-          props: { name: "name", label: "Name" },
-        },
-      },
-    };
+    // HTML with email and name fields, but fieldMapping only maps email
+    const unmappedHtml = `<form>
+  <input type="email" name="email" />
+  <input type="text" name="name" />
+  <button type="submit">Submit</button>
+</form>`;
 
     // fieldMapping only maps email, not name
     const unmappedFieldMapping = {
@@ -542,7 +571,6 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
       "/forms",
       {
         name: "Unmapped Fields Form",
-        spec: unmappedSpec,
         fieldMapping: unmappedFieldMapping,
       },
       fullAccessApiKey.key,
@@ -556,6 +584,14 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
       return;
     }
 
+    // Set deployed content with HTML that has more fields than the fieldMapping
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: {
+        fields: { html: unmappedHtml, deployId: "test-deploy", files: [] } as never,
+      },
+    });
+
     // Try to publish
     const publishRequest = post(
       `/forms/${createdForm.id}/publish`,
@@ -569,27 +605,16 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error.code).toBe(ErrorCode.FORM_UNMAPPED_FIELDS);
-    expect(responseData.error.message).toContain("unmapped fields");
-    expect(responseData.error.message).toContain("Name"); // The unmapped field's label
+    expect(responseData.error.code).toBe(ErrorCode.FORM_VALIDATION_ERROR);
+    expect(responseData.error.message).toContain("name"); // The unmapped field name
   });
 
   test("should reject publishing form without email contact property mapping", async () => {
-    // Create a form without email mapping in fieldMapping
-    const noEmailSpec = {
-      root: "form",
-      elements: {
-        form: {
-          type: "FormRoot",
-          props: { submitLabel: "Submit" },
-          children: ["name-field"],
-        },
-        "name-field": {
-          type: "Input",
-          props: { name: "name", label: "Name" },
-        },
-      },
-    };
+    // HTML without email field
+    const noEmailHtml = `<form>
+  <input type="text" name="name" />
+  <button type="submit">Submit</button>
+</form>`;
 
     const noEmailFieldMapping = {
       name: {
@@ -603,7 +628,6 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
       "/forms",
       {
         name: "No Email Mapping Form",
-        spec: noEmailSpec,
         fieldMapping: noEmailFieldMapping,
       },
       fullAccessApiKey.key,
@@ -616,6 +640,14 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
       // If creation itself rejects missing email, that is valid
       return;
     }
+
+    // Set deployed content
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: {
+        fields: { html: noEmailHtml, deployId: "test-deploy", files: [] } as never,
+      },
+    });
 
     // Try to publish
     const publishRequest = post(
@@ -630,8 +662,8 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
     const responseData = await response.json();
 
     expect(response.status).toBe(400);
-    expect(responseData.error.code).toBe(ErrorCode.FORM_MISSING_EMAIL_FIELD);
-    expect(responseData.error.message).toContain("Email address");
+    expect(responseData.error.code).toBe(ErrorCode.FORM_VALIDATION_ERROR);
+    expect(responseData.error.message).toContain("email");
   });
 
   test("should allow publishing form with all fields mapped including email", async () => {
@@ -640,7 +672,7 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
       "/forms",
       {
         name: "Properly Mapped Form",
-        spec: validFormSpec,
+
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
@@ -648,6 +680,12 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
 
     const createResponse = await CREATE_FORM(createRequest);
     const createdForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     // Publish
     const publishRequest = post(

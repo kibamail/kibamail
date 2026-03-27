@@ -29,6 +29,7 @@ import {
   updateContactSchema,
 } from "./schema";
 import { dispatchWebhook } from "@/webhooks";
+import { dispatchAutomationEvent } from "@/lib/automations/dispatch";
 
 /**
  * Map property names to slot columns for creating/updating contacts
@@ -147,6 +148,11 @@ export async function createContact(
     sourceType: sourceType as "MANUAL" | "IMPORT" | "FORM" | "API",
     formId: sourceType === ContactSourceType.FORM ? sourceId ?? null : null,
     importId: sourceType === ContactSourceType.IMPORT ? sourceId ?? null : null,
+  });
+
+  // Dispatch automation trigger for new subscribed contacts
+  await dispatchAutomationEvent(workspaceId, "contact.subscribed", {
+    contactId: contact.id,
   });
 
   return responseCreated(
@@ -439,6 +445,13 @@ export async function updateContact(
       contactId,
       previousValues,
       changedFields,
+    });
+
+    // Dispatch automation trigger for property updates
+    await dispatchAutomationEvent(workspaceId, "contact.property_updated", {
+      contactId,
+      changedFields,
+      previousValues,
     });
   }
 

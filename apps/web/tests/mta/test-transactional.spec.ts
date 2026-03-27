@@ -865,84 +865,11 @@ describe("MTA Integration: Transactional Email Delivery", () => {
     });
 
     expect(event).not.toBeNull();
-    expect(event!.contentS3Key).toBeTruthy();
-    expect(event!.contentS3Key).toContain(`emails/${testWorkspace.id}/transactional/`);
+    expect(event?.contentS3Key).toBeTruthy();
+    expect(event?.contentS3Key).toContain(`emails/${testWorkspace.id}/transactional/`);
 
     // The idempotency check ensures that if a job is retried after S3 upload succeeded,
     // it won't re-send. This is verified by the presence of contentS3Key in the event.
-  }, 30000);
-
-  // Skip: MTA doesn't support preview_text in content object format
-  it.skip("should include preview text in email", async () => {
-    const domainName = getUniqueDomainName();
-    // Create domain without tracking to avoid MTA format issues
-    const domain = await prisma.sendingDomain.create({
-      data: {
-        workspaceId: testWorkspace.id,
-        name: domainName,
-        dkimSubDomain: "kibamail._domainkey",
-        dkimPublicKey: "test-public-key",
-        dkimPrivateKey: "test-private-key",
-        returnPathSubDomain: "kb",
-        returnPathDomainCnameValue: "mail.kbmta.net",
-        trackingSubDomain: "e",
-        trackingDomainCnameValue: "e.kbmta.net",
-        dmarcReportingCode: "abcdefghij",
-        dkimVerifiedAt: new Date(),
-        returnPathDomainVerifiedAt: new Date(),
-        openTrackingEnabled: false,
-        clickTrackingEnabled: false,
-      },
-    });
-
-    const sender = await prisma.senderIdentity.create({
-      data: {
-        workspaceId: testWorkspace.id,
-        sendingDomainId: domain.id,
-        email: "preview",
-        name: "Preview Sender",
-      },
-    });
-
-    const testSubject = `[Kibamail Test] Preview Text ${Date.now()}`;
-    const testTo = `preview-${Date.now()}@example.com`;
-    const previewText = "This is preview text shown in email clients";
-
-    await sendTransactional(
-      {
-        emailSendId: `test_preview_${Date.now()}`,
-        workspaceId: testWorkspace.id,
-        senderIdentityId: sender.id,
-        sendingDomainId: domain.id,
-        to: testTo,
-        subject: testSubject,
-        htmlBody: "<html><body><p>Main email content here</p></body></html>",
-        previewText,
-      },
-      "test-job-preview",
-    );
-
-    const message = await mailpit.waitForMessage(testTo, {
-      timeoutMs: MTA_TEST_CONFIG.deliveryTimeoutMs,
-      pollIntervalMs: MTA_TEST_CONFIG.pollIntervalMs,
-    });
-
-    expect(message).not.toBeNull();
-    expect(message!.Subject).toBe(testSubject);
-
-    // Preview text is handled by KumoMTA - it either adds it as a hidden preheader
-    // in the HTML or includes it in the message headers
-    const headers = await mailpit.getHeaders(message!.ID);
-    const hasPreviewInHtml = message!.HTML.includes(previewText);
-    const hasPreviewHeader = headers["X-Preview-Text"]?.[0] === previewText;
-
-    // If MTA supports preview text, it should appear somewhere
-    // If not supported, the email should still be delivered successfully
-    expect(message!.HTML).toContain("Main email content here");
-    // Preview text may or may not be included depending on MTA version
-    if (hasPreviewInHtml || hasPreviewHeader) {
-      expect(true).toBe(true); // Preview text is present
-    }
   }, 30000);
 
   it("should deliver to a single recipient", async () => {
@@ -981,8 +908,8 @@ describe("MTA Integration: Transactional Email Delivery", () => {
     });
 
     expect(message).not.toBeNull();
-    expect(message!.Subject).toBe(testSubject);
-    expect(message!.To[0].Address).toBe(recipient);
+    expect(message?.Subject).toBe(testSubject);
+    expect(message?.To[0].Address).toBe(recipient);
   }, 30000);
 
   it("should correctly set Reply-To header", async () => {
@@ -1068,8 +995,8 @@ describe("MTA Integration: Transactional Email Delivery", () => {
     });
 
     expect(message).not.toBeNull();
-    expect(message!.Text).toContain(customTextBody);
+    expect(message?.Text).toContain(customTextBody);
     // Should NOT contain auto-generated text from HTML
-    expect(message!.Text).not.toContain("HTML content is different");
+    expect(message?.Text).not.toContain("HTML content is different");
   }, 30000);
 });

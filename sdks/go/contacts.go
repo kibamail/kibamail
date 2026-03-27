@@ -33,10 +33,10 @@ type UpdateContactRequest struct {
 
 // SearchContactRequest is the request object for the Search call.
 type SearchContactRequest struct {
-	Conditions interface{} `json:"conditions"`
-	Limit      *int        `json:"limit,omitempty"`
-	After      *string     `json:"after,omitempty"`
-	Before     *string     `json:"before,omitempty"`
+	Filters interface{} `json:"filters"`
+	Limit   *int        `json:"limit,omitempty"`
+	After   *string     `json:"after,omitempty"`
+	Before  *string     `json:"before,omitempty"`
 }
 
 // Contact provides the structure for a contact object.

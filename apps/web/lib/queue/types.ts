@@ -286,6 +286,33 @@ export type QueueJobs = {
       metadata?: Record<string, string>;
     };
   };
+  // Automations queue for automation trigger evaluation and step execution
+  automations: {
+    /** Evaluate which automations should trigger for a given event */
+    "evaluate-triggers": {
+      /** Workspace ID */
+      workspaceId: string;
+      /** The automation event to evaluate */
+      event: {
+        type: string;
+        payload: Record<string, unknown>;
+      };
+    };
+    /** Execute the next step for an automation run */
+    "execute-step": {
+      /** The automation run ID */
+      automationRunId: string;
+      /** The node ID to execute */
+      nodeId: string;
+    };
+    /** Pause all active runs for an automation */
+    "pause-automation": {
+      /** The automation ID to pause */
+      automationId: string;
+      /** Workspace ID */
+      workspaceId: string;
+    };
+  };
 };
 
 /**

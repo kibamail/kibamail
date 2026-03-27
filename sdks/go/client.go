@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/url"
 	"time"
@@ -47,6 +48,11 @@ type Client struct {
 	Forms             FormsSvc
 	ApiKeys           ApiKeysSvc
 	ContactProperties ContactPropertiesSvc
+	Emails            EmailsSvc
+	Domains           DomainsSvc
+	Broadcasts        BroadcastsSvc
+	Automations       AutomationsSvc
+	Events            EventsSvc
 }
 
 // NewClient is the default client constructor
@@ -77,6 +83,11 @@ func NewCustomClient(httpClient *http.Client, apiKey string) *Client {
 	c.Forms = &FormsSvcImpl{client: c}
 	c.ApiKeys = &ApiKeysSvcImpl{client: c}
 	c.ContactProperties = &ContactPropertiesSvcImpl{client: c}
+	c.Emails = &EmailsSvcImpl{client: c}
+	c.Domains = &DomainsSvcImpl{client: c}
+	c.Broadcasts = &BroadcastsSvcImpl{client: c}
+	c.Automations = &AutomationsSvcImpl{client: c}
+	c.Events = &EventsSvcImpl{client: c}
 
 	return c
 }
@@ -105,6 +116,54 @@ func (c *Client) NewRequest(ctx context.Context, method, path string, params int
 		req.Body = io.NopCloser(buf)
 		req.Header.Set("Content-Type", contentType)
 	}
+
+	for k, v := range c.headers {
+		req.Header.Add(k, v)
+	}
+
+	req.Header.Set("Accept", contentType)
+	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("Authorization", "Bearer "+c.ApiKey)
+
+	return req, nil
+}
+
+// FileUpload represents a file to upload in a multipart request.
+type FileUpload struct {
+	Name     string
+	Contents io.Reader
+}
+
+// NewMultipartRequest builds a multipart/form-data request with the given files.
+func (c *Client) NewMultipartRequest(ctx context.Context, method, path string, fieldName string, files []FileUpload) (*http.Request, error) {
+	u, err := c.BaseURL.Parse(path)
+	if err != nil {
+		return nil, err
+	}
+
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+
+	for _, f := range files {
+		part, err := writer.CreateFormFile(fieldName, f.Name)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := io.Copy(part, f.Contents); err != nil {
+			return nil, err
+		}
+	}
+
+	if err := writer.Close(); err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	for k, v := range c.headers {
 		req.Header.Add(k, v)
