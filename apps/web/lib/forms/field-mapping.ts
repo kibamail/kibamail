@@ -1,56 +1,22 @@
 /**
  * Form Field Mapping Utilities
  *
- * Handles extraction of fields from form builder schemas and generation of
- * slot mappings for form submissions.
+ * Handles generation of slot mappings for form submissions.
  *
  * Key concepts:
- * - Fields are extracted from pages[].sections[].fields[] structure
- * - Presentation fields (like "content") are excluded from submission mapping
  * - Each field is assigned a slot (fieldString0-39 or fieldNum0-14)
  * - Slot assignments are permanent per root form for data integrity
  * - New versions inherit parent mappings and only assign new slots for new fields
  */
 
-import type {
-  ContactPropertyMapping,
-  FieldType,
-  FormBuilderSchema,
-  FormField,
-} from "@/lib/form-builder/schema";
-
-// Field types that should map to numeric slots
-const NUMERIC_FIELD_TYPES = new Set<FieldType>(["number", "rating", "slider"]);
-
-// Presentation field types that don't store submission data
-const PRESENTATION_FIELD_TYPES = new Set<FieldType>(["content"]);
-
-// Hidden fields are input fields but don't need contact property mapping from UI
-const HIDDEN_FIELD_TYPES = new Set<FieldType>(["hidden"]);
+import type { ApiFieldMapping } from "@/lib/json-render/validation";
 
 // Maximum slots available
 const MAX_STRING_SLOTS = 40;
 const MAX_NUM_SLOTS = 15;
 
 /**
- * Represents a field extracted from a form schema
- */
-export interface ExtractedField {
-  name: string;
-  type: FieldType;
-  label?: string;
-  contactProperty?: ContactPropertyMapping;
-}
-
-/**
- * Represents a field extracted with its contact property mapping
- */
-export interface ExtractedFieldWithMapping extends ExtractedField {
-  contactProperty?: ContactPropertyMapping;
-}
-
-/**
- * Represents a single field mapping
+ * Represents a single field slot mapping
  */
 export interface FieldSlotMapping {
   slot: string;
@@ -69,170 +35,29 @@ export interface FieldSlotMapping {
 export type FormFieldMapping = Record<string, FieldSlotMapping>;
 
 /**
- * Extracts all input fields from a form builder schema.
- * Excludes presentation fields (like "content") that don't capture user input.
+ * Generates a slot mapping from the API field mapping sidecar.
  *
- * @param schema - The form builder schema (can be null/undefined/empty)
- * @returns Array of extracted fields with name, type, and optional label
- */
-export function extractFieldsFromSchema(schema: unknown): ExtractedField[] {
-  if (!schema || typeof schema !== "object") {
-    return [];
-  }
-
-  const formSchema = schema as FormBuilderSchema;
-  const allFields: ExtractedField[] = [];
-
-  // Handle pages[].sections[].fields[] structure
-  if (formSchema.pages && Array.isArray(formSchema.pages)) {
-    for (const page of formSchema.pages) {
-      if (page.sections && Array.isArray(page.sections)) {
-        for (const section of page.sections) {
-          if (section.fields && Array.isArray(section.fields)) {
-            for (const field of section.fields) {
-              // Skip presentation fields that don't store data
-              if (PRESENTATION_FIELD_TYPES.has(field.type)) {
-                continue;
-              }
-
-              // Only include fields with a valid name
-              if (field.name) {
-                allFields.push({
-                  name: field.name,
-                  type: field.type,
-                  label: field.label,
-                  contactProperty: field.contactProperty,
-                });
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return allFields;
-}
-
-/**
- * Extracts all input fields from a form builder schema with their contact property mappings.
- * Excludes presentation fields (like "content") that don't capture user input.
- * Used for publish validation to check that all fields are mapped.
- *
- * @param schema - The form builder schema (can be null/undefined/empty)
- * @returns Array of extracted fields with name, type, label, and contactProperty
- */
-export function extractFieldsWithContactProperty(
-  schema: unknown,
-): ExtractedFieldWithMapping[] {
-  if (!schema || typeof schema !== "object") {
-    return [];
-  }
-
-  const formSchema = schema as FormBuilderSchema;
-  const allFields: ExtractedFieldWithMapping[] = [];
-
-  // Handle pages[].sections[].fields[] structure
-  if (formSchema.pages && Array.isArray(formSchema.pages)) {
-    for (const page of formSchema.pages) {
-      if (page.sections && Array.isArray(page.sections)) {
-        for (const section of page.sections) {
-          if (section.fields && Array.isArray(section.fields)) {
-            for (const field of section.fields) {
-              // Skip presentation fields that don't store data
-              if (PRESENTATION_FIELD_TYPES.has(field.type)) {
-                continue;
-              }
-
-              // Skip hidden fields - they don't require contact property mapping
-              if (HIDDEN_FIELD_TYPES.has(field.type)) {
-                continue;
-              }
-
-              // Only include fields with a valid name
-              if (field.name) {
-                allFields.push({
-                  name: field.name,
-                  type: field.type,
-                  label: field.label,
-                  contactProperty: field.contactProperty,
-                });
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
-  return allFields;
-}
-
-/**
- * Extracts all fields from a form schema including presentation fields.
- * Used for rendering and validation purposes.
- *
- * @param schema - The form builder schema
- * @returns Array of all form fields
- */
-function _extractAllFieldsFromSchema(schema: unknown): FormField[] {
-  if (!schema || typeof schema !== "object") {
-    return [];
-  }
-
-  const formSchema = schema as FormBuilderSchema;
-  const allFields: FormField[] = [];
-
-  if (formSchema.pages && Array.isArray(formSchema.pages)) {
-    for (const page of formSchema.pages) {
-      if (page.sections && Array.isArray(page.sections)) {
-        for (const section of page.sections) {
-          if (section.fields && Array.isArray(section.fields)) {
-            allFields.push(...section.fields);
-          }
-        }
-      }
-    }
-  }
-
-  return allFields;
-}
-
-/**
- * Determines the storage type for a field type.
- * Most fields store as strings, but numeric types use number slots.
- *
- * @param fieldType - The field type
- * @returns "number" for numeric types, "string" for all others
- */
-export function getStorageType(fieldType: FieldType): "string" | "number" {
-  return NUMERIC_FIELD_TYPES.has(fieldType) ? "number" : "string";
-}
-
-/**
- * Generates a field mapping for a form schema.
- * If an existing mapping is provided (from parent/previous version),
+ * If an existing slot mapping is provided (from parent/previous version),
  * it preserves those slot assignments and only assigns new slots for new fields.
  *
- * @param schema - The form builder schema
- * @param existingMapping - Optional existing mapping to preserve (from parent form)
- * @returns Complete field mapping with slot assignments
+ * @param apiMapping - The user-provided field mapping from the API
+ * @param existingSlotMapping - Optional existing slot mapping to preserve (from parent form)
+ * @returns Complete field slot mapping with slot assignments
  * @throws Error if slot limits are exceeded
  */
-export function generateFieldMapping(
-  schema: unknown,
-  existingMapping: FormFieldMapping | null = null,
+export function generateFieldMappingFromApiMapping(
+  apiMapping: ApiFieldMapping,
+  existingSlotMapping: FormFieldMapping | null = null,
 ): FormFieldMapping {
-  const fields = extractFieldsFromSchema(schema);
-  const mapping: FormFieldMapping = { ...(existingMapping || {}) };
+  const mapping: FormFieldMapping = { ...(existingSlotMapping || {}) };
 
   // Track used slots
   const usedStringSlots = new Set<number>();
   const usedNumSlots = new Set<number>();
 
   // Mark slots from existing mapping as used
-  if (existingMapping) {
-    for (const fieldMapping of Object.values(existingMapping)) {
+  if (existingSlotMapping) {
+    for (const fieldMapping of Object.values(existingSlotMapping)) {
       const slotMatch = fieldMapping.slot.match(/^field(String|Num)(\d+)$/);
       if (slotMatch) {
         const [, slotType, slotIndex] = slotMatch;
@@ -270,42 +95,37 @@ export function generateFieldMapping(
     );
   }
 
-  // Process each field
-  for (const field of fields) {
-    // Skip if field already has a mapping
-    if (mapping[field.name]) {
-      // Update label if it changed
-      if (field.label && mapping[field.name].label !== field.label) {
-        mapping[field.name] = {
-          ...mapping[field.name],
-          label: field.label,
-        };
-      }
+  // Process each field from the API mapping
+  for (const [fieldName, entry] of Object.entries(apiMapping)) {
+    // Skip if field already has a slot mapping
+    if (mapping[fieldName]) {
+      // Update contact property info if it changed
+      mapping[fieldName] = {
+        ...mapping[fieldName],
+        contactPropertyId: entry.contactPropertyId,
+        contactPropertyType: entry.contactPropertyType,
+      };
       continue;
     }
 
-    // Determine storage type and assign slot
-    const storageType = getStorageType(field.type);
-
-    if (storageType === "number") {
+    // Assign a new slot
+    if (entry.fieldType === "number") {
       const slotIndex = getNextNumSlot();
-      mapping[field.name] = {
+      mapping[fieldName] = {
         slot: `fieldNum${slotIndex}`,
         type: "number",
-        fieldType: field.type,
-        label: field.label,
-        contactPropertyId: field.contactProperty?.id,
-        contactPropertyType: field.contactProperty?.type,
+        fieldType: entry.fieldType,
+        contactPropertyId: entry.contactPropertyId,
+        contactPropertyType: entry.contactPropertyType,
       };
     } else {
       const slotIndex = getNextStringSlot();
-      mapping[field.name] = {
+      mapping[fieldName] = {
         slot: `fieldString${slotIndex}`,
         type: "string",
-        fieldType: field.type,
-        label: field.label,
-        contactPropertyId: field.contactProperty?.id,
-        contactPropertyType: field.contactProperty?.type,
+        fieldType: entry.fieldType,
+        contactPropertyId: entry.contactPropertyId,
+        contactPropertyType: entry.contactPropertyType,
       };
     }
   }

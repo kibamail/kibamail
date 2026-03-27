@@ -70,6 +70,7 @@ export enum ErrorCode {
   FORM_MISSING_EMAIL_FIELD = "FORM_MISSING_EMAIL_FIELD",
   FORM_UNMAPPED_FIELDS = "FORM_UNMAPPED_FIELDS",
   FORM_SLUG_CONFLICT = "FORM_SLUG_CONFLICT",
+  FORM_VALIDATION_ERROR = "FORM_VALIDATION_ERROR",
 
   // ============================================================================
   // CONTACT ERRORS

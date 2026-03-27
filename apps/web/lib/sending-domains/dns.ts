@@ -96,13 +96,13 @@ export function getDnsRecords(
   publicKey: string,
   returnPathSubdomain: string,
   trackingSubdomain: string,
-  dmarcReportingCode: string,
+  dmarcReportingCode: string | null,
 ) {
   return {
     dkim: getDkimRecord(domain, dkimSubdomain, publicKey),
     returnPath: getReturnPathRecord(domain, returnPathSubdomain),
     tracking: getTrackingRecord(domain, trackingSubdomain),
-    dmarc: getDmarcRecord(domain, dmarcReportingCode),
+    dmarc: dmarcReportingCode ? getDmarcRecord(domain, dmarcReportingCode) : null,
     mx: getInboxMxRecord(domain),
   };
 }

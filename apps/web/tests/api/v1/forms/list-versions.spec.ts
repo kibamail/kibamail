@@ -19,7 +19,7 @@ import {
   get,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import { validFormSpec } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -50,7 +50,7 @@ beforeAll(async () => {
       description: "Subscribe to our newsletter",
       status: "ARCHIVED", // Was published, now archived
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   rootFormId = rootForm.id;
@@ -64,7 +64,7 @@ beforeAll(async () => {
       description: "Updated signup form",
       status: "PUBLISHED",
       version: 2,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   version2Id = version2.id;
@@ -78,7 +78,7 @@ beforeAll(async () => {
       description: "New draft version",
       status: "DRAFT",
       version: 3,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   version3Id = version3.id;
@@ -91,7 +91,7 @@ beforeAll(async () => {
       description: null,
       status: "DRAFT",
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   anotherRootFormId = anotherRoot.id;
@@ -324,7 +324,7 @@ describe("GET /api/v1/forms/{formId}/versions - Error Cases", () => {
         name: "Other Workspace Form",
         status: "DRAFT",
         version: 1,
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
       },
     });
 
@@ -380,7 +380,7 @@ describe("GET /api/v1/forms/{formId}/versions - Workspace Isolation", () => {
         name: "Other Root",
         status: "DRAFT",
         version: 1,
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
       },
     });
 

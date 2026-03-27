@@ -17,7 +17,7 @@ import {
   createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import { validFormSpec } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let publishedFormId: string;
@@ -68,7 +68,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: { slot: "fieldString0", type: "string", fieldType: "email" },

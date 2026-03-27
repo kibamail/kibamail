@@ -2633,47 +2633,45 @@ Find contacts missing a property:
       },
       post: {
         summary: "Create Form",
-        description: `Create a new embeddable form for lead capture and contact collection.
+        description: `Create a new form for lead capture and contact collection.
 
 **Use Cases:**
 - Build newsletter signup forms for your website
 - Create lead generation forms
 - Capture event registrations
 - Collect customer feedback
-- Build preference center forms
 
 **Behavior:**
 - Form is created in DRAFT status (not yet public)
-- Uses form builder JSON schema for flexibility
-- Form gets a unique ID and slug for embedding
-- Initial version is created automatically
+- Uses a json-render spec for 100% custom HTML/styling control
+- Form gets a unique ID for embedding
 - Form must be published to make it publicly accessible
 - Submissions are tracked and stored
 
 **Required Scope:** \`write:forms\`
 
-**Form Configuration:**
+**Request Body:**
 - **name:** Internal form name for identification
-- **title:** Display title shown to users
+- **spec:** A json-render component tree (root element ID + flat elements map). Defines the full HTML structure and styling of the form.
+- **fieldMapping:** Maps form input field names to contact properties. Every input component with a \`name\` prop in the spec must have a corresponding entry.
 - **description:** Form purpose/instructions (optional)
-- **fields:** Form builder JSON schema defining fields
-- **redirectUrl:** Where to send users after submission (optional)
-- **submitText:** Custom submit button text (optional)
+- **settings:** Behavioral settings like success action, double opt-in (optional)
 
-**Form Builder Features:**
-- Supports all standard field types (text, email, number, phone, etc.)
-- Flexible field validation and conditional logic
-- Multi-page and multi-section forms
-- Custom styling and appearance options
+**Spec Format:**
+The spec is a flat tree of UI elements using @json-render components (Input, Textarea, Select, Checkbox, Radio, Slider, Rating, etc.) wrapped in a FormRoot. See the json-render documentation for available components and props.
+
+**Validation:**
+- Every field in \`fieldMapping\` must match an input component's \`name\` prop in the spec
+- Every input component with a \`name\` in the spec must have a \`fieldMapping\` entry
+- SIGN_UP forms require at least one field mapped to the \`email\` standard contact property
 
 **Form Lifecycle:**
-1. Create form (DRAFT status)
-2. Configure fields and settings
-3. Test form submission
-4. Publish form (PUBLISHED status)
-5. Embed on website
-6. Create versions for updates
-7. Publish new versions (previous auto-archived)
+1. Create form with spec + fieldMapping (DRAFT status)
+2. Test form submission
+3. Publish form (PUBLISHED status)
+4. Embed on website via public URL
+5. Create versions for updates
+6. Publish new versions (previous auto-archived)
 
 **Note:** Forms in DRAFT status cannot receive public submissions. Publish the form to make it live.`,
         tags: ["Forms"],
@@ -2700,7 +2698,7 @@ Find contacts missing a property:
           },
           "400": {
             description:
-              "Bad Request - Invalid form builder JSON configuration or malformed input",
+              "Bad Request - Invalid spec, fieldMapping, or malformed input",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
@@ -2808,41 +2806,33 @@ Find contacts missing a property:
         description: `Update an existing form's configuration (DRAFT forms only).
 
 **Use Cases:**
-- Modify form fields and layout
-- Update form title or description
-- Change redirect URL after submission
-- Customize submit button text
-- Refine form builder configuration
+- Update the json-render spec (form structure and styling)
+- Update the fieldMapping (contact property mappings)
+- Update form name, description, or settings
+- Configure SEO metadata
 
 **Behavior:**
 - Only DRAFT forms can be updated
 - PUBLISHED and ARCHIVED forms are immutable
 - To update published forms, create a new version first
 - All fields are optional (partial updates supported)
-- UpdatedAt timestamp is automatically refreshed
-- Returns the complete updated form object
+- If spec or fieldMapping is updated, cross-validation runs automatically
 
 **Required Scope:** \`write:forms\`
 
 **Updatable Fields (DRAFT only):**
 - name (internal identifier)
-- title (displayed to users)
-- description (form instructions)
-- fields (form builder configuration)
-- redirectUrl (post-submission redirect)
-- submitText (button text)
+- description (form purpose)
+- spec (json-render component tree)
+- fieldMapping (field name to contact property mapping)
+- settings (success action, double opt-in)
+- SEO fields (seoTitle, seoDescription, seoImageUrl, seoFaviconUrl, slug)
 
 **Update Workflow for Published Forms:**
 1. Create new version: POST /v1/forms/{formId}/versions
 2. Update the new DRAFT version: PUT /v1/forms/{newVersionId}
 3. Publish the updated version: POST /v1/forms/{newVersionId}/publish
 4. Previous published version automatically becomes ARCHIVED
-
-**Important:**
-- Cannot update PUBLISHED or ARCHIVED forms
-- Changes to DRAFT don't affect live form until published
-- Test changes before publishing
-- Form builder configuration must be valid JSON
 
 **Note:** For published forms, create a new version instead of updating directly.`,
         tags: ["Forms"],

@@ -1044,6 +1044,8 @@ model SendingDomain {
   trackingDomainVerifiedAt    DateTime?
   /// When tracking domain SSL was verified
   trackingDomainSslVerifiedAt DateTime?
+  /// Whether DMARC monitoring is enabled for this domain
+  dmarcEnabled                Boolean          @default(false)
   /// DMARC reporting shortcode (10 lowercase chars) for aggregate reports
   dmarcReportingCode          String
   /// When DMARC record was verified

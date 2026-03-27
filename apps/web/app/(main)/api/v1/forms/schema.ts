@@ -1,5 +1,5 @@
 import * as z from "zod/v4";
-import { formBuilderSchema } from "@/lib/form-builder/schema";
+import { formSettingsSchema } from "@/lib/json-render/settings-schema";
 
 /**
  * Form type enum values
@@ -10,6 +10,37 @@ const formTypeEnum = z.enum(["SIGN_UP", "SURVEY"]);
  * Form display enum values
  */
 const formDisplayEnum = z.enum(["POPUP", "INLINE_EMBED"]);
+
+/**
+ * json-render spec schema.
+ * A flat tree of elements with a root reference and keyed elements map.
+ */
+const specSchema = z.object({
+  root: z.string().min(1, "Spec must have a root element"),
+  elements: z.record(
+    z.string(),
+    z.object({
+      type: z.string().min(1),
+      props: z.record(z.string(), z.unknown()).optional().default({}),
+      children: z.array(z.string()).optional(),
+      visible: z.unknown().optional(),
+      on: z.record(z.string(), z.unknown()).optional(),
+    }),
+  ),
+  state: z.record(z.string(), z.unknown()).optional(),
+});
+
+/**
+ * Field mapping sidecar schema.
+ * Maps form field names to contact properties for submission handling.
+ */
+const fieldMappingEntrySchema = z.object({
+  contactPropertyId: z.string().min(1),
+  contactPropertyType: z.enum(["standard", "custom"]),
+  fieldType: z.enum(["string", "number"]),
+});
+
+const fieldMappingSchema = z.record(z.string(), fieldMappingEntrySchema);
 
 /**
  * Create Form Request Schema
@@ -28,7 +59,9 @@ export const createFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional().default("SIGN_UP"),
   display: formDisplayEnum.optional().default("INLINE_EMBED"),
-  fields: formBuilderSchema.optional(),
+  spec: specSchema,
+  fieldMapping: fieldMappingSchema,
+  settings: formSettingsSchema.optional(),
 });
 
 /**
@@ -62,7 +95,7 @@ const seoFieldsSchema = z.object({
     .max(100, "Slug must be 100 characters or less")
     .regex(
       /^[a-z0-9-]+$/,
-      "Slug must be lowercase alphanumeric with hyphens only"
+      "Slug must be lowercase alphanumeric with hyphens only",
     )
     .optional()
     .nullable(),
@@ -83,8 +116,9 @@ export const updateFormSchema = z.object({
     .nullable(),
   type: formTypeEnum.optional(),
   display: formDisplayEnum.optional(),
-  fields: formBuilderSchema.optional(),
-  settings: z.any().optional(),
+  spec: specSchema.optional(),
+  fieldMapping: fieldMappingSchema.optional(),
+  settings: formSettingsSchema.optional(),
   doubleOptInEmailId: z.string().optional().nullable(),
   ...seoFieldsSchema.shape,
 });

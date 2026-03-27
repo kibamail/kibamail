@@ -23,6 +23,7 @@ export const createSendingDomainSchema = z.object({
     .regex(domainNameRegex, "Invalid domain name format")
     .trim()
     .toLowerCase(),
+  dmarcEnabled: z.boolean().optional().default(false),
 });
 
 /**
@@ -31,6 +32,7 @@ export const createSendingDomainSchema = z.object({
 export const updateSendingDomainSchema = z.object({
   openTrackingEnabled: z.boolean().optional(),
   clickTrackingEnabled: z.boolean().optional(),
+  dmarcEnabled: z.boolean().optional(),
 });
 
 /**
@@ -129,7 +131,7 @@ export const sendingDomainVerifyResponseSchema = z.object({
 /**
  * Type exports
  */
-export type CreateSendingDomainRequest = z.infer<
+export type CreateSendingDomainRequest = z.input<
   typeof createSendingDomainSchema
 >;
 export type UpdateSendingDomainRequest = z.infer<

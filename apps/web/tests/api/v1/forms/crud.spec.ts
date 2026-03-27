@@ -25,7 +25,10 @@ import {
   put,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import {
+  validFormSpec,
+  validFormFieldMapping,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -55,7 +58,8 @@ describe("GET /api/v1/forms/[formId]", () => {
         description: "Get in touch",
         type: "SURVEY",
         display: "POPUP",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -82,7 +86,7 @@ describe("GET /api/v1/forms/[formId]", () => {
     expect(responseData.type).toBe("SURVEY");
     expect(responseData.display).toBe("POPUP");
     expect(responseData.status).toBe("DRAFT");
-    expect(responseData.fields).toEqual(validFormFields);
+    expect(responseData.spec).toEqual(validFormSpec);
   });
 
   test("should return default type and display values", async () => {
@@ -91,7 +95,8 @@ describe("GET /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Default Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -162,7 +167,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       {
         name: "Original Name",
         description: "Original description",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -196,7 +202,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Type Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -241,7 +248,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -273,7 +281,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -281,65 +290,52 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const createResponse = await POST(createRequest);
     const createdForm = await createResponse.json();
 
-    // New fields with updated structure (must include email for sign-up forms)
-    const newFields = {
-      ...validFormFields,
-      id: "updated_form",
-      pages: [
-        {
-          id: "page_1",
-          sections: [
-            {
-              id: "section_1",
-              fields: [
-                {
-                  id: "field_email",
-                  type: "email",
-                  name: "email",
-                  label: "Email Address",
-                  appearance: {
-                    width: "full",
-                    labelPosition: "top",
-                    size: "default",
-                  },
-                },
-                {
-                  id: "field_firstName",
-                  type: "text",
-                  name: "firstName",
-                  label: "First Name",
-                  validation: { required: true },
-                  appearance: {
-                    width: "full",
-                    labelPosition: "top",
-                    size: "default",
-                  },
-                },
-                {
-                  id: "field_lastName",
-                  type: "text",
-                  name: "lastName",
-                  label: "Last Name",
-                  appearance: {
-                    width: "full",
-                    labelPosition: "top",
-                    size: "default",
-                  },
-                },
-              ],
-              collapsible: false,
-              defaultCollapsed: false,
-            },
-          ],
+    // New spec with updated structure
+    const newSpec = {
+      root: "form",
+      elements: {
+        form: {
+          type: "FormRoot",
+          props: { submitLabel: "Submit" },
+          children: ["email-field", "firstName-field", "lastName-field"],
         },
-      ],
+        "email-field": {
+          type: "Input",
+          props: { name: "email", label: "Email Address", type: "email" },
+        },
+        "firstName-field": {
+          type: "Input",
+          props: { name: "firstName", label: "First Name" },
+        },
+        "lastName-field": {
+          type: "Input",
+          props: { name: "lastName", label: "Last Name" },
+        },
+      },
     };
 
-    // Update the form fields
+    // Update the form spec and fieldMapping together
     const updateRequest = put(
       `/forms/${createdForm.id}`,
       {
-        fields: newFields,
+        spec: newSpec,
+        fieldMapping: {
+          email: {
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+            fieldType: "string",
+          },
+          firstName: {
+            contactPropertyId: "firstName",
+            contactPropertyType: "standard",
+            fieldType: "string",
+          },
+          lastName: {
+            contactPropertyId: "lastName",
+            contactPropertyType: "standard",
+            fieldType: "string",
+          },
+        },
       },
       fullAccessApiKey.key,
     );
@@ -357,7 +353,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -366,13 +363,15 @@ describe("PUT /api/v1/forms/[formId]", () => {
     const createdForm = await createResponse.json();
 
     const newSettings = {
-      redirectUrl: "https://example.com/thank-you",
-      submitText: "Submit Form",
-      doubleOptIn: true,
-      customConfig: {
-        theme: "dark",
-        showProgressBar: true,
+      successAction: {
+        type: "redirect" as const,
+        url: "https://example.com/thank-you",
+        openInNewTab: false,
       },
+      doubleOptIn: {
+        enabled: true,
+      },
+      preventDuplicateSubmissions: true,
     };
 
     // Update the form settings
@@ -410,7 +409,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -452,7 +452,8 @@ describe("PUT /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -532,7 +533,8 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Form to Delete",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -597,7 +599,8 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Root Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -641,7 +644,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         workspaceId: testWorkspace.id,
         parentId: rootForm.id,
         name: "Root Form",
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
         version: 3,
         status: "ARCHIVED",
       },
@@ -686,7 +689,8 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Root Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -700,7 +704,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         workspaceId: testWorkspace.id,
         parentId: rootForm.id,
         name: "Root Form",
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
         version: 2,
         status: "PUBLISHED",
         publishedAt: new Date(),
@@ -713,7 +717,7 @@ describe("DELETE /api/v1/forms/[formId]", () => {
         workspaceId: testWorkspace.id,
         parentId: rootForm.id,
         name: "Root Form",
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
         version: 3,
         status: "ARCHIVED",
       },
@@ -755,7 +759,8 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Published Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -792,7 +797,8 @@ describe("DELETE /api/v1/forms/[formId]", () => {
       "/forms",
       {
         name: "Archived Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
