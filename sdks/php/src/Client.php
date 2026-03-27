@@ -15,6 +15,11 @@ use Kibamail\Service\ServiceFactory;
  * @property Service\Forms $forms
  * @property Service\ApiKeys $apiKeys
  * @property Service\ContactProperties $contactProperties
+ * @property Service\Emails $emails
+ * @property Service\Domains $domains
+ * @property Service\Broadcasts $broadcasts
+ * @property Service\Automations $automations
+ * @property Service\Events $events
  */
 class Client implements ClientContract
 {

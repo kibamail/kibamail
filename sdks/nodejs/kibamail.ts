@@ -1,9 +1,12 @@
 import { createHttpClient } from "./client";
 import { ApiKeys } from "./resources/api-keys";
+import { Automations } from "./resources/automations";
 import { Broadcasts } from "./resources/broadcasts";
 import { ContactProperties } from "./resources/contact-properties";
 import { Contacts } from "./resources/contacts";
+import { Domains } from "./resources/domains";
 import { Emails } from "./resources/emails";
+import { Events } from "./resources/events";
 import { Forms } from "./resources/forms";
 import { Segments } from "./resources/segments";
 import { Topics } from "./resources/topics";
@@ -67,119 +70,17 @@ const BASE_URL = "https://api.kibamail.com";
 export class Kibamail {
   protected client: ReturnType<typeof createHttpClient>;
 
-  /**
-   * API Keys resource for managing workspace access keys.
-   *
-   * @example
-   * ```ts
-   * const apiKey = await kibamail.apiKeys.create({
-   *   name: "Production Server",
-   *   scopes: ["read:contacts", "write:contacts"]
-   * });
-   * ```
-   */
   public apiKeys: ApiKeys;
-
-  /**
-   * Broadcasts resource for creating and scheduling email broadcasts.
-   *
-   * @example
-   * ```ts
-   * const broadcast = await kibamail.broadcasts.createAndSend({
-   *   name: "January Newsletter",
-   *   from: "newsletter@yourdomain.com",
-   *   emailContent: {
-   *     subject: "Our January Newsletter",
-   *     html: "<h1>Hello {{firstName}}!</h1>"
-   *   },
-   *   recipients: { emails: ["user@example.com"] },
-   *   sendAt: "2024-01-15T10:00:00Z"
-   * });
-   * ```
-   */
+  public automations: Automations;
   public broadcasts: Broadcasts;
-
-  /**
-   * Contacts resource for managing contact records.
-   *
-   * @example
-   * ```ts
-   * const contacts = await kibamail.contacts.list({ limit: 50 });
-   * const contact = await kibamail.contacts.get("contact_123");
-   * ```
-   */
-  public contacts: Contacts;
-
-  /**
-   * Topics resource for organizing email communications.
-   *
-   * @example
-   * ```ts
-   * const topic = await kibamail.topics.create({
-   *   name: "Product Updates",
-   *   visibility: "PUBLIC"
-   * });
-   * ```
-   */
-  public topics: Topics;
-
-  /**
-   * Segments resource for creating dynamic contact groups.
-   *
-   * @example
-   * ```ts
-   * const segment = await kibamail.segments.create({
-   *   name: "Premium Customers",
-   *   conditions: {
-   *     AND: [{ field: "Plan", operator: "equals", value: "Premium" }]
-   *   }
-   * });
-   * ```
-   */
-  public segments: Segments;
-
-  /**
-   * Contact Properties resource for defining custom contact fields.
-   *
-   * @example
-   * ```ts
-   * const property = await kibamail.contactProperties.create({
-   *   name: "Company",
-   *   type: "TEXT"
-   * });
-   * ```
-   */
   public contactProperties: ContactProperties;
-
-  /**
-   * Forms resource for building signup and contact forms.
-   *
-   * @example
-   * ```ts
-   * const form = await kibamail.forms.create({
-   *   name: "Newsletter Signup",
-   *   fields: [
-   *     { name: "email", type: "email", required: true }
-   *   ]
-   * });
-   * ```
-   */
-  public forms: Forms;
-
-  /**
-   * Emails resource for sending transactional emails.
-   *
-   * @example
-   * ```ts
-   * const result = await kibamail.emails.send({
-   *   from: "noreply@yourdomain.com",
-   *   to: "customer@example.com",
-   *   subject: "Order Confirmation",
-   *   html: "<h1>Thank you for your order!</h1>"
-   * });
-   * ```
-   */
+  public contacts: Contacts;
+  public domains: Domains;
   public emails: Emails;
+  public events: Events;
+  public forms: Forms;
+  public segments: Segments;
+  public topics: Topics;
 
   /**
    * Initialize the Kibamail SDK client.
@@ -210,14 +111,16 @@ export class Kibamail {
         apiKey,
       });
 
-    // Initialize all resource instances
     this.apiKeys = new ApiKeys(this.client);
+    this.automations = new Automations(this.client);
     this.broadcasts = new Broadcasts(this.client);
-    this.contacts = new Contacts(this.client);
-    this.emails = new Emails(this.client);
-    this.topics = new Topics(this.client);
-    this.segments = new Segments(this.client);
     this.contactProperties = new ContactProperties(this.client);
+    this.contacts = new Contacts(this.client);
+    this.domains = new Domains(this.client);
+    this.emails = new Emails(this.client);
+    this.events = new Events(this.client);
     this.forms = new Forms(this.client);
+    this.segments = new Segments(this.client);
+    this.topics = new Topics(this.client);
   }
 }

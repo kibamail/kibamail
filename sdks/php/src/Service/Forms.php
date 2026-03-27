@@ -81,4 +81,39 @@ class Forms extends Service
 
         return $this->createResource('forms', $result);
     }
+
+    /**
+     * Publish a draft form.
+     */
+    public function publish(string $id): Form
+    {
+        $payload = Payload::create('v1/forms/' . $id . '/publish', []);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('forms', $result);
+    }
+
+    /**
+     * List all versions of a form.
+     *
+     * @param array{'limit'?: int, 'before'?: string, 'after'?: string} $options
+     */
+    public function versions(string $id, array $options = []): Collection
+    {
+        $payload = Payload::list('v1/forms/' . $id . '/versions', $options);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('forms', $result);
+    }
+
+    /**
+     * Create a new version of a form.
+     */
+    public function createVersion(string $id, array $parameters = []): Form
+    {
+        $payload = Payload::create('v1/forms/' . $id . '/versions', $parameters);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('forms', $result);
+    }
 }

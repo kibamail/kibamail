@@ -18,6 +18,11 @@ class ServiceFactory
         'forms' => Forms::class,
         'apiKeys' => ApiKeys::class,
         'contactProperties' => ContactProperties::class,
+        'emails' => Emails::class,
+        'domains' => Domains::class,
+        'broadcasts' => Broadcasts::class,
+        'automations' => Automations::class,
+        'events' => Events::class,
     ];
 
     /**

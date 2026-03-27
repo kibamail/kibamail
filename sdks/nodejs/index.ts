@@ -11,13 +11,16 @@ export { Kibamail } from "./kibamail";
 
 // Resource classes (for advanced usage)
 export { ApiKeys } from "./resources/api-keys";
+export { Automations } from "./resources/automations";
 export { Broadcasts } from "./resources/broadcasts";
-export { Contacts } from "./resources/contacts";
-export { Emails } from "./resources/emails";
-export { Topics } from "./resources/topics";
-export { Segments } from "./resources/segments";
 export { ContactProperties } from "./resources/contact-properties";
+export { Contacts } from "./resources/contacts";
+export { Domains } from "./resources/domains";
+export { Emails } from "./resources/emails";
+export { Events } from "./resources/events";
 export { Forms } from "./resources/forms";
+export { Segments } from "./resources/segments";
+export { Topics } from "./resources/topics";
 
 // Type exports from schema
 export type { paths, components } from "./schema";
