@@ -54,11 +54,11 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
         run: pnpm exec prisma generate
 
-      - name: run database migrations
+      - name: sync database schema
         working-directory: apps/web
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:15432/kibamail_test
-        run: pnpm exec prisma migrate deploy
+        run: pnpm exec prisma db push --accept-data-loss
 
       - name: run tests
         working-directory: apps/web
