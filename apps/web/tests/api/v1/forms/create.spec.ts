@@ -20,8 +20,10 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  multiFieldFormSchema,
-  validFormFields,
+  multiFieldFormSpec,
+  multiFieldFormFieldMapping,
+  validFormSpec,
+  validFormFieldMapping,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -46,7 +48,8 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
   test("should reject request with missing Authorization header", async () => {
     const formData = {
       name: "Contact Form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = apiRequest("/forms").method("POST").body(formData).build();
 
@@ -65,7 +68,8 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
   test("should reject request with invalid API key", async () => {
     const formData = {
       name: "Contact Form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, "kb_invalid_key_12345");
 
@@ -84,7 +88,8 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
 
     const formData = {
       name: "Contact Form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, readOnlyKey.key);
 
@@ -106,7 +111,8 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
 
     const formData = {
       name: "Contact Form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, contactsOnlyKey.key);
 
@@ -129,7 +135,8 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
     const formData = {
       name: "Contact Form",
       description: "A simple contact form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, writeFormsKey.key);
 
@@ -145,7 +152,8 @@ describe("POST /api/v1/forms - Authentication & Authorization", () => {
     const formData = {
       name: "Newsletter Signup",
       description: "Sign up for our weekly newsletter",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -162,7 +170,8 @@ describe("POST /api/v1/forms - Type and Display Fields", () => {
   test("should create form with default type and display", async () => {
     const formData = {
       name: "Default Type Form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -178,7 +187,8 @@ describe("POST /api/v1/forms - Type and Display Fields", () => {
     const formData = {
       name: "Customer Survey",
       type: "SURVEY",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -194,7 +204,8 @@ describe("POST /api/v1/forms - Type and Display Fields", () => {
     const formData = {
       name: "Popup Form",
       display: "POPUP",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -211,7 +222,8 @@ describe("POST /api/v1/forms - Type and Display Fields", () => {
       name: "Custom Survey Popup",
       type: "SURVEY",
       display: "POPUP",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -227,7 +239,8 @@ describe("POST /api/v1/forms - Type and Display Fields", () => {
     const formData = {
       name: "Invalid Type Form",
       type: "INVALID_TYPE",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -243,7 +256,8 @@ describe("POST /api/v1/forms - Type and Display Fields", () => {
     const formData = {
       name: "Invalid Display Form",
       display: "INVALID_DISPLAY",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -260,7 +274,8 @@ describe("POST /api/v1/forms - Validation", () => {
   test("should reject form with empty name", async () => {
     const formData = {
       name: "",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -278,7 +293,8 @@ describe("POST /api/v1/forms - Validation", () => {
   test("should reject form with name exceeding max length", async () => {
     const formData = {
       name: "A".repeat(201), // Exceeds 200 character limit
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -297,7 +313,8 @@ describe("POST /api/v1/forms - Validation", () => {
     const formData = {
       name: "Contact Form",
       description: "A".repeat(1001), // Exceeds 1000 character limit
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -316,7 +333,8 @@ describe("POST /api/v1/forms - Validation", () => {
     // Minimal valid form requires at least one page with one section with one field (including email for publishing)
     const formData = {
       name: "Minimal Form",
-      fields: validFormFields, // validFormFields is already the minimal valid form (one email field)
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping, // validFormSpec is already the minimal valid form (one email field)
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -331,7 +349,8 @@ describe("POST /api/v1/forms - Validation", () => {
   test("should create form without description (optional field)", async () => {
     const formData = {
       name: "No Description Form",
-      fields: validFormFields,
+      spec: validFormSpec,
+      fieldMapping: validFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 
@@ -347,7 +366,8 @@ describe("POST /api/v1/forms - Validation", () => {
     const formData = {
       name: "Customer Satisfaction Survey",
       description: "Help us improve our service",
-      fields: multiFieldFormSchema,
+      spec: multiFieldFormSpec,
+      fieldMapping: multiFieldFormFieldMapping,
     };
     const request = post("/forms", formData, fullAccessApiKey.key);
 

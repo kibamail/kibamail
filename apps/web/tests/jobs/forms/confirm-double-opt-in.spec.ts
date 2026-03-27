@@ -19,7 +19,7 @@ import {
 } from "vitest";
 import { confirmDoubleOptIn } from "@/jobs/forms/confirm-double-opt-in";
 import { prisma } from "@/lib/db";
-import { DEFAULT_FORM_SETTINGS } from "@/lib/form-builder/schema";
+import { DEFAULT_FORM_SETTINGS } from "@/tests/utils/form-fixtures";
 import {
   cleanupWorkspace,
   createTestWorkspace,

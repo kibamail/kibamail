@@ -35,7 +35,7 @@ vi.mock("@/lib/mta", async (importOriginal) => {
 
 import { sendDoubleOptIn } from "@/jobs/forms/send-double-opt-in";
 import { prisma } from "@/lib/db";
-import { DEFAULT_FORM_SETTINGS } from "@/lib/form-builder/schema";
+import { DEFAULT_FORM_SETTINGS } from "@/tests/utils/form-fixtures";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import {
   cleanupWorkspace,

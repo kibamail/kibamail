@@ -8,8 +8,13 @@
  * without authentication. The workspace is derived from the form record.
  */
 
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { NextRequest } from "next/server";
+
+vi.mock("@/webhooks", () => ({
+  dispatchWebhook: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { POST } from "@/app/(main)/api/internal/v1/forms/[formId]/submissions/route";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
@@ -19,8 +24,8 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  signUpFormFields,
-  surveyFormFields,
+  signUpFormSpec,
+  surveyFormSpec,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -61,7 +66,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: {
@@ -104,7 +109,7 @@ beforeAll(async () => {
       display: "POPUP",
       status: "PUBLISHED",
       version: 1,
-      fields: surveyFormFields as never,
+      fields: surveyFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: {
@@ -143,7 +148,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "DRAFT",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
     },
   });
   unpublishedFormId = unpublishedForm.id;
@@ -390,7 +395,7 @@ describe("POST /api/internal/v1/forms/[formId]/submissions - Version Handling", 
         display: "INLINE_EMBED",
         status: "ARCHIVED",
         version: 1,
-        fields: surveyFormFields as never,
+        fields: surveyFormSpec as never,
         fieldMapping: {
           email: {
             slot: "fieldString0",
@@ -424,7 +429,7 @@ describe("POST /api/internal/v1/forms/[formId]/submissions - Version Handling", 
         status: "PUBLISHED",
         version: 2,
         publishedAt: new Date(),
-        fields: surveyFormFields as never,
+        fields: surveyFormSpec as never,
         fieldMapping: {
           email: {
             slot: "fieldString0",

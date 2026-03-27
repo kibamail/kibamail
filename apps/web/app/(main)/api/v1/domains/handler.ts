@@ -48,6 +48,7 @@ function formatSendingDomain(domain: {
   trackingSubDomain: string;
   trackingDomainCnameValue: string;
   trackingDomainVerifiedAt: Date | null;
+  dmarcEnabled: boolean;
   dmarcReportingCode: string;
   dmarcVerifiedAt: Date | null;
   inboxEnabled: boolean;
@@ -64,7 +65,7 @@ function formatSendingDomain(domain: {
     domain.dkimPublicKey,
     domain.returnPathSubDomain,
     domain.trackingSubDomain,
-    domain.dmarcReportingCode,
+    domain.dmarcEnabled ? domain.dmarcReportingCode : null,
   );
 
   return {
@@ -73,6 +74,7 @@ function formatSendingDomain(domain: {
     dkimVerified: domain.dkimVerifiedAt !== null,
     returnPathVerified: domain.returnPathDomainVerifiedAt !== null,
     trackingVerified: domain.trackingDomainVerifiedAt !== null,
+    dmarcEnabled: domain.dmarcEnabled,
     dmarcVerified: domain.dmarcVerifiedAt !== null,
     inboxEnabled: domain.inboxEnabled,
     inboxMxVerified: domain.inboxMxVerifiedAt !== null,
@@ -136,6 +138,7 @@ export async function createSendingDomain(
       returnPathDomainCnameValue: DNS_CONFIG.bounceHost,
       trackingSubDomain: DNS_CONFIG.trackingSubdomain,
       trackingDomainCnameValue: DNS_CONFIG.trackingHost,
+      dmarcEnabled: data.dmarcEnabled ?? false,
       dmarcReportingCode,
       maxSendPerDay: DEFAULT_WARMUP_TIER.dailyLimit,
       maxSendPerHour: DEFAULT_WARMUP_TIER.hourlyLimit,
@@ -373,12 +376,12 @@ export async function verifySendingDomain(
     updateData.trackingDomainVerifiedAt = now;
   }
 
-  if (verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
+  if (domain.dmarcEnabled && verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
     updateData.dmarcVerifiedAt = now;
   }
 
   // Verify MX record for inbox
-  if (mxVerificationResult.configured && !domain.inboxMxVerifiedAt) {
+  if (domain.inboxEnabled && mxVerificationResult.configured && !domain.inboxMxVerifiedAt) {
     updateData.inboxMxVerifiedAt = now;
   }
 

@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import { prisma } from "@/lib/db";
-import type { FormSettings } from "@/lib/form-builder/schema";
+import type { FormSettings } from "@/lib/json-render/settings-schema";
 import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import {
   type DoubleOptInConfig,

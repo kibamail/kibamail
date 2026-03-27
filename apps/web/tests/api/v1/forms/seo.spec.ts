@@ -21,7 +21,10 @@ import {
   put,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import {
+  validFormSpec,
+  validFormFieldMapping,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let testWorkspace2: TestWorkspace;
@@ -53,7 +56,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "SEO Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -99,7 +103,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Slug Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -140,7 +145,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "First Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -166,7 +172,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Second Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -198,7 +205,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Workspace 1 Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -220,7 +228,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Workspace 2 Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey2.key,
     );
@@ -245,7 +254,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Invalid Slug Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -275,7 +285,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Special Chars Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -305,7 +316,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Valid Slug Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -333,7 +345,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Clear SEO Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -392,7 +405,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Title Length Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -422,7 +436,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Description Length Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -452,7 +467,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "OG Image Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -492,7 +508,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Favicon Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -532,7 +549,8 @@ describe("PUT /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "Invalid URL Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -569,7 +587,7 @@ describe("GET /api/v1/forms/[formId] - SEO Fields", () => {
         display: "INLINE_EMBED",
         status: "DRAFT",
         version: 1,
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
         seoTitle: "Custom Page Title",
         seoDescription: "Custom meta description",
         seoImageUrl: "https://example.com/og.png",
@@ -601,7 +619,8 @@ describe("GET /api/v1/forms/[formId] - SEO Fields", () => {
       "/forms",
       {
         name: "No SEO Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );

@@ -46,7 +46,7 @@ import {
   type CreatedApiKey,
   type TestWorkspace,
 } from "@/tests/utils";
-import { signUpFormFields, surveyFormFields } from "@/tests/utils/form-fixtures";
+import { signUpFormSpec, surveyFormSpec } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -66,7 +66,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: {
@@ -101,7 +101,7 @@ beforeAll(async () => {
       display: "POPUP",
       status: "PUBLISHED",
       version: 1,
-      fields: surveyFormFields as never,
+      fields: surveyFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: {

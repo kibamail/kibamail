@@ -21,7 +21,10 @@ import {
   post,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import {
+  validFormSpec,
+  validFormFieldMapping,
+} from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -68,7 +71,8 @@ describe("POST /api/v1/forms/[formId]/versions - Authentication & Authorization"
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -106,7 +110,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Root Form",
         description: "Original description",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -144,7 +149,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
 
     expect(versionDetails.name).toBe("Root Form");
     expect(versionDetails.description).toBe("Original description");
-    expect(versionDetails.fields).toEqual(validFormFields);
+    expect(versionDetails.spec).toEqual(validFormSpec);
     expect(versionDetails.status).toBe("DRAFT");
     expect(versionDetails.version).toBe(2);
   });
@@ -155,7 +160,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Root Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -235,7 +241,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Original Name",
         description: "Original description",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -243,58 +250,45 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     const createResponse = await POST(createRequest);
     const rootForm = await createResponse.json();
 
-    // New fields with updated structure (must include email for sign-up forms)
-    const newFields = {
-      ...validFormFields,
-      id: "updated_form",
-      title: "Updated Form",
-      pages: [
-        {
-          id: "page_1",
-          sections: [
-            {
-              id: "section_1",
-              fields: [
-                {
-                  id: "field_email",
-                  type: "email",
-                  name: "email",
-                  label: "Email Address",
-                  validation: { required: true },
-                  appearance: {
-                    width: "full",
-                    labelPosition: "top",
-                    size: "default",
-                  },
-                },
-                {
-                  id: "field_firstName",
-                  type: "text",
-                  name: "firstName",
-                  label: "First Name",
-                  validation: { required: true },
-                  appearance: {
-                    width: "full",
-                    labelPosition: "top",
-                    size: "default",
-                  },
-                },
-              ],
-              collapsible: false,
-              defaultCollapsed: false,
-            },
-          ],
+    // New spec with updated structure
+    const newSpec = {
+      root: "form",
+      elements: {
+        form: {
+          type: "FormRoot",
+          props: { submitLabel: "Submit" },
+          children: ["email-field", "firstName-field"],
         },
-      ],
+        "email-field": {
+          type: "Input",
+          props: { name: "email", label: "Email Address", type: "email" },
+        },
+        "firstName-field": {
+          type: "Input",
+          props: { name: "firstName", label: "First Name" },
+        },
+      },
     };
 
-    // Create version with custom fields
+    // Create version with custom spec and matching fieldMapping
     const versionRequest = post(
       `/forms/${rootForm.id}/versions`,
       {
         name: "Updated Name",
         description: "Updated description",
-        fields: newFields,
+        spec: newSpec,
+        fieldMapping: {
+          email: {
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+            fieldType: "string",
+          },
+          firstName: {
+            contactPropertyId: "firstName",
+            contactPropertyType: "standard",
+            fieldType: "string",
+          },
+        },
       },
       fullAccessApiKey.key,
     );
@@ -304,7 +298,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
     });
     const version = await versionResponse.json();
 
-    // Verify version uses provided fields
+    // Verify version uses provided spec
     const getRequest = apiRequest(`/forms/${version.id}`)
       .method("GET")
       .auth(fullAccessApiKey.key)
@@ -317,7 +311,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
 
     expect(versionDetails.name).toBe("Updated Name");
     expect(versionDetails.description).toBe("Updated description");
-    expect(versionDetails.fields).toEqual(newFields);
+    expect(versionDetails.spec).toEqual(newSpec);
     expect(versionDetails.version).toBe(2);
   });
 
@@ -328,7 +322,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       {
         name: "Original Name",
         description: "Original description",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -363,7 +358,7 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
 
     expect(versionDetails.name).toBe("Updated Name Only");
     expect(versionDetails.description).toBe("Original description");
-    expect(versionDetails.fields).toEqual(validFormFields);
+    expect(versionDetails.spec).toEqual(validFormSpec);
   });
 
   test("should return 404 for non-existent form", async () => {
@@ -391,7 +386,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Multi-version Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -486,7 +482,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -537,7 +534,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "SEO Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -622,7 +620,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Double Opt-In Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -682,7 +681,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "Full Copy Test Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
@@ -749,7 +749,8 @@ describe("POST /api/v1/forms/[formId]/versions - Version Creation", () => {
       "/forms",
       {
         name: "No SEO Form",
-        fields: validFormFields,
+        spec: validFormSpec,
+        fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );

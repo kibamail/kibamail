@@ -23,7 +23,7 @@ import {
   createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import { validFormSpec } from "@/tests/utils/form-fixtures";
 
 // Create mock functions using vi.hoisted
 const { mockUploadPublicFile, mockSession } = vi.hoisted(() => ({
@@ -114,7 +114,7 @@ beforeEach(async () => {
       display: "INLINE_EMBED",
       status: "DRAFT",
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   testFormId = form.id;
@@ -269,7 +269,7 @@ describe("POST /api/internal/v1/forms/[formId]/seo-image", () => {
         display: "INLINE_EMBED",
         status: "DRAFT",
         version: 1,
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
       },
     });
 
@@ -350,7 +350,7 @@ describe("DELETE /api/internal/v1/forms/[formId]/seo-image", () => {
         display: "INLINE_EMBED",
         status: "DRAFT",
         version: 1,
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
         seoImageUrl: "https://cdn.example.com/other-image.png",
       },
     });

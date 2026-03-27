@@ -1,17 +1,18 @@
 import "@/app/forms.css";
 
+import type { Spec } from "@json-render/core";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
-import type { FormBuilderSchema } from "@/lib/form-builder";
+import type { FormSettings } from "@/lib/json-render/settings-schema";
 import { trackUniqueFormView } from "@/lib/forms/view-tracking";
 import { FormPageClient } from "./_components/form-page-client";
 
 interface PublishedFormData {
   id: string;
   name: string;
-  fields: unknown;
-  settings: unknown;
+  spec: Spec | null;
+  settings: FormSettings | null;
   workspaceId: string;
   seoTitle: string | null;
   seoDescription: string | null;
@@ -46,7 +47,7 @@ async function getPublishedForm(
     return null;
   }
 
-  // If there's a published version, use that for fields/settings
+  // If there's a published version, use that for spec/settings
   if (rootForm.publishedVersionId) {
     const publishedVersion = await prisma.form.findFirst({
       where: {
@@ -66,8 +67,8 @@ async function getPublishedForm(
       return {
         id: rootForm.id,
         name: rootForm.name,
-        fields: publishedVersion.fields,
-        settings: publishedVersion.settings,
+        spec: publishedVersion.fields as unknown as Spec | null,
+        settings: publishedVersion.settings as FormSettings | null,
         workspaceId: rootForm.workspaceId,
         // Use published version's SEO if set, otherwise fall back to root
         seoTitle: publishedVersion.seoTitle ?? rootForm.seoTitle,
@@ -79,12 +80,12 @@ async function getPublishedForm(
     }
   }
 
-  // Fall back to the root form's schema (for preview before publishing)
+  // Fall back to the root form's spec (for preview before publishing)
   return {
     id: rootForm.id,
     name: rootForm.name,
-    fields: rootForm.fields,
-    settings: rootForm.settings,
+    spec: rootForm.fields as unknown as Spec | null,
+    settings: rootForm.settings as FormSettings | null,
     workspaceId: rootForm.workspaceId,
     seoTitle: rootForm.seoTitle,
     seoDescription: rootForm.seoDescription,
@@ -147,9 +148,7 @@ export default async function PublicFormPage({
     notFound();
   }
 
-  const schema = form.fields as FormBuilderSchema | null;
-
-  if (!schema) {
+  if (!form.spec) {
     notFound();
   }
 
@@ -159,7 +158,8 @@ export default async function PublicFormPage({
   return (
     <FormPageClient
       formId={form.id}
-      schema={schema}
+      spec={form.spec}
+      settings={form.settings}
       shouldSetViewCookie={tracked}
     />
   );

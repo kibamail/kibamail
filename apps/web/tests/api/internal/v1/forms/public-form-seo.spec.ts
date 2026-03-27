@@ -14,7 +14,7 @@ import {
   createTestWorkspace,
   type TestWorkspace,
 } from "@/tests/utils";
-import { signUpFormFields } from "@/tests/utils/form-fixtures";
+import { signUpFormSpec } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let publishedFormId: string;
@@ -107,7 +107,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
       publishedAt: new Date(),
       slug: "newsletter-signup",
       seoTitle: "Subscribe to Our Newsletter",
@@ -132,7 +132,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "DRAFT",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
       slug: "draft-form",
     },
   });
@@ -220,7 +220,7 @@ describe("GET /p/forms/:idOrSlug - Published Version SEO Inheritance", () => {
         display: "INLINE_EMBED",
         status: "ARCHIVED",
         version: 1,
-        fields: signUpFormFields as never,
+        fields: signUpFormSpec as never,
         slug: "versioned-form",
         seoTitle: "Root Form Title",
         seoDescription: "Root form description",
@@ -237,7 +237,7 @@ describe("GET /p/forms/:idOrSlug - Published Version SEO Inheritance", () => {
         display: "INLINE_EMBED",
         status: "PUBLISHED",
         version: 2,
-        fields: signUpFormFields as never,
+        fields: signUpFormSpec as never,
         publishedAt: new Date(),
         seoTitle: "Published Version Title",
         seoDescription: "Published version description",
@@ -275,7 +275,7 @@ describe("GET /p/forms/:idOrSlug - Published Version SEO Inheritance", () => {
         display: "INLINE_EMBED",
         status: "ARCHIVED",
         version: 1,
-        fields: signUpFormFields as never,
+        fields: signUpFormSpec as never,
         slug: "fallback-form",
         seoTitle: "Root SEO Title",
         seoDescription: "Root description",
@@ -293,7 +293,7 @@ describe("GET /p/forms/:idOrSlug - Published Version SEO Inheritance", () => {
         display: "INLINE_EMBED",
         status: "PUBLISHED",
         version: 2,
-        fields: signUpFormFields as never,
+        fields: signUpFormSpec as never,
         publishedAt: new Date(),
         // No SEO fields set
       },
@@ -351,7 +351,7 @@ describe("GET /p/forms/:idOrSlug - Child Forms", () => {
         display: "INLINE_EMBED",
         status: "PUBLISHED",
         version: 1,
-        fields: signUpFormFields as never,
+        fields: signUpFormSpec as never,
         publishedAt: new Date(),
       },
     });
@@ -366,7 +366,7 @@ describe("GET /p/forms/:idOrSlug - Child Forms", () => {
         display: "INLINE_EMBED",
         status: "DRAFT",
         version: 2,
-        fields: signUpFormFields as never,
+        fields: signUpFormSpec as never,
         slug: "child-version-slug",
       },
     });

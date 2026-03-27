@@ -5,7 +5,29 @@
  * - POST /api/v1/forms/[formId]/submissions - Submit data to a form
  */
 
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
+
+import type {
+  dispatchWebhook as DispatchWebhookFn,
+  dispatchWebhookBulk as DispatchWebhookBulkFn,
+} from "@/webhooks";
+
+// Hoist mock functions so they can be used in vi.mock
+const { mockDispatchWebhook, mockDispatchWebhookBulk } = vi.hoisted(() => ({
+  mockDispatchWebhook: vi.fn<typeof DispatchWebhookFn>(),
+  mockDispatchWebhookBulk: vi.fn<typeof DispatchWebhookBulkFn>(),
+}));
+
+vi.mock("@/webhooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/webhooks")>();
+  return {
+    ...actual,
+    dispatchWebhook: mockDispatchWebhook,
+    dispatchWebhookBulk: mockDispatchWebhookBulk,
+  };
+});
+
+// Import after mocking
 import { POST } from "@/app/(main)/api/v1/forms/[formId]/submissions/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
@@ -20,8 +42,8 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  signUpFormFields,
-  surveyFormFields,
+  signUpFormSpec,
+  surveyFormSpec,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -48,7 +70,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: {
@@ -91,7 +113,7 @@ beforeAll(async () => {
       display: "POPUP",
       status: "PUBLISHED",
       version: 1,
-      fields: surveyFormFields as never,
+      fields: surveyFormSpec as never,
       publishedAt: new Date(),
       fieldMapping: {
         email: {
@@ -130,7 +152,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "DRAFT",
       version: 1,
-      fields: signUpFormFields as never,
+      fields: signUpFormSpec as never,
     },
   });
   unpublishedFormId = unpublishedForm.id;
@@ -572,7 +594,7 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
         display: "INLINE_EMBED",
         status: "ARCHIVED", // Root becomes archived when version is published
         version: 1,
-        fields: surveyFormFields as never,
+        fields: surveyFormSpec as never,
         fieldMapping: {
           email: {
             slot: "fieldString0",
@@ -607,29 +629,30 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
         version: 2,
         publishedAt: new Date(),
         fields: {
-          ...surveyFormFields,
-          id: "survey_form_v2",
-          pages: [
-            {
-              id: "page_1",
-              sections: [
-                {
-                  id: "section_1",
-                  fields: [
-                    ...surveyFormFields.pages[0].sections[0].fields,
-                    {
-                      id: "field_newField",
-                      type: "text",
-                      name: "newField",
-                      label: "New Field",
-                    },
-                  ],
-                  collapsible: false,
-                  defaultCollapsed: false,
-                },
-              ],
+          root: "form",
+          elements: {
+            form: {
+              type: "FormRoot",
+              props: { submitLabel: "Submit Feedback" },
+              children: ["email-field", "feedback-field", "satisfaction-field", "new-field"],
             },
-          ],
+            "email-field": {
+              type: "Input",
+              props: { name: "email", label: "Email", type: "email" },
+            },
+            "feedback-field": {
+              type: "Textarea",
+              props: { name: "feedback", label: "Your Feedback" },
+            },
+            "satisfaction-field": {
+              type: "Rating",
+              props: { name: "satisfaction", label: "How satisfied are you?", maxRating: 5 },
+            },
+            "new-field": {
+              type: "Input",
+              props: { name: "newField", label: "New Field" },
+            },
+          },
         } as never,
         fieldMapping: {
           email: {

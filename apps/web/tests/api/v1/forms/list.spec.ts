@@ -19,7 +19,7 @@ import {
   get,
   type TestWorkspace,
 } from "@/tests/utils";
-import { validFormFields } from "@/tests/utils/form-fixtures";
+import { validFormSpec } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
@@ -52,7 +52,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "PUBLISHED",
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   rootForm1Id = form1.id;
@@ -66,7 +66,7 @@ beforeAll(async () => {
       display: "POPUP",
       status: "DRAFT",
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   rootForm2Id = form2.id;
@@ -80,7 +80,7 @@ beforeAll(async () => {
       display: "INLINE_EMBED",
       status: "ARCHIVED",
       version: 1,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   rootForm3Id = form3.id;
@@ -94,7 +94,7 @@ beforeAll(async () => {
       description: "Updated version",
       status: "DRAFT",
       version: 2,
-      fields: validFormFields as never,
+      fields: validFormSpec as never,
     },
   });
   versionFormId = versionForm.id;
@@ -372,7 +372,7 @@ describe("GET /api/v1/forms - Workspace Isolation", () => {
         name: "Other Workspace Form",
         status: "DRAFT",
         version: 1,
-        fields: validFormFields as never,
+        fields: validFormSpec as never,
       },
     });
 

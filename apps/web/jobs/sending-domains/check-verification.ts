@@ -12,6 +12,7 @@ function isDomainFullyVerified(domain: {
   dkimVerifiedAt: Date | null;
   returnPathDomainVerifiedAt: Date | null;
   trackingDomainVerifiedAt: Date | null;
+  dmarcEnabled: boolean;
   dmarcVerifiedAt: Date | null;
   inboxEnabled: boolean;
   inboxMxVerifiedAt: Date | null;
@@ -19,15 +20,21 @@ function isDomainFullyVerified(domain: {
   const coreVerified =
     domain.dkimVerifiedAt !== null &&
     domain.returnPathDomainVerifiedAt !== null &&
-    domain.trackingDomainVerifiedAt !== null &&
-    domain.dmarcVerifiedAt !== null;
+    domain.trackingDomainVerifiedAt !== null;
 
-  // If inbox is enabled, also require MX verification
-  if (domain.inboxEnabled) {
-    return coreVerified && domain.inboxMxVerifiedAt !== null;
+  if (!coreVerified) return false;
+
+  // If DMARC is enabled, also require DMARC verification
+  if (domain.dmarcEnabled && domain.dmarcVerifiedAt === null) {
+    return false;
   }
 
-  return coreVerified;
+  // If inbox is enabled, also require MX verification
+  if (domain.inboxEnabled && domain.inboxMxVerifiedAt === null) {
+    return false;
+  }
+
+  return true;
 }
 
 export const checkVerification: JobProcessor<
@@ -102,7 +109,8 @@ export const checkVerification: JobProcessor<
     logger.info({ jobId, domainId }, "Tracking record verified");
   }
 
-  if (verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
+  // Verify DMARC only if enabled
+  if (domain.dmarcEnabled && verificationResult.dmarc.configured && !domain.dmarcVerifiedAt) {
     updateData.dmarcVerifiedAt = now;
     logger.info({ jobId, domainId }, "DMARC record verified");
   }
