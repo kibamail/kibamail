@@ -7190,6 +7190,4999 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Sending Domains
+         * @description Retrieve a paginated list of all sending domains in your workspace.
+         *
+         *     **Use Cases:**
+         *     - View all configured sending domains
+         *     - Check verification status for each domain
+         *     - Monitor DNS configuration and SSL status
+         *     - Audit domain settings before launching campaigns
+         *     - Sync domain configuration with your infrastructure
+         *
+         *     **Behavior:**
+         *     - Returns all sending domains for the workspace
+         *     - Includes DNS records needed for configuration
+         *     - Shows verification status for DKIM, return path, and tracking
+         *     - Includes SSL issuance status
+         *     - Uses cursor-based pagination
+         *
+         *     **Required Scope:** `read:domains`
+         *
+         *     **Response Includes:**
+         *     - Domain name and ID
+         *     - DKIM, return path, and tracking verification status
+         *     - Open and click tracking settings
+         *     - Required DNS records for setup
+         *     - SSL status and any errors
+         *     - Creation timestamp
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of items to return (default: 20, max: 100) */
+                    limit?: number;
+                    /** @description Cursor for pagination - ID of the last item from the previous page */
+                    after?: string;
+                    /** @description Cursor for reverse pagination - ID of the first item from the next page */
+                    before?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved paginated list of sending domains with DNS records and verification status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "sending_domain_list",
+                         *       "hasMore": false,
+                         *       "data": [
+                         *         {
+                         *           "id": "dom_abc123xyz789",
+                         *           "name": "mail.example.com",
+                         *           "dkimVerified": true,
+                         *           "returnPathVerified": true,
+                         *           "trackingVerified": false,
+                         *           "openTrackingEnabled": true,
+                         *           "clickTrackingEnabled": true,
+                         *           "dnsRecords": {
+                         *             "dkim": {
+                         *               "type": "TXT",
+                         *               "hostname": "kiba._domainkey.mail.example.com",
+                         *               "value": "v=DKIM1; k=rsa; p=MIGfMA0..."
+                         *             },
+                         *             "returnPath": {
+                         *               "type": "CNAME",
+                         *               "hostname": "kb.mail.example.com",
+                         *               "value": "rp.kibamail.com"
+                         *             },
+                         *             "tracking": {
+                         *               "type": "CNAME",
+                         *               "hostname": "track.mail.example.com",
+                         *               "value": "t.kibamail.com"
+                         *             }
+                         *           },
+                         *           "createdAt": "2024-01-15T10:30:00Z",
+                         *           "sslStatus": "completed",
+                         *           "sslError": null
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "sending_domain_list";
+                            hasMore: boolean;
+                            data: {
+                                id: string;
+                                name: string;
+                                dkimVerified: boolean;
+                                returnPathVerified: boolean;
+                                trackingVerified: boolean;
+                                openTrackingEnabled: boolean;
+                                clickTrackingEnabled: boolean;
+                                dnsRecords: {
+                                    dkim: {
+                                        /** @enum {string} */
+                                        type: "TXT" | "CNAME";
+                                        hostname: string;
+                                        value: string;
+                                    };
+                                    returnPath: {
+                                        /** @enum {string} */
+                                        type: "TXT" | "CNAME";
+                                        hostname: string;
+                                        value: string;
+                                    };
+                                    tracking: {
+                                        /** @enum {string} */
+                                        type: "TXT" | "CNAME";
+                                        hostname: string;
+                                        value: string;
+                                    };
+                                };
+                                createdAt: string;
+                                sslStatus: ("pending" | "in_progress" | "completed" | "failed") | null;
+                                sslError: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:domains' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add Sending Domain
+         * @description Add a new sending domain to your workspace.
+         *
+         *     **Use Cases:**
+         *     - Configure a custom sending domain for branded emails
+         *     - Add multiple domains for different business units
+         *     - Set up a domain for transactional email delivery
+         *     - Register a domain before DNS verification
+         *
+         *     **Behavior:**
+         *     - Domain name is validated for correct format
+         *     - DNS records are generated automatically for setup
+         *     - Domain is created in unverified state
+         *     - DKIM key pair is generated for the domain
+         *     - You must configure DNS records before the domain can be used
+         *     - Returns the domain with required DNS records to configure
+         *
+         *     **Required Scope:** `write:domains`
+         *
+         *     **After Creation:**
+         *     1. Add the returned DNS records to your domain's DNS configuration
+         *     2. Call POST /v1/domains/{domainId}/verify to check DNS propagation
+         *     3. Once verified, the domain can be used for sending emails
+         *
+         *     **DNS Records Required:**
+         *     - **DKIM:** TXT record for email authentication
+         *     - **Return Path:** CNAME record for bounce handling
+         *     - **Tracking:** CNAME record for open/click tracking
+         *
+         *     **Note:** DNS propagation can take up to 48 hours. Use the verify endpoint to check status.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "name": "mail.example.com",
+                     *       "dmarcEnabled": false
+                     *     }
+                     */
+                    "application/json": {
+                        name: string;
+                        /** @default false */
+                        dmarcEnabled?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Sending domain created successfully. Returns the domain with DNS records to configure. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "sending_domain";
+                            id: string;
+                            name: string;
+                            dkimVerified: boolean;
+                            returnPathVerified: boolean;
+                            trackingVerified: boolean;
+                            openTrackingEnabled: boolean;
+                            clickTrackingEnabled: boolean;
+                            dnsRecords: {
+                                dkim: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                returnPath: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                tracking: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                            };
+                            createdAt: string;
+                            sslStatus: ("pending" | "in_progress" | "completed" | "failed") | null;
+                            sslError: string | null;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid domain name format or missing required fields */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:domains' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Conflict - A sending domain with this name already exists in the workspace */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Domain name validation failed (invalid format, too long, etc.) */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/domains/{domainId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Sending Domain
+         * @description Retrieve a specific sending domain by ID with full details.
+         *
+         *     **Use Cases:**
+         *     - Check verification status and DNS records for a domain
+         *     - View tracking and SSL configuration
+         *     - Retrieve DNS records needed for setup
+         *     - Verify domain readiness before sending
+         *
+         *     **Behavior:**
+         *     - Returns complete domain object with DNS records
+         *     - Includes verification status for all DNS records
+         *     - Shows SSL issuance status
+         *     - Domain must belong to your workspace
+         *
+         *     **Required Scope:** `read:domains`
+         *
+         *     **Response Includes:**
+         *     - Domain name and ID
+         *     - Verification status for DKIM, return path, and tracking
+         *     - Tracking settings (open and click tracking)
+         *     - Required DNS records with hostnames and values
+         *     - SSL status and error details
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sending domain ID */
+                    domainId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved sending domain with DNS records and verification status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "sending_domain";
+                            id: string;
+                            name: string;
+                            dkimVerified: boolean;
+                            returnPathVerified: boolean;
+                            trackingVerified: boolean;
+                            openTrackingEnabled: boolean;
+                            clickTrackingEnabled: boolean;
+                            dnsRecords: {
+                                dkim: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                returnPath: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                tracking: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                            };
+                            createdAt: string;
+                            sslStatus: ("pending" | "in_progress" | "completed" | "failed") | null;
+                            sslError: string | null;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:domains' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Sending domain with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Update Sending Domain
+         * @description Update settings for an existing sending domain.
+         *
+         *     **Use Cases:**
+         *     - Enable or disable open tracking
+         *     - Enable or disable click tracking
+         *     - Toggle DMARC enforcement
+         *     - Adjust tracking settings after initial setup
+         *
+         *     **Behavior:**
+         *     - Only provided fields are updated (partial updates supported)
+         *     - Domain name cannot be changed (create a new domain instead)
+         *     - DNS records are not affected by updates
+         *     - Returns the complete updated domain object
+         *
+         *     **Required Scope:** `update:domains`
+         *
+         *     **Updatable Fields:**
+         *     - **openTrackingEnabled:** Track email opens via invisible pixel
+         *     - **clickTrackingEnabled:** Track link clicks via redirect URLs
+         *     - **dmarcEnabled:** Enable DMARC alignment for the domain
+         *
+         *     **Note:** Changing tracking settings takes effect for new emails only. Existing sent emails are not affected.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sending domain ID */
+                    domainId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "openTrackingEnabled": true,
+                     *       "clickTrackingEnabled": true,
+                     *       "dmarcEnabled": true
+                     *     }
+                     */
+                    "application/json": {
+                        openTrackingEnabled?: boolean;
+                        clickTrackingEnabled?: boolean;
+                        dmarcEnabled?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Sending domain updated successfully with refreshed settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "sending_domain";
+                            id: string;
+                            name: string;
+                            dkimVerified: boolean;
+                            returnPathVerified: boolean;
+                            trackingVerified: boolean;
+                            openTrackingEnabled: boolean;
+                            clickTrackingEnabled: boolean;
+                            dnsRecords: {
+                                dkim: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                returnPath: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                tracking: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                            };
+                            createdAt: string;
+                            sslStatus: ("pending" | "in_progress" | "completed" | "failed") | null;
+                            sslError: string | null;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid input data or attempting to update protected fields */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'update:domains' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Sending domain with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Invalid field values */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete Sending Domain
+         * @description Delete a sending domain permanently.
+         *
+         *     **Use Cases:**
+         *     - Remove unused or deprecated sending domains
+         *     - Clean up domains after migration
+         *     - Delete misconfigured domains
+         *     - Remove domains no longer in use
+         *
+         *     **Behavior:**
+         *     - Domain is permanently deleted from the workspace
+         *     - DNS records become orphaned (clean them up manually)
+         *     - Cannot be undone - domain must be re-added if needed
+         *     - Emails already sent from this domain are not affected
+         *     - Active broadcasts using this domain may fail
+         *
+         *     **Required Scope:** `delete:domains`
+         *
+         *     **Data Impact:**
+         *     - Domain configuration is permanently removed
+         *     - DKIM key pair is deleted
+         *     - DNS records in your DNS provider are NOT removed (clean up manually)
+         *     - Historical email data referencing this domain is preserved
+         *
+         *     **Important:**
+         *     - Ensure no active broadcasts or automations use this domain
+         *     - Remove DNS records from your DNS provider after deletion
+         *     - Email delivery for in-flight messages may be affected
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sending domain ID */
+                    domainId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Sending domain deleted successfully. Returns the deleted domain's ID for confirmation. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "sending_domain",
+                         *       "id": "dom_abc123xyz789"
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "sending_domain";
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'delete:domains' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Sending domain with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/domains/{domainId}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify Sending Domain
+         * @description Verify DNS configuration for a sending domain.
+         *
+         *     **Use Cases:**
+         *     - Check if DNS records have been configured correctly
+         *     - Verify domain readiness after DNS propagation
+         *     - Diagnose DNS configuration issues
+         *     - Re-verify after making DNS changes
+         *     - Confirm domain is ready for email sending
+         *
+         *     **Behavior:**
+         *     - Performs live DNS lookups for all required records
+         *     - Checks DKIM, return path, tracking, and optionally DMARC records
+         *     - Updates domain verification status based on results
+         *     - Returns detailed verification results for each record
+         *     - Triggers SSL certificate issuance when tracking is verified
+         *     - Can be called multiple times (idempotent)
+         *
+         *     **Required Scope:** `update:domains`
+         *
+         *     **Verification Checks:**
+         *     - **DKIM:** Verifies TXT record for email authentication
+         *     - **Return Path:** Verifies CNAME record for bounce handling
+         *     - **Tracking:** Verifies CNAME record for open/click tracking
+         *     - **DMARC:** Verifies DMARC policy record (if enabled)
+         *     - **MX:** Optionally checks MX records
+         *
+         *     **Response Includes:**
+         *     - Updated domain details with current verification status
+         *     - Per-record verification results (configured, expected value, found values)
+         *     - Overall allVerified flag
+         *
+         *     **Note:** DNS propagation can take up to 48 hours. If verification fails, wait and retry.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Sending domain ID to verify */
+                    domainId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Verification completed. Returns domain details with per-record verification results. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "sending_domain";
+                            id: string;
+                            name: string;
+                            dkimVerified: boolean;
+                            returnPathVerified: boolean;
+                            trackingVerified: boolean;
+                            openTrackingEnabled: boolean;
+                            clickTrackingEnabled: boolean;
+                            dnsRecords: {
+                                dkim: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                returnPath: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                                tracking: {
+                                    /** @enum {string} */
+                                    type: "TXT" | "CNAME";
+                                    hostname: string;
+                                    value: string;
+                                };
+                            };
+                            createdAt: string;
+                            sslStatus: ("pending" | "in_progress" | "completed" | "failed") | null;
+                            sslError: string | null;
+                            verification: {
+                                dkim: {
+                                    configured: boolean;
+                                    expected: string;
+                                    found: string[];
+                                };
+                                returnPath: {
+                                    configured: boolean;
+                                    expected: string;
+                                    found: string[];
+                                };
+                                tracking: {
+                                    configured: boolean;
+                                    expected: string;
+                                    found: string[];
+                                };
+                                dmarc: {
+                                    configured: boolean;
+                                    expected: string;
+                                    found: string[];
+                                };
+                                mx?: {
+                                    configured: boolean;
+                                    expected: string;
+                                    found: string[];
+                                };
+                                allVerified: boolean;
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'update:domains' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Sending domain with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/broadcasts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Broadcasts
+         * @description Retrieve a paginated list of all broadcasts in your workspace.
+         *
+         *     **Use Cases:**
+         *     - View all broadcasts and their statuses
+         *     - Monitor campaign progress
+         *     - Build broadcast management dashboards
+         *     - Audit past broadcast campaigns
+         *     - Track scheduled broadcasts
+         *
+         *     **Behavior:**
+         *     - Returns broadcasts in reverse chronological order (newest first)
+         *     - Uses cursor-based pagination for efficient retrieval
+         *     - Includes broadcast metadata, status, and email content summary
+         *     - Maximum 100 broadcasts per request
+         *     - Includes all statuses (DRAFT, QUEUED_FOR_SENDING, SENDING, SENT, etc.)
+         *
+         *     **Required Scope:** `read:broadcasts`
+         *
+         *     **Response Includes:**
+         *     - Broadcast ID, name, and status
+         *     - Sender address and reply-to
+         *     - Email content (subject, preview text, HTML, text)
+         *     - Topic and segment associations
+         *     - Scheduled send time
+         *     - Creation timestamp
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of items to return (default: 20, max: 100) */
+                    limit?: number;
+                    /** @description Cursor for pagination - ID of the last item from the previous page */
+                    after?: string;
+                    /** @description Cursor for reverse pagination - ID of the first item from the next page */
+                    before?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved paginated list of broadcasts with metadata and content */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "broadcast_list",
+                         *       "hasMore": false,
+                         *       "data": [
+                         *         {
+                         *           "id": "brd_abc123xyz789",
+                         *           "name": "January Newsletter",
+                         *           "status": "SENT",
+                         *           "from": "newsletter@yourdomain.com",
+                         *           "emailContent": {
+                         *             "subject": "Our January Newsletter",
+                         *             "text": "Hello! Welcome to our January newsletter.",
+                         *             "html": "<h1>Hello!</h1><p>Welcome to our January newsletter.</p>",
+                         *             "previewText": "Check out what's new this month...",
+                         *             "json": null,
+                         *             "styles": null
+                         *           },
+                         *           "replyTo": "support@yourdomain.com",
+                         *           "topicId": null,
+                         *           "segmentId": "seg_vip_abc123",
+                         *           "sendAt": "2024-01-15T10:00:00Z",
+                         *           "createdAt": "2024-01-10T08:30:00Z"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast_list";
+                            hasMore: boolean;
+                            data: {
+                                id: string;
+                                name: string;
+                                status: string;
+                                from: string | null;
+                                emailContent: {
+                                    subject: string | null;
+                                    text: string | null;
+                                    html: string | null;
+                                    previewText: string | null;
+                                    json: {
+                                        [key: string]: unknown;
+                                    } | null;
+                                    styles: {
+                                        [key: string]: unknown;
+                                    } | null;
+                                } | null;
+                                replyTo: string | null;
+                                topicId: string | null;
+                                segmentId: string | null;
+                                sendAt: string | null;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Broadcast
+         * @description Create a new broadcast draft in your workspace.
+         *
+         *     **Use Cases:**
+         *     - Create a broadcast for later editing and scheduling
+         *     - Set up a campaign with initial settings
+         *     - Prepare a broadcast before adding email content
+         *     - Create broadcasts programmatically for workflows
+         *
+         *     **Behavior:**
+         *     - Creates a broadcast in DRAFT status
+         *     - Email content fields are optional at creation
+         *     - From address is validated if provided
+         *     - Topic and segment associations are optional
+         *     - Returns the complete broadcast object with generated ID
+         *     - Broadcast can be edited and scheduled later
+         *
+         *     **Required Scope:** `write:broadcasts`
+         *
+         *     **Fields:**
+         *     - **name** (required): Broadcast name for identification
+         *     - **from:** Sender email address (must be from verified domain)
+         *     - **emailContent:** Subject, HTML, text, preview text, and editor content
+         *     - **replyTo:** Reply-to email address
+         *     - **topicId:** Associate with a topic for subscription management
+         *     - **segmentId:** Target a specific segment of contacts
+         *
+         *     **Next Steps After Creation:**
+         *     1. Update broadcast with email content via PUT /v1/broadcasts/{broadcastId}
+         *     2. Schedule send time via PUT /v1/broadcasts/{broadcastId}
+         *     3. Send the broadcast via POST /v1/broadcasts/{broadcastId}/send
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "name": "February Newsletter",
+                     *       "from": "newsletter@yourdomain.com",
+                     *       "replyTo": "support@yourdomain.com",
+                     *       "emailContent": {
+                     *         "subject": "Our February Newsletter",
+                     *         "html": "<h1>Hello {{firstName}}!</h1><p>Welcome to our February newsletter.</p>",
+                     *         "previewText": "See what's new this month..."
+                     *       },
+                     *       "topicId": "top_newsletter_abc123"
+                     *     }
+                     */
+                    "application/json": {
+                        name: string;
+                        from?: string;
+                        emailContent?: {
+                            subject?: string;
+                            text?: string;
+                            html?: string;
+                            previewText?: string;
+                            contentJson?: {
+                                [key: string]: unknown;
+                            };
+                            styles?: {
+                                [key: string]: unknown;
+                            };
+                        };
+                        /** Format: email */
+                        replyTo?: string;
+                        topicId?: string;
+                        segmentId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Broadcast created successfully in DRAFT status. Returns the complete broadcast object. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast";
+                            id: string;
+                            name: string;
+                            status: string;
+                            from: string | null;
+                            emailContent: {
+                                subject: string | null;
+                                text: string | null;
+                                html: string | null;
+                                previewText: string | null;
+                                json: {
+                                    [key: string]: unknown;
+                                } | null;
+                                styles: {
+                                    [key: string]: unknown;
+                                } | null;
+                            } | null;
+                            replyTo: string | null;
+                            topicId: string | null;
+                            segmentId: string | null;
+                            sendAt: string | null;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid input data, such as invalid email format or missing required fields */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Invalid field values, such as name too long or invalid email format */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/broadcasts/{broadcastId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Broadcast
+         * @description Retrieve a specific broadcast by ID with full details.
+         *
+         *     **Use Cases:**
+         *     - View broadcast configuration before sending
+         *     - Check broadcast status and content
+         *     - Retrieve broadcast details for display in your application
+         *     - Verify broadcast settings before triggering send
+         *
+         *     **Behavior:**
+         *     - Returns complete broadcast object with all fields
+         *     - Includes email content (subject, HTML, text, preview text)
+         *     - Shows current status and send schedule
+         *     - Broadcast must belong to your workspace
+         *
+         *     **Required Scope:** `read:broadcasts`
+         *
+         *     **Response Includes:**
+         *     - Broadcast ID, name, and current status
+         *     - Sender address and reply-to
+         *     - Full email content
+         *     - Topic and segment associations
+         *     - Scheduled send time
+         *     - Creation timestamp
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Broadcast ID */
+                    broadcastId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved broadcast with full details and email content */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast";
+                            id: string;
+                            name: string;
+                            status: string;
+                            from: string | null;
+                            emailContent: {
+                                subject: string | null;
+                                text: string | null;
+                                html: string | null;
+                                previewText: string | null;
+                                json: {
+                                    [key: string]: unknown;
+                                } | null;
+                                styles: {
+                                    [key: string]: unknown;
+                                } | null;
+                            } | null;
+                            replyTo: string | null;
+                            topicId: string | null;
+                            segmentId: string | null;
+                            sendAt: string | null;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Broadcast with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Update Broadcast
+         * @description Update an existing broadcast's settings and email content.
+         *
+         *     **Use Cases:**
+         *     - Add or modify email content (subject, HTML, text)
+         *     - Change sender address or reply-to
+         *     - Update topic or segment targeting
+         *     - Schedule or reschedule send time
+         *     - Toggle open and click tracking
+         *
+         *     **Behavior:**
+         *     - Only provided fields are updated (partial updates supported)
+         *     - Only DRAFT or QUEUED broadcasts can be updated
+         *     - Email content can be set or cleared
+         *     - Send time can be set or removed
+         *     - Returns the complete updated broadcast object
+         *
+         *     **Required Scope:** `write:broadcasts`
+         *
+         *     **Updatable Fields:**
+         *     - **name:** Broadcast display name
+         *     - **from:** Sender email address
+         *     - **emailContent:** Subject, HTML, text, preview text, editor content
+         *     - **replyTo:** Reply-to email address
+         *     - **topicId:** Topic association (set to null to remove)
+         *     - **segmentId:** Segment targeting (set to null to remove)
+         *     - **sendAt:** Scheduled send time (ISO 8601)
+         *     - **trackClicks:** Enable/disable click tracking
+         *     - **trackOpens:** Enable/disable open tracking
+         *
+         *     **Note:** Cannot update broadcasts that have already been sent or are currently sending.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Broadcast ID */
+                    broadcastId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "emailContent": {
+                     *         "subject": "Updated Subject Line",
+                     *         "html": "<h1>Hello {{firstName}}!</h1><p>Updated content.</p>",
+                     *         "previewText": "Updated preview text..."
+                     *       },
+                     *       "sendAt": "2024-02-15T10:00:00Z",
+                     *       "trackOpens": true,
+                     *       "trackClicks": true
+                     *     }
+                     */
+                    "application/json": {
+                        name?: string;
+                        from?: string;
+                        emailContent?: {
+                            subject?: string;
+                            text?: string;
+                            html?: string;
+                            previewText?: string;
+                            contentJson?: {
+                                [key: string]: unknown;
+                            };
+                            styles?: {
+                                [key: string]: unknown;
+                            };
+                        } | null;
+                        /** Format: email */
+                        replyTo?: string;
+                        replyToIdentityId?: string | null;
+                        topicId?: string | null;
+                        segmentId?: string | null;
+                        sendAt?: string | null;
+                        trackClicks?: boolean | null;
+                        trackOpens?: boolean | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Broadcast updated successfully with refreshed settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast";
+                            id: string;
+                            name: string;
+                            status: string;
+                            from: string | null;
+                            emailContent: {
+                                subject: string | null;
+                                text: string | null;
+                                html: string | null;
+                                previewText: string | null;
+                                json: {
+                                    [key: string]: unknown;
+                                } | null;
+                                styles: {
+                                    [key: string]: unknown;
+                                } | null;
+                            } | null;
+                            replyTo: string | null;
+                            topicId: string | null;
+                            segmentId: string | null;
+                            sendAt: string | null;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Cannot update broadcast in current status (only DRAFT or QUEUED broadcasts can be updated) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Broadcast with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Invalid field values, such as invalid email format or name too long */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete Broadcast
+         * @description Delete a broadcast permanently.
+         *
+         *     **Use Cases:**
+         *     - Remove draft broadcasts that are no longer needed
+         *     - Delete queued broadcasts before they are sent
+         *     - Clean up test broadcasts
+         *     - Remove accidentally created broadcasts
+         *
+         *     **Behavior:**
+         *     - Only DRAFT or QUEUED broadcasts can be deleted
+         *     - Broadcast is permanently removed from the workspace
+         *     - Cannot delete broadcasts that have been sent or are sending
+         *     - Returns the deleted broadcast's ID for confirmation
+         *
+         *     **Required Scope:** `write:broadcasts`
+         *
+         *     **Restrictions:**
+         *     - Cannot delete broadcasts in SENDING status
+         *     - Cannot delete broadcasts in SENT status
+         *     - Cannot delete broadcasts in COMPLETED status
+         *
+         *     **Important:**
+         *     - Deletion is permanent and cannot be undone
+         *     - If you need to cancel a queued broadcast, delete it before the scheduled send time
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Broadcast ID */
+                    broadcastId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Broadcast deleted successfully. Returns the deleted broadcast's ID for confirmation. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "broadcast",
+                         *       "id": "brd_abc123xyz789"
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast";
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Cannot delete broadcast in current status (only DRAFT or QUEUED broadcasts can be deleted) */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Broadcast with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/broadcasts/{broadcastId}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send Broadcast
+         * @description Schedule an existing broadcast for sending.
+         *
+         *     **Use Cases:**
+         *     - Send a fully prepared broadcast
+         *     - Trigger delivery of a queued broadcast
+         *     - Initiate campaign delivery after review
+         *
+         *     **Behavior:**
+         *     - Performs readiness checks before scheduling
+         *     - Verifies email content is complete (subject, HTML)
+         *     - Verifies sending domain is configured and verified
+         *     - Checks that send time is set
+         *     - Queues the broadcast for delivery at the scheduled time
+         *     - Broadcast status transitions to QUEUED_FOR_SENDING
+         *     - Triggers a broadcast.scheduled webhook event
+         *
+         *     **Required Scope:** `write:broadcasts`
+         *
+         *     **Prerequisites:**
+         *     - Broadcast must be in DRAFT status
+         *     - Email content must include subject and HTML
+         *     - Sending domain must be verified
+         *     - Send time (sendAt) must be set on the broadcast
+         *
+         *     **Readiness Checks:**
+         *     The endpoint validates the following before scheduling:
+         *     1. Email subject is present
+         *     2. HTML content is present
+         *     3. From address is set and domain is verified
+         *     4. Send time is configured
+         *
+         *     If any check fails, a 400 error is returned with details about what is missing.
+         *
+         *     **Note:** The broadcast is processed approximately 5 minutes before the scheduled send time to allow for recipient resolution and batching.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Broadcast ID to send */
+                    broadcastId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Broadcast scheduled for sending successfully. Returns the updated broadcast with QUEUED_FOR_SENDING status. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "broadcast";
+                            id: string;
+                            name: string;
+                            status: string;
+                            from: string | null;
+                            emailContent: {
+                                subject: string | null;
+                                text: string | null;
+                                html: string | null;
+                                previewText: string | null;
+                                json: {
+                                    [key: string]: unknown;
+                                } | null;
+                                styles: {
+                                    [key: string]: unknown;
+                                } | null;
+                            } | null;
+                            replyTo: string | null;
+                            topicId: string | null;
+                            segmentId: string | null;
+                            sendAt: string | null;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Broadcast is not ready to send. Missing required fields (subject, HTML, from address, send time) or sending domain is not verified. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:broadcasts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Broadcast with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Transactional Emails
+         * @description Retrieve a paginated list of transactional emails sent from your workspace.
+         *
+         *     **Use Cases:**
+         *     - Monitor transactional email delivery status
+         *     - Search for specific emails by recipient or subject
+         *     - Filter emails by status or date range
+         *     - Build email activity dashboards
+         *     - Debug delivery issues for specific recipients
+         *
+         *     **Behavior:**
+         *     - Returns emails in reverse chronological order (newest first)
+         *     - Uses cursor-based pagination for efficient retrieval
+         *     - Supports filtering by status, recipient, subject, and date range
+         *     - Maximum 100 emails per request
+         *     - Includes delivery tracking metadata (opens, clicks, bounces)
+         *
+         *     **Required Scope:** `smtp:send`
+         *
+         *     **Filtering:**
+         *     - **status:** Filter by delivery status (queued, sending, sent, delivered, bounced, complained, failed)
+         *     - **to:** Search by recipient email (case-insensitive partial match)
+         *     - **subject:** Search by subject line (case-insensitive partial match)
+         *     - **from_date:** Filter emails created on or after this date (ISO 8601)
+         *     - **to_date:** Filter emails created on or before this date (ISO 8601)
+         *
+         *     **Response Includes:**
+         *     - Email ID and sending ID
+         *     - Sender and recipient information
+         *     - Subject and delivery status
+         *     - Open and click counts
+         *     - Delivery lifecycle timestamps
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of items to return (default: 20, max: 100) */
+                    limit?: number;
+                    /** @description Cursor for pagination - ID of the last item from the previous page */
+                    after?: string;
+                    /** @description Cursor for reverse pagination - ID of the first item from the next page */
+                    before?: string;
+                    /** @description Filter by delivery status (e.g., delivered, bounced, complained) */
+                    status?: "QUEUED" | "SENDING" | "SENT" | "DELIVERED" | "BOUNCED" | "COMPLAINED" | "FAILED";
+                    /** @description Filter by recipient email address (case-insensitive partial match) */
+                    to?: string;
+                    /** @description Filter by subject line (case-insensitive partial match) */
+                    subject?: string;
+                    /** @description Filter emails created on or after this date (ISO 8601 format) */
+                    from_date?: string;
+                    /** @description Filter emails created on or before this date (ISO 8601 format) */
+                    to_date?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved paginated list of transactional emails with delivery metadata */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "transactional_email_list",
+                         *       "hasMore": true,
+                         *       "data": [
+                         *         {
+                         *           "id": "email_abc123xyz789",
+                         *           "sendingId": "snd_def456uvw012",
+                         *           "from": {
+                         *             "email": "noreply@yourdomain.com",
+                         *             "name": "Your App"
+                         *           },
+                         *           "to": "customer@example.com",
+                         *           "subject": "Your order has been confirmed",
+                         *           "status": "delivered",
+                         *           "openCount": 2,
+                         *           "clickCount": 1,
+                         *           "createdAt": "2024-01-15T10:30:00Z",
+                         *           "sentAt": "2024-01-15T10:30:05Z",
+                         *           "deliveredAt": "2024-01-15T10:30:08Z",
+                         *           "firstOpenedAt": "2024-01-15T11:00:00Z",
+                         *           "firstClickedAt": "2024-01-15T11:05:00Z",
+                         *           "bouncedAt": null
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "transactional_email_list";
+                            hasMore: boolean;
+                            data: {
+                                /** @description Unique email identifier */
+                                id: string;
+                                /** @description Internal sending ID for event correlation */
+                                sendingId: string;
+                                from: {
+                                    /** @description Sender email address */
+                                    email: string;
+                                    /** @description Sender display name */
+                                    name: string | null;
+                                };
+                                /** @description Recipient email address */
+                                to: string;
+                                /** @description Email subject line */
+                                subject: string;
+                                /** @description Delivery status (queued, sending, sent, delivered, bounced, complained, failed) */
+                                status: string;
+                                /** @description Total number of opens */
+                                openCount: number;
+                                /** @description Total number of clicks */
+                                clickCount: number;
+                                /** @description ISO 8601 timestamp when the email was created */
+                                createdAt: string;
+                                /** @description ISO 8601 timestamp when the email was sent */
+                                sentAt: string | null;
+                                /** @description ISO 8601 timestamp when the email was delivered */
+                                deliveredAt: string | null;
+                                /** @description ISO 8601 timestamp of first open */
+                                firstOpenedAt: string | null;
+                                /** @description ISO 8601 timestamp of first click */
+                                firstClickedAt: string | null;
+                                /** @description ISO 8601 timestamp when the email bounced */
+                                bouncedAt: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'smtp:send' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/emails/{emailId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Transactional Email
+         * @description Retrieve a specific transactional email by ID with full details.
+         *
+         *     **Use Cases:**
+         *     - View complete email metadata and tracking data
+         *     - Debug delivery issues for a specific email
+         *     - Check open/click tracking configuration
+         *     - Retrieve custom metadata and tags attached to the email
+         *     - Monitor email lifecycle (sent, delivered, opened, clicked, bounced)
+         *
+         *     **Behavior:**
+         *     - Returns complete email object with all metadata
+         *     - Includes reply-to, preview text, and tracking configuration
+         *     - Shows SMTP response details (last response code and message)
+         *     - Includes custom metadata and tags if attached
+         *     - Shows bounce classification if email bounced
+         *     - Email must belong to your workspace
+         *
+         *     **Required Scope:** `smtp:send`
+         *
+         *     **Response Includes:**
+         *     - Full sender and recipient details (from, to, replyTo)
+         *     - Email content metadata (subject, preview text)
+         *     - Delivery status and SMTP response details
+         *     - Tracking configuration (open and click tracking)
+         *     - Engagement metrics (open count, click count, unique links clicked)
+         *     - Complete delivery lifecycle timestamps
+         *     - Custom metadata and tags
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Transactional email ID */
+                    emailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved transactional email with full details and tracking data */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "transactional_email";
+                            /** @description Unique email identifier */
+                            id: string;
+                            /** @description Internal sending ID for event correlation */
+                            sendingId: string;
+                            from: {
+                                /** @description Sender email address */
+                                email: string;
+                                /** @description Sender display name */
+                                name: string | null;
+                            };
+                            /** @description Reply-to address if set */
+                            replyTo: {
+                                email: string;
+                                name: string | null;
+                            } | null;
+                            /** @description Recipient email address */
+                            to: string;
+                            /** @description Email subject line */
+                            subject: string;
+                            /** @description Preview text shown in inbox */
+                            previewText: string | null;
+                            /** @description Delivery status */
+                            status: string;
+                            /** @description Last SMTP response code */
+                            lastResponseCode: number | null;
+                            /** @description Last SMTP response message */
+                            lastResponseMessage: string | null;
+                            /** @description Bounce type classification if bounced */
+                            bounceClassification: string | null;
+                            /** @description Whether open tracking is enabled */
+                            openTrackingEnabled: boolean;
+                            /** @description Whether click tracking is enabled */
+                            clickTrackingEnabled: boolean;
+                            /** @description Custom metadata attached to the email */
+                            metadata: {
+                                [key: string]: unknown;
+                            } | null;
+                            /** @description Tags attached to the email */
+                            tags: string[] | null;
+                            /** @description Total number of opens */
+                            openCount: number;
+                            /** @description Total number of clicks */
+                            clickCount: number;
+                            /** @description Number of unique links clicked */
+                            uniqueLinksClicked: number;
+                            /** @description Total number of events for this email */
+                            totalEvents: number;
+                            /** @description ISO 8601 timestamp when the email was created */
+                            createdAt: string;
+                            /** @description ISO 8601 timestamp when the email was sent */
+                            sentAt: string | null;
+                            /** @description ISO 8601 timestamp when delivered */
+                            deliveredAt: string | null;
+                            /** @description ISO 8601 timestamp of first open */
+                            firstOpenedAt: string | null;
+                            /** @description ISO 8601 timestamp of first click */
+                            firstClickedAt: string | null;
+                            /** @description ISO 8601 timestamp when bounced */
+                            bouncedAt: string | null;
+                            /** @description ISO 8601 timestamp when spam complaint received */
+                            complainedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'smtp:send' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Email with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/emails/{emailId}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Transactional Email Events
+         * @description Retrieve the event timeline for a specific transactional email.
+         *
+         *     **Use Cases:**
+         *     - View the complete delivery lifecycle of an email
+         *     - Debug delivery issues by examining SMTP responses
+         *     - Track engagement events (opens, clicks) with geographic data
+         *     - Investigate bounce reasons and classifications
+         *     - Build detailed email activity logs
+         *
+         *     **Behavior:**
+         *     - Returns all events in chronological order (oldest first)
+         *     - Events include SMTP response details where applicable
+         *     - Open and click events include geographic and device information
+         *     - Bounce events include classification details
+         *     - Email must belong to your workspace
+         *
+         *     **Required Scope:** `smtp:send`
+         *
+         *     **Event Types:**
+         *     - **SENT:** Email accepted by the sending server
+         *     - **DELIVERED:** Email accepted by the recipient's mail server
+         *     - **OPENED:** Recipient opened the email (open tracking required)
+         *     - **CLICKED:** Recipient clicked a link (click tracking required)
+         *     - **BOUNCED:** Email was rejected or bounced
+         *     - **COMPLAINED:** Recipient marked email as spam
+         *
+         *     **Response Includes:**
+         *     - Event ID, type, and timestamp
+         *     - SMTP response details (code, content, command)
+         *     - Bounce classification for bounce events
+         *     - Geographic origin (country, city) for open/click events
+         *     - Device and browser information for open/click events
+         *     - Receiving mail server name
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Transactional email ID */
+                    emailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved event timeline for the transactional email */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "event_list",
+                         *       "emailId": "email_abc123xyz789",
+                         *       "sendingId": "snd_def456uvw012",
+                         *       "events": [
+                         *         {
+                         *           "id": "evt_001",
+                         *           "type": "SENT",
+                         *           "timestamp": "2024-01-15T10:30:05Z",
+                         *           "response": {
+                         *             "code": 250,
+                         *             "content": "OK",
+                         *             "command": "DATA"
+                         *           },
+                         *           "bounceClassification": null,
+                         *           "origin": null,
+                         *           "server": "mx.example.com"
+                         *         },
+                         *         {
+                         *           "id": "evt_002",
+                         *           "type": "DELIVERED",
+                         *           "timestamp": "2024-01-15T10:30:08Z",
+                         *           "response": {
+                         *             "code": 250,
+                         *             "content": "Message accepted",
+                         *             "command": null
+                         *           },
+                         *           "bounceClassification": null,
+                         *           "origin": null,
+                         *           "server": "mx.example.com"
+                         *         },
+                         *         {
+                         *           "id": "evt_003",
+                         *           "type": "OPENED",
+                         *           "timestamp": "2024-01-15T11:00:00Z",
+                         *           "response": null,
+                         *           "bounceClassification": null,
+                         *           "origin": {
+                         *             "country": "US",
+                         *             "city": "San Francisco",
+                         *             "device": "Desktop",
+                         *             "browser": "Chrome"
+                         *           },
+                         *           "server": null
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "event_list";
+                            /** @description ID of the email these events belong to */
+                            emailId: string;
+                            /** @description Sending ID for correlation */
+                            sendingId: string;
+                            events: {
+                                /** @description Unique event identifier */
+                                id: string;
+                                /** @description Event type (e.g., SENT, DELIVERED, OPENED, CLICKED, BOUNCED, COMPLAINED) */
+                                type: string;
+                                /** @description ISO 8601 timestamp of the event */
+                                timestamp: string;
+                                /** @description SMTP response details if applicable */
+                                response: {
+                                    /** @description SMTP response code */
+                                    code: number;
+                                    /** @description SMTP response content */
+                                    content: string | null;
+                                    /** @description SMTP command that triggered the response */
+                                    command: string | null;
+                                } | null;
+                                /** @description Bounce classification if this is a bounce event */
+                                bounceClassification: string | null;
+                                /** @description Geographic and device origin for open/click events */
+                                origin: {
+                                    /** @description Country of origin */
+                                    country: string | null;
+                                    /** @description City of origin */
+                                    city: string | null;
+                                    /** @description Device type */
+                                    device: string | null;
+                                    /** @description Browser name */
+                                    browser: string | null;
+                                } | null;
+                                /** @description Receiving mail server name */
+                                server: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'smtp:send' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Email with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/emails/{emailId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Transactional Email Content
+         * @description Retrieve the HTML and plain text content of a specific transactional email.
+         *
+         *     **Use Cases:**
+         *     - View the actual email content that was sent
+         *     - Debug rendering issues by examining HTML
+         *     - Retrieve email content for audit or compliance purposes
+         *     - Display sent email content in your application
+         *
+         *     **Behavior:**
+         *     - Returns the HTML and plain text versions of the email
+         *     - Content is retrieved from storage (S3)
+         *     - Returns 404 if email content is no longer available
+         *     - Content may be unavailable for very old emails (storage retention policy)
+         *     - Email must belong to your workspace
+         *
+         *     **Required Scope:** `smtp:send`
+         *
+         *     **Response Includes:**
+         *     - **html:** Full HTML content of the email (nullable if not available)
+         *     - **text:** Plain text version of the email (nullable if not provided)
+         *
+         *     **Content Availability:**
+         *     - Content is stored when the email is created
+         *     - Content may be purged after the retention period
+         *     - If both html and text are unavailable, a 404 is returned
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Transactional email ID */
+                    emailId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved email content (HTML and/or plain text) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "email_content",
+                         *       "html": "<html><body><h1>Hello John!</h1><p>Your order has been confirmed.</p></body></html>",
+                         *       "text": "Hello John!\n\nYour order has been confirmed."
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "email_content";
+                            /** @description HTML content of the email */
+                            html: string | null;
+                            /** @description Plain text content of the email */
+                            text: string | null;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'smtp:send' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Email with this ID does not exist or email content is no longer available */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/automations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Automations
+         * @description Retrieve a paginated list of all automations in your workspace.
+         *
+         *     **Use Cases:**
+         *     - View all automation workflows and their statuses
+         *     - Monitor active automations
+         *     - Build automation management dashboards
+         *     - Audit automation configurations
+         *     - Track automation versions
+         *
+         *     **Behavior:**
+         *     - Returns automations in reverse chronological order (newest first)
+         *     - Uses cursor-based pagination for efficient retrieval
+         *     - Includes automation metadata, trigger configuration, and status
+         *     - Shows only root automations (not version variants)
+         *     - Maximum 100 automations per request
+         *
+         *     **Required Scope:** `read:automations`
+         *
+         *     **Response Includes:**
+         *     - Automation ID, name, and description
+         *     - Current status (DRAFT, PUBLISHED, ARCHIVED)
+         *     - Trigger type and configuration
+         *     - Workflow nodes and edges
+         *     - Version number and parent ID
+         *     - Statistics and timestamps
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Number of items to return (default: 20, max: 100) */
+                    limit?: number;
+                    /** @description Cursor for pagination - ID of the last item from the previous page */
+                    after?: string;
+                    /** @description Cursor for reverse pagination - ID of the first item from the next page */
+                    before?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved paginated list of automations with metadata and trigger configuration */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "automation_list",
+                         *       "hasMore": false,
+                         *       "data": [
+                         *         {
+                         *           "id": "aut_abc123xyz789",
+                         *           "name": "Welcome Series",
+                         *           "description": "Sends a 3-part welcome email series to new subscribers",
+                         *           "status": "PUBLISHED",
+                         *           "version": 1,
+                         *           "parentId": null,
+                         *           "trigger": {
+                         *             "type": "contact.subscribed",
+                         *             "config": {}
+                         *           },
+                         *           "nodes": [],
+                         *           "edges": [],
+                         *           "stats": null,
+                         *           "publishedAt": "2024-01-15T10:00:00Z",
+                         *           "createdAt": "2024-01-10T08:30:00Z",
+                         *           "updatedAt": "2024-01-15T10:00:00Z"
+                         *         }
+                         *       ]
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "automation_list";
+                            hasMore: boolean;
+                            data: {
+                                id: string;
+                                name: string;
+                                description: string | null;
+                                /** @enum {string} */
+                                status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                                version: number;
+                                parentId: string | null;
+                                trigger: {
+                                    type: string;
+                                    config: {
+                                        [key: string]: unknown;
+                                    };
+                                };
+                                nodes: unknown[];
+                                edges: unknown[];
+                                stats: {
+                                    [key: string]: unknown;
+                                } | null;
+                                publishedAt: string | null;
+                                createdAt: string;
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create Automation
+         * @description Create a new automation workflow in your workspace.
+         *
+         *     **Use Cases:**
+         *     - Build automated email sequences triggered by contact behavior
+         *     - Create welcome series for new subscribers
+         *     - Set up re-engagement campaigns
+         *     - Build event-driven workflows
+         *     - Create drip campaigns based on contact activity
+         *
+         *     **Behavior:**
+         *     - Creates an automation in DRAFT status
+         *     - Trigger, nodes, and edges are optional at creation
+         *     - Validates that all edges reference existing nodes (if provided)
+         *     - Schema validation is lenient at creation — strict validation happens at publish time
+         *     - Returns the complete automation object with generated ID
+         *
+         *     **Required Scope:** `write:automations`
+         *
+         *     **Trigger Types:**
+         *     - **contact.subscribed:** Fires when a contact subscribes
+         *     - **contact.unsubscribed:** Fires when a contact unsubscribes
+         *     - **contact.created:** Fires when a new contact is created
+         *     - **contact.updated:** Fires when a contact is updated
+         *     - **event.fired:** Fires when a custom event is triggered
+         *     - **form.submitted:** Fires when a form is submitted
+         *     - **segment.entered:** Fires when a contact enters a segment
+         *     - **email.opened:** Fires when an email is opened
+         *     - **email.clicked:** Fires when a link is clicked
+         *     - **email.bounced:** Fires when an email bounces
+         *     - **email.complained:** Fires when a spam complaint is received
+         *
+         *     **Next Steps After Creation:**
+         *     1. Add nodes and edges to define the workflow
+         *     2. Configure trigger settings
+         *     3. Publish the automation via POST /v1/automations/{automationId}/publish
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "name": "Welcome Series",
+                     *       "description": "Sends a 3-part welcome email series to new subscribers",
+                     *       "trigger": {
+                     *         "type": "contact.subscribed",
+                     *         "config": {}
+                     *       },
+                     *       "nodes": [],
+                     *       "edges": []
+                     *     }
+                     */
+                    "application/json": {
+                        name: string;
+                        description?: string | null;
+                        trigger?: {
+                            /** @enum {string} */
+                            type: "CONTACT_SUBSCRIBED" | "PROPERTY_UPDATED" | "FORM_SUBMITTED" | "API" | "EVENT" | "SEGMENT_ENTRY" | "SEGMENT_EXIT" | "EMAIL_ENGAGEMENT";
+                            /** @default {} */
+                            config?: {
+                                segmentId?: string;
+                                eventName?: string;
+                                propertyName?: string;
+                                formId?: string;
+                                /** @enum {string} */
+                                emailEngagementType?: "open" | "click" | "bounce" | "spam";
+                            };
+                        };
+                        /** @default [] */
+                        nodes?: {
+                            id: string;
+                            /** @enum {string} */
+                            type: "contact-subscribed" | "contact-property-updated" | "form-filled" | "webhook-trigger" | "event" | "segment-entry" | "segment-exit" | "email-engagement" | "send-email" | "send-webhook" | "update-contact" | "unsubscribe-contact" | "add-to-topic" | "remove-from-topic" | "if-else" | "percentage-split" | "time-delay";
+                            position: {
+                                x: number;
+                                y: number;
+                            };
+                            /** @default {} */
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        }[];
+                        /** @default [] */
+                        edges?: {
+                            id: string;
+                            source: string;
+                            target: string;
+                            sourceHandle?: string | null;
+                            targetHandle?: string | null;
+                            type?: string;
+                            animated?: boolean;
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Automation created successfully in DRAFT status. Returns the complete automation object. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** @enum {string} */
+                            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                            version: number;
+                            parentId: string | null;
+                            trigger: {
+                                type: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            nodes: unknown[];
+                            edges: unknown[];
+                            stats: {
+                                [key: string]: unknown;
+                            } | null;
+                            publishedAt: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid input data, such as edges referencing non-existent nodes */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Invalid field values, such as name too long or invalid trigger type */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/automations/{automationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get Automation
+         * @description Retrieve a specific automation by ID with full details.
+         *
+         *     **Use Cases:**
+         *     - View automation configuration and workflow definition
+         *     - Check automation status before publishing
+         *     - Retrieve trigger configuration and node details
+         *     - Display automation details in your application
+         *     - Review automation before making changes
+         *
+         *     **Behavior:**
+         *     - Returns complete automation object with all fields
+         *     - Includes trigger configuration, nodes, and edges
+         *     - Shows current status and version information
+         *     - Includes statistics if the automation has been published
+         *     - Automation must belong to your workspace
+         *
+         *     **Required Scope:** `read:automations`
+         *
+         *     **Response Includes:**
+         *     - Automation ID, name, description, and status
+         *     - Trigger type and configuration
+         *     - Workflow nodes (actions, conditions, delays)
+         *     - Workflow edges (connections between nodes)
+         *     - Version number and parent ID
+         *     - Statistics (if available)
+         *     - Publication and creation timestamps
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Automation ID */
+                    automationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Successfully retrieved automation with full workflow definition */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** @enum {string} */
+                            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                            version: number;
+                            parentId: string | null;
+                            trigger: {
+                                type: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            nodes: unknown[];
+                            edges: unknown[];
+                            stats: {
+                                [key: string]: unknown;
+                            } | null;
+                            publishedAt: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'read:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Automation with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Update Automation
+         * @description Update an existing automation's configuration and workflow.
+         *
+         *     **Use Cases:**
+         *     - Modify automation trigger settings
+         *     - Add, remove, or update workflow nodes
+         *     - Change workflow connections (edges)
+         *     - Update automation name or description
+         *     - Iterate on draft automations before publishing
+         *
+         *     **Behavior:**
+         *     - Only provided fields are updated (partial updates supported)
+         *     - Only DRAFT automations can be updated
+         *     - Validates that all edges reference existing nodes (if both are provided)
+         *     - Schema validation is lenient — strict validation happens at publish time
+         *     - Returns the complete updated automation object
+         *
+         *     **Required Scope:** `write:automations`
+         *
+         *     **Updatable Fields:**
+         *     - **name:** Automation display name (1-100 characters)
+         *     - **description:** Automation description (max 500 characters)
+         *     - **trigger:** Trigger type and configuration
+         *     - **nodes:** Array of workflow nodes
+         *     - **edges:** Array of connections between nodes
+         *
+         *     **Note:** To update a published automation, create a new version and publish it. Published automations cannot be directly modified.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Automation ID */
+                    automationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "name": "Updated Welcome Series",
+                     *       "description": "Updated description for the welcome series",
+                     *       "trigger": {
+                     *         "type": "contact.subscribed",
+                     *         "config": {}
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        name?: string;
+                        description?: string | null;
+                        trigger?: {
+                            /** @enum {string} */
+                            type: "CONTACT_SUBSCRIBED" | "PROPERTY_UPDATED" | "FORM_SUBMITTED" | "API" | "EVENT" | "SEGMENT_ENTRY" | "SEGMENT_EXIT" | "EMAIL_ENGAGEMENT";
+                            /** @default {} */
+                            config?: {
+                                segmentId?: string;
+                                eventName?: string;
+                                propertyName?: string;
+                                formId?: string;
+                                /** @enum {string} */
+                                emailEngagementType?: "open" | "click" | "bounce" | "spam";
+                            };
+                        };
+                        nodes?: {
+                            id: string;
+                            /** @enum {string} */
+                            type: "contact-subscribed" | "contact-property-updated" | "form-filled" | "webhook-trigger" | "event" | "segment-entry" | "segment-exit" | "email-engagement" | "send-email" | "send-webhook" | "update-contact" | "unsubscribe-contact" | "add-to-topic" | "remove-from-topic" | "if-else" | "percentage-split" | "time-delay";
+                            position: {
+                                x: number;
+                                y: number;
+                            };
+                            /** @default {} */
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        }[];
+                        edges?: {
+                            id: string;
+                            source: string;
+                            target: string;
+                            sourceHandle?: string | null;
+                            targetHandle?: string | null;
+                            type?: string;
+                            animated?: boolean;
+                            data?: {
+                                [key: string]: unknown;
+                            };
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Automation updated successfully with refreshed configuration */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** @enum {string} */
+                            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                            version: number;
+                            parentId: string | null;
+                            trigger: {
+                                type: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            nodes: unknown[];
+                            edges: unknown[];
+                            stats: {
+                                [key: string]: unknown;
+                            } | null;
+                            publishedAt: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Cannot update published automation, or edges reference non-existent nodes */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Automation with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Invalid field values, such as name too long or invalid trigger type */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Delete Automation
+         * @description Delete an automation permanently.
+         *
+         *     **Use Cases:**
+         *     - Remove unused draft automations
+         *     - Clean up deprecated automations
+         *     - Delete test automations
+         *     - Remove automations after migration
+         *
+         *     **Behavior:**
+         *     - Only DRAFT or ARCHIVED automations can be deleted
+         *     - Published automations must be archived first
+         *     - Automation is permanently removed from the workspace
+         *     - Cannot be undone — automation is permanently deleted
+         *     - Returns the deleted automation's ID for confirmation
+         *
+         *     **Required Scope:** `write:automations`
+         *
+         *     **Restrictions:**
+         *     - Cannot delete PUBLISHED automations (archive first)
+         *     - Deletion is permanent and cannot be undone
+         *
+         *     **Important:**
+         *     - Archive published automations before deleting
+         *     - Contacts currently in the automation flow may be affected
+         *     - Historical automation data is removed
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Automation ID */
+                    automationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Automation deleted successfully. Returns the deleted automation's ID for confirmation. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "automation",
+                         *       "id": "aut_abc123xyz789"
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Cannot delete published automation. Archive it first. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Automation with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/automations/{automationId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish Automation
+         * @description Publish an automation to make it active and start processing triggers.
+         *
+         *     **Use Cases:**
+         *     - Activate a draft automation after configuration
+         *     - Go live with a new email workflow
+         *     - Re-publish an updated automation version
+         *
+         *     **Behavior:**
+         *     - Performs strict validation of the automation workflow
+         *     - Validates trigger configuration, node data, and flow structure
+         *     - Sets automation status to PUBLISHED
+         *     - Records publishedAt timestamp
+         *     - Automation begins processing matching triggers immediately
+         *     - Creates a new version if publishing an update to an existing automation
+         *
+         *     **Required Scope:** `write:automations`
+         *
+         *     **Validation at Publish Time:**
+         *     The following are validated strictly (unlike save, which is lenient):
+         *     - Trigger type is valid and configured
+         *     - All nodes have valid type and required data
+         *     - Flow structure is valid (connected graph, no orphan nodes)
+         *     - Email nodes have subject and content
+         *     - Delay nodes have valid durations
+         *     - Condition nodes have valid rules
+         *
+         *     **Prerequisites:**
+         *     - Automation must be in DRAFT status
+         *     - Must have a valid trigger configured
+         *     - Must pass all validation checks
+         *
+         *     **Note:** Publishing is immediate. The automation will start processing events as soon as it is published.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Automation ID to publish */
+                    automationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Automation published successfully. It is now active and processing triggers. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** @enum {string} */
+                            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                            version: number;
+                            parentId: string | null;
+                            trigger: {
+                                type: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            nodes: unknown[];
+                            edges: unknown[];
+                            stats: {
+                                [key: string]: unknown;
+                            } | null;
+                            publishedAt: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Automation failed validation. Check trigger configuration, node data, and flow structure. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Automation with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/automations/{automationId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Archive Automation
+         * @description Archive a published automation to stop it from processing triggers.
+         *
+         *     **Use Cases:**
+         *     - Temporarily disable an automation without deleting it
+         *     - Stop a published automation that is no longer needed
+         *     - Prepare an automation for deletion (published automations must be archived first)
+         *     - Pause an automation for review or updates
+         *
+         *     **Behavior:**
+         *     - Sets automation status to ARCHIVED
+         *     - Stops processing new triggers immediately
+         *     - Contacts currently in the automation flow may still complete their current step
+         *     - Archived automations can be viewed but not edited
+         *     - Create a new version to re-activate
+         *
+         *     **Required Scope:** `write:automations`
+         *
+         *     **Prerequisites:**
+         *     - Automation must be in PUBLISHED status
+         *     - Only published automations can be archived
+         *
+         *     **After Archiving:**
+         *     - Automation stops accepting new trigger events
+         *     - In-flight contacts may complete their current step
+         *     - Create a new version and publish to reactivate
+         *     - Archived automations can be deleted
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Automation ID to archive */
+                    automationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Automation archived successfully. It is no longer processing new triggers. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** @enum {string} */
+                            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                            version: number;
+                            parentId: string | null;
+                            trigger: {
+                                type: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            nodes: unknown[];
+                            edges: unknown[];
+                            stats: {
+                                [key: string]: unknown;
+                            } | null;
+                            publishedAt: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Automation is not in PUBLISHED status and cannot be archived */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Automation with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/automations/{automationId}/trigger": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Manually Trigger Automation
+         * @description Manually trigger an automation for testing or one-off execution.
+         *
+         *     **Use Cases:**
+         *     - Test an automation workflow with a specific contact
+         *     - Manually enroll a contact into an automation
+         *     - Trigger an automation outside of its normal trigger conditions
+         *     - Debug automation behavior with test contacts
+         *
+         *     **Behavior:**
+         *     - Enqueues the automation to run for the specified trigger event
+         *     - Automation must be in PUBLISHED status
+         *     - The trigger is processed asynchronously
+         *     - Returns immediately with confirmation
+         *     - Automation steps execute according to the workflow definition
+         *
+         *     **Required Scope:** `write:automations`
+         *
+         *     **Prerequisites:**
+         *     - Automation must be PUBLISHED
+         *     - Trigger data must match the automation's expected trigger type
+         *
+         *     **Note:** This endpoint is useful for testing and manual enrollment. For production use, automations are triggered automatically by the configured trigger events.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description Automation ID to trigger */
+                    automationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Automation triggered successfully. The workflow will execute asynchronously. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "automation";
+                            id: string;
+                            name: string;
+                            description: string | null;
+                            /** @enum {string} */
+                            status: "DRAFT" | "PUBLISHED" | "ARCHIVED";
+                            version: number;
+                            parentId: string | null;
+                            trigger: {
+                                type: string;
+                                config: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                            nodes: unknown[];
+                            edges: unknown[];
+                            stats: {
+                                [key: string]: unknown;
+                            } | null;
+                            publishedAt: string | null;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Automation is not in PUBLISHED status or trigger data is invalid */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Automation with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Fire Custom Event
+         * @description Fire a custom event to trigger automations and track contact activity.
+         *
+         *     **Use Cases:**
+         *     - Trigger automations based on custom application events
+         *     - Track user actions like purchases, page views, or feature usage
+         *     - Send behavioral data to trigger personalized email workflows
+         *     - Integrate your application events with email automation
+         *
+         *     **Behavior:**
+         *     - Event is fired for the specified contact
+         *     - Matching automations with event.fired trigger type are activated
+         *     - Event properties are available in automation conditions and email templates
+         *     - Events are processed asynchronously
+         *     - Returns immediately with confirmation
+         *
+         *     **Required Scope:** `write:contacts`
+         *
+         *     **Event Properties:**
+         *     - **eventName** (required): Unique event identifier (alphanumeric, underscores, hyphens, dots only)
+         *     - **contactId** (required): ID of the contact this event is for
+         *     - **properties** (optional): Key-value pairs of event data
+         *
+         *     **Event Name Conventions:**
+         *     Use dot notation for organizing events:
+         *     - `purchase.completed`
+         *     - `page.viewed`
+         *     - `feature.activated`
+         *     - `subscription.upgraded`
+         *
+         *     **Properties Usage:**
+         *     Properties can be used in automation conditions and email templates:
+         *     ```json
+         *     {
+         *       "eventName": "purchase.completed",
+         *       "contactId": "con_abc123",
+         *       "properties": {
+         *         "orderId": "ORD-12345",
+         *         "amount": 99.99,
+         *         "product": "Premium Plan"
+         *       }
+         *     }
+         *     ```
+         *
+         *     **Note:** Event names are case-sensitive. Use consistent naming conventions across your application.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    /**
+                     * @example {
+                     *       "eventName": "purchase.completed",
+                     *       "contactId": "con_abc123xyz789",
+                     *       "properties": {
+                     *         "orderId": "ORD-12345",
+                     *         "amount": 99.99,
+                     *         "product": "Premium Plan"
+                     *       }
+                     *     }
+                     */
+                    "application/json": {
+                        eventName: string;
+                        contactId: string;
+                        properties?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Event fired successfully. Matching automations will be triggered asynchronously. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        /**
+                         * @example {
+                         *       "object": "event",
+                         *       "eventName": "purchase.completed",
+                         *       "contactId": "con_abc123xyz789"
+                         *     }
+                         */
+                        "application/json": {
+                            /** @constant */
+                            object: "event";
+                            /** @description Name of the event that was fired */
+                            eventName: string;
+                            /** @description ID of the contact the event was fired for */
+                            contactId: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Invalid event name format or missing required fields */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:contacts' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Contact with the specified ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Validation Error - Invalid event name characters or contactId format */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY) */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing (starts with req_) */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field (e.g., INVALID_FIELD_VALUE) */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                                /** @description Additional error context (optional) */
+                                details?: {
+                                    [key: string]: unknown;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

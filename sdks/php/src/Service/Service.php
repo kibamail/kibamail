@@ -3,10 +3,15 @@
 namespace Kibamail\Service;
 
 use Kibamail\ApiKey;
+use Kibamail\Automation;
+use Kibamail\Broadcast;
 use Kibamail\Collection;
 use Kibamail\Contact;
 use Kibamail\ContactProperty;
 use Kibamail\Contracts\Transporter;
+use Kibamail\Domain;
+use Kibamail\Email;
+use Kibamail\Event;
 use Kibamail\Form;
 use Kibamail\Resource;
 use Kibamail\Segment;
@@ -24,6 +29,11 @@ abstract class Service
         'forms' => Form::class,
         'api-keys' => ApiKey::class,
         'contact-properties' => ContactProperty::class,
+        'emails' => Email::class,
+        'domains' => Domain::class,
+        'broadcasts' => Broadcast::class,
+        'automations' => Automation::class,
+        'events' => Event::class,
     ];
 
     /**
