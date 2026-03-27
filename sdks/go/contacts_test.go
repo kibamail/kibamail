@@ -156,7 +156,7 @@ func TestContactsSearch(t *testing.T) {
 
 	t.Run("should search contacts with simple filter", func(t *testing.T) {
 		result, err := client.Contacts.Search(&SearchContactRequest{
-			Conditions: map[string]interface{}{
+			Filters: map[string]interface{}{
 				"$and": []map[string]interface{}{
 					{
 						"field":    "status",
@@ -174,7 +174,7 @@ func TestContactsSearch(t *testing.T) {
 
 	t.Run("should search contacts with complex filters", func(t *testing.T) {
 		result, err := client.Contacts.Search(&SearchContactRequest{
-			Conditions: map[string]interface{}{
+			Filters: map[string]interface{}{
 				"$and": []interface{}{
 					map[string]interface{}{
 						"field":    "status",
@@ -206,7 +206,7 @@ func TestContactsSearch(t *testing.T) {
 
 	t.Run("should search contacts with pagination", func(t *testing.T) {
 		result, err := client.Contacts.Search(&SearchContactRequest{
-			Conditions: map[string]interface{}{
+			Filters: map[string]interface{}{
 				"$and": []map[string]interface{}{
 					{
 						"field":    "email",
