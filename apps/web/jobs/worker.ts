@@ -24,6 +24,9 @@ import { checkTrackingDns } from "./sending-domains/check-tracking-dns";
 import { checkVerification } from "./sending-domains/check-verification";
 import { issueTrackingSsl } from "./sending-domains/issue-tracking-ssl";
 import { renewExpiringSsl } from "./sending-domains/renew-expiring-ssl";
+import { evaluateTriggers } from "./automations/evaluate-triggers";
+import { executeStep } from "./automations/execute-step";
+import { pauseAutomation } from "./automations/pause-automation";
 
 const logger = queueLogger.child({ worker: "unified" });
 const METRICS_PORT = process.env.METRICS_PORT || 9090;
@@ -120,6 +123,15 @@ configureWorker("webhooks", {
   concurrency: 10,
 });
 
+configureWorker("automations", {
+  processors: {
+    "evaluate-triggers": evaluateTriggers,
+    "execute-step": executeStep,
+    "pause-automation": pauseAutomation,
+  },
+  concurrency: 10,
+});
+
 // ============================================================
 // Start all workers
 // ============================================================
@@ -136,6 +148,7 @@ const queues = [
   "mta",
   "maintenance",
   "webhooks",
+  "automations",
 ] as const;
 
 for (const queueName of queues) {

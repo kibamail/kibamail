@@ -660,6 +660,8 @@ model AutomationRun {
   /// Metadata about the run (entry trigger data, custom attributes, execution history, etc.)
   /// @example {"entrySource": "segment", "segmentId": "seg_123", "nodeExecutions": [{...}]}
   metadata       Json?
+  /// BullMQ job ID for the currently pending execute-step job (for cancellation on pause)
+  pendingJobId   String?
   /// When the run was created
   createdAt      DateTime            @default(now())
   /// When the run was last updated
@@ -669,10 +671,10 @@ model AutomationRun {
   /// Contact
   contact        Contact             @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
-  @@unique([automationId, contactId])
   @@index([workspaceId])
   @@index([automationId])
   @@index([contactId])
+  @@index([automationId, contactId])
   @@index([status])
   @@index([currentNodeId])
   @@index([startedAt])

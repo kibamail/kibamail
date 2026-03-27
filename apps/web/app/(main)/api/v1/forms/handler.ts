@@ -3,6 +3,8 @@
  *
  * Business logic for form CRUD operations.
  * Workspace is automatically determined from the API key.
+ *
+ * Content (HTML) is uploaded via the deploy endpoint, not here.
  */
 
 import type { NextRequest } from "next/server";
@@ -25,32 +27,26 @@ import {
 } from "@/lib/forms/field-mapping";
 import {
   type ApiFieldMapping,
-  validateSpecFieldMapping,
-} from "@/lib/json-render/validation";
+  validateHtmlFieldMapping,
+} from "@/lib/forms/html-validation";
 import { createFormSchema, updateFormSchema } from "./schema";
+
+/**
+ * Content stored in the `fields` column after deploy.
+ */
+interface FormContent {
+  html: string;
+  deployId: string;
+  files: Array<{ name: string; url: string; size: number; type: string }>;
+}
 
 /**
  * POST /api/v1/forms
  *
- * Create a new form for the workspace.
- * Workspace is determined from the authenticated API key.
+ * Create a new form. Content is uploaded separately via the deploy endpoint.
  */
 export async function createForm(workspaceId: string, request: NextRequest) {
   const data = await validateRequestBody(createFormSchema, request);
-
-  // Validate spec ↔ fieldMapping consistency
-  const validationResult = validateSpecFieldMapping(
-    data.spec as never,
-    data.fieldMapping,
-    data.type ?? "SIGN_UP",
-  );
-
-  if (!validationResult.valid) {
-    throw new BadRequestError(
-      validationResult.errors.map((e) => e.message).join("; "),
-      ErrorCode.FORM_VALIDATION_ERROR,
-    );
-  }
 
   const formId = crypto.randomUUID();
 
@@ -62,7 +58,6 @@ export async function createForm(workspaceId: string, request: NextRequest) {
       description: data.description,
       type: data.type,
       display: data.display,
-      fields: data.spec as never,
       fieldMapping: data.fieldMapping as never,
       settings: (data.settings ?? {}) as never,
       status: "DRAFT",
@@ -70,26 +65,13 @@ export async function createForm(workspaceId: string, request: NextRequest) {
     },
   });
 
-  return responseCreated(
-    {
-      id: form.id,
-    },
-    "form",
-  );
+  return responseCreated({ id: form.id }, "form");
 }
 
 /**
  * GET /api/v1/forms
  *
  * List all root forms for the workspace with cursor-based pagination.
- * Only returns top-level forms (parentId is null).
- * Use GET /v1/forms/{formId}/versions to get versions of a specific form.
- * Workspace is determined from the authenticated API key.
- *
- * Supports cursor-based pagination with:
- * - after: Cursor to fetch forms after this ID
- * - before: Cursor to fetch forms before this ID
- * - limit: Number of forms per page (default 20, max 100)
  */
 export async function listForms(workspaceId: string, request: NextRequest) {
   const { limit, after, before } = parseCursorPaginationParams(request);
@@ -97,7 +79,7 @@ export async function listForms(workspaceId: string, request: NextRequest) {
   const baseQuery = {
     where: {
       workspaceId,
-      parentId: null, // Only root forms
+      parentId: null,
     },
     orderBy: before ? { id: "asc" as const } : { id: "desc" as const },
     take: limit + 1,
@@ -142,20 +124,17 @@ export async function listForms(workspaceId: string, request: NextRequest) {
  * GET /api/v1/forms/[formId]
  *
  * Get a specific form by ID.
- * Workspace is determined from the authenticated API key.
- * Returns 404 if form not found or belongs to a different workspace.
  */
 export async function getForm(workspaceId: string, formId: string) {
   const form = await prisma.form.findFirst({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
   });
 
   if (!form) {
     throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
+
+  const content = form.fields as FormContent | null;
 
   return responseOk(
     {
@@ -166,7 +145,9 @@ export async function getForm(workspaceId: string, formId: string) {
       display: form.display,
       status: form.status,
       version: form.version,
-      spec: form.fields,
+      html: content?.html ?? null,
+      deployId: content?.deployId ?? null,
+      deployedFiles: content?.files ?? null,
       fieldMapping: form.fieldMapping,
       settings: form.settings,
       seoTitle: form.seoTitle,
@@ -186,17 +167,10 @@ export async function getForm(workspaceId: string, formId: string) {
  * GET /api/v1/forms/[formId]/versions
  *
  * List all versions of a specific form.
- * Returns the root form and all its child versions.
- * Workspace is determined from the authenticated API key.
  */
 export async function listFormVersions(workspaceId: string, formId: string) {
-  // First verify the root form exists and belongs to this workspace
   const rootForm = await prisma.form.findFirst({
-    where: {
-      id: formId,
-      workspaceId,
-      parentId: null, // Must be a root form
-    },
+    where: { id: formId, workspaceId, parentId: null },
   });
 
   if (!rootForm) {
@@ -206,15 +180,12 @@ export async function listFormVersions(workspaceId: string, formId: string) {
     );
   }
 
-  // Get all versions (including root form)
   const versions = await prisma.form.findMany({
     where: {
       workspaceId,
       OR: [{ id: formId }, { parentId: formId }],
     },
-    orderBy: {
-      version: "asc",
-    },
+    orderBy: { version: "asc" },
   });
 
   const formattedVersions = versions.map((version) => ({
@@ -236,21 +207,15 @@ export async function listFormVersions(workspaceId: string, formId: string) {
 /**
  * PUT /api/v1/forms/[formId]
  *
- * Update a specific form by ID.
- * Only DRAFT forms can be edited.
- * Workspace is determined from the authenticated API key.
+ * Update a specific form by ID. Only DRAFT forms can be edited.
  */
 export async function updateForm(
   workspaceId: string,
   formId: string,
   request: NextRequest,
 ) {
-  // Check if form exists and is in DRAFT status
   const existingForm = await prisma.form.findFirst({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
   });
 
   if (!existingForm) {
@@ -266,36 +231,29 @@ export async function updateForm(
 
   const data = await validateRequestBody(updateFormSchema, request);
 
-  // If spec or fieldMapping is being updated, re-validate consistency
-  const newSpec = data.spec ?? existingForm.fields;
-  const newFieldMapping =
-    (data.fieldMapping as ApiFieldMapping | undefined) ??
-    (existingForm.fieldMapping as ApiFieldMapping | null);
-  const newType = data.type ?? existingForm.type;
-
-  if (newFieldMapping) {
-    const validationResult = validateSpecFieldMapping(
-      newSpec as never,
-      newFieldMapping,
-      newType,
-    );
-
-    if (!validationResult.valid) {
-      throw new BadRequestError(
-        validationResult.errors.map((e) => e.message).join("; "),
-        ErrorCode.FORM_VALIDATION_ERROR,
+  // If fieldMapping changes and form has deployed HTML, re-validate
+  if (data.fieldMapping) {
+    const content = existingForm.fields as FormContent | null;
+    if (content?.html) {
+      const newType = data.type ?? existingForm.type;
+      const validation = validateHtmlFieldMapping(
+        content.html,
+        data.fieldMapping as ApiFieldMapping,
+        newType,
       );
+      if (!validation.valid) {
+        throw new BadRequestError(
+          validation.errors.map((e) => e.message).join("; "),
+          ErrorCode.FORM_VALIDATION_ERROR,
+        );
+      }
     }
   }
 
-  // Validate slug uniqueness within the workspace if slug is being updated
+  // Validate slug uniqueness
   if (data.slug !== undefined && data.slug !== null && data.slug !== "") {
     const existingFormWithSlug = await prisma.form.findFirst({
-      where: {
-        workspaceId,
-        slug: data.slug,
-        id: { not: formId },
-      },
+      where: { workspaceId, slug: data.slug, id: { not: formId } },
     });
 
     if (existingFormWithSlug) {
@@ -307,16 +265,12 @@ export async function updateForm(
   }
 
   const updatedForm = await prisma.form.update({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
     data: {
       ...(data.name !== undefined && { name: data.name }),
       ...(data.description !== undefined && { description: data.description }),
       ...(data.type !== undefined && { type: data.type }),
       ...(data.display !== undefined && { display: data.display }),
-      ...(data.spec !== undefined && { fields: data.spec as never }),
       ...(data.fieldMapping !== undefined && {
         fieldMapping: data.fieldMapping as never,
       }),
@@ -336,37 +290,23 @@ export async function updateForm(
     },
   });
 
-  return responseOk(
-    {
-      id: updatedForm.id,
-    },
-    "form",
-  );
+  return responseOk({ id: updatedForm.id }, "form");
 }
 
 /**
  * DELETE /api/v1/forms/[formId]
  *
- * Delete a specific form by ID.
- * Only forms in DRAFT status can be deleted.
- * Workspace is determined from the authenticated API key.
- * Returns 404 if form not found or belongs to a different workspace.
- * Cascade deletes all form submissions and child versions (if root form).
+ * Delete a specific form by ID. Only DRAFT forms can be deleted.
  */
 export async function deleteForm(workspaceId: string, formId: string) {
-  // Find the form first to check if it's a root form
   const form = await prisma.form.findFirst({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
   });
 
   if (!form) {
     throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
-  // Only allow deletion of DRAFT forms
   if (form.status !== "DRAFT") {
     throw new BadRequestError(
       "Only forms in DRAFT status can be deleted. Published or archived forms cannot be deleted.",
@@ -374,79 +314,46 @@ export async function deleteForm(workspaceId: string, formId: string) {
     );
   }
 
-  // If it's a root form (parentId=null), delete all child versions first
   if (!form.parentId) {
-    // Clear publishedVersionId on root form to avoid circular reference
     await prisma.form.updateMany({
-      where: {
-        id: formId,
-        workspaceId,
-      },
-      data: {
-        publishedVersionId: null,
-      },
+      where: { id: formId, workspaceId },
+      data: { publishedVersionId: null },
     });
 
-    // Delete all child versions (forms where parentId = formId)
     await prisma.form.deleteMany({
-      where: {
-        parentId: formId,
-        workspaceId,
-      },
+      where: { parentId: formId, workspaceId },
     });
   }
 
-  // Delete the form itself
   const deletedForm = await prisma.form.delete({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
   });
 
-  return responseOk(
-    {
-      id: deletedForm.id,
-    },
-    "form",
-  );
+  return responseOk({ id: deletedForm.id }, "form");
 }
 
 /**
  * POST /api/v1/forms/[formId]/versions
  *
- * Create a new version of a form.
- * All fields are optional - if not provided, they are derived from the parent form.
- * New version is created with status DRAFT and incremented version number.
- * Workspace is determined from the authenticated API key.
+ * Create a new version of a form. Inherits content from the parent.
  */
 export async function createFormVersion(
   workspaceId: string,
   formId: string,
   request: NextRequest,
 ) {
-  // Find the source form
   const sourceForm = await prisma.form.findFirst({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
   });
 
   if (!sourceForm) {
     throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
-  // Determine the root parent ID
   const rootParentId = sourceForm.parentId || sourceForm.id;
 
-  // Check if a DRAFT version already exists for this parent
   const existingDraft = await prisma.form.findFirst({
-    where: {
-      parentId: rootParentId,
-      status: "DRAFT",
-      workspaceId,
-    },
+    where: { parentId: rootParentId, status: "DRAFT", workspaceId },
   });
 
   if (existingDraft) {
@@ -461,9 +368,7 @@ export async function createFormVersion(
       OR: [{ id: rootParentId }, { parentId: rootParentId }],
       workspaceId,
     },
-    select: {
-      version: true,
-    },
+    select: { version: true },
   });
 
   const maxVersion = Math.max(...allVersions.map((v) => v.version));
@@ -471,28 +376,9 @@ export async function createFormVersion(
 
   const data = await validateRequestBody(updateFormSchema, request);
 
-  // Use provided spec/fieldMapping or fall back to source form's
-  const newSpec = data.spec ?? sourceForm.fields;
   const newFieldMapping =
     (data.fieldMapping as ApiFieldMapping | undefined) ??
     (sourceForm.fieldMapping as ApiFieldMapping | null);
-  const newType = data.type ?? sourceForm.type;
-
-  // Validate spec ↔ fieldMapping if we have both
-  if (newFieldMapping) {
-    const validationResult = validateSpecFieldMapping(
-      newSpec as never,
-      newFieldMapping,
-      newType,
-    );
-
-    if (!validationResult.valid) {
-      throw new BadRequestError(
-        validationResult.errors.map((e) => e.message).join("; "),
-        ErrorCode.FORM_VALIDATION_ERROR,
-      );
-    }
-  }
 
   const newVersion = await prisma.form.create({
     data: {
@@ -501,9 +387,9 @@ export async function createFormVersion(
       version: nextVersion,
       name: data.name ?? sourceForm.name,
       description: data.description ?? sourceForm.description,
-      type: newType,
+      type: data.type ?? sourceForm.type,
       display: data.display ?? sourceForm.display,
-      fields: newSpec as never,
+      fields: sourceForm.fields as never,
       fieldMapping: newFieldMapping as never,
       settings: (data.settings ?? sourceForm.settings) as never,
       status: "DRAFT",
@@ -515,38 +401,23 @@ export async function createFormVersion(
     },
   });
 
-  return responseCreated(
-    {
-      id: newVersion.id,
-    },
-    "form",
-  );
+  return responseCreated({ id: newVersion.id }, "form");
 }
 
 /**
  * POST /api/v1/forms/[formId]/publish
  *
- * Publish a form.
- * - For root forms (parentId=null): Sets status to PUBLISHED and publishedVersionId to self
- * - For versions (parentId!=null): Archives old published version, publishes new version, updates root's publishedVersionId
- * - Runs spec ↔ fieldMapping validation before publishing
- * - Generates slot mapping at publish time for form submissions
- * Workspace is determined from the authenticated API key.
+ * Publish a form. Requires deployed content (HTML).
  */
 export async function publishForm(workspaceId: string, formId: string) {
-  // Find the form to publish
   const form = await prisma.form.findFirst({
-    where: {
-      id: formId,
-      workspaceId,
-    },
+    where: { id: formId, workspaceId },
   });
 
   if (!form) {
     throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
-  // Check if already published
   if (form.status === "PUBLISHED") {
     throw new BadRequestError(
       "Form is already published",
@@ -554,62 +425,72 @@ export async function publishForm(workspaceId: string, formId: string) {
     );
   }
 
-  const apiFieldMapping = form.fieldMapping as ApiFieldMapping | null;
-
-  if (!apiFieldMapping || Object.keys(apiFieldMapping).length === 0) {
+  // Require deployed content
+  const content = form.fields as FormContent | null;
+  if (!content?.html) {
     throw new BadRequestError(
-      "Cannot publish a form without a fieldMapping. Provide a fieldMapping when creating or updating the form.",
+      "Cannot publish a form without deployed content. Use the deploy endpoint to upload your site bundle first.",
       ErrorCode.FORM_NO_FIELDS,
     );
   }
 
-  // Run full spec ↔ fieldMapping validation
-  const validationResult = validateSpecFieldMapping(
-    form.fields as never,
+  const apiFieldMapping = form.fieldMapping as ApiFieldMapping | null;
+
+  if (!apiFieldMapping || Object.keys(apiFieldMapping).length === 0) {
+    throw new BadRequestError(
+      "Cannot publish a form without a fieldMapping.",
+      ErrorCode.FORM_NO_FIELDS,
+    );
+  }
+
+  // Validate HTML + fieldMapping
+  const validation = validateHtmlFieldMapping(
+    content.html,
     apiFieldMapping,
     form.type,
   );
-
-  if (!validationResult.valid) {
+  if (!validation.valid) {
     throw new BadRequestError(
-      validationResult.errors.map((e) => e.message).join("; "),
+      validation.errors.map((e) => e.message).join("; "),
       ErrorCode.FORM_VALIDATION_ERROR,
     );
   }
 
   // Root form (first publish)
   if (!form.parentId) {
-    // Generate slot mapping from the API field mapping
+    const rawMapping = form.fieldMapping as Record<string, unknown> | null;
+    const firstEntry = rawMapping ? Object.values(rawMapping)[0] as Record<string, unknown> | undefined : undefined;
+    const hasSlots = firstEntry && typeof firstEntry.slot === "string";
+    const existingSlotMapping = hasSlots ? (rawMapping as unknown as FormFieldMapping) : null;
+
     const slotMapping = generateFieldMappingFromApiMapping(
       apiFieldMapping,
-      null,
+      existingSlotMapping,
     );
 
-    const updatedForm = await prisma.form.update({
-      where: {
-        id: formId,
-        workspaceId,
-      },
-      data: {
-        status: "PUBLISHED",
-        publishedVersionId: formId, // Self-reference
-        publishedAt: new Date(),
-        fieldMapping: slotMapping as never,
-      },
+    await prisma.$transaction(async (tx) => {
+      await tx.form.updateMany({
+        where: { parentId: formId, status: "PUBLISHED", workspaceId },
+        data: { status: "ARCHIVED" },
+      });
+
+      await tx.form.update({
+        where: { id: formId, workspaceId },
+        data: {
+          status: "PUBLISHED",
+          publishedVersionId: formId,
+          publishedAt: new Date(),
+          fieldMapping: slotMapping as never,
+        },
+      });
     });
 
-    return responseOk(
-      {
-        id: updatedForm.id,
-      },
-      "form",
-    );
+    return responseOk({ id: formId }, "form");
   }
 
-  // Version form - need to handle publishing logic
+  // Version form
   const rootParentId = form.parentId;
 
-  // Get the root form to access existing slot mapping
   const rootForm = await prisma.form.findUnique({
     where: { id: rootParentId },
   });
@@ -618,54 +499,33 @@ export async function publishForm(workspaceId: string, formId: string) {
     throw new NotFoundError("Parent form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
-  // Generate slot mapping, preserving existing slot assignments from root form
-  const existingSlotMapping =
-    rootForm.fieldMapping as FormFieldMapping | null;
+  const existingSlotMapping = rootForm.fieldMapping as FormFieldMapping | null;
   const slotMapping = generateFieldMappingFromApiMapping(
     apiFieldMapping,
     existingSlotMapping,
   );
 
-  // Find currently published version for this parent
   const currentlyPublished = await prisma.form.findFirst({
-    where: {
-      parentId: rootParentId,
-      status: "PUBLISHED",
-      workspaceId,
-    },
+    where: { parentId: rootParentId, status: "PUBLISHED", workspaceId },
   });
 
-  // Use a transaction to ensure atomic updates
   await prisma.$transaction(async (tx) => {
-    // Archive the currently published version if exists (child version)
     if (currentlyPublished) {
       await tx.form.update({
-        where: {
-          id: currentlyPublished.id,
-        },
-        data: {
-          status: "ARCHIVED",
-        },
+        where: { id: currentlyPublished.id },
+        data: { status: "ARCHIVED" },
       });
     }
 
-    // Archive the root form if it's currently published
     if (rootForm.status === "PUBLISHED") {
       await tx.form.update({
-        where: {
-          id: rootParentId,
-        },
-        data: {
-          status: "ARCHIVED",
-        },
+        where: { id: rootParentId },
+        data: { status: "ARCHIVED" },
       });
     }
 
-    // Publish the new version with slot mapping
     await tx.form.update({
-      where: {
-        id: formId,
-      },
+      where: { id: formId },
       data: {
         status: "PUBLISHED",
         publishedAt: new Date(),
@@ -673,11 +533,8 @@ export async function publishForm(workspaceId: string, formId: string) {
       },
     });
 
-    // Update root form's publishedVersionId and slot mapping
     await tx.form.update({
-      where: {
-        id: rootParentId,
-      },
+      where: { id: rootParentId },
       data: {
         publishedVersionId: formId,
         fieldMapping: slotMapping as never,
@@ -685,10 +542,5 @@ export async function publishForm(workspaceId: string, formId: string) {
     });
   });
 
-  return responseOk(
-    {
-      id: formId,
-    },
-    "form",
-  );
+  return responseOk({ id: formId }, "form");
 }

@@ -9,7 +9,7 @@
  * - New versions inherit parent mappings and only assign new slots for new fields
  */
 
-import type { ApiFieldMapping } from "@/lib/json-render/validation";
+import type { ApiFieldMapping } from "@/lib/forms/html-validation";
 
 // Maximum slots available
 const MAX_STRING_SLOTS = 40;

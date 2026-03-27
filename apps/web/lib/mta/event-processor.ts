@@ -12,6 +12,7 @@ import { queueLogger } from "@/lib/queue";
 import type { EmailEvent } from "./event-types";
 import { mapEventType } from "./event-types";
 import { dispatchWebhook, dispatchWebhookBulk } from "@/webhooks";
+import { dispatchAutomationEvent } from "@/lib/automations/dispatch";
 
 const logger = queueLogger.child({ module: "mta-event-processor" });
 
@@ -644,6 +645,24 @@ async function updateBroadcastSendStatus(events: EmailEvent[]): Promise<void> {
             responseCode: lastResponseCode ?? 500,
             responseMessage: lastResponseMessage ?? "Failed",
           });
+        }
+
+        // Dispatch automation triggers for email engagement
+        const engagementContactId = sendingEvents[0]?.contact_id;
+        if (engagementContactId) {
+          const engagementType = wasBounced
+            ? "bounce"
+            : wasComplained
+              ? "spam"
+              : null;
+          if (engagementType) {
+            await dispatchAutomationEvent(workspaceId, "email.engagement", {
+              contactId: engagementContactId,
+              engagementType: engagementType as "bounce" | "spam",
+              sendingId,
+              broadcastId,
+            });
+          }
         }
       }
     } catch (error) {

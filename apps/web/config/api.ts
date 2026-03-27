@@ -209,6 +209,111 @@ export const API_SCOPES: ApiScopeDefinition[] = [
     description: "Create and schedule broadcasts",
     category: "Broadcasts",
   },
+
+  // ============================================================================
+  // FORMS
+  // ============================================================================
+  {
+    name: "read:forms",
+    description: "View forms and their details",
+    category: "Forms",
+  },
+  {
+    name: "write:forms",
+    description: "Create, deploy, and publish forms",
+    category: "Forms",
+  },
+  {
+    name: "update:forms",
+    description: "Update existing forms",
+    category: "Forms",
+  },
+  {
+    name: "delete:forms",
+    description: "Delete forms",
+    category: "Forms",
+  },
+
+  // ============================================================================
+  // SENDING DOMAINS
+  // ============================================================================
+  {
+    name: "read:domains",
+    description: "View sending domains and DNS records",
+    category: "Sending Domains",
+  },
+  {
+    name: "write:domains",
+    description: "Add new sending domains",
+    category: "Sending Domains",
+  },
+  {
+    name: "update:domains",
+    description: "Update domain settings and verify DNS",
+    category: "Sending Domains",
+  },
+  {
+    name: "delete:domains",
+    description: "Remove sending domains",
+    category: "Sending Domains",
+  },
+
+  // ============================================================================
+  // CONTACT PROPERTIES
+  // ============================================================================
+  {
+    name: "read:contact-properties",
+    description: "View custom contact properties",
+    category: "Contact Properties",
+  },
+  {
+    name: "write:contact-properties",
+    description: "Create custom contact properties",
+    category: "Contact Properties",
+  },
+  {
+    name: "update:contact-properties",
+    description: "Update custom contact properties",
+    category: "Contact Properties",
+  },
+  {
+    name: "delete:contact-properties",
+    description: "Delete custom contact properties",
+    category: "Contact Properties",
+  },
+
+  // ============================================================================
+  // AUTOMATIONS
+  // ============================================================================
+  {
+    name: "read:automations",
+    description: "View automations and their details",
+    category: "Automations",
+  },
+  {
+    name: "write:automations",
+    description: "Create, trigger, and publish automations",
+    category: "Automations",
+  },
+  {
+    name: "delete:automations",
+    description: "Delete automations",
+    category: "Automations",
+  },
+
+  // ============================================================================
+  // INBOX
+  // ============================================================================
+  {
+    name: "read:inbox",
+    description: "View inbox conversations",
+    category: "Inbox",
+  },
+  {
+    name: "write:inbox",
+    description: "Reply to and manage conversations",
+    category: "Inbox",
+  },
 ];
 
 /**

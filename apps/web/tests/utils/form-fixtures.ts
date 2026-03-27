@@ -1,30 +1,12 @@
-import type { ApiFieldMapping } from "@/lib/json-render/validation";
+import type { ApiFieldMapping } from "@/lib/forms/html-validation";
 
 /**
- * Valid json-render spec with email field for testing.
+ * Valid form HTML with email field for testing.
  */
-export const validFormSpec = {
-  root: "form",
-  elements: {
-    form: {
-      type: "FormRoot",
-      props: { submitLabel: "Submit", loadingLabel: "Submitting..." },
-      children: ["email-field"],
-    },
-    "email-field": {
-      type: "Input",
-      props: {
-        name: "email",
-        label: "Email",
-        type: "email",
-        checks: [
-          { type: "required", message: "Email is required" },
-          { type: "email", message: "Invalid email" },
-        ],
-      },
-    },
-  },
-};
+export const validFormHtml = `<form>
+  <input type="email" name="email" required />
+  <button type="submit">Submit</button>
+</form>`;
 
 export const validFormFieldMapping: ApiFieldMapping = {
   email: {
@@ -35,34 +17,24 @@ export const validFormFieldMapping: ApiFieldMapping = {
 };
 
 /**
- * Multi-field form spec for comprehensive testing.
+ * Form content object as stored in the `fields` column.
  */
-export const multiFieldFormSpec = {
-  root: "form",
-  elements: {
-    form: {
-      type: "FormRoot",
-      props: { submitLabel: "Submit" },
-      children: ["email-field", "name-field", "phone-field", "rating-field"],
-    },
-    "email-field": {
-      type: "Input",
-      props: { name: "email", label: "Email", type: "email" },
-    },
-    "name-field": {
-      type: "Input",
-      props: { name: "name", label: "Full Name" },
-    },
-    "phone-field": {
-      type: "Input",
-      props: { name: "phone", label: "Phone" },
-    },
-    "rating-field": {
-      type: "Rating",
-      props: { name: "rating", label: "Rate us", maxRating: 5 },
-    },
-  },
+export const validFormContent = {
+  html: validFormHtml,
+  deployId: "test-deploy",
+  files: [],
 };
+
+/**
+ * Multi-field form for comprehensive testing.
+ */
+export const multiFieldFormHtml = `<form>
+  <input type="email" name="email" />
+  <input type="text" name="name" />
+  <input type="tel" name="phone" />
+  <input type="number" name="rating" />
+  <button type="submit">Submit</button>
+</form>`;
 
 export const multiFieldFormFieldMapping: ApiFieldMapping = {
   email: {
@@ -87,31 +59,21 @@ export const multiFieldFormFieldMapping: ApiFieldMapping = {
   },
 };
 
-/**
- * Sign-up form spec for submission testing.
- */
-export const signUpFormSpec = {
-  root: "form",
-  elements: {
-    form: {
-      type: "FormRoot",
-      props: { submitLabel: "Sign Up" },
-      children: ["email-field", "first-name-field", "last-name-field"],
-    },
-    "email-field": {
-      type: "Input",
-      props: { name: "email", label: "Email", type: "email" },
-    },
-    "first-name-field": {
-      type: "Input",
-      props: { name: "firstName", label: "First Name" },
-    },
-    "last-name-field": {
-      type: "Input",
-      props: { name: "lastName", label: "Last Name" },
-    },
-  },
+export const multiFieldFormContent = {
+  html: multiFieldFormHtml,
+  deployId: "test-deploy",
+  files: [],
 };
+
+/**
+ * Sign-up form for submission testing.
+ */
+export const signUpFormHtml = `<form>
+  <input type="email" name="email" required />
+  <input type="text" name="firstName" />
+  <input type="text" name="lastName" />
+  <button type="submit">Sign Up</button>
+</form>`;
 
 export const signUpFormFieldMapping: ApiFieldMapping = {
   email: {
@@ -131,31 +93,21 @@ export const signUpFormFieldMapping: ApiFieldMapping = {
   },
 };
 
-/**
- * Survey form spec for submission testing.
- */
-export const surveyFormSpec = {
-  root: "form",
-  elements: {
-    form: {
-      type: "FormRoot",
-      props: { submitLabel: "Submit Feedback" },
-      children: ["email-field", "feedback-field", "satisfaction-field"],
-    },
-    "email-field": {
-      type: "Input",
-      props: { name: "email", label: "Email", type: "email" },
-    },
-    "feedback-field": {
-      type: "Textarea",
-      props: { name: "feedback", label: "Your Feedback" },
-    },
-    "satisfaction-field": {
-      type: "Rating",
-      props: { name: "satisfaction", label: "How satisfied are you?", maxRating: 5 },
-    },
-  },
+export const signUpFormContent = {
+  html: signUpFormHtml,
+  deployId: "test-deploy",
+  files: [],
 };
+
+/**
+ * Survey form for submission testing.
+ */
+export const surveyFormHtml = `<form>
+  <input type="email" name="email" />
+  <textarea name="feedback"></textarea>
+  <input type="number" name="satisfaction" min="1" max="5" />
+  <button type="submit">Submit Feedback</button>
+</form>`;
 
 export const surveyFormFieldMapping: ApiFieldMapping = {
   email: {
@@ -175,15 +127,24 @@ export const surveyFormFieldMapping: ApiFieldMapping = {
   },
 };
 
+export const surveyFormContent = {
+  html: surveyFormHtml,
+  deployId: "test-deploy",
+  files: [],
+};
+
 /**
  * Default form settings for tests.
  */
 export const DEFAULT_FORM_SETTINGS = {};
 
 /**
- * Backward-compat aliases for tests that reference old fixture names.
- * These provide the spec in the `fields` column format (stored as JSON in DB).
+ * Backward-compat aliases.
  */
-export const validFormFields = validFormSpec;
-export const signUpFormFields = signUpFormSpec;
-export const surveyFormFields = surveyFormSpec;
+export const validFormFields = validFormContent;
+export const validFormSpec = validFormContent;
+export const signUpFormFields = signUpFormContent;
+export const signUpFormSpec = signUpFormContent;
+export const surveyFormFields = surveyFormContent;
+export const surveyFormSpec = surveyFormContent;
+export const multiFieldFormSpec = multiFieldFormContent;

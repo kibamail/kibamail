@@ -7,7 +7,7 @@ import {
   generateFieldMappingFromApiMapping,
   getSlotCounts,
 } from "@/lib/forms/field-mapping";
-import type { ApiFieldMapping } from "@/lib/json-render/validation";
+import type { ApiFieldMapping } from "@/lib/forms/html-validation";
 import {
   type CreatedApiKey,
   cleanupWorkspace,
@@ -17,10 +17,10 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 import {
-  multiFieldFormSpec,
   multiFieldFormFieldMapping,
-  validFormSpec,
+  multiFieldFormContent,
   validFormFieldMapping,
+  validFormContent,
 } from "@/tests/utils/form-fixtures";
 
 let testWorkspace: TestWorkspace;
@@ -235,18 +235,23 @@ describe("getSlotCounts - Unit Tests", () => {
 
 describe("Field Mapping Integration - Publishing", () => {
   test("should generate field mapping when publishing root form", async () => {
-    // Create form using multi-field spec + fieldMapping
+    // Create form using fieldMapping
     const createRequest = post(
       "/forms",
       {
         name: "Contact Form",
-        spec: multiFieldFormSpec,
         fieldMapping: multiFieldFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const createdForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: { fields: multiFieldFormContent as never },
+    });
 
     // Publish form
     const publishRequest = post(
@@ -281,18 +286,23 @@ describe("Field Mapping Integration - Publishing", () => {
   });
 
   test("should preserve slot assignments when publishing new version", async () => {
-    // Create and publish v1 using validFormSpec + validFormFieldMapping (has email)
+    // Create and publish v1 using validFormFieldMapping (has email)
     const createRequest = post(
       "/forms",
       {
         name: "Form V1",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),
@@ -331,7 +341,7 @@ describe("Field Mapping Integration - Publishing", () => {
   });
 
   test("should reject publishing form without email field mapping", async () => {
-    // Create a form with a spec that has email but fieldMapping that does not map email
+    // Create a form with fieldMapping that does not map email
     const noEmailFieldMapping: ApiFieldMapping = {
       name: {
         contactPropertyId: "firstName",
@@ -340,26 +350,15 @@ describe("Field Mapping Integration - Publishing", () => {
       },
     };
 
-    const noEmailSpec = {
-      root: "form",
-      elements: {
-        form: {
-          type: "FormRoot",
-          props: { submitLabel: "Submit" },
-          children: ["name-field"],
-        },
-        "name-field": {
-          type: "Input",
-          props: { name: "name", label: "Name" },
-        },
-      },
-    };
+    const noEmailHtml = `<form>
+  <input type="text" name="name" />
+  <button type="submit">Submit</button>
+</form>`;
 
     const createRequest = post(
       "/forms",
       {
         name: "No Email Form",
-        spec: noEmailSpec,
         fieldMapping: noEmailFieldMapping,
       },
       fullAccessApiKey.key,
@@ -372,6 +371,14 @@ describe("Field Mapping Integration - Publishing", () => {
       return;
     }
 
+    // Set deployed content so we get past the "no deployed content" check
+    await prisma.form.update({
+      where: { id: form.id },
+      data: {
+        fields: { html: noEmailHtml, deployId: "test-deploy", files: [] } as never,
+      },
+    });
+
     const publishResponse = await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
       { params: Promise.resolve({ formId: form.id }) },
@@ -380,15 +387,14 @@ describe("Field Mapping Integration - Publishing", () => {
     expect(publishResponse.status).toBe(400);
 
     const error = await publishResponse.json();
-    expect(error.error.code).toBe("FORM_MISSING_EMAIL_FIELD");
-    expect(error.error.message).toContain("Email address");
+    expect(error.error.code).toBe("FORM_VALIDATION_ERROR");
+    expect(error.error.message).toContain("email");
 
     // Verify form was not published
     const unpublishedForm = await prisma.form.findUnique({
       where: { id: form.id },
     });
     expect(unpublishedForm?.status).toBe("DRAFT");
-    expect(unpublishedForm?.fieldMapping).toBeNull();
   });
 
   test("should successfully publish form with email field mapped", async () => {
@@ -396,13 +402,18 @@ describe("Field Mapping Integration - Publishing", () => {
       "/forms",
       {
         name: "Valid Email Form",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const form = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: form.id },
+      data: { fields: validFormContent as never },
+    });
 
     const publishResponse = await PUBLISH_FORM(
       post(`/forms/${form.id}/publish`, {}, fullAccessApiKey.key),
@@ -425,13 +436,18 @@ describe("Field Mapping Integration - Publishing", () => {
       "/forms",
       {
         name: "Rollback Test",
-        spec: validFormSpec,
         fieldMapping: validFormFieldMapping,
       },
       fullAccessApiKey.key,
     );
     const createResponse = await CREATE_FORM(createRequest);
     const rootForm = await createResponse.json();
+
+    // Set deployed content so publish works
+    await prisma.form.update({
+      where: { id: rootForm.id },
+      data: { fields: validFormContent as never },
+    });
 
     await PUBLISH_FORM(
       post(`/forms/${rootForm.id}/publish`, {}, fullAccessApiKey.key),

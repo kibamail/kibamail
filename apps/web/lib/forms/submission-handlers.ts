@@ -10,6 +10,7 @@ import type { FormFieldMapping } from "@/lib/forms/field-mapping";
 import { transformToContactData } from "@/lib/forms/field-mapping";
 import { queue } from "@/lib/queue";
 import { dispatchWebhook } from "@/webhooks";
+import { dispatchAutomationEvent } from "@/lib/automations/dispatch";
 
 export interface SubmissionMetadata {
   ipAddress: string | null;
@@ -186,6 +187,13 @@ export async function handleSignUpSubmission(
 
   // Dispatch form submission webhook
   await dispatchWebhook(workspaceId, "form.submission", {
+    formId,
+    submissionId: submission.id,
+  });
+
+  // Dispatch automation trigger for form submission
+  await dispatchAutomationEvent(workspaceId, "form.submitted", {
+    contactId: contact.id,
     formId,
     submissionId: submission.id,
   });
