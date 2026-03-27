@@ -1,6 +1,6 @@
 services:
   prism:
-    image: stoplight/prism:5
+    image: stoplight/prism:4
     container_name: kibamail-test-sdk-prism
     command: mock -h 0.0.0.0 /openapi.json
     ports:
@@ -8,13 +8,11 @@ services:
     volumes:
       - ../apps/web/public/openapi.v1.json:/openapi.json:ro
     environment:
-      # Enable dynamic response generation based on examples
       - PRISM_DYNAMIC=true
-      # Enable CORS for browser-based testing
       - PRISM_CORS=true
     healthcheck:
       test: ["CMD", "wget", "--spider", "-q", "http://localhost:4010"]
       interval: 5s
       timeout: 3s
-      retries: 5
-      start_period: 10s
+      retries: 10
+      start_period: 15s
