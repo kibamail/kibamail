@@ -37,9 +37,17 @@ jobs:
         working-directory: test-sdk-infra
         run: |
           docker compose up -d
-          # Wait for Prism to be ready
-          timeout 60 bash -c 'until curl -s http://localhost:4010 > /dev/null; do sleep 1; done'
-          echo "Prism is ready"
+          echo "Waiting for Prism to start..."
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:4010/v1/api-keys -H "Authorization: Bearer test" > /dev/null 2>&1; then
+              echo "Prism is ready (attempt $i)"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Prism failed to start. Logs:"
+          docker logs kibamail-test-sdk-prism
+          exit 1
 
       - name: run tests
         run: pnpm --filter kibamail test
