@@ -1,0 +1,58 @@
+name: build kibamail cli
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: build on ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: set up go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: sdks/go/cmd/kibamail/go.sum
+
+      - name: download dependencies
+        working-directory: sdks/go/cmd/kibamail
+        run: go mod download
+
+      - name: build binary
+        working-directory: sdks/go/cmd/kibamail
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION=$(git describe --tags --always --dirty 2>/dev/null || echo "dev")
+          GIT_COMMIT=$(git rev-parse --short HEAD)
+
+          LDFLAGS="-X main.version=${VERSION} -X main.commit=${GIT_COMMIT}"
+
+          go build -ldflags "${LDFLAGS}" -o kibamail-${{ matrix.goos }}-${{ matrix.goarch }} .
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kibamail-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: sdks/go/cmd/kibamail/kibamail-${{ matrix.goos }}-${{ matrix.goarch }}
