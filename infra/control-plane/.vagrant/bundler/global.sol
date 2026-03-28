@@ -1,1 +1,0 @@
-{"dependencies":[["racc",["~> 1.4"]],["nokogiri",[">= 0"]],["vagrant-parallels",["= 2.4.7"]],["net-ssh",[">= 2.6.5","< 8.0.0"]],["net-scp",[">= 1.1"]],["log4r",["~> 1.1"]],["vagrant-scp",["= 0.5.9"]]],"checksum":"24b231920657e979a8b2896e325db0fa13905cdb9d86bebfe7a270cd91486a22","vagrant_version":"2.4.9"}

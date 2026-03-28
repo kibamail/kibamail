@@ -1,7 +1,0 @@
-apiVersion: barmancloud.cnpg.io/v1
-kind: ObjectStore
-metadata:
-  name: kibamail-backup-store
-spec:
-  configuration:
-    destinationPath: s3://production-kibamail-com-postgres-backups/
