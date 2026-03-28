@@ -1,0 +1,82 @@
+name: release kibamail cli
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: set up go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: sdks/go/cmd/kibamail/go.sum
+
+      - name: download dependencies
+        working-directory: sdks/go/cmd/kibamail
+        run: go mod download
+
+      - name: build binary
+        working-directory: sdks/go/cmd/kibamail
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: 0
+        run: |
+          VERSION=${{ github.event.release.tag_name }}
+          GIT_COMMIT=$(git rev-parse --short HEAD)
+
+          LDFLAGS="-X main.version=${VERSION} -X main.commit=${GIT_COMMIT}"
+
+          go build -ldflags "${LDFLAGS}" -o kibamail-${{ matrix.goos }}-${{ matrix.goarch }} .
+
+      - name: upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kibamail-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: sdks/go/cmd/kibamail/kibamail-${{ matrix.goos }}-${{ matrix.goarch }}
+
+  release:
+    name: attach binaries to release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: upload release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          for dir in artifacts/kibamail-*/; do
+            binary=$(find "$dir" -type f -name "kibamail-*")
+            if [ -n "$binary" ]; then
+              chmod +x "$binary"
+              gh release upload "$RELEASE_TAG" "$binary" --repo "${{ github.repository }}"
+            fi
+          done
