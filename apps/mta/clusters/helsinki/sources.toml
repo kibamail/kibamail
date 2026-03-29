@@ -4,8 +4,8 @@
 #
 # Production cluster for Europe (Hostkey)
 #
-# Transactional IP Range: 157.254.187.2 - 157.254.187.8 (7 IPs)
-# Marketing IP Range: 157.254.187.128 - 157.254.187.134 (7 IPs)
+# Transactional IP Range: 144.225.94.6 - 144.225.94.13 (8 IPs)
+# Marketing IP Range: 144.225.94.128 - 144.225.94.134 (7 IPs)
 #
 # All traffic is routed through the SOCKS5 proxy server at 127.0.0.1:5000 (localhost)
 # The proxy server runs on the same machine and holds the public IPs.
@@ -31,43 +31,43 @@
 
 [source."trx-mta-1"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.2"
+socks5_proxy_source_address = "144.225.94.6"
 ehlo_domain = "trx-mta-1.kbmta.net"
 
 [source."trx-mta-2"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.3"
+socks5_proxy_source_address = "144.225.94.7"
 ehlo_domain = "trx-mta-2.kbmta.net"
 
 [source."trx-mta-3"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.4"
+socks5_proxy_source_address = "144.225.94.8"
 ehlo_domain = "trx-mta-3.kbmta.net"
 
 [source."trx-mta-4"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.5"
+socks5_proxy_source_address = "144.225.94.9"
 ehlo_domain = "trx-mta-4.kbmta.net"
 
 [source."trx-mta-5"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.6"
+socks5_proxy_source_address = "144.225.94.10"
 ehlo_domain = "trx-mta-5.kbmta.net"
 
 [source."trx-mta-6"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.7"
+socks5_proxy_source_address = "144.225.94.11"
 ehlo_domain = "trx-mta-6.kbmta.net"
 
 [source."trx-mta-7"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.8"
+socks5_proxy_source_address = "144.225.94.12"
 ehlo_domain = "trx-mta-7.kbmta.net"
 
-[source."trx-mta-32"]
+[source."trx-mta-8"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.33"
-ehlo_domain = "trx-mta-32.kbmta.net"
+socks5_proxy_source_address = "144.225.94.13"
+ehlo_domain = "trx-mta-8.kbmta.net"
 
 
 # =============================================================================
@@ -76,37 +76,37 @@ ehlo_domain = "trx-mta-32.kbmta.net"
 
 [source."mktg-mta-1"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.128"
+socks5_proxy_source_address = "144.225.94.128"
 ehlo_domain = "mktg-mta-1.kbmta.net"
 
 [source."mktg-mta-2"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.129"
+socks5_proxy_source_address = "144.225.94.129"
 ehlo_domain = "mktg-mta-2.kbmta.net"
 
 [source."mktg-mta-3"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.130"
+socks5_proxy_source_address = "144.225.94.130"
 ehlo_domain = "mktg-mta-3.kbmta.net"
 
 [source."mktg-mta-4"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.131"
+socks5_proxy_source_address = "144.225.94.131"
 ehlo_domain = "mktg-mta-4.kbmta.net"
 
 [source."mktg-mta-5"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.132"
+socks5_proxy_source_address = "144.225.94.132"
 ehlo_domain = "mktg-mta-5.kbmta.net"
 
 [source."mktg-mta-6"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.133"
+socks5_proxy_source_address = "144.225.94.133"
 ehlo_domain = "mktg-mta-6.kbmta.net"
 
 [source."mktg-mta-7"]
 socks5_proxy_server = "127.0.0.1:5000"
-socks5_proxy_source_address = "157.254.187.134"
+socks5_proxy_source_address = "144.225.94.134"
 ehlo_domain = "mktg-mta-7.kbmta.net"
 
 # =============================================================================
@@ -123,7 +123,7 @@ ehlo_domain = "mktg-mta-7.kbmta.net"
 
 [pool."marketing"]
 
-[pool."marketing"."mktg-mta-7"]
+[pool."marketing"."mktg-mta-1"]
 weight = 1
 
 # -----------------------------------------------------------------------------
@@ -132,7 +132,7 @@ weight = 1
 
 [pool."default"]
 
-[pool."default"."mktg-mta-7"]
+[pool."default"."mktg-mta-1"]
 weight = 1
 
 # -----------------------------------------------------------------------------
