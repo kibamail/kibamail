@@ -93,11 +93,12 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
 
-# Copy Prisma client, CLI, and schema for runtime (from hoisted node_modules in pnpm workspace)
+# Copy Prisma client and schema for runtime (from hoisted node_modules in pnpm workspace)
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+client*/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/prisma*/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.pnpm/@prisma+engines*/node_modules/@prisma/engines ./node_modules/@prisma/engines
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/prisma ./apps/web/prisma
+
+# Install Prisma CLI globally for running migrations at deploy time
+RUN npm install -g prisma@6.19.0
 
 # Switch to non-root user
 USER nextjs
@@ -110,4 +111,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:${PORT:-3000}/healthz || exit 1
 
 # Run migrations then start the Next.js server
-CMD npx prisma migrate deploy --schema apps/web/prisma/schema.prisma && node apps/web/server.js
+CMD prisma migrate deploy --schema apps/web/prisma/schema.prisma && node apps/web/server.js
