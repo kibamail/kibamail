@@ -198,6 +198,8 @@ export function FormEditorClient({
             slug={form.slug}
             settings={form.settings}
             fieldMapping={form.fieldMapping}
+            doubleOptInEmail={form.doubleOptInEmail}
+            formName={form.name}
           />
         </div>
 

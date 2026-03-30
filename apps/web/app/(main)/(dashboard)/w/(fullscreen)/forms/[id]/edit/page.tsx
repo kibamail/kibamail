@@ -35,6 +35,9 @@ async function getFormData(
       seoImageUrl: true,
       seoFaviconUrl: true,
       slug: true,
+      doubleOptInEmail: {
+        select: { id: true, name: true },
+      },
     },
   });
 
@@ -84,6 +87,7 @@ async function getFormData(
       seoImageUrl: form.seoImageUrl,
       seoFaviconUrl: form.seoFaviconUrl,
       slug: form.slug,
+      doubleOptInEmail: form.doubleOptInEmail ?? null,
     },
     version: form.version,
     rootFormId,

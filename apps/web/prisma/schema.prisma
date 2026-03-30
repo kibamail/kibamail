@@ -1684,6 +1684,10 @@ model Email {
   content           Json?
   /// Editor styles configuration
   styles            Json?
+  /// Raw HTML content for the email template
+  htmlContent       String?   @db.Text
+  /// Plain text version (auto-generated from HTML)
+  textContent       String?   @db.Text
   /// Sender identity ID
   senderIdentityId  String?
   /// Reply-to identity ID

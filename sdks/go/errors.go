@@ -122,6 +122,17 @@ var (
 	ErrFailedToCreateFormsSubmitRequest         = errors.New("[ERROR]: Failed to create Forms.Submit request")
 )
 
+// MarketingEmailsSvc errors
+var (
+	ErrFailedToCreateMarketingEmailsCreateRequest  = errors.New("[ERROR]: Failed to create MarketingEmails.Create request")
+	ErrFailedToCreateMarketingEmailsListRequest    = errors.New("[ERROR]: Failed to create MarketingEmails.List request")
+	ErrFailedToCreateMarketingEmailsGetRequest     = errors.New("[ERROR]: Failed to create MarketingEmails.Get request")
+	ErrFailedToCreateMarketingEmailsUpdateRequest  = errors.New("[ERROR]: Failed to create MarketingEmails.Update request")
+	ErrFailedToCreateMarketingEmailsDeleteRequest  = errors.New("[ERROR]: Failed to create MarketingEmails.Delete request")
+	ErrFailedToCreateMarketingEmailsPreviewRequest = errors.New("[ERROR]: Failed to create MarketingEmails.Preview request")
+	ErrFailedToCreateMarketingEmailsStatsRequest   = errors.New("[ERROR]: Failed to create MarketingEmails.Stats request")
+)
+
 // ApiKeysSvc errors
 var (
 	ErrFailedToCreateApiKeysCreateRequest = errors.New("[ERROR]: Failed to create ApiKeys.Create request")

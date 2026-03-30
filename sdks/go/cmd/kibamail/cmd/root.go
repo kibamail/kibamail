@@ -63,6 +63,7 @@ func NewRootCmd(version, commit string) *cobra.Command {
 	rootCmd.AddCommand(newEmailsCmd())
 	rootCmd.AddCommand(newDomainsCmd())
 	rootCmd.AddCommand(newBroadcastsCmd())
+	rootCmd.AddCommand(newMarketingEmailsCmd())
 	rootCmd.AddCommand(newVersionCmd(version, commit))
 
 	return rootCmd

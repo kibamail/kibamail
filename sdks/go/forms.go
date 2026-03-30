@@ -15,15 +15,16 @@ type CreateFormRequest struct {
 
 // UpdateFormRequest is the request object for the Update call.
 type UpdateFormRequest struct {
-	Name           string                 `json:"name,omitempty"`
-	Description    string                 `json:"description,omitempty"`
-	FieldMapping   map[string]interface{} `json:"fieldMapping,omitempty"`
-	Settings       map[string]interface{} `json:"settings,omitempty"`
-	SeoTitle       *string                `json:"seoTitle,omitempty"`
-	SeoDescription *string                `json:"seoDescription,omitempty"`
-	SeoImageUrl    *string                `json:"seoImageUrl,omitempty"`
-	SeoFaviconUrl  *string                `json:"seoFaviconUrl,omitempty"`
-	Slug           *string                `json:"slug,omitempty"`
+	Name               string                 `json:"name,omitempty"`
+	Description        string                 `json:"description,omitempty"`
+	FieldMapping       map[string]interface{} `json:"fieldMapping,omitempty"`
+	Settings           map[string]interface{} `json:"settings,omitempty"`
+	SeoTitle           *string                `json:"seoTitle,omitempty"`
+	SeoDescription     *string                `json:"seoDescription,omitempty"`
+	SeoImageUrl        *string                `json:"seoImageUrl,omitempty"`
+	SeoFaviconUrl      *string                `json:"seoFaviconUrl,omitempty"`
+	Slug               *string                `json:"slug,omitempty"`
+	DoubleOptInEmailId *string                `json:"doubleOptInEmailId,omitempty"`
 }
 
 // Form provides the structure for a form object.

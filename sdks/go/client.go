@@ -53,6 +53,7 @@ type Client struct {
 	Broadcasts        BroadcastsSvc
 	Automations       AutomationsSvc
 	Events            EventsSvc
+	MarketingEmails   MarketingEmailsSvc
 }
 
 // NewClient is the default client constructor
@@ -88,6 +89,7 @@ func NewCustomClient(httpClient *http.Client, apiKey string) *Client {
 	c.Broadcasts = &BroadcastsSvcImpl{client: c}
 	c.Automations = &AutomationsSvcImpl{client: c}
 	c.Events = &EventsSvcImpl{client: c}
+	c.MarketingEmails = &MarketingEmailsSvcImpl{client: c}
 
 	return c
 }

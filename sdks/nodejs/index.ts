@@ -19,6 +19,7 @@ export { Domains } from "./resources/domains";
 export { Emails } from "./resources/emails";
 export { Events } from "./resources/events";
 export { Forms } from "./resources/forms";
+export { MarketingEmails } from "./resources/marketing-emails";
 export { Segments } from "./resources/segments";
 export { Topics } from "./resources/topics";
 

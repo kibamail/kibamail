@@ -47,8 +47,14 @@ function buildVariables(
     email: string;
     firstName?: string | null;
     lastName?: string | null;
+    phone?: string | null;
+    country?: string | null;
+    timezone?: string | null;
+    city?: string | null;
   },
   confirmationUrl: string,
+  unsubscribeUrl: string,
+  preferencesUrl: string,
 ): Record<string, string> {
   return {
     email: contact.email,
@@ -59,7 +65,17 @@ function buildVariables(
     lastName: contact.lastName || "",
     last_name: contact.lastName || "",
     "contact.last_name": contact.lastName || "",
+    phone: contact.phone || "",
+    "contact.phone": contact.phone || "",
+    country: contact.country || "",
+    "contact.country": contact.country || "",
+    timezone: contact.timezone || "",
+    "contact.timezone": contact.timezone || "",
+    city: contact.city || "",
+    "contact.city": contact.city || "",
     confirmation_url: confirmationUrl,
+    unsubscribe_url: unsubscribeUrl,
+    preferences_url: preferencesUrl,
   };
 }
 
@@ -96,6 +112,10 @@ export const sendDoubleOptIn: JobProcessor<
       email: true,
       firstName: true,
       lastName: true,
+      phone: true,
+      country: true,
+      timezone: true,
+      city: true,
       status: true,
       confirmationToken: true,
     },
@@ -145,7 +165,7 @@ export const sendDoubleOptIn: JobProcessor<
     throw new Error(`Email template ${emailId} has no subject`);
   }
 
-  if (!email.content) {
+  if (!email.htmlContent && !email.content) {
     throw new Error(`Email template ${emailId} has no content`);
   }
 
@@ -193,8 +213,12 @@ export const sendDoubleOptIn: JobProcessor<
     contact.confirmationToken,
   );
 
+  // Build unsubscribe and preferences URLs for variables
+  const unsubscribeUrl = `https://${trackingDomain}/u/${contact.id}/doi-${formId}`;
+  const preferencesUrl = `https://${trackingDomain}/p/${contact.id}`;
+
   // Build variables for personalization
-  const variables = buildVariables(contact, confirmationUrl);
+  const variables = buildVariables(contact, confirmationUrl, unsubscribeUrl, preferencesUrl);
 
   // Generate message ID
   const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);
@@ -202,16 +226,23 @@ export const sendDoubleOptIn: JobProcessor<
   // Render HTML content
   let htmlBody: string;
   try {
-    // Get styles from email template (if stored)
-    const styles = (email.styles as BroadcastStyles) ?? {};
+    if (email.htmlContent) {
+      // Raw HTML path — substitute variables directly
+      htmlBody = substituteVariables(email.htmlContent, variables);
+    } else if (email.content) {
+      // TipTap JSON path — render via broadcast renderer
+      const styles = (email.styles as BroadcastStyles) ?? {};
 
-    htmlBody = await renderBroadcastToHtml(
-      email.content as unknown as BroadcastDocument,
-      {
-        variables,
-      },
-      styles,
-    );
+      htmlBody = await renderBroadcastToHtml(
+        email.content as unknown as BroadcastDocument,
+        {
+          variables,
+        },
+        styles,
+      );
+    } else {
+      throw new Error(`Email template ${emailId} has no content`);
+    }
   } catch (error) {
     logger.error({ jobId, emailId, error }, "Failed to render email content");
     throw error;
@@ -255,10 +286,6 @@ export const sendDoubleOptIn: JobProcessor<
   const recipientName = [contact.firstName, contact.lastName]
     .filter(Boolean)
     .join(" ");
-
-  // Build unsubscribe URL for List-Unsubscribe headers
-  // Uses the contact's unsubscribe endpoint - will delete unconfirmed contact
-  const unsubscribeUrl = `https://${trackingDomain}/u/${contact.id}/doi-${formId}`;
 
   // Build MTA message
   const mtaMessage: EmailMessage = {

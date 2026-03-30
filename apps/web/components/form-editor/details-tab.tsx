@@ -1,10 +1,13 @@
 "use client";
 
+import { Badge } from "@kibamail/owly";
 import { Button } from "@kibamail/owly/button";
 import * as SelectField from "@kibamail/owly/select-field";
 import * as TextField from "@kibamail/owly/text-field";
 import { Text } from "@kibamail/owly/text";
 import cn from "classnames";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Calendar,
   CheckCircle,
@@ -48,6 +51,8 @@ interface FormDetailsTabProps {
   slug: string | null;
   settings: Record<string, unknown> | null;
   fieldMapping: Record<string, unknown> | null;
+  doubleOptInEmail: { id: string; name: string } | null;
+  formName: string;
 }
 
 type PropertyType = "standard" | "text" | "number" | "date";
@@ -136,6 +141,69 @@ function mappingsToRecord(
   return result;
 }
 
+function DoubleOptInEmailSection({
+  formId,
+  formName,
+  doubleOptInEmail,
+}: {
+  formId: string;
+  formName: string;
+  doubleOptInEmail: { id: string; name: string } | null;
+}) {
+  const router = useRouter();
+
+  const createMutation = useMutation({
+    mutationFn: async () => {
+      const email = await internalApi.emails().create({
+        name: `Double opt-in confirmation - ${formName}`,
+        subject: "Please confirm your subscription",
+        type: "AUTOMATION",
+      });
+
+      await internalApi.forms().update(formId, {
+        doubleOptInEmailId: email.id,
+        settings: { doubleOptIn: { enabled: true } },
+      });
+
+      return email;
+    },
+    onSuccess: (email) => {
+      router.push(`/w/marketing-emails/${email.id}`);
+    },
+  });
+
+  return (
+    <section>
+      <SectionHeader
+        title="Double opt-in email"
+        description="The confirmation email sent to new contacts who sign up via this form."
+      />
+
+      {doubleOptInEmail ? (
+        <Link
+          href={`/w/marketing-emails/${doubleOptInEmail.id}`}
+          className="flex items-center justify-between border border-kb-border-tertiary p-3 rounded-lg transition-colors hover:border-kb-border-secondary"
+        >
+          <div className="flex flex-col gap-1.5">
+            <Text className="text-kb-content-primary font-medium">{doubleOptInEmail.name}</Text>
+            <Badge size="sm" variant="tertiary" className="rounded-full! w-fit px-2!">Confirmation email</Badge>
+          </div>
+          <Badge size="sm" variant="info" className="rounded-full!">Email</Badge>
+        </Link>
+      ) : (
+        <Button
+          variant="secondary"
+          onClick={() => createMutation.mutate()}
+          loading={createMutation.isPending}
+        >
+          <Plus className="w-4 h-4" />
+          Create double opt-in email
+        </Button>
+      )}
+    </section>
+  );
+}
+
 export function DetailsTab({
   formId,
   readonly,
@@ -146,6 +214,8 @@ export function DetailsTab({
   slug: initialSlug,
   settings: initialSettings,
   fieldMapping,
+  doubleOptInEmail,
+  formName,
 }: FormDetailsTabProps) {
   const { success: toast } = useToast();
   const queryClient = useQueryClient();
@@ -538,6 +608,9 @@ export function DetailsTab({
             </Button>
           )}
         </section>
+
+        <SectionDivider />
+        <DoubleOptInEmailSection formId={formId} formName={formName} doubleOptInEmail={doubleOptInEmail} />
 
         {!readonly && (
           <SectionSaveButton

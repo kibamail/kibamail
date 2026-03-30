@@ -235,6 +235,20 @@ export const API_SCOPES: ApiScopeDefinition[] = [
   },
 
   // ============================================================================
+  // MARKETING EMAILS
+  // ============================================================================
+  {
+    name: "read:emails",
+    description: "View marketing email templates and stats",
+    category: "Marketing Emails",
+  },
+  {
+    name: "write:emails",
+    description: "Create and update marketing email templates",
+    category: "Marketing Emails",
+  },
+
+  // ============================================================================
   // SENDING DOMAINS
   // ============================================================================
   {

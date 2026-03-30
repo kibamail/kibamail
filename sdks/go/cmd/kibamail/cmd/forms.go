@@ -132,6 +132,7 @@ func newFormsUpdateCmd() *cobra.Command {
 			if v, _ := cmd.Flags().GetString("seo-title"); v != "" { req.SeoTitle = &v }
 			if v, _ := cmd.Flags().GetString("seo-description"); v != "" { req.SeoDescription = &v }
 			if v, _ := cmd.Flags().GetString("slug"); v != "" { req.Slug = &v }
+			if v, _ := cmd.Flags().GetString("double-opt-in-email-id"); v != "" { req.DoubleOptInEmailId = &v }
 
 			result, err := Client.Forms.Update(args[0], req)
 			if err != nil { internal.HandleError(cmd, err); return nil }
@@ -146,6 +147,7 @@ func newFormsUpdateCmd() *cobra.Command {
 	cmd.Flags().String("seo-title", "", "SEO page title")
 	cmd.Flags().String("seo-description", "", "SEO meta description")
 	cmd.Flags().String("slug", "", "URL slug")
+	cmd.Flags().String("double-opt-in-email-id", "", "Email ID for double opt-in confirmation")
 	return cmd
 }
 

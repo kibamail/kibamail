@@ -39,4 +39,5 @@ export interface FormEditorData {
   seoImageUrl: string | null;
   seoFaviconUrl: string | null;
   slug: string | null;
+  doubleOptInEmail: { id: string; name: string } | null;
 }

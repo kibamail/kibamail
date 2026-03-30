@@ -58,7 +58,39 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           );
         }
 
-        // Check if there's content to render
+        // Sample variables for preview
+        const sampleVariables: Record<string, string> = {
+          email: "preview@example.com",
+          "contact.email": "preview@example.com",
+          firstName: "John",
+          first_name: "John",
+          "contact.first_name": "John",
+          lastName: "Doe",
+          last_name: "Doe",
+          "contact.last_name": "Doe",
+          phone: "+1 555 0100",
+          country: "United States",
+          timezone: "America/New_York",
+          city: "New York",
+          confirmation_url: "#confirm-subscription",
+          unsubscribe_url: "#unsubscribe",
+          preferences_url: "#preferences",
+        };
+
+        // Raw HTML path — substitute variables directly
+        if (email.htmlContent) {
+          const html = email.htmlContent.replace(
+            /\{\{(\w+(?:\.\w+)*)\}\}/g,
+            (match, varName) => sampleVariables[varName] ?? match,
+          );
+
+          return NextResponse.json(
+            { html, hasContent: true },
+            { status: 200 },
+          );
+        }
+
+        // TipTap JSON path — render via broadcast renderer
         const contentJson = email.content;
         if (!contentJson) {
           return NextResponse.json(
@@ -70,29 +102,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           );
         }
 
-        // Get styles from the email (if stored)
         const storedStyles = (email.styles as BroadcastStyles) || {};
 
-        // Render the email to HTML with styles
         const html = await renderBroadcastToHtml(
           contentJson as unknown as BroadcastDocument,
-          {
-            // Provide sample variables for preview
-            variables: {
-              "contact.email": "preview@example.com",
-              "contact.first_name": "John",
-              "contact.last_name": "Doe",
-              confirmation_url: "#confirm-subscription",
-            },
-          },
+          { variables: sampleVariables },
           storedStyles,
         );
 
         return NextResponse.json(
-          {
-            html,
-            hasContent: true,
-          },
+          { html, hasContent: true },
           { status: 200 },
         );
       },

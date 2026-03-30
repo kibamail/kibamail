@@ -40,6 +40,7 @@ export function SidebarNavigation() {
   const isTemplatesActive = pathname.startsWith("/w/templates");
   const isEmailsActive = pathname.startsWith("/w/emails");
   const isInboxActive = pathname.startsWith("/w/inbox");
+  const isMarketingEmailsActive = pathname.startsWith("/w/marketing-emails");
   const isDashboardActive =
     !isSettingsActive &&
     !isAutomationsActive &&
@@ -49,7 +50,8 @@ export function SidebarNavigation() {
     !isDomainsActive &&
     !isTemplatesActive &&
     !isEmailsActive &&
-    !isInboxActive;
+    !isInboxActive &&
+    !isMarketingEmailsActive;
 
   return (
     <>
@@ -87,6 +89,12 @@ export function SidebarNavigation() {
           <Link href="/w/automations">
             <NetworkReverse />
             Automations
+          </Link>
+        </DashboardLayoutSidebarItem>
+        <DashboardLayoutSidebarItem asChild active={isMarketingEmailsActive}>
+          <Link href="/w/marketing-emails">
+            <Mail />
+            Marketing Emails
           </Link>
         </DashboardLayoutSidebarItem>
         <DashboardLayoutSidebarItem asChild active={isInboxActive}>

@@ -436,6 +436,44 @@ export async function publishForm(workspaceId: string, formId: string) {
     );
   }
 
+  // Validate double opt-in email when enabled
+  const settings = form.settings as Record<string, unknown> | null;
+  const doubleOptIn = settings?.doubleOptIn as { enabled?: boolean } | undefined;
+
+  if (doubleOptIn?.enabled) {
+    if (!form.doubleOptInEmailId) {
+      throw new BadRequestError(
+        "Double opt-in is enabled but no confirmation email is linked. Create a marketing email and link it via doubleOptInEmailId.",
+        ErrorCode.FORM_VALIDATION_ERROR,
+      );
+    }
+
+    const email = await prisma.email.findFirst({
+      where: { id: form.doubleOptInEmailId, workspaceId },
+    });
+
+    if (!email) {
+      throw new BadRequestError(
+        "The linked double opt-in email was not found.",
+        ErrorCode.FORM_VALIDATION_ERROR,
+      );
+    }
+
+    if (!email.subject) {
+      throw new BadRequestError(
+        "The double opt-in email is missing a subject line. Update the email before publishing.",
+        ErrorCode.FORM_VALIDATION_ERROR,
+      );
+    }
+
+    if (!email.htmlContent && !email.content) {
+      throw new BadRequestError(
+        "The double opt-in email has no content. Add HTML content to the email before publishing.",
+        ErrorCode.FORM_VALIDATION_ERROR,
+      );
+    }
+  }
+
   // Validate HTML + fieldMapping only when site content has been deployed
   if (content?.html) {
     const validation = validateHtmlFieldMapping(

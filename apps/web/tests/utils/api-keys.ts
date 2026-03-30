@@ -126,6 +126,8 @@ export async function createFullAccessApiKey(
       "write:broadcasts",
       "update:broadcasts",
       "delete:broadcasts",
+      "read:emails",
+      "write:emails",
       "smtp:send",
     ],
   });

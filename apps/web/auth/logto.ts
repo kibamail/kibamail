@@ -274,7 +274,7 @@ class WorkspaceManager {
     });
 
     if (response.error || !response.data) {
-      throw new Error(`Failed to create workspace: ${response.error}`);
+      throw new Error(`Failed to create workspace: ${JSON.stringify(response.error)}`);
     }
 
     return response.data;
