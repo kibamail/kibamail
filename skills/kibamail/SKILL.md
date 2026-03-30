@@ -28,25 +28,23 @@ Resources: `emails`, `domains`, `broadcasts`, `contacts`, `topics`, `segments`, 
 
 ## Authentication
 
-Three methods, checked in this order:
+Two methods, checked in this order:
 
-1. **Flag**: `--api-key sk-xxx` on any command
-2. **Env var**: `KIBAMAIL_API_KEY=sk-xxx`
-3. **System keyring**: stored via `kibamail auth login`
+1. **Env var**: Set the `KIBAMAIL_API_KEY` environment variable (recommended)
+2. **System keyring**: stored via `kibamail auth login`
 
 ```bash
-# Store key in system keyring
-kibamail auth login --api-key sk-xxx
-
-# Or pipe from a vault
-echo "sk-xxx" | kibamail auth login
-
 # Check auth state
 kibamail auth status --json
+
+# Store key in system keyring
+kibamail auth login
 
 # Remove stored key
 kibamail auth logout
 ```
+
+**Important:** Never pass API keys as command-line arguments or hardcode them in code. Always use the `KIBAMAIL_API_KEY` environment variable.
 
 ## Global Flags
 
@@ -54,7 +52,7 @@ Available on every command:
 
 | Flag | Purpose |
 |---|---|
-| `--api-key string` | API key (overrides env and keyring) |
+| `--api-key` | API key (prefer `KIBAMAIL_API_KEY` env var instead) |
 | `--json` | Force JSON output |
 | `--output string` | Output format: `auto`, `json`, `table` |
 | `--fields strings` | Comma-separated fields to include in JSON output |
@@ -89,7 +87,7 @@ Always use `--json` when parsing output programmatically.
 ### Auth
 | Command | Description |
 |---|---|
-| `auth login --api-key KEY` | Store API key in system keyring |
+| `auth login` | Store API key in system keyring |
 | `auth logout` | Remove stored key |
 | `auth status` | Show auth state |
 
@@ -247,5 +245,5 @@ For integrating Kibamail into TypeScript/Node.js applications, see the **kibamai
 
 ```typescript
 import { Kibamail } from "kibamail";
-const kibamail = new Kibamail("kb_your_api_key");
+const kibamail = new Kibamail(process.env.KIBAMAIL_API_KEY!);
 ```

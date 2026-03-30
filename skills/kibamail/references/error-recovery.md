@@ -9,25 +9,27 @@ Every Kibamail API error code with its meaning and the exact CLI command to reco
 ### INVALID_API_KEY
 Your API key is invalid or expired.
 ```bash
-kibamail auth login --api-key <valid-key>
+# Set a valid key via environment variable
+export KIBAMAIL_API_KEY=<valid-key>
 ```
 
 ### MISSING_API_KEY
 No API key provided.
 ```bash
-kibamail auth login --api-key <key>
-# Or: export KIBAMAIL_API_KEY=sk-xxx
+# Set the KIBAMAIL_API_KEY environment variable
+export KIBAMAIL_API_KEY=<key>
 ```
 
 ### MISSING_AUTHORIZATION_HEADER
 Authorization header is missing.
 ```bash
-# Pass --api-key flag or set KIBAMAIL_API_KEY env var
-kibamail contacts list --api-key sk-xxx --json
+# Set the KIBAMAIL_API_KEY environment variable
+export KIBAMAIL_API_KEY=<key>
+kibamail contacts list --json
 ```
 
 ### INVALID_AUTHORIZATION_HEADER
-Authorization header format is wrong. Expected: `Bearer sk-xxx`.
+Authorization header format is wrong.
 
 ### INSUFFICIENT_SCOPE
 Your API key lacks the required scope for this operation.
@@ -43,8 +45,8 @@ Your API key doesn't have permission for this operation.
 This API key has expired. Generate a new one.
 ```bash
 kibamail api-keys create --name "new-key" --json
-# Save the key from the output, then:
-kibamail auth login --api-key <new-key>
+# Save the key from the output, then set it as env var:
+export KIBAMAIL_API_KEY=<new-key>
 ```
 
 ### ACCESS_DENIED

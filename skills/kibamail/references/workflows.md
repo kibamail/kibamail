@@ -187,8 +187,8 @@ kibamail contact-properties create --name "mrr" --type number --json
 kibamail api-keys create --name "new-production-key" --json
 # SAVE THE KEY from the output — it's only shown once
 
-# 2. Store the new key
-kibamail auth login --api-key <new-key>
+# 2. Set the new key as env var
+export KIBAMAIL_API_KEY=<new-key>
 
 # 3. Delete the old key
 kibamail api-keys delete <old-key-id> --json

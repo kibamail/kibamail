@@ -27,7 +27,7 @@ yarn add kibamail
 ```typescript
 import { Kibamail } from "kibamail";
 
-const kibamail = new Kibamail("kb_your_api_key");
+const kibamail = new Kibamail(process.env.KIBAMAIL_API_KEY as string);
 
 const { data, error } = await kibamail.contacts.create({
   email: "user@example.com",
@@ -46,11 +46,11 @@ if (error) {
 ```typescript
 import { Kibamail } from "kibamail";
 
-// Production
-const kibamail = new Kibamail("kb_live_...");
+// Production — reads from KIBAMAIL_API_KEY env var
+const kibamail = new Kibamail(process.env.KIBAMAIL_API_KEY as string);
 
-// Custom base URL (local dev, staging)
-const kibamail = new Kibamail("kb_test_...", {
+// Custom base URL (local dev, staging, self hosted)
+const kibamail = new Kibamail(process.env.KIBAMAIL_API_KEY as string, {
   baseURL: "http://localhost:18092/api",
 });
 ```
