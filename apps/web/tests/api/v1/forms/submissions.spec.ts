@@ -712,3 +712,79 @@ describe("POST /api/v1/forms/[formId]/submissions - Form Versions", () => {
     expect(submission?.fieldNum0).toBe(5);
   });
 });
+
+describe("POST /api/v1/forms/[formId]/submissions - API-only Form (no HTML)", () => {
+  test("should accept submission to a form published without site content", async () => {
+    // Create a form with fieldMapping but no deployed HTML content
+    const apiOnlyForm = await prisma.form.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        name: "API-Only Signup",
+        type: "SIGN_UP",
+        display: "INLINE_EMBED",
+        status: "PUBLISHED",
+        version: 1,
+        fields: [] as never, // no HTML content
+        publishedAt: new Date(),
+        fieldMapping: {
+          email: {
+            slot: "fieldString0",
+            type: "string",
+            fieldType: "email",
+            contactPropertyId: "email",
+            contactPropertyType: "standard",
+          },
+          firstName: {
+            slot: "fieldString1",
+            type: "string",
+            fieldType: "text",
+            contactPropertyId: "firstName",
+            contactPropertyType: "standard",
+          },
+        } as never,
+      },
+    });
+
+    await prisma.form.update({
+      where: { id: apiOnlyForm.id },
+      data: { publishedVersionId: apiOnlyForm.id },
+    });
+
+    const request = post(
+      `/forms/${apiOnlyForm.id}/submissions`,
+      {
+        email: "api-only@example.com",
+        firstName: "Jane",
+      },
+      fullAccessApiKey.key,
+    );
+
+    const response = await POST(request, {
+      params: Promise.resolve({ formId: apiOnlyForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(201);
+    expect(responseData.object).toBe("form_submission");
+    expect(responseData.id).toBeDefined();
+
+    // Verify contact was created
+    const contact = await prisma.contact.findUnique({
+      where: {
+        workspaceId_email: {
+          workspaceId: testWorkspace.id,
+          email: "api-only@example.com",
+        },
+      },
+    });
+    expect(contact).not.toBeNull();
+    expect(contact?.firstName).toBe("Jane");
+
+    // Verify submission was stored
+    const submission = await prisma.formSubmission.findUnique({
+      where: { id: responseData.id },
+    });
+    expect(submission?.fieldString0).toBe("api-only@example.com");
+    expect(submission?.fieldString1).toBe("Jane");
+  });
+});

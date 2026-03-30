@@ -33,6 +33,7 @@ func newFormsCmd() *cobra.Command {
 		newFormsDeleteCmd(),
 		newFormsDeployCmd(),
 		newFormsPublishCmd(),
+		newFormsSubmitCmd(),
 		newFormsCreateVersionCmd(),
 		newFormsListVersionsCmd(),
 	)
@@ -207,6 +208,29 @@ func newFormsPublishCmd() *cobra.Command {
 			return nil
 		},
 	}
+}
+
+func newFormsSubmitCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use: "submit <id>", Short: "Submit data to a published form", Args: cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := requireClient(cmd); err != nil { internal.HandleError(cmd, err); return nil }
+			dataStr, _ := cmd.Flags().GetString("data")
+			var data map[string]interface{}
+			if err := json.Unmarshal([]byte(dataStr), &data); err != nil {
+				internal.HandleError(cmd, fmt.Errorf("invalid data JSON: %w", err))
+				return nil
+			}
+			result, err := Client.Forms.Submit(args[0], data)
+			if err != nil { internal.HandleError(cmd, err); return nil }
+			if internal.IsJSON(cmd) { return internal.PrintResult(cmd, result) }
+			cmd.Printf("Created submission %s\n", result.ID)
+			return nil
+		},
+	}
+	cmd.Flags().String("data", "", `Submission data as JSON, e.g. '{"email":"user@example.com"}'`)
+	_ = cmd.MarkFlagRequired("data")
+	return cmd
 }
 
 func collectAndValidateFiles(dirPath string) ([]kibamail.FileUpload, error) {

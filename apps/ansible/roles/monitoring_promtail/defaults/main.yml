@@ -1,0 +1,7 @@
+# monitoring_promtail Role Defaults
+---
+monitoring_promtail_bind: "127.0.0.1"
+monitoring_promtail_port: 9080
+monitoring_loki_bind: "127.0.0.1"
+monitoring_loki_port: 3100
+monitoring_kumomta_log_path: "/var/log/kumomta-plain/kumomta.log"

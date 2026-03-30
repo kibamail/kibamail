@@ -4600,8 +4600,8 @@ export interface paths {
          *
          *     **Behavior:**
          *     - Form is created in DRAFT status (not yet public)
-         *     - Content (HTML) is uploaded separately via the deploy endpoint
-         *     - Form must be deployed and published to accept submissions
+         *     - Content (HTML) can optionally be uploaded via the deploy endpoint
+         *     - Form must be published to accept submissions
          *
          *     **Required Scope:** `write:forms`
          *
@@ -4611,14 +4611,18 @@ export interface paths {
          *     - **description:** Form purpose/instructions (optional)
          *     - **settings:** Behavioral settings like success action, double opt-in (optional)
          *
-         *     **Form Lifecycle:**
+         *     **Form Lifecycle (hosted form):**
          *     1. Create form with name + fieldMapping (DRAFT status)
          *     2. Deploy site bundle via POST /v1/forms/{formId}/deploy (HTML + CSS + JS + assets)
          *     3. Publish form (PUBLISHED status)
          *     4. Form is live at /p/forms/{formId}
-         *     5. Create versions for updates, deploy new content, publish
          *
-         *     **Note:** Forms in DRAFT status cannot receive public submissions. Deploy content and publish to make the form live.
+         *     **Form Lifecycle (API-only form):**
+         *     1. Create form with name + fieldMapping (DRAFT status)
+         *     2. Publish form (PUBLISHED status) — no deploy needed
+         *     3. Submit data via POST /v1/forms/{formId}/submissions using your own custom forms
+         *
+         *     **Note:** Forms in DRAFT status cannot receive submissions. Publish the form first.
          */
         post: {
             parameters: {
@@ -5801,56 +5805,43 @@ export interface paths {
         put?: never;
         /**
          * Publish Form
-         * @description Publish a form to make it available for public use.
+         * @description Publish a form to make it available for submissions.
          *
          *     **Use Cases:**
-         *     - Make a draft form live on your website
+         *     - Make a draft form live on your website (if site content was deployed)
+         *     - Publish an API-only form to accept submissions via the API (no deploy needed)
          *     - Deploy form updates to production
          *     - Roll back to a previous version by publishing an archived version
-         *     - Release tested changes to users
-         *     - Activate new form configuration
          *
          *     **Behavior:**
          *     - **First Publish:** Root form status changes to PUBLISHED
          *     - **Subsequent Publishes:** Previous published version becomes ARCHIVED
          *     - **Rollback:** Publish an archived version to revert changes
          *     - Published forms are immutable - cannot be edited
-         *     - Form URL remains constant across versions
-         *     - Embedded forms automatically use newly published version
+         *     - Deploying site content is optional — forms can be published with just a fieldMapping for API-only usage
          *     - PublishedAt timestamp is set
          *     - Root form's publishedVersionId points to this version
          *
          *     **Required Scope:** `write:forms`
          *
-         *     **Publishing Flow:**
+         *     **Publishing Flow (hosted form):**
          *     1. Create form (DRAFT status)
-         *     2. Configure and test form
+         *     2. Deploy site bundle
          *     3. Publish form (becomes PUBLISHED)
-         *     4. **To Update:** Create new version → Edit → Publish
-         *     5. Previous version automatically becomes ARCHIVED
-         *     6. Form URL stays the same (version transparent to users)
+         *     4. Form is live at /p/forms/{formId}
+         *
+         *     **Publishing Flow (API-only form):**
+         *     1. Create form with fieldMapping (DRAFT status)
+         *     2. Publish form (becomes PUBLISHED) — no deploy needed
+         *     3. Submit data via POST /v1/forms/{formId}/submissions
          *
          *     **Version Management:**
          *     - Only one PUBLISHED version exists at a time
          *     - Publishing archives the current PUBLISHED version
          *     - Can publish any version (DRAFT or ARCHIVED)
          *     - Publishing ARCHIVED version = rollback
-         *     - Root form always tracks current PUBLISHED version
          *
-         *     **Important:**
-         *     - Cannot publish already PUBLISHED forms (no-op)
-         *     - Previous published version auto-archived
-         *     - Embedded forms switch instantly to new version
-         *     - Test thoroughly before publishing
-         *     - Form becomes immutable after publishing
-         *
-         *     **Rollback Scenario:**
-         *     1. Form V1 is PUBLISHED
-         *     2. Create V2, publish it (V1 → ARCHIVED)
-         *     3. Issue found in V2
-         *     4. Publish V1 again (V2 → ARCHIVED, V1 → PUBLISHED)
-         *
-         *     **Note:** Publishing is instant and affects all embedded instances immediately.
+         *     **Note:** Publishing is instant. If site content was deployed, it affects all embedded instances immediately.
          */
         post: {
             parameters: {
@@ -5982,6 +5973,164 @@ export interface paths {
                                 details?: {
                                     [key: string]: unknown;
                                 };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/forms/{formId}/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit Form Data
+         * @description Submit data to a published form.
+         *
+         *     **Use Cases:**
+         *     - Collect form submissions from your own custom HTML forms
+         *     - Submit data programmatically from backend services
+         *     - Integrate form collection into mobile apps or SPAs
+         *
+         *     **Behavior:**
+         *     - Form must be published (PUBLISHED status) to accept submissions
+         *     - For SIGN_UP forms: creates or updates a contact, requires email field
+         *     - For SURVEY forms: creates a submission record, optionally links to existing contact by email
+         *     - Triggers form.submission webhook and automation events
+         *     - Supports double opt-in for SIGN_UP forms if configured
+         *
+         *     **Required Scope:** `write:forms`
+         *
+         *     **Request Body:**
+         *     Send a JSON object where keys match the field names defined in the form's fieldMapping.
+         *
+         *     For example, if your form has fieldMapping:
+         *     ```json
+         *     {
+         *       "email": { "contactPropertyId": "email", ... },
+         *       "first_name": { "contactPropertyId": "firstName", ... }
+         *     }
+         *     ```
+         *
+         *     Then submit:
+         *     ```json
+         *     {
+         *       "email": "user@example.com",
+         *       "first_name": "Jane"
+         *     }
+         *     ```
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description The root form ID to submit data to */
+                    formId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            responses: {
+                /** @description Form submission created successfully. */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            object: "form_submission";
+                            /** @description Unique submission identifier */
+                            id: string;
+                        };
+                    };
+                };
+                /** @description Bad Request - Form is not published, missing field mapping, or validation failed. */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                /** @description Specific error code */
+                                code: string;
+                                /** @description Human-readable error message */
+                                message: string;
+                                /** @description Unique request identifier for tracing */
+                                requestId: string;
+                                /** @description Field-level validation errors (only present for validation_error type) */
+                                validationErrors?: {
+                                    /** @description Field name that failed validation */
+                                    field: string;
+                                    /** @description Error code for this field */
+                                    code: string;
+                                    /** @description Human-readable error message for this field */
+                                    message: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+                /** @description Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                code: string;
+                                message: string;
+                                requestId: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Not Found - Form with this ID does not exist in your workspace */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                /**
+                                 * @description Error type category
+                                 * @enum {string}
+                                 */
+                                type: "authentication_error" | "invalid_request_error" | "validation_error" | "rate_limit_error" | "api_error";
+                                code: string;
+                                message: string;
+                                requestId: string;
                             };
                         };
                     };

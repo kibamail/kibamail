@@ -1,0 +1,14 @@
+# Grafana Dashboard Provider
+# Managed by Ansible - do not edit manually
+apiVersion: 1
+
+providers:
+  - name: "KumoMTA"
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

@@ -1,0 +1,77 @@
+# monitoring_grafana Role Tasks
+#
+# Installs Grafana OSS from the Grafana APT repository (set up in playbook pre_tasks).
+# Configures datasources (Prometheus + Loki) and provisions a KumoMTA dashboard.
+#
+---
+- name: Install Grafana OSS
+  ansible.builtin.apt:
+    name: grafana
+    state: present
+
+- name: Deploy Grafana configuration
+  ansible.builtin.template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+    owner: root
+    group: grafana
+    mode: "0640"
+  notify: Restart grafana
+
+# =============================================================================
+# Datasource Provisioning
+# =============================================================================
+- name: Ensure Grafana provisioning directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: "0755"
+  loop:
+    - /etc/grafana/provisioning/datasources
+    - /etc/grafana/provisioning/dashboards
+    - /var/lib/grafana/dashboards
+
+- name: Deploy datasource provisioning
+  ansible.builtin.template:
+    src: datasources.yml.j2
+    dest: /etc/grafana/provisioning/datasources/datasources.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+  notify: Restart grafana
+
+# =============================================================================
+# Dashboard Provisioning
+# =============================================================================
+- name: Deploy dashboard provider configuration
+  ansible.builtin.copy:
+    src: dashboard-provider.yml
+    dest: /etc/grafana/provisioning/dashboards/dashboard-provider.yml
+    owner: grafana
+    group: grafana
+    mode: "0644"
+  notify: Restart grafana
+
+- name: Deploy KumoMTA dashboard
+  ansible.builtin.copy:
+    src: kumomta-dashboard.json
+    dest: /var/lib/grafana/dashboards/kumomta-dashboard.json
+    owner: grafana
+    group: grafana
+    mode: "0644"
+  notify: Restart grafana
+
+- name: Enable and start Grafana
+  ansible.builtin.systemd:
+    name: grafana-server
+    state: started
+    enabled: yes
+
+- name: Verify Grafana is running
+  ansible.builtin.wait_for:
+    host: "{{ monitoring_grafana_bind }}"
+    port: "{{ monitoring_grafana_port }}"
+    delay: 2
+    timeout: 30

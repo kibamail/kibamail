@@ -85,6 +85,12 @@ type ListFormVersionsResponse struct {
 	Data   []FormVersion `json:"data"`
 }
 
+// FormSubmissionResponse is the response from the Submit call.
+type FormSubmissionResponse struct {
+	Object string `json:"object"`
+	ID     string `json:"id"`
+}
+
 // DeployFormResponse is the response from the Deploy call.
 type DeployFormResponse struct {
 	DeployId string         `json:"deployId"`
@@ -117,6 +123,8 @@ type FormsSvc interface {
 	CreateVersionWithContext(ctx context.Context, formId string, params *CreateFormVersionRequest) (*FormResponse, error)
 	ListVersions(formId string) (*ListFormVersionsResponse, error)
 	ListVersionsWithContext(ctx context.Context, formId string) (*ListFormVersionsResponse, error)
+	Submit(formId string, data map[string]interface{}) (*FormSubmissionResponse, error)
+	SubmitWithContext(ctx context.Context, formId string, data map[string]interface{}) (*FormSubmissionResponse, error)
 }
 
 // FormsSvcImpl implements FormsSvc.
@@ -282,6 +290,25 @@ func (s *FormsSvcImpl) ListVersionsWithContext(ctx context.Context, formId strin
 	}
 
 	resp := new(ListFormVersionsResponse)
+	_, err = s.client.Perform(req, resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
+func (s *FormsSvcImpl) Submit(formId string, data map[string]interface{}) (*FormSubmissionResponse, error) {
+	return s.SubmitWithContext(context.Background(), formId, data)
+}
+
+func (s *FormsSvcImpl) SubmitWithContext(ctx context.Context, formId string, data map[string]interface{}) (*FormSubmissionResponse, error) {
+	req, err := s.client.NewRequest(ctx, http.MethodPost, "v1/forms/"+formId+"/submissions", data)
+	if err != nil {
+		return nil, ErrFailedToCreateFormsSubmitRequest
+	}
+
+	resp := new(FormSubmissionResponse)
 	_, err = s.client.Perform(req, resp)
 	if err != nil {
 		return nil, err

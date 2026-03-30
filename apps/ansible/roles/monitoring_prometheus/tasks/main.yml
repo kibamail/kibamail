@@ -1,0 +1,70 @@
+# monitoring_prometheus Role Tasks
+#
+# Installs Prometheus and node_exporter from Ubuntu APT repos.
+# Configures scraping of KumoMTA metrics, node_exporter, and self.
+#
+---
+- name: Install Prometheus and node_exporter
+  ansible.builtin.apt:
+    name:
+      - prometheus
+      - prometheus-node-exporter
+    state: present
+    update_cache: yes
+
+- name: Deploy Prometheus configuration
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /etc/prometheus/prometheus.yml
+    owner: prometheus
+    group: prometheus
+    mode: "0644"
+  notify: Restart prometheus
+
+- name: Ensure systemd override directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/system/prometheus.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure Prometheus systemd override for bind address and retention
+  ansible.builtin.copy:
+    content: |
+      [Service]
+      ExecStart=
+      ExecStart=/usr/bin/prometheus \
+        --config.file=/etc/prometheus/prometheus.yml \
+        --storage.tsdb.path=/var/lib/prometheus \
+        --storage.tsdb.retention.time={{ monitoring_prometheus_retention }} \
+        --web.listen-address={{ monitoring_prometheus_bind }}:{{ monitoring_prometheus_port }} \
+        --web.console.templates=/etc/prometheus/consoles \
+        --web.console.libraries=/etc/prometheus/console_libraries
+    dest: /etc/systemd/system/prometheus.service.d/override.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart prometheus
+
+- name: Enable and start node_exporter
+  ansible.builtin.systemd:
+    name: prometheus-node-exporter
+    state: started
+    enabled: yes
+
+- name: Enable and start Prometheus
+  ansible.builtin.systemd:
+    name: prometheus
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Verify Prometheus is running
+  ansible.builtin.wait_for:
+    host: "{{ monitoring_prometheus_bind }}"
+    port: "{{ monitoring_prometheus_port }}"
+    delay: 2
+    timeout: 30

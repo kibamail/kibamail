@@ -1,0 +1,120 @@
+# Provision Monitoring Stack
+#
+# Deploys Prometheus, Loki, Promtail, Grafana, and Nginx reverse proxy
+# on the Helsinki MTA server for KumoMTA observability.
+#
+# Usage:
+#   source inventory/helsinki/.env
+#   ansible-playbook playbooks/provision-monitoring.yml -i inventory/helsinki
+#
+# Required environment variables:
+#   GRAFANA_ADMIN_PASSWORD  - Grafana admin password
+#
+---
+- name: Provision Monitoring Stack
+  hosts: mta-1
+  become: yes
+
+  pre_tasks:
+    # =========================================================================
+    # Validate required environment variables
+    # =========================================================================
+    - name: Validate required environment variables
+      tags: always
+      ansible.builtin.assert:
+        that:
+          - grafana_admin_password | length > 0
+        fail_msg: |
+          Missing required environment variables.
+          Please run: source inventory/helsinki/.env
+
+    - name: Display provisioning info
+      tags: always
+      ansible.builtin.debug:
+        msg: |
+          Provisioning monitoring stack on {{ inventory_hostname }}
+          - Host: {{ ansible_host }}
+          - Domain: {{ monitoring_domain }}
+          - Prometheus: {{ monitoring_prometheus_bind }}:{{ monitoring_prometheus_port }}
+          - Loki: {{ monitoring_loki_bind }}:{{ monitoring_loki_port }}
+          - Grafana: {{ monitoring_grafana_bind }}:{{ monitoring_grafana_port }}
+
+    # =========================================================================
+    # Shared Grafana APT Repository
+    # =========================================================================
+    # Set up once here because Loki, Promtail, and Grafana all come from it.
+    # Tagged 'always' so it runs even when using --tags for individual roles.
+    # =========================================================================
+    - name: Install APT transport prerequisites
+      tags: always
+      ansible.builtin.apt:
+        name:
+          - apt-transport-https
+          - software-properties-common
+          - gnupg
+        state: present
+        update_cache: yes
+
+    - name: Add Grafana GPG key
+      tags: always
+      ansible.builtin.shell: |
+        curl -fsSL https://apt.grafana.com/gpg.key | gpg --yes --dearmor -o /usr/share/keyrings/grafana.gpg
+      args:
+        creates: /usr/share/keyrings/grafana.gpg
+
+    - name: Set Grafana GPG key permissions
+      tags: always
+      ansible.builtin.file:
+        path: /usr/share/keyrings/grafana.gpg
+        mode: "0644"
+
+    - name: Add Grafana APT repository
+      tags: always
+      ansible.builtin.copy:
+        content: |
+          deb [signed-by=/usr/share/keyrings/grafana.gpg] https://apt.grafana.com stable main
+        dest: /etc/apt/sources.list.d/grafana.list
+        mode: "0644"
+
+    - name: Update APT cache after adding Grafana repository
+      tags: always
+      ansible.builtin.apt:
+        update_cache: yes
+
+  roles:
+    - role: monitoring_prometheus
+      tags: [monitoring, prometheus]
+
+    - role: monitoring_loki
+      tags: [monitoring, loki]
+
+    - role: monitoring_log_pipe
+      tags: [monitoring, log_pipe]
+
+    - role: monitoring_promtail
+      tags: [monitoring, promtail]
+
+    - role: monitoring_grafana
+      tags: [monitoring, grafana]
+
+    - role: monitoring_nginx
+      tags: [monitoring, nginx]
+
+  post_tasks:
+    - name: Display provisioning complete
+      tags: always
+      ansible.builtin.debug:
+        msg: |
+          Monitoring stack provisioned successfully.
+
+          Services:
+            systemctl status prometheus
+            systemctl status prometheus-node-exporter
+            systemctl status loki
+            systemctl status promtail
+            systemctl status kumomta-log-pipe
+            systemctl status grafana-server
+
+          Access:
+            https://{{ monitoring_domain }}
+            User: {{ monitoring_grafana_admin_user }}

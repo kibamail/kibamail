@@ -1,0 +1,10 @@
+# monitoring_log_pipe Role Handlers
+---
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: Restart kumomta-log-pipe
+  ansible.builtin.systemd:
+    name: kumomta-log-pipe
+    state: restarted

@@ -1,0 +1,15 @@
+# {{ monitoring_domain }} - Temporary HTTP config for ACME challenge
+# Managed by Ansible - replaced with full SSL config after cert issuance
+
+server {
+    listen 80;
+    server_name {{ monitoring_domain }};
+
+    location /.well-known/acme-challenge/ {
+        root /var/lib/letsencrypt;
+    }
+
+    location / {
+        return 503;
+    }
+}

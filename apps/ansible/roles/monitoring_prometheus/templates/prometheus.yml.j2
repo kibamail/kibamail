@@ -1,0 +1,24 @@
+# Prometheus Configuration
+# Managed by Ansible - do not edit manually
+
+global:
+  scrape_interval: {{ monitoring_prometheus_scrape_interval }}
+  evaluation_interval: {{ monitoring_prometheus_scrape_interval }}
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["127.0.0.1:{{ monitoring_prometheus_port }}"]
+
+  # Node exporter (system metrics)
+  - job_name: "node_exporter"
+    static_configs:
+      - targets: ["127.0.0.1:{{ monitoring_node_exporter_port }}"]
+
+  # KumoMTA metrics (higher frequency)
+  - job_name: "kumomta"
+    scrape_interval: {{ monitoring_kumomta_scrape_interval }}
+    static_configs:
+      - targets: ["{{ monitoring_kumomta_metrics_host }}"]
+    metrics_path: /metrics

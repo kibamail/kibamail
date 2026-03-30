@@ -1,0 +1,39 @@
+# monitoring_log_pipe Role Tasks
+#
+# Creates a systemd service that runs KumoMTA's tailer to convert
+# zstd-compressed binary logs to plain text JSON for Promtail consumption.
+#
+---
+- name: Create plain text log directory
+  ansible.builtin.file:
+    path: "{{ monitoring_log_pipe_dest_dir }}"
+    state: directory
+    owner: kumod
+    group: adm
+    mode: "0755"
+
+- name: Deploy log pipe systemd service
+  ansible.builtin.template:
+    src: kumomta-log-pipe.service.j2
+    dest: /etc/systemd/system/kumomta-log-pipe.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart kumomta-log-pipe
+
+- name: Enable and start log pipe service
+  ansible.builtin.systemd:
+    name: kumomta-log-pipe
+    state: started
+    enabled: yes
+    daemon_reload: yes
+
+- name: Deploy logrotate configuration
+  ansible.builtin.template:
+    src: kumomta-plain-logrotate.j2
+    dest: /etc/logrotate.d/kumomta-plain
+    owner: root
+    group: root
+    mode: "0644"

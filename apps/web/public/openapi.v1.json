@@ -9002,7 +9002,7 @@
       },
       "post": {
         "summary": "Create Form",
-        "description": "Create a new form for lead capture and contact collection.\n\n**Behavior:**\n- Form is created in DRAFT status (not yet public)\n- Content (HTML) is uploaded separately via the deploy endpoint\n- Form must be deployed and published to accept submissions\n\n**Required Scope:** `write:forms`\n\n**Request Body:**\n- **name:** Internal form name for identification\n- **fieldMapping:** Maps form input field names to contact properties\n- **description:** Form purpose/instructions (optional)\n- **settings:** Behavioral settings like success action, double opt-in (optional)\n\n**Form Lifecycle:**\n1. Create form with name + fieldMapping (DRAFT status)\n2. Deploy site bundle via POST /v1/forms/{formId}/deploy (HTML + CSS + JS + assets)\n3. Publish form (PUBLISHED status)\n4. Form is live at /p/forms/{formId}\n5. Create versions for updates, deploy new content, publish\n\n**Note:** Forms in DRAFT status cannot receive public submissions. Deploy content and publish to make the form live.",
+        "description": "Create a new form for lead capture and contact collection.\n\n**Behavior:**\n- Form is created in DRAFT status (not yet public)\n- Content (HTML) can optionally be uploaded via the deploy endpoint\n- Form must be published to accept submissions\n\n**Required Scope:** `write:forms`\n\n**Request Body:**\n- **name:** Internal form name for identification\n- **fieldMapping:** Maps form input field names to contact properties\n- **description:** Form purpose/instructions (optional)\n- **settings:** Behavioral settings like success action, double opt-in (optional)\n\n**Form Lifecycle (hosted form):**\n1. Create form with name + fieldMapping (DRAFT status)\n2. Deploy site bundle via POST /v1/forms/{formId}/deploy (HTML + CSS + JS + assets)\n3. Publish form (PUBLISHED status)\n4. Form is live at /p/forms/{formId}\n\n**Form Lifecycle (API-only form):**\n1. Create form with name + fieldMapping (DRAFT status)\n2. Publish form (PUBLISHED status) — no deploy needed\n3. Submit data via POST /v1/forms/{formId}/submissions using your own custom forms\n\n**Note:** Forms in DRAFT status cannot receive submissions. Publish the form first.",
         "tags": [
           "Forms"
         ],
@@ -11379,7 +11379,7 @@
     "/v1/forms/{formId}/publish": {
       "post": {
         "summary": "Publish Form",
-        "description": "Publish a form to make it available for public use.\n\n**Use Cases:**\n- Make a draft form live on your website\n- Deploy form updates to production\n- Roll back to a previous version by publishing an archived version\n- Release tested changes to users\n- Activate new form configuration\n\n**Behavior:**\n- **First Publish:** Root form status changes to PUBLISHED\n- **Subsequent Publishes:** Previous published version becomes ARCHIVED\n- **Rollback:** Publish an archived version to revert changes\n- Published forms are immutable - cannot be edited\n- Form URL remains constant across versions\n- Embedded forms automatically use newly published version\n- PublishedAt timestamp is set\n- Root form's publishedVersionId points to this version\n\n**Required Scope:** `write:forms`\n\n**Publishing Flow:**\n1. Create form (DRAFT status)\n2. Configure and test form\n3. Publish form (becomes PUBLISHED)\n4. **To Update:** Create new version → Edit → Publish\n5. Previous version automatically becomes ARCHIVED\n6. Form URL stays the same (version transparent to users)\n\n**Version Management:**\n- Only one PUBLISHED version exists at a time\n- Publishing archives the current PUBLISHED version\n- Can publish any version (DRAFT or ARCHIVED)\n- Publishing ARCHIVED version = rollback\n- Root form always tracks current PUBLISHED version\n\n**Important:**\n- Cannot publish already PUBLISHED forms (no-op)\n- Previous published version auto-archived\n- Embedded forms switch instantly to new version\n- Test thoroughly before publishing\n- Form becomes immutable after publishing\n\n**Rollback Scenario:**\n1. Form V1 is PUBLISHED\n2. Create V2, publish it (V1 → ARCHIVED)\n3. Issue found in V2\n4. Publish V1 again (V2 → ARCHIVED, V1 → PUBLISHED)\n\n**Note:** Publishing is instant and affects all embedded instances immediately.",
+        "description": "Publish a form to make it available for submissions.\n\n**Use Cases:**\n- Make a draft form live on your website (if site content was deployed)\n- Publish an API-only form to accept submissions via the API (no deploy needed)\n- Deploy form updates to production\n- Roll back to a previous version by publishing an archived version\n\n**Behavior:**\n- **First Publish:** Root form status changes to PUBLISHED\n- **Subsequent Publishes:** Previous published version becomes ARCHIVED\n- **Rollback:** Publish an archived version to revert changes\n- Published forms are immutable - cannot be edited\n- Deploying site content is optional — forms can be published with just a fieldMapping for API-only usage\n- PublishedAt timestamp is set\n- Root form's publishedVersionId points to this version\n\n**Required Scope:** `write:forms`\n\n**Publishing Flow (hosted form):**\n1. Create form (DRAFT status)\n2. Deploy site bundle\n3. Publish form (becomes PUBLISHED)\n4. Form is live at /p/forms/{formId}\n\n**Publishing Flow (API-only form):**\n1. Create form with fieldMapping (DRAFT status)\n2. Publish form (becomes PUBLISHED) — no deploy needed\n3. Submit data via POST /v1/forms/{formId}/submissions\n\n**Version Management:**\n- Only one PUBLISHED version exists at a time\n- Publishing archives the current PUBLISHED version\n- Can publish any version (DRAFT or ARCHIVED)\n- Publishing ARCHIVED version = rollback\n\n**Note:** Publishing is instant. If site content was deployed, it affects all embedded instances immediately.",
         "tags": [
           "Forms"
         ],
@@ -11664,6 +11664,244 @@
                             "type": "string"
                           },
                           "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/forms/{formId}/submissions": {
+      "post": {
+        "summary": "Submit Form Data",
+        "description": "Submit data to a published form.\n\n**Use Cases:**\n- Collect form submissions from your own custom HTML forms\n- Submit data programmatically from backend services\n- Integrate form collection into mobile apps or SPAs\n\n**Behavior:**\n- Form must be published (PUBLISHED status) to accept submissions\n- For SIGN_UP forms: creates or updates a contact, requires email field\n- For SURVEY forms: creates a submission record, optionally links to existing contact by email\n- Triggers form.submission webhook and automation events\n- Supports double opt-in for SIGN_UP forms if configured\n\n**Required Scope:** `write:forms`\n\n**Request Body:**\nSend a JSON object where keys match the field names defined in the form's fieldMapping.\n\nFor example, if your form has fieldMapping:\n```json\n{\n  \"email\": { \"contactPropertyId\": \"email\", ... },\n  \"first_name\": { \"contactPropertyId\": \"firstName\", ... }\n}\n```\n\nThen submit:\n```json\n{\n  \"email\": \"user@example.com\",\n  \"first_name\": \"Jane\"\n}\n```",
+        "tags": [
+          "Forms"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "description": "The root form ID to submit data to",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "description": "Key-value pairs matching the form's fieldMapping. Keys are field names, values are strings or numbers.",
+                "additionalProperties": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Form submission created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "form_submission"
+                    },
+                    "id": {
+                      "description": "Unique submission identifier",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Form is not published, missing field mapping, or validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Form with this ID does not exist in your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "type": "string"
                         }
                       },
                       "required": [

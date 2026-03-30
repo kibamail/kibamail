@@ -1,0 +1,6 @@
+# monitoring_loki Role Defaults
+---
+monitoring_loki_bind: "127.0.0.1"
+monitoring_loki_port: 3100
+monitoring_loki_retention: "720h"
+monitoring_loki_storage_path: "/var/lib/loki"

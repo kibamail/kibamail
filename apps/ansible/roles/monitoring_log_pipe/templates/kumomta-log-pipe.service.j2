@@ -1,0 +1,21 @@
+# KumoMTA Log Pipe Service
+# Managed by Ansible - do not edit manually
+#
+# Converts KumoMTA zstd-compressed binary logs to plain text JSON
+# using the tailer utility. Output is consumed by Promtail.
+[Unit]
+Description=KumoMTA log pipe (tailer to plain text)
+After=kumomta.service
+
+[Service]
+Type=simple
+User=kumod
+Group=adm
+ExecStart=/bin/sh -c '{{ monitoring_log_pipe_tailer_bin }} --tail {{ monitoring_log_pipe_source }} >> {{ monitoring_log_pipe_dest_file }}'
+Restart=always
+RestartSec=5
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,63 @@
+# Loki Configuration
+# Managed by Ansible - do not edit manually
+
+auth_enabled: false
+
+server:
+  http_listen_address: {{ monitoring_loki_bind }}
+  http_listen_port: {{ monitoring_loki_port }}
+  grpc_listen_address: {{ monitoring_loki_bind }}
+  grpc_listen_port: 9096
+
+common:
+  path_prefix: {{ monitoring_loki_storage_path }}
+  instance_addr: 127.0.0.1
+  instance_interface_names:
+    - enp4s0
+  storage:
+    filesystem:
+      chunks_directory: {{ monitoring_loki_storage_path }}/chunks
+      rules_directory: {{ monitoring_loki_storage_path }}/rules
+  replication_factor: 1
+  ring:
+    instance_addr: 127.0.0.1
+    kvstore:
+      store: inmemory
+
+frontend_worker:
+  frontend_address: 127.0.0.1:9096
+
+memberlist:
+  bind_addr:
+    - 127.0.0.1
+
+schema_config:
+  configs:
+    - from: "2024-01-01"
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+ingester:
+  chunk_idle_period: 5m
+  chunk_retain_period: 30s
+  flush_check_period: 10s
+  wal:
+    enabled: true
+    dir: {{ monitoring_loki_storage_path }}/wal
+    flush_on_shutdown: true
+
+limits_config:
+  retention_period: {{ monitoring_loki_retention }}
+  allow_structured_metadata: true
+
+compactor:
+  working_directory: {{ monitoring_loki_storage_path }}/compactor
+  compaction_interval: 10m
+  retention_enabled: true
+  retention_delete_delay: 2h
+  retention_delete_worker_count: 150
+  delete_request_store: filesystem

@@ -13,30 +13,32 @@ type CreateFormVersionBody = paths["/v1/forms/{formId}/versions"]["post"]["reque
  * Forms Resource
  *
  * Manage forms for collecting contact information.
- * Forms use a deploy-based workflow: create the form with metadata,
- * deploy a site bundle (HTML + CSS + JS + assets), then publish.
  *
- * **Form Lifecycle:**
+ * **Hosted Form Lifecycle:**
  * 1. Create form with name + fieldMapping
  * 2. Deploy site bundle (index.html + assets)
  * 3. Publish to go live
- * 4. Create versions for updates
+ *
+ * **API-only Form Lifecycle:**
+ * 1. Create form with name + fieldMapping
+ * 2. Publish (no deploy needed)
+ * 3. Submit data via `forms.submit()`
  *
  * @example
  * ```ts
  * const kibamail = new Kibamail("your-api-key");
  *
- * // Create a form
+ * // Create and publish an API-only form
  * const form = await kibamail.forms.create({
  *   name: "Newsletter Signup",
  *   fieldMapping: {
  *     email: { contactPropertyId: "email", contactPropertyType: "standard", fieldType: "string" }
  *   }
  * });
- *
- * // Deploy content via the deploy endpoint (multipart upload)
- * // Then publish
  * await kibamail.forms.publish(form.data.id);
+ *
+ * // Submit data from your own custom form
+ * await kibamail.forms.submit(form.data.id, { email: "user@example.com" });
  * ```
  */
 export class Forms {
@@ -154,7 +156,33 @@ export class Forms {
   }
 
   /**
-   * Publish a form. Requires deployed content.
+   * Submit data to a published form.
+   *
+   * Use this to collect form submissions from your own custom forms.
+   * The keys in the data object must match the field names in the form's fieldMapping.
+   *
+   * **Required Scope:** `write:forms`
+   *
+   * @param formId - The root form ID
+   * @param data - Key-value pairs matching the form's fieldMapping
+   *
+   * @example
+   * ```ts
+   * await kibamail.forms.submit("form_abc123", {
+   *   email: "user@example.com",
+   *   first_name: "Jane"
+   * });
+   * ```
+   */
+  submit(formId: string, data: Record<string, unknown>) {
+    return this.client.POST("/v1/forms/{formId}/submissions", {
+      params: { path: { formId } },
+      body: data,
+    });
+  }
+
+  /**
+   * Publish a form. Deploying site content is optional.
    *
    * **Required Scope:** `write:forms`
    *

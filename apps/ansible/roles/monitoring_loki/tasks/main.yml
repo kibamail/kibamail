@@ -1,0 +1,40 @@
+# monitoring_loki Role Tasks
+#
+# Installs Loki from the Grafana APT repository (set up in playbook pre_tasks).
+# Configures filesystem storage with retention and compaction.
+#
+---
+- name: Install Loki
+  ansible.builtin.apt:
+    name: loki
+    state: present
+
+- name: Create Loki data directory
+  ansible.builtin.file:
+    path: "{{ monitoring_loki_storage_path }}"
+    state: directory
+    owner: loki
+    group: nogroup
+    mode: "0755"
+
+- name: Deploy Loki configuration
+  ansible.builtin.template:
+    src: loki-config.yml.j2
+    dest: /etc/loki/config.yml
+    owner: loki
+    group: nogroup
+    mode: "0644"
+  notify: Restart loki
+
+- name: Enable and start Loki
+  ansible.builtin.systemd:
+    name: loki
+    state: started
+    enabled: yes
+
+- name: Verify Loki is running
+  ansible.builtin.wait_for:
+    host: "{{ monitoring_loki_bind }}"
+    port: "{{ monitoring_loki_port }}"
+    delay: 2
+    timeout: 30

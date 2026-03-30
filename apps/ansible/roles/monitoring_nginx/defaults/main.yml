@@ -1,0 +1,6 @@
+# monitoring_nginx Role Defaults
+---
+monitoring_domain: "monitor.kbmta.net"
+monitoring_grafana_bind: "127.0.0.1"
+monitoring_grafana_port: 3000
+certbot_email: "frantz@kibamail.com"

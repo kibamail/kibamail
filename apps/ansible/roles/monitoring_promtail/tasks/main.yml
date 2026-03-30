@@ -1,0 +1,38 @@
+# monitoring_promtail Role Tasks
+#
+# Installs Promtail from the Grafana APT repository (set up in playbook pre_tasks).
+# Configures log scraping of KumoMTA plain text logs with JSON parsing.
+#
+---
+- name: Install Promtail
+  ansible.builtin.apt:
+    name: promtail
+    state: present
+
+- name: Deploy Promtail configuration
+  ansible.builtin.template:
+    src: promtail-config.yml.j2
+    dest: /etc/promtail/config.yml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart promtail
+
+- name: Ensure promtail user can read KumoMTA logs
+  ansible.builtin.user:
+    name: promtail
+    groups: adm
+    append: yes
+
+- name: Enable and start Promtail
+  ansible.builtin.systemd:
+    name: promtail
+    state: started
+    enabled: yes
+
+- name: Verify Promtail is running
+  ansible.builtin.wait_for:
+    host: "{{ monitoring_promtail_bind }}"
+    port: "{{ monitoring_promtail_port }}"
+    delay: 2
+    timeout: 30

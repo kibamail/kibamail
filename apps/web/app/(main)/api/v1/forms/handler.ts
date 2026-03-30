@@ -425,14 +425,7 @@ export async function publishForm(workspaceId: string, formId: string) {
     );
   }
 
-  // Require deployed content
   const content = form.fields as FormContent | null;
-  if (!content?.html) {
-    throw new BadRequestError(
-      "Cannot publish a form without deployed content. Use the deploy endpoint to upload your site bundle first.",
-      ErrorCode.FORM_NO_FIELDS,
-    );
-  }
 
   const apiFieldMapping = form.fieldMapping as ApiFieldMapping | null;
 
@@ -443,17 +436,19 @@ export async function publishForm(workspaceId: string, formId: string) {
     );
   }
 
-  // Validate HTML + fieldMapping
-  const validation = validateHtmlFieldMapping(
-    content.html,
-    apiFieldMapping,
-    form.type,
-  );
-  if (!validation.valid) {
-    throw new BadRequestError(
-      validation.errors.map((e) => e.message).join("; "),
-      ErrorCode.FORM_VALIDATION_ERROR,
+  // Validate HTML + fieldMapping only when site content has been deployed
+  if (content?.html) {
+    const validation = validateHtmlFieldMapping(
+      content.html,
+      apiFieldMapping,
+      form.type,
     );
+    if (!validation.valid) {
+      throw new BadRequestError(
+        validation.errors.map((e) => e.message).join("; "),
+        ErrorCode.FORM_VALIDATION_ERROR,
+      );
+    }
   }
 
   // Root form (first publish)

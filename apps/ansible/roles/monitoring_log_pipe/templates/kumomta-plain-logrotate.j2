@@ -1,0 +1,12 @@
+# KumoMTA plain text log rotation
+# Managed by Ansible - do not edit manually
+{{ monitoring_log_pipe_dest_file }} {
+    rotate {{ monitoring_log_pipe_rotate_count }}
+    size {{ monitoring_log_pipe_rotate_size }}
+    missingok
+    notifempty
+    compress
+    delaycompress
+    copytruncate
+    create 0644 kumod adm
+}

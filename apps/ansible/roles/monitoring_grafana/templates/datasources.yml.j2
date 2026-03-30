@@ -1,0 +1,21 @@
+# Grafana Datasource Provisioning
+# Managed by Ansible - do not edit manually
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://{{ monitoring_prometheus_bind }}:{{ monitoring_prometheus_port }}
+    isDefault: true
+    editable: false
+    uid: prometheus
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://{{ monitoring_loki_bind }}:{{ monitoring_loki_port }}
+    editable: false
+    uid: loki
+    jsonData:
+      maxLines: 1000

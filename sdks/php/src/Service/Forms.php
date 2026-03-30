@@ -107,6 +107,22 @@ class Forms extends Service
     }
 
     /**
+     * Submit data to a published form.
+     *
+     * @param string $id The form ID
+     * @param array<string, mixed> $data Key-value pairs matching the form's fieldMapping
+     *
+     * @return Form The submission response
+     */
+    public function submit(string $id, array $data): Form
+    {
+        $payload = Payload::create('v1/forms/' . $id . '/submissions', $data);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('forms', $result);
+    }
+
+    /**
      * Create a new version of a form.
      */
     public function createVersion(string $id, array $parameters = []): Form

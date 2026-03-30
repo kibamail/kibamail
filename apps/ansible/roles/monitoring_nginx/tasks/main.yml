@@ -1,0 +1,107 @@
+# monitoring_nginx Role Tasks
+#
+# Configures Nginx as a reverse proxy for Grafana with SSL.
+# Uses Let's Encrypt with HTTP-01 (webroot) challenge.
+# Includes WebSocket support for Grafana live features.
+#
+---
+# =============================================================================
+# Install certbot
+# =============================================================================
+- name: Install certbot
+  ansible.builtin.apt:
+    name: certbot
+    state: present
+    update_cache: yes
+
+# =============================================================================
+# Prepare webroot for ACME challenges
+# =============================================================================
+- name: Create ACME webroot directory
+  ansible.builtin.file:
+    path: /var/lib/letsencrypt/.well-known/acme-challenge
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: "0755"
+
+# =============================================================================
+# Deploy HTTP-only config first (for ACME challenge)
+# =============================================================================
+- name: Check if certificate already exists
+  ansible.builtin.stat:
+    path: "/etc/letsencrypt/live/{{ monitoring_domain }}/fullchain.pem"
+  register: cert_exists
+
+- name: Deploy HTTP-only nginx config for ACME challenge
+  ansible.builtin.template:
+    src: monitor-acme.conf.j2
+    dest: "/etc/nginx/sites-available/{{ monitoring_domain }}"
+    owner: root
+    group: root
+    mode: "0644"
+  when: not cert_exists.stat.exists
+
+- name: Enable nginx site
+  ansible.builtin.file:
+    src: "/etc/nginx/sites-available/{{ monitoring_domain }}"
+    dest: "/etc/nginx/sites-enabled/{{ monitoring_domain }}"
+    state: link
+
+- name: Reload nginx for ACME config
+  ansible.builtin.systemd:
+    name: nginx
+    state: reloaded
+  when: not cert_exists.stat.exists
+
+# =============================================================================
+# Obtain SSL certificate via HTTP-01 (webroot) challenge
+# =============================================================================
+- name: Obtain SSL certificate for {{ monitoring_domain }}
+  ansible.builtin.command:
+    cmd: >
+      certbot certonly
+      --webroot
+      -w /var/lib/letsencrypt
+      -d {{ monitoring_domain }}
+      --email {{ certbot_email }}
+      --agree-tos
+      --non-interactive
+  when: not cert_exists.stat.exists
+  register: certbot_result
+
+- name: Display certbot result
+  ansible.builtin.debug:
+    msg: "{{ certbot_result.stdout_lines }}"
+  when: certbot_result is changed
+
+# =============================================================================
+# Set up certificate auto-renewal
+# =============================================================================
+- name: Ensure certbot renewal timer is enabled
+  ansible.builtin.systemd:
+    name: certbot.timer
+    state: started
+    enabled: yes
+
+# =============================================================================
+# Deploy full SSL nginx config
+# =============================================================================
+- name: Deploy full nginx site configuration with SSL
+  ansible.builtin.template:
+    src: monitor-site.conf.j2
+    dest: "/etc/nginx/sites-available/{{ monitoring_domain }}"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload nginx
+
+- name: Validate nginx configuration
+  ansible.builtin.command: nginx -t
+  changed_when: false
+
+- name: Ensure nginx is running
+  ansible.builtin.systemd:
+    name: nginx
+    state: started
+    enabled: yes

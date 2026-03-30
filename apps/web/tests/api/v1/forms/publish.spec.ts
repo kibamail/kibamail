@@ -666,6 +666,82 @@ describe("POST /api/v1/forms/[formId]/publish - Field Mapping Validation", () =>
     expect(responseData.error.message).toContain("email");
   });
 
+  test("should publish an API-only form without deployed content", async () => {
+    // Create a form with fieldMapping but no deployed content
+    const createRequest = post(
+      "/forms",
+      {
+        name: "API-Only Form",
+        fieldMapping: validFormFieldMapping,
+      },
+      fullAccessApiKey.key,
+    );
+
+    const createResponse = await CREATE_FORM(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Publish without deploying HTML content
+    const publishRequest = post(
+      `/forms/${createdForm.id}/publish`,
+      {},
+      fullAccessApiKey.key,
+    );
+
+    const response = await PUBLISH_FORM(publishRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.object).toBe("form");
+    expect(responseData.id).toBe(createdForm.id);
+
+    // Verify form is published in database
+    const publishedForm = await prisma.form.findUnique({
+      where: { id: createdForm.id },
+    });
+
+    expect(publishedForm).not.toBeNull();
+    expect(publishedForm?.status).toBe("PUBLISHED");
+    expect(publishedForm?.publishedVersionId).toBe(createdForm.id);
+    expect(publishedForm?.publishedAt).not.toBeNull();
+  });
+
+  test("should reject publishing form without fieldMapping", async () => {
+    // Create a form, then clear fieldMapping
+    const createRequest = post(
+      "/forms",
+      {
+        name: "No Mapping Form",
+        fieldMapping: validFormFieldMapping,
+      },
+      fullAccessApiKey.key,
+    );
+
+    const createResponse = await CREATE_FORM(createRequest);
+    const createdForm = await createResponse.json();
+
+    // Clear fieldMapping
+    await prisma.form.update({
+      where: { id: createdForm.id },
+      data: { fieldMapping: {} as never },
+    });
+
+    const publishRequest = post(
+      `/forms/${createdForm.id}/publish`,
+      {},
+      fullAccessApiKey.key,
+    );
+
+    const response = await PUBLISH_FORM(publishRequest, {
+      params: Promise.resolve({ formId: createdForm.id }),
+    });
+    const responseData = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(responseData.error.code).toBe(ErrorCode.FORM_NO_FIELDS);
+  });
+
   test("should allow publishing form with all fields mapped including email", async () => {
     // Create a form with all fields properly mapped
     const createRequest = post(

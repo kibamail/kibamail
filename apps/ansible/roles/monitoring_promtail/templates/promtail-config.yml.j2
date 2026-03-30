@@ -1,0 +1,70 @@
+# Promtail Configuration
+# Managed by Ansible - do not edit manually
+
+server:
+  http_listen_address: {{ monitoring_promtail_bind }}
+  http_listen_port: {{ monitoring_promtail_port }}
+
+positions:
+  filename: /tmp/promtail-positions.yaml
+
+clients:
+  - url: http://{{ monitoring_loki_bind }}:{{ monitoring_loki_port }}/loki/api/v1/push
+
+scrape_configs:
+  - job_name: kumomta
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: kumomta
+          __path__: {{ monitoring_kumomta_log_path }}
+
+    pipeline_stages:
+      # Parse the JSON log line
+      - json:
+          expressions:
+            type: type
+            bounce_classification: bounce_classification
+            egress_pool: egress_pool
+            egress_source: egress_source
+            queue: queue
+            reception_protocol: reception_protocol
+            delivery_protocol: delivery_protocol
+            sender: sender
+            recipient: recipient
+            response_code: response.code
+            response_enhanced_code: response.enhanced_code
+            response_content: response.content
+            site_name: site_name
+            message_id: id
+            node_id: nodeid
+            peer_address: peer_address
+            tls_protocol_version: tls_protocol_version
+            size: size
+            num_attempts: num_attempts
+
+      # Low-cardinality fields as labels (for efficient querying)
+      - labels:
+          type:
+          bounce_classification:
+          egress_pool:
+          egress_source:
+          reception_protocol:
+          delivery_protocol:
+
+      # High-cardinality fields as structured metadata (searchable but not indexed)
+      - structured_metadata:
+          sender:
+          recipient:
+          queue:
+          response_code:
+          response_enhanced_code:
+          response_content:
+          site_name:
+          message_id:
+          node_id:
+          peer_address:
+          tls_protocol_version:
+          size:
+          num_attempts:

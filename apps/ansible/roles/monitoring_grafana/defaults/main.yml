@@ -1,0 +1,11 @@
+# monitoring_grafana Role Defaults
+---
+monitoring_grafana_bind: "127.0.0.1"
+monitoring_grafana_port: 3000
+monitoring_grafana_root_url: "https://monitor.kbmta.net"
+monitoring_grafana_admin_user: "admin"
+monitoring_domain: "monitor.kbmta.net"
+monitoring_prometheus_bind: "127.0.0.1"
+monitoring_prometheus_port: 9090
+monitoring_loki_bind: "127.0.0.1"
+monitoring_loki_port: 3100

@@ -1,0 +1,8 @@
+# monitoring_log_pipe Role Defaults
+---
+monitoring_log_pipe_tailer_bin: "/opt/kumomta/sbin/tailer"
+monitoring_log_pipe_source: "/var/log/kumomta"
+monitoring_log_pipe_dest_dir: "/var/log/kumomta-plain"
+monitoring_log_pipe_dest_file: "/var/log/kumomta-plain/kumomta.log"
+monitoring_log_pipe_rotate_count: 7
+monitoring_log_pipe_rotate_size: "100M"

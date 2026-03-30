@@ -1,0 +1,9 @@
+# monitoring_prometheus Role Defaults
+---
+monitoring_prometheus_bind: "127.0.0.1"
+monitoring_prometheus_port: 9090
+monitoring_prometheus_retention: "30d"
+monitoring_prometheus_scrape_interval: "15s"
+monitoring_kumomta_scrape_interval: "5s"
+monitoring_kumomta_metrics_host: "127.0.0.1:8000"
+monitoring_node_exporter_port: 9100

@@ -119,6 +119,7 @@ var (
 	ErrFailedToCreateFormsPublishRequest       = errors.New("[ERROR]: Failed to create Forms.Publish request")
 	ErrFailedToCreateFormsCreateVersionRequest = errors.New("[ERROR]: Failed to create Forms.CreateVersion request")
 	ErrFailedToCreateFormsListVersionsRequest  = errors.New("[ERROR]: Failed to create Forms.ListVersions request")
+	ErrFailedToCreateFormsSubmitRequest         = errors.New("[ERROR]: Failed to create Forms.Submit request")
 )
 
 // ApiKeysSvc errors
