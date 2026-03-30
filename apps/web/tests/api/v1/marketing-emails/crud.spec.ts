@@ -24,7 +24,10 @@ import {
   createFullAccessApiKey,
   createTestApiKey,
   createTestWorkspace,
+  del,
+  get,
   post,
+  put,
   type TestWorkspace,
 } from "@/tests/utils";
 
@@ -121,14 +124,9 @@ describe("POST /api/v1/marketing-emails - Create", () => {
 
 describe("GET /api/v1/marketing-emails - List", () => {
   test("should list marketing emails", async () => {
-    const request = new Request(
-      "http://localhost/api/v1/marketing-emails",
-      {
-        headers: { Authorization: `Bearer ${fullAccessApiKey.key}` },
-      },
-    );
+    const request = get("/marketing-emails", fullAccessApiKey.key);
 
-    const response = await LIST(request as any);
+    const response = await LIST(request);
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -137,7 +135,6 @@ describe("GET /api/v1/marketing-emails - List", () => {
   });
 
   test("should not include transactional emails in list", async () => {
-    // Create a transactional email directly
     const txEmail = await prisma.email.create({
       data: {
         workspaceId: testWorkspace.id,
@@ -146,14 +143,9 @@ describe("GET /api/v1/marketing-emails - List", () => {
       },
     });
 
-    const request = new Request(
-      "http://localhost/api/v1/marketing-emails",
-      {
-        headers: { Authorization: `Bearer ${fullAccessApiKey.key}` },
-      },
-    );
+    const request = get("/marketing-emails", fullAccessApiKey.key);
 
-    const response = await LIST(request as any);
+    const response = await LIST(request);
     const data = await response.json();
 
     const ids = data.data.map((e: { id: string }) => e.id);
@@ -174,14 +166,9 @@ describe("GET /api/v1/marketing-emails/[emailId] - Get", () => {
       },
     });
 
-    const request = new Request(
-      `http://localhost/api/v1/marketing-emails/${email.id}`,
-      {
-        headers: { Authorization: `Bearer ${fullAccessApiKey.key}` },
-      },
-    );
+    const request = get(`/marketing-emails/${email.id}`, fullAccessApiKey.key);
 
-    const response = await GET(request as any, {
+    const response = await GET(request, {
       params: Promise.resolve({ emailId: email.id }),
     });
     const data = await response.json();
@@ -195,14 +182,9 @@ describe("GET /api/v1/marketing-emails/[emailId] - Get", () => {
   });
 
   test("should return 404 for non-existent email", async () => {
-    const request = new Request(
-      "http://localhost/api/v1/marketing-emails/nonexistent",
-      {
-        headers: { Authorization: `Bearer ${fullAccessApiKey.key}` },
-      },
-    );
+    const request = get("/marketing-emails/nonexistent", fullAccessApiKey.key);
 
-    const response = await GET(request as any, {
+    const response = await GET(request, {
       params: Promise.resolve({ emailId: "nonexistent" }),
     });
 
@@ -220,7 +202,7 @@ describe("PUT /api/v1/marketing-emails/[emailId] - Update", () => {
       },
     });
 
-    const request = post(
+    const request = put(
       `/marketing-emails/${email.id}`,
       {
         name: "Updated",
@@ -229,17 +211,7 @@ describe("PUT /api/v1/marketing-emails/[emailId] - Update", () => {
       fullAccessApiKey.key,
     );
 
-    // Override method to PUT
-    const putRequest = new Request(request.url, {
-      method: "PUT",
-      headers: request.headers,
-      body: JSON.stringify({
-        name: "Updated",
-        html: "<html><body>New content</body></html>",
-      }),
-    });
-
-    const response = await PUT(putRequest as any, {
+    const response = await PUT(request, {
       params: Promise.resolve({ emailId: email.id }),
     });
 
@@ -264,15 +236,9 @@ describe("DELETE /api/v1/marketing-emails/[emailId] - Delete", () => {
       },
     });
 
-    const request = new Request(
-      `http://localhost/api/v1/marketing-emails/${email.id}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${fullAccessApiKey.key}` },
-      },
-    );
+    const request = del(`/marketing-emails/${email.id}`, fullAccessApiKey.key);
 
-    const response = await DELETE(request as any, {
+    const response = await DELETE(request, {
       params: Promise.resolve({ emailId: email.id }),
     });
 
@@ -293,7 +259,6 @@ describe("DELETE /api/v1/marketing-emails/[emailId] - Delete", () => {
       },
     });
 
-    // Create a form that references this email
     await prisma.form.create({
       data: {
         workspaceId: testWorkspace.id,
@@ -307,15 +272,9 @@ describe("DELETE /api/v1/marketing-emails/[emailId] - Delete", () => {
       },
     });
 
-    const request = new Request(
-      `http://localhost/api/v1/marketing-emails/${email.id}`,
-      {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${fullAccessApiKey.key}` },
-      },
-    );
+    const request = del(`/marketing-emails/${email.id}`, fullAccessApiKey.key);
 
-    const response = await DELETE(request as any, {
+    const response = await DELETE(request, {
       params: Promise.resolve({ emailId: email.id }),
     });
 
