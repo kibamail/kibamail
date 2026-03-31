@@ -53,6 +53,10 @@
       "description": "Create and manage automated email workflows triggered by contact behavior"
     },
     {
+      "name": "Marketing Emails",
+      "description": "Create and manage reusable marketing email templates for forms and automations"
+    },
+    {
       "name": "Events",
       "description": "Fire custom events to trigger automations"
     },
@@ -26572,6 +26576,1989 @@
           },
           "422": {
             "description": "Validation Error - HTML structure invalid or field mapping mismatch",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketing-emails": {
+      "post": {
+        "summary": "Create Marketing Email",
+        "description": "Create a new marketing email template. Marketing emails can be used in forms and automations.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "subject": {
+                    "type": "string",
+                    "maxLength": 998
+                  },
+                  "previewText": {
+                    "type": "string",
+                    "maxLength": 255
+                  },
+                  "html": {
+                    "type": "string"
+                  },
+                  "senderIdentityId": {
+                    "type": "string"
+                  },
+                  "replyToIdentityId": {
+                    "type": "string"
+                  },
+                  "trackClicks": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "trackOpens": {
+                    "default": true,
+                    "type": "boolean"
+                  },
+                  "type": {
+                    "default": "AUTOMATION",
+                    "type": "string",
+                    "enum": [
+                      "AUTOMATION",
+                      "NOTIFICATION"
+                    ]
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Marketing email created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "marketing_email"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data or missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "List Marketing Emails",
+        "description": "Retrieve a paginated list of marketing emails in your workspace.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of items to return (default: 20, max: 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "description": "Cursor for pagination - ID of the last item from the previous page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "description": "Cursor for reverse pagination - ID of the first item from the next page",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved paginated list of marketing emails.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "marketing_email_list"
+                    },
+                    "hasMore": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "subject": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "previewText": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "type": {
+                            "type": "string"
+                          },
+                          "trackClicks": {
+                            "type": "boolean"
+                          },
+                          "trackOpens": {
+                            "type": "boolean"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "updatedAt": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "subject",
+                          "previewText",
+                          "type",
+                          "trackClicks",
+                          "trackOpens",
+                          "createdAt",
+                          "updatedAt"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "hasMore",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketing-emails/{emailId}": {
+      "get": {
+        "summary": "Get Marketing Email",
+        "description": "Retrieve a specific marketing email by ID with full details including HTML content and variables.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "path",
+            "description": "Marketing email ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved marketing email with full details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "marketing_email"
+                    },
+                    "id": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "previewText": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "html": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "variables": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "senderIdentityId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "replyToIdentityId": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "trackClicks": {
+                      "type": "boolean"
+                    },
+                    "trackOpens": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "updatedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id",
+                    "name",
+                    "subject",
+                    "previewText",
+                    "html",
+                    "variables",
+                    "senderIdentityId",
+                    "replyToIdentityId",
+                    "trackClicks",
+                    "trackOpens",
+                    "type",
+                    "createdAt",
+                    "updatedAt"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Marketing email with this ID does not exist in your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Update Marketing Email",
+        "description": "Update an existing marketing email's settings and content. Only provided fields are updated.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "path",
+            "description": "Marketing email ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "subject": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 998
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "previewText": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 255
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "html": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "senderIdentityId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "replyToIdentityId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "trackClicks": {
+                    "type": "boolean"
+                  },
+                  "trackOpens": {
+                    "type": "boolean"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "AUTOMATION",
+                      "NOTIFICATION"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Marketing email updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "marketing_email"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input data or missing required fields",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Marketing email with this ID does not exist in your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Marketing Email",
+        "description": "Delete a marketing email permanently. Cannot delete emails that are currently used by forms.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "path",
+            "description": "Marketing email ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Marketing email deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "object": {
+                      "type": "string",
+                      "const": "marketing_email"
+                    },
+                    "id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "object",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'write:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Marketing email with this ID does not exist in your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Marketing email is currently used by a form and cannot be deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketing-emails/{emailId}/preview": {
+      "get": {
+        "summary": "Preview Marketing Email",
+        "description": "Get a rendered HTML preview of a marketing email.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "path",
+            "description": "Marketing email ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved marketing email preview.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "html": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "hasContent": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "html",
+                    "hasContent"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Marketing email with this ID does not exist in your workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/marketing-emails/{emailId}/stats": {
+      "get": {
+        "summary": "Get Marketing Email Stats",
+        "description": "Retrieve delivery and engagement statistics for a marketing email, including which forms use it.",
+        "tags": [
+          "Marketing Emails"
+        ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "emailId",
+            "in": "path",
+            "description": "Marketing email ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved marketing email statistics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalSent": {
+                      "type": "number"
+                    },
+                    "totalDelivered": {
+                      "type": "number"
+                    },
+                    "totalOpened": {
+                      "type": "number"
+                    },
+                    "totalClicked": {
+                      "type": "number"
+                    },
+                    "totalBounced": {
+                      "type": "number"
+                    },
+                    "totalComplained": {
+                      "type": "number"
+                    },
+                    "openRate": {
+                      "type": "number"
+                    },
+                    "clickRate": {
+                      "type": "number"
+                    },
+                    "usedByForms": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "totalSent",
+                    "totalDelivered",
+                    "totalOpened",
+                    "totalClicked",
+                    "totalBounced",
+                    "totalComplained",
+                    "openRate",
+                    "clickRate",
+                    "usedByForms"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "description": "Error type category",
+                          "type": "string",
+                          "enum": [
+                            "authentication_error",
+                            "invalid_request_error",
+                            "validation_error",
+                            "rate_limit_error",
+                            "api_error"
+                          ]
+                        },
+                        "code": {
+                          "description": "Specific error code (CAPITAL_CASE, e.g., FORM_NOT_FOUND, INVALID_API_KEY)",
+                          "type": "string"
+                        },
+                        "message": {
+                          "description": "Human-readable error message",
+                          "type": "string"
+                        },
+                        "requestId": {
+                          "description": "Unique request identifier for tracing (starts with req_)",
+                          "type": "string"
+                        },
+                        "validationErrors": {
+                          "description": "Field-level validation errors (only present for validation_error type)",
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "field": {
+                                "description": "Field name that failed validation",
+                                "type": "string"
+                              },
+                              "code": {
+                                "description": "Error code for this field (e.g., INVALID_FIELD_VALUE)",
+                                "type": "string"
+                              },
+                              "message": {
+                                "description": "Human-readable error message for this field",
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "field",
+                              "code",
+                              "message"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "details": {
+                          "description": "Additional error context (optional)",
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string"
+                          },
+                          "additionalProperties": {}
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "code",
+                        "message",
+                        "requestId"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Marketing email with this ID does not exist in your workspace",
             "content": {
               "application/json": {
                 "schema": {

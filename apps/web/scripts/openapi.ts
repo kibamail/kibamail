@@ -79,6 +79,10 @@ import {
   automationResponseSchema,
   automationListResponseSchema,
 } from "@/app/(main)/api/v1/automations/schema";
+import {
+  createMarketingEmailSchema,
+  updateMarketingEmailSchema,
+} from "@/app/(main)/api/v1/marketing-emails/schema";
 import { createEventSchema } from "@/app/(main)/api/v1/events/schema";
 import {
   updateConversationSchema,
@@ -516,6 +520,10 @@ For detailed guides and tutorials, visit our documentation.`,
     {
       name: "Automations",
       description: "Create and manage automated email workflows triggered by contact behavior",
+    },
+    {
+      name: "Marketing Emails",
+      description: "Create and manage reusable marketing email templates for forms and automations",
     },
     {
       name: "Events",
@@ -6422,6 +6430,375 @@ The following are validated strictly (unlike save, which is lenient):
           "422": {
             description:
               "Validation Error - HTML structure invalid or field mapping mismatch",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/marketing-emails": {
+      post: {
+        summary: "Create Marketing Email",
+        description:
+          "Create a new marketing email template. Marketing emails can be used in forms and automations.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: createMarketingEmailSchema,
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "Marketing email created successfully.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("marketing_email"),
+                  id: z.string(),
+                }),
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Invalid input data or missing required fields",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+      get: {
+        summary: "List Marketing Emails",
+        description:
+          "Retrieve a paginated list of marketing emails in your workspace.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        parameters: paginationParameters,
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved paginated list of marketing emails.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("marketing_email_list"),
+                  hasMore: z.boolean(),
+                  data: z.array(
+                    z.object({
+                      id: z.string(),
+                      name: z.string(),
+                      subject: z.string().nullable(),
+                      previewText: z.string().nullable(),
+                      type: z.string(),
+                      trackClicks: z.boolean(),
+                      trackOpens: z.boolean(),
+                      createdAt: z.string(),
+                      updatedAt: z.string(),
+                    })
+                  ),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/marketing-emails/{emailId}": {
+      get: {
+        summary: "Get Marketing Email",
+        description:
+          "Retrieve a specific marketing email by ID with full details including HTML content and variables.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "emailId",
+            in: "path",
+            description: "Marketing email ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved marketing email with full details.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("marketing_email"),
+                  id: z.string(),
+                  name: z.string(),
+                  subject: z.string().nullable(),
+                  previewText: z.string().nullable(),
+                  html: z.string().nullable(),
+                  variables: z.array(z.string()),
+                  senderIdentityId: z.string().nullable(),
+                  replyToIdentityId: z.string().nullable(),
+                  trackClicks: z.boolean(),
+                  trackOpens: z.boolean(),
+                  type: z.string(),
+                  createdAt: z.string(),
+                  updatedAt: z.string(),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Marketing email with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+      put: {
+        summary: "Update Marketing Email",
+        description:
+          "Update an existing marketing email's settings and content. Only provided fields are updated.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "emailId",
+            in: "path",
+            description: "Marketing email ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: updateMarketingEmailSchema,
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Marketing email updated successfully.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("marketing_email"),
+                  id: z.string(),
+                }),
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Invalid input data or missing required fields",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Marketing email with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+      delete: {
+        summary: "Delete Marketing Email",
+        description:
+          "Delete a marketing email permanently. Cannot delete emails that are currently used by forms.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "emailId",
+            in: "path",
+            description: "Marketing email ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Marketing email deleted successfully.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("marketing_email"),
+                  id: z.string(),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Marketing email with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "409": {
+            description:
+              "Conflict - Marketing email is currently used by a form and cannot be deleted",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/marketing-emails/{emailId}/preview": {
+      get: {
+        summary: "Preview Marketing Email",
+        description:
+          "Get a rendered HTML preview of a marketing email.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "emailId",
+            in: "path",
+            description: "Marketing email ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved marketing email preview.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  html: z.string().nullable(),
+                  hasContent: z.boolean(),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Marketing email with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/marketing-emails/{emailId}/stats": {
+      get: {
+        summary: "Get Marketing Email Stats",
+        description:
+          "Retrieve delivery and engagement statistics for a marketing email, including which forms use it.",
+        tags: ["Marketing Emails"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "emailId",
+            in: "path",
+            description: "Marketing email ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved marketing email statistics.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  totalSent: z.number(),
+                  totalDelivered: z.number(),
+                  totalOpened: z.number(),
+                  totalClicked: z.number(),
+                  totalBounced: z.number(),
+                  totalComplained: z.number(),
+                  openRate: z.number(),
+                  clickRate: z.number(),
+                  usedByForms: z.array(
+                    z.object({
+                      id: z.string(),
+                      name: z.string(),
+                    })
+                  ),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:emails' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Marketing email with this ID does not exist in your workspace",
             content: {
               "application/json": { schema: errorResponseSchema },
             },
