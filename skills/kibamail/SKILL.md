@@ -257,6 +257,7 @@ Read these on demand when you need detailed information:
 | `references/segments.md` | Dynamic contact segments — includes conditions JSON format |
 | `references/forms.md` | Signup and survey forms |
 | `references/automations.md` | Automation workflows — includes trigger details |
+| `references/marketing-emails.md` | Marketing email templates — CRUD, preview, stats, template variables |
 | `references/api-keys.md` | API key management |
 | `references/contact-properties.md` | Custom contact properties |
 | `references/events.md` | Custom events for automation triggers |

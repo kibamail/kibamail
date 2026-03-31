@@ -100,6 +100,7 @@ Read these on demand for detailed API examples per resource:
 | `references/forms.md` | Creating forms, deploying HTML, publishing |
 | `references/emails.md` | Sending transactional emails, checking delivery |
 | `references/broadcasts.md` | Creating and sending email campaigns |
+| `references/marketing-emails.md` | Marketing email templates — CRUD, preview, stats |
 | `references/other-resources.md` | Topics, segments, API keys, contact properties |
 
 ## Error Handling
