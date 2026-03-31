@@ -717,7 +717,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Trigger Conditions V
           type: "form-filled",
           position: { x: 0, y: 0 },
           data: {
-            formId: "form-123",
+            formId: testForm.id,
             conditions: {
               field: "email",
               operator: "endsWith",

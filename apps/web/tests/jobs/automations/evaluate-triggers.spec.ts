@@ -5,6 +5,7 @@ import { POST as CREATE_POST } from "@/app/(main)/api/v1/automations/route";
 import { PUT } from "@/app/(main)/api/v1/automations/[automationId]/route";
 import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
 import { evaluateTriggers } from "@/jobs/automations/evaluate-triggers";
+import type { Email } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
 import type { AutomationEvent } from "@/lib/automations/events";
@@ -30,6 +31,7 @@ vi.mock("@/webhooks", async (importOriginal) => {
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
+let testEmail: Email;
 
 async function createAndPublishAutomation(
   triggerType: string,
@@ -70,7 +72,7 @@ async function createAndPublishAutomation(
           id: "action-1",
           type: "send-email",
           position: { x: 0, y: 100 },
-          data: { subject: "Test Email", templateId: "tpl_test" },
+          data: { templateId: testEmail.id },
         },
       ],
       edges: [{ id: "e1", source: "trigger-1", target: "action-1" }],
@@ -90,6 +92,15 @@ async function createAndPublishAutomation(
 beforeAll(async () => {
   testWorkspace = createTestWorkspace();
   fullAccessApiKey = await createFullAccessApiKey(testWorkspace.id);
+  testEmail = await prisma.email.create({
+    data: {
+      workspaceId: testWorkspace.id,
+      name: "Test Automation Email",
+      subject: "Test Email",
+      htmlContent: "<p>Test</p>",
+      type: "AUTOMATION",
+    },
+  });
 });
 
 afterAll(async () => {

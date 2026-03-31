@@ -181,12 +181,22 @@ describe("Simulation: Welcome Email Series", () => {
     await createDomainAndSender();
     const topics = await createTestTopics(workspace.id, [{ name: "Onboarding" }]);
 
+    const testEmail = await prisma.email.create({
+      data: {
+        workspaceId: workspace.id,
+        name: "Welcome Email",
+        subject: "Welcome to Kibamail!",
+        htmlContent: "<p>Welcome!</p>",
+        type: "AUTOMATION",
+      },
+    });
+
     const automation = await publishAutomation({
       name: "Welcome Series",
       triggerType: "CONTACT_SUBSCRIBED",
       nodes: [
         node("trigger", "contact-subscribed"),
-        node("welcome-email", "send-email", { subject: "Welcome to Kibamail!", templateId: "tpl_welcome" }),
+        node("welcome-email", "send-email", { templateId: testEmail.id }),
         node("wait-1-day", "time-delay", { duration: 1, unit: "days" }),
         node("still-subscribed", "if-else", {
           conditions: { field: "status", operator: "eq", value: "SUBSCRIBED" },

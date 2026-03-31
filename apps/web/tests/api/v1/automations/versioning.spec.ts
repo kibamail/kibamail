@@ -7,7 +7,9 @@ import {
   GET as ListVersions,
 } from "@/app/(main)/api/v1/automations/[automationId]/versions/route";
 import { POST as CreateAutomation } from "@/app/(main)/api/v1/automations/route";
+import type { Email } from "@prisma/client";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
   apiRequest,
   type CreatedApiKey,
@@ -22,6 +24,7 @@ import {
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
+let testEmail: Email;
 
 async function createTestAutomation(apiKey: CreatedApiKey, name: string) {
   const automationData = {
@@ -49,6 +52,15 @@ async function createTestAutomation(apiKey: CreatedApiKey, name: string) {
 beforeAll(async () => {
   testWorkspace = createTestWorkspace();
   fullAccessApiKey = await createFullAccessApiKey(testWorkspace.id);
+  testEmail = await prisma.email.create({
+    data: {
+      workspaceId: testWorkspace.id,
+      name: "Test Automation Email",
+      subject: "Welcome",
+      htmlContent: "<p>Welcome</p>",
+      type: "AUTOMATION",
+    },
+  });
 });
 
 afterAll(async () => {
@@ -299,7 +311,7 @@ describe("POST /api/v1/automations/[automationId]/versions", () => {
           id: "email-1",
           type: "send-email",
           position: { x: 0, y: 100 },
-          data: { subject: "Welcome!" },
+          data: { templateId: testEmail.id },
         },
       ],
       edges: [
@@ -555,7 +567,7 @@ describe("Editing Published Automation - Version Creation", () => {
           id: "email-1",
           type: "send-email",
           position: { x: 0, y: 200 },
-          data: { subject: "Welcome!", templateId: "tpl-123" },
+          data: { templateId: testEmail.id },
         },
       ],
       edges: [
@@ -613,8 +625,7 @@ describe("Editing Published Automation - Version Creation", () => {
     const emailNode = newVersion.nodes.find(
       (n: { id: string }) => n.id === "email-1",
     );
-    expect(emailNode.data.subject).toBe("Welcome!");
-    expect(emailNode.data.templateId).toBe("tpl-123");
+    expect(emailNode.data.templateId).toBe(testEmail.id);
   });
 });
 
