@@ -19,12 +19,13 @@ type UpdateContactPropertyRequest struct {
 
 // ContactProperty provides the structure for a contact property object.
 type ContactProperty struct {
-	Object    string `json:"object"`
-	ID        string `json:"id"`
-	Name      string `json:"name"`
-	Type      string `json:"type"`
-	CreatedAt string `json:"createdAt"`
-	UpdatedAt string `json:"updatedAt"`
+	Object       string  `json:"object"`
+	ID           string  `json:"id"`
+	Name         string  `json:"name"`
+	Type         string  `json:"type"`
+	DefaultValue *string `json:"defaultValue,omitempty"`
+	CreatedAt    string  `json:"createdAt"`
+	UpdatedAt    string  `json:"updatedAt"`
 }
 
 // ContactPropertyResponse is the response from the Create call.

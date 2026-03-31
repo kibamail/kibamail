@@ -82,4 +82,27 @@ export class Automations {
       },
     });
   }
+
+  /** Dry-run simulation showing the path a contact would take. No side effects. */
+  simulate(automationId: string, params: paths["/v1/automations/{automationId}/simulate"]["post"]["requestBody"]["content"]["application/json"]) {
+    return this.client.POST("/v1/automations/{automationId}/simulate", {
+      params: { path: { automationId } },
+      body: params,
+    });
+  }
+
+  /** Retrieve all versions of a specific automation. */
+  listVersions(automationId: string) {
+    return this.client.GET("/v1/automations/{automationId}/versions", {
+      params: { path: { automationId } },
+    });
+  }
+
+  /** Create a new draft version of an existing automation. */
+  createVersion(automationId: string, params?: paths["/v1/automations/{automationId}/versions"]["post"]["requestBody"]["content"]["application/json"]) {
+    return this.client.POST("/v1/automations/{automationId}/versions", {
+      params: { path: { automationId } },
+      body: params ?? {},
+    });
+  }
 }

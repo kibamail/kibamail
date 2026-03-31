@@ -92,11 +92,12 @@ var (
 
 // TopicsSvc errors
 var (
-	ErrFailedToCreateTopicsCreateRequest = errors.New("[ERROR]: Failed to create Topics.Create request")
-	ErrFailedToCreateTopicsListRequest   = errors.New("[ERROR]: Failed to create Topics.List request")
-	ErrFailedToCreateTopicsGetRequest    = errors.New("[ERROR]: Failed to create Topics.Get request")
-	ErrFailedToCreateTopicsUpdateRequest = errors.New("[ERROR]: Failed to create Topics.Update request")
-	ErrFailedToCreateTopicsDeleteRequest = errors.New("[ERROR]: Failed to create Topics.Delete request")
+	ErrFailedToCreateTopicsCreateRequest       = errors.New("[ERROR]: Failed to create Topics.Create request")
+	ErrFailedToCreateTopicsListRequest         = errors.New("[ERROR]: Failed to create Topics.List request")
+	ErrFailedToCreateTopicsGetRequest          = errors.New("[ERROR]: Failed to create Topics.Get request")
+	ErrFailedToCreateTopicsUpdateRequest       = errors.New("[ERROR]: Failed to create Topics.Update request")
+	ErrFailedToCreateTopicsDeleteRequest       = errors.New("[ERROR]: Failed to create Topics.Delete request")
+	ErrFailedToCreateTopicsListContactsRequest = errors.New("[ERROR]: Failed to create Topics.ListContacts request")
 )
 
 // SegmentsSvc errors
@@ -183,20 +184,31 @@ var (
 
 // AutomationsSvc errors
 var (
-	ErrFailedToCreateAutomationsCreateRequest  = errors.New("[ERROR]: Failed to create Automations.Create request")
-	ErrFailedToCreateAutomationsListRequest    = errors.New("[ERROR]: Failed to create Automations.List request")
-	ErrFailedToCreateAutomationsGetRequest     = errors.New("[ERROR]: Failed to create Automations.Get request")
-	ErrFailedToCreateAutomationsUpdateRequest  = errors.New("[ERROR]: Failed to create Automations.Update request")
-	ErrFailedToCreateAutomationsDeleteRequest  = errors.New("[ERROR]: Failed to create Automations.Delete request")
-	ErrFailedToCreateAutomationsPublishRequest = errors.New("[ERROR]: Failed to create Automations.Publish request")
-	ErrFailedToCreateAutomationsArchiveRequest = errors.New("[ERROR]: Failed to create Automations.Archive request")
-	ErrFailedToCreateAutomationsTriggerRequest  = errors.New("[ERROR]: Failed to create Automations.Trigger request")
-	ErrFailedToCreateAutomationsSimulateRequest = errors.New("[ERROR]: Failed to create Automations.Simulate request")
+	ErrFailedToCreateAutomationsCreateRequest        = errors.New("[ERROR]: Failed to create Automations.Create request")
+	ErrFailedToCreateAutomationsListRequest          = errors.New("[ERROR]: Failed to create Automations.List request")
+	ErrFailedToCreateAutomationsGetRequest           = errors.New("[ERROR]: Failed to create Automations.Get request")
+	ErrFailedToCreateAutomationsUpdateRequest        = errors.New("[ERROR]: Failed to create Automations.Update request")
+	ErrFailedToCreateAutomationsDeleteRequest        = errors.New("[ERROR]: Failed to create Automations.Delete request")
+	ErrFailedToCreateAutomationsPublishRequest       = errors.New("[ERROR]: Failed to create Automations.Publish request")
+	ErrFailedToCreateAutomationsArchiveRequest       = errors.New("[ERROR]: Failed to create Automations.Archive request")
+	ErrFailedToCreateAutomationsTriggerRequest       = errors.New("[ERROR]: Failed to create Automations.Trigger request")
+	ErrFailedToCreateAutomationsSimulateRequest      = errors.New("[ERROR]: Failed to create Automations.Simulate request")
+	ErrFailedToCreateAutomationsListVersionsRequest  = errors.New("[ERROR]: Failed to create Automations.ListVersions request")
+	ErrFailedToCreateAutomationsCreateVersionRequest = errors.New("[ERROR]: Failed to create Automations.CreateVersion request")
 )
 
 // EventsSvc errors
 var (
 	ErrFailedToCreateEventsCreateRequest = errors.New("[ERROR]: Failed to create Events.Create request")
+)
+
+// InboxSvc errors
+var (
+	ErrFailedToCreateInboxListConversationsRequest  = errors.New("[ERROR]: Failed to create Inbox.ListConversations request")
+	ErrFailedToCreateInboxGetConversationRequest    = errors.New("[ERROR]: Failed to create Inbox.GetConversation request")
+	ErrFailedToCreateInboxUpdateConversationRequest = errors.New("[ERROR]: Failed to create Inbox.UpdateConversation request")
+	ErrFailedToCreateInboxReplyRequest              = errors.New("[ERROR]: Failed to create Inbox.Reply request")
+	ErrFailedToCreateInboxStatsRequest              = errors.New("[ERROR]: Failed to create Inbox.Stats request")
 )
 
 // handleError tries to handle errors based on HTTP status codes.

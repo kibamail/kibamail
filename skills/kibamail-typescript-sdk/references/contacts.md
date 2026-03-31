@@ -47,7 +47,7 @@ const { data, error } = await kibamail.contacts.delete("contact_id");
 
 ## Search Contacts
 
-Search uses filter conditions. Operators: `eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `not_contains`, `starts_with`, `ends_with`, `in`, `not_in`, `exists`.
+Search uses filter conditions. Operators: `equals`, `not_equals`, `greater_than`, `greater_than_or_equal`, `less_than`, `less_than_or_equal`, `contains`, `not_contains`, `starts_with`, `ends_with`, `in`, `not_in`, `exists`.
 
 ```typescript
 // Simple field condition
@@ -59,8 +59,8 @@ const { data } = await kibamail.contacts.search({
 const { data } = await kibamail.contacts.search({
   filters: {
     $and: [
-      { field: "firstName", operator: "eq", value: "Jane" },
-      { field: "country", operator: "eq", value: "US" },
+      { field: "firstName", operator: "equals", value: "Jane" },
+      { field: "country", operator: "equals", value: "US" },
     ],
   },
 });

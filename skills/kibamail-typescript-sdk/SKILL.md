@@ -84,6 +84,10 @@ console.log(response.status); // HTTP status
 | Broadcasts | `kibamail.broadcasts` | Email campaigns |
 | Emails | `kibamail.emails` | Transactional emails |
 | API Keys | `kibamail.apiKeys` | API key management |
+| Automations | `kibamail.automations` | Automation workflows |
+| Domains | `kibamail.domains` | Sending domain management |
+| Marketing Emails | `kibamail.marketingEmails` | Marketing email templates |
+| Events | `kibamail.events` | Custom events |
 | Contact Properties | `kibamail.contactProperties` | Custom contact fields |
 
 ## Reference Files

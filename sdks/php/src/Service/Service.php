@@ -13,6 +13,7 @@ use Kibamail\Domain;
 use Kibamail\Email;
 use Kibamail\Event;
 use Kibamail\Form;
+use Kibamail\Inbox;
 use Kibamail\MarketingEmail;
 use Kibamail\Resource;
 use Kibamail\Segment;
@@ -35,6 +36,7 @@ abstract class Service
         'broadcasts' => Broadcast::class,
         'automations' => Automation::class,
         'events' => Event::class,
+        'inbox' => Inbox::class,
         'marketing-emails' => MarketingEmail::class,
     ];
 

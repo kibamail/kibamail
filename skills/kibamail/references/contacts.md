@@ -20,10 +20,12 @@ kibamail contacts list --limit 50 --after clx123abc --json
 
 **Output:**
 ```json
-{"object":"contact_list","data":[{"id":"clx1","email":"alice@example.com","firstName":"Alice","lastName":"","status":"SUBSCRIBED","createdAt":"2026-03-15T10:00:00Z"}],"hasMore":false,"hasPrevious":false}
+{"object":"contact_list","data":[{"id":"clx1","email":"alice@example.com","firstName":"Alice","lastName":"","status":"SUBSCRIBED","createdAt":"2026-03-15T10:00:00Z"}],"hasMore":false}
 ```
 
 Pagination: if `hasMore` is true, pass the last item's `id` as `--after` for the next page.
+
+**Note:** List and search responses do NOT include the `topics` field on each contact. Only the single `contacts show <id>` endpoint includes topics.
 
 ---
 
@@ -48,6 +50,12 @@ Create a new contact.
 - `--last-name string` — Last name
 - `--phone string` — Phone number
 - `--country string` — Country
+- `--status string` — Contact status: `SUBSCRIBED`, `UNSUBSCRIBED`, `BOUNCED`, `COMPLAINED`, `ARCHIVED`, `UNCONFIRMED`
+- `--timezone string` — Contact timezone
+- `--city string` — Contact city
+- `--subscribed-at string` — Subscription timestamp
+- `--unsubscribed-at string` — Unsubscription timestamp
+- `--properties string` — Custom contact properties object (JSON)
 - `--topics strings` — Topic IDs to subscribe (comma-separated)
 
 **Examples:**
@@ -58,7 +66,7 @@ kibamail contacts create --email bob@example.com --topics topicId1,topicId2 --js
 
 **Output:**
 ```json
-{"id":"clx_new123"}
+{"object":"contact","id":"clx_new123"}
 ```
 
 **Common errors:**
@@ -75,6 +83,14 @@ Update an existing contact. Only provided fields are changed.
 - `--email string` — New email address
 - `--first-name string` — New first name
 - `--last-name string` — New last name
+- `--phone string` — Phone number
+- `--country string` — Country
+- `--status string` — Contact status: `SUBSCRIBED`, `UNSUBSCRIBED`, `BOUNCED`, `COMPLAINED`, `ARCHIVED`, `UNCONFIRMED`
+- `--timezone string` — Contact timezone
+- `--city string` — Contact city
+- `--subscribed-at string` — Subscription timestamp
+- `--unsubscribed-at string` — Unsubscription timestamp
+- `--properties string` — Custom contact properties object (JSON)
 
 **Examples:**
 ```bash
@@ -95,7 +111,7 @@ kibamail contacts delete clx123 --json
 
 **Output:**
 ```json
-{"deleted":true,"id":"clx123"}
+{"object":"contact","id":"clx123"}
 ```
 
 ---

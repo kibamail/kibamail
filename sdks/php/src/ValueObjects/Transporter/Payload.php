@@ -95,12 +95,32 @@ final class Payload
     }
 
     /**
+     * Create a payload for a multipart file upload.
+     */
+    public static function multipart(string $resource, array $parameters): self
+    {
+        return new self(ContentType::MULTIPART, Method::POST, ResourceUri::create($resource), $parameters);
+    }
+
+    /**
      * Create a PSR-7 Request instance.
      */
     public function toRequest(BaseUri $baseUri, Headers $headers): RequestInterface
     {
         $body = null;
         $uri = $baseUri->toString() . $this->uri->toString();
+
+        if ($this->contentType === ContentType::MULTIPART) {
+            $boundary = bin2hex(random_bytes(16));
+
+            $headers = $headers
+                ->withUserAgent('kibamail-php', Kibamail::VERSION)
+                ->with('Content-Type', "multipart/form-data; boundary={$boundary}");
+
+            $body = $this->buildMultipartBody($boundary);
+
+            return new Request($this->method->value, $uri, $headers->toArray(), $body);
+        }
 
         $headers = $headers
             ->withUserAgent('kibamail-php', Kibamail::VERSION)
@@ -116,5 +136,31 @@ final class Payload
         }
 
         return new Request($this->method->value, $uri, $headers->toArray(), $body);
+    }
+
+    /**
+     * Build a multipart/form-data body string.
+     */
+    private function buildMultipartBody(string $boundary): string
+    {
+        $body = '';
+
+        foreach ($this->parameters as $name => $value) {
+            if (is_array($value)) {
+                foreach ($value as $item) {
+                    $body .= "--{$boundary}\r\n";
+                    $body .= "Content-Disposition: form-data; name=\"{$name}\"\r\n\r\n";
+                    $body .= "{$item}\r\n";
+                }
+            } else {
+                $body .= "--{$boundary}\r\n";
+                $body .= "Content-Disposition: form-data; name=\"{$name}\"\r\n\r\n";
+                $body .= "{$value}\r\n";
+            }
+        }
+
+        $body .= "--{$boundary}--\r\n";
+
+        return $body;
     }
 }

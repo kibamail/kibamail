@@ -80,6 +80,10 @@ import {
   automationListResponseSchema,
 } from "@/app/(main)/api/v1/automations/schema";
 import { createEventSchema } from "@/app/(main)/api/v1/events/schema";
+import {
+  updateConversationSchema,
+  sendReplySchema,
+} from "@/app/(main)/api/v1/inbox/schema";
 
 /**
  * Validation error detail structure
@@ -516,6 +520,10 @@ For detailed guides and tutorials, visit our documentation.`,
     {
       name: "Events",
       description: "Fire custom events to trigger automations",
+    },
+    {
+      name: "Inbox",
+      description: "Manage conversations, replies, and inbox statistics",
     },
   ],
   components: {
@@ -6059,6 +6067,305 @@ The following are validated strictly (unlike save, which is lenient):
         },
       },
     },
+    "/v1/automations/{automationId}/simulate": {
+      post: {
+        summary: "Simulate Automation",
+        description:
+          "Dry-run simulation showing the path a contact would take. No side effects.",
+        tags: ["Automations"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "automationId",
+            in: "path",
+            description: "Automation ID to simulate",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: z.object({
+                contactId: z.string().optional().describe("Existing contact ID to simulate with"),
+                contact: z
+                  .object({
+                    email: z.string().describe("Contact email address"),
+                    firstName: z.string().optional().describe("Contact first name"),
+                    lastName: z.string().optional().describe("Contact last name"),
+                    phone: z.string().optional().describe("Contact phone number"),
+                    country: z.string().optional().describe("Contact country"),
+                    timezone: z.string().optional().describe("Contact timezone"),
+                    city: z.string().optional().describe("Contact city"),
+                    status: z
+                      .enum(["SUBSCRIBED", "UNSUBSCRIBED", "BOUNCED", "COMPLAINED"])
+                      .default("SUBSCRIBED")
+                      .describe("Contact subscription status"),
+                    properties: z
+                      .record(z.string(), z.unknown())
+                      .optional()
+                      .describe("Custom contact properties"),
+                    topics: z
+                      .array(z.string())
+                      .optional()
+                      .describe("Topic IDs the contact is subscribed to"),
+                  })
+                  .optional()
+                  .describe("Inline contact data for simulation"),
+                seed: z.number().int().optional().describe("Random seed for deterministic simulation"),
+              }),
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Simulation completed successfully. Returns the simulated path.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("automation_simulation"),
+                  automationId: z.string().describe("ID of the simulated automation"),
+                  automationName: z.string().describe("Name of the simulated automation"),
+                  contactId: z.string().describe("ID of the contact used in simulation"),
+                  contactEmail: z.string().describe("Email of the contact used in simulation"),
+                  status: z
+                    .enum(["completed", "error"])
+                    .describe("Simulation outcome status"),
+                  totalSteps: z.number().describe("Total number of steps in the simulated path"),
+                  steps: z.array(
+                    z.object({
+                      step: z.number().describe("Step number in sequence"),
+                      nodeId: z.string().describe("Node ID in the automation workflow"),
+                      nodeType: z.string().describe("Type of node (e.g., email, delay, condition)"),
+                      nodeName: z.string().describe("Display name of the node"),
+                      action: z.string().describe("Action taken at this step"),
+                      detail: z.string().describe("Human-readable detail of what happened"),
+                      branch: z.string().optional().describe("Branch taken if this is a condition node"),
+                    })
+                  ),
+                }),
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Invalid simulation parameters or automation not in valid state",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:automations' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Automation with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/automations/{automationId}/versions": {
+      get: {
+        summary: "List Automation Versions",
+        description:
+          "Retrieve all versions of a specific automation.",
+        tags: ["Automations"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "automationId",
+            in: "path",
+            description: "Automation ID to list versions for",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved list of all automation versions.",
+            content: {
+              "application/json": { schema: automationListResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:automations' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Automation with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+      post: {
+        summary: "Create Automation Version",
+        description:
+          "Create a new draft version of an existing automation.",
+        tags: ["Automations"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "automationId",
+            in: "path",
+            description: "Automation ID to create a version for",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateAutomationSchema },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "Automation version created successfully in DRAFT status.",
+            content: {
+              "application/json": { schema: automationResponseSchema },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Invalid input data or automation not in valid state for versioning",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:automations' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Automation with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "409": {
+            description:
+              "Conflict - A draft version already exists for this automation",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/forms/{formId}/deploy": {
+      post: {
+        summary: "Deploy Form Site Bundle",
+        description:
+          "Upload HTML and assets for a form. Validates HTML structure and field mapping.",
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID to deploy assets for",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "multipart/form-data": {
+              schema: {
+                type: "object",
+                properties: {
+                  files: {
+                    type: "array",
+                    items: {
+                      type: "string",
+                      format: "binary",
+                    },
+                    description: "HTML and asset files to deploy",
+                  },
+                },
+              },
+            },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Form site bundle deployed successfully.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  deployId: z.string().describe("Unique deploy identifier"),
+                  files: z.array(
+                    z.object({
+                      name: z.string().describe("Deployed file name"),
+                      url: z.string().describe("Public URL of the deployed file"),
+                    })
+                  ),
+                }),
+              },
+            },
+          },
+          "400": {
+            description:
+              "Bad Request - Invalid file format or missing required files",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:forms' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Form with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "422": {
+            description:
+              "Validation Error - HTML structure invalid or field mapping mismatch",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
     "/v1/events": {
       post: {
         summary: "Fire Custom Event",
@@ -6168,6 +6475,322 @@ Properties can be used in automation conditions and email templates:
           "422": {
             description:
               "Validation Error - Invalid event name characters or contactId format",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/inbox/conversations": {
+      get: {
+        summary: "List Inbox Conversations",
+        description:
+          "Retrieve a paginated list of inbox conversations.",
+        tags: ["Inbox"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "limit",
+            in: "query",
+            description: "Number of conversations to return (default: 20, max: 100)",
+            required: false,
+            schema: {
+              type: "integer",
+              minimum: 1,
+              maximum: 100,
+              default: 20,
+            },
+          },
+          {
+            name: "after",
+            in: "query",
+            description: "Cursor for pagination - ID of the last item from the previous page",
+            required: false,
+            schema: {
+              type: "string",
+            },
+          },
+          {
+            name: "status",
+            in: "query",
+            description: "Filter conversations by status",
+            required: false,
+            schema: {
+              type: "string",
+              enum: ["OPEN", "CLOSED", "ARCHIVED"],
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved paginated list of inbox conversations.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("conversation_list"),
+                  hasMore: z.boolean().describe("Whether more results are available"),
+                  data: z.array(
+                    z.object({
+                      id: z.string().describe("Unique conversation identifier"),
+                      subject: z.string().describe("Conversation subject line"),
+                      status: z.string().describe("Conversation status (OPEN, CLOSED, ARCHIVED)"),
+                      originType: z.string().describe("Origin type of the conversation"),
+                      originId: z.string().describe("Origin identifier"),
+                      messageCount: z.number().describe("Total number of messages"),
+                      unreadCount: z.number().describe("Number of unread messages"),
+                      lastMessageAt: z.string().describe("ISO 8601 timestamp of the last message"),
+                      createdAt: z.string().describe("ISO 8601 timestamp when the conversation was created"),
+                      contact: z
+                        .object({
+                          id: z.string().describe("Contact ID"),
+                          email: z.string().describe("Contact email"),
+                          firstName: z.string().describe("Contact first name"),
+                          lastName: z.string().describe("Contact last name"),
+                        })
+                        .nullable()
+                        .describe("Associated contact, if any"),
+                      senderIdentity: z
+                        .object({
+                          id: z.string().describe("Sender identity ID"),
+                          email: z.string().describe("Sender email address"),
+                          name: z.string().describe("Sender display name"),
+                        })
+                        .nullable()
+                        .describe("Sender identity used for the conversation"),
+                    })
+                  ),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:inbox' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/inbox/conversations/{conversationId}": {
+      get: {
+        summary: "Get Conversation",
+        description:
+          "Retrieve a specific conversation with its messages.",
+        tags: ["Inbox"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "conversationId",
+            in: "path",
+            description: "Conversation ID",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved conversation with messages.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("conversation"),
+                  id: z.string().describe("Unique conversation identifier"),
+                  subject: z.string().describe("Conversation subject line"),
+                  status: z.string().describe("Conversation status (OPEN, CLOSED, ARCHIVED)"),
+                  originType: z.string().describe("Origin type of the conversation"),
+                  originId: z.string().describe("Origin identifier"),
+                  messageCount: z.number().describe("Total number of messages"),
+                  unreadCount: z.number().describe("Number of unread messages"),
+                  lastMessageAt: z.string().describe("ISO 8601 timestamp of the last message"),
+                  createdAt: z.string().describe("ISO 8601 timestamp when the conversation was created"),
+                  contact: z
+                    .object({
+                      id: z.string().describe("Contact ID"),
+                      email: z.string().describe("Contact email"),
+                      firstName: z.string().describe("Contact first name"),
+                      lastName: z.string().describe("Contact last name"),
+                    })
+                    .nullable()
+                    .describe("Associated contact, if any"),
+                  senderIdentity: z
+                    .object({
+                      id: z.string().describe("Sender identity ID"),
+                      email: z.string().describe("Sender email address"),
+                      name: z.string().describe("Sender display name"),
+                    })
+                    .nullable()
+                    .describe("Sender identity used for the conversation"),
+                  messages: z.array(
+                    z.object({
+                      id: z.string().describe("Unique message identifier"),
+                      direction: z.string().describe("Message direction (inbound or outbound)"),
+                      from: z.string().describe("Sender email address"),
+                      to: z.string().describe("Recipient email address"),
+                      subject: z.string().describe("Message subject line"),
+                      bodyHtml: z.string().nullable().describe("HTML body content"),
+                      bodyText: z.string().nullable().describe("Plain text body content"),
+                      createdAt: z.string().describe("ISO 8601 timestamp when the message was created"),
+                    })
+                  ),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:inbox' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Conversation with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+      put: {
+        summary: "Update Conversation",
+        description:
+          "Update a conversation's status.",
+        tags: ["Inbox"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "conversationId",
+            in: "path",
+            description: "Conversation ID to update",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: updateConversationSchema },
+          },
+        },
+        responses: {
+          "200": {
+            description:
+              "Conversation updated successfully.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  id: z.string().describe("Conversation identifier"),
+                  status: z.string().describe("Updated conversation status"),
+                  updatedAt: z.string().describe("ISO 8601 timestamp of the update"),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:inbox' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Conversation with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/inbox/conversations/{conversationId}/replies": {
+      post: {
+        summary: "Reply to Conversation",
+        description:
+          "Send a reply to an existing conversation.",
+        tags: ["Inbox"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "conversationId",
+            in: "path",
+            description: "Conversation ID to reply to",
+            required: true,
+            schema: {
+              type: "string",
+            },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": { schema: sendReplySchema },
+          },
+        },
+        responses: {
+          "201": {
+            description:
+              "Reply queued successfully.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  status: z.literal("queued"),
+                  conversationId: z.string().describe("Conversation the reply was sent to"),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'write:inbox' scope",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description:
+              "Not Found - Conversation with this ID does not exist in your workspace",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
+    "/v1/inbox/stats": {
+      get: {
+        summary: "Get Inbox Statistics",
+        description:
+          "Retrieve aggregate inbox statistics for your workspace.",
+        tags: ["Inbox"],
+        security: [{ BearerAuth: [] }],
+        responses: {
+          "200": {
+            description:
+              "Successfully retrieved inbox statistics.",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  totalConversations: z.number().describe("Total number of conversations"),
+                  unreadConversations: z.number().describe("Number of conversations with unread messages"),
+                  openConversations: z.number().describe("Number of open conversations"),
+                }),
+              },
+            },
+          },
+          "401": {
+            description:
+              "Unauthorized - Invalid or missing API key, or API key lacks 'read:inbox' scope",
             content: {
               "application/json": { schema: errorResponseSchema },
             },

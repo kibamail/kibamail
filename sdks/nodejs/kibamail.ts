@@ -8,6 +8,7 @@ import { Domains } from "./resources/domains";
 import { Emails } from "./resources/emails";
 import { Events } from "./resources/events";
 import { Forms } from "./resources/forms";
+import { Inbox } from "./resources/inbox";
 import { MarketingEmails } from "./resources/marketing-emails";
 import { Segments } from "./resources/segments";
 import { Topics } from "./resources/topics";
@@ -80,6 +81,7 @@ export class Kibamail {
   public emails: Emails;
   public events: Events;
   public forms: Forms;
+  public inbox: Inbox;
   public marketingEmails: MarketingEmails;
   public segments: Segments;
   public topics: Topics;
@@ -122,6 +124,7 @@ export class Kibamail {
     this.emails = new Emails(this.client);
     this.events = new Events(this.client);
     this.forms = new Forms(this.client);
+    this.inbox = new Inbox(this.client);
     this.marketingEmails = new MarketingEmails(this.client);
     this.segments = new Segments(this.client);
     this.topics = new Topics(this.client);

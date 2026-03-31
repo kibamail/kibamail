@@ -85,6 +85,16 @@ await kibamail.forms.publish(version.id);
 const { data: versions } = await kibamail.forms.listVersions(formId);
 ```
 
+## Submit a Form
+
+```typescript
+const { data, error } = await kibamail.forms.submit("form_id", {
+  email: "user@example.com",
+  first_name: "Jane",
+});
+// data: { object: "form_submission", id: "..." }
+```
+
 ## Delete a Form
 
 ```typescript

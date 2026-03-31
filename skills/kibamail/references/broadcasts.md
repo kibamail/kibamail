@@ -10,6 +10,8 @@ Broadcasts send email campaigns to contacts, segments, or topics. They support s
 - `--html string` — HTML body
 - `--from string` — Sender email
 - `--reply-to string` — Reply-to email
+- `--text string` — Plain text email body
+- `--preview-text string` — Preview text shown in email clients (max 255 chars)
 - `--topic-id string` — Send to contacts subscribed to this topic
 - `--segment-id string` — Send to contacts in this segment
 
@@ -27,6 +29,8 @@ Create and schedule a broadcast in one command.
 - `--name string` — Campaign name **[REQUIRED]**
 - `--subject string` — Email subject **[REQUIRED]**
 - `--html string` — HTML body **[REQUIRED]**
+- `--from string` — Sender email address
+- `--reply-to string` — Reply-to email address
 - `--send-at string` — Scheduled send time (ISO 8601) **[REQUIRED]**
 - `--segment string` — Segment ID for recipients
 - `--topic string` — Topic ID for recipients
@@ -75,6 +79,14 @@ Only DRAFT broadcasts can be updated.
 - `--name string` — New name
 - `--subject string` — New subject
 - `--html string` — New HTML
+- `--from string` — Sender email address
+- `--reply-to string` — Reply-to email address
+- `--text string` — Plain text email body
+- `--preview-text string` — Preview text (max 255 chars)
+- `--topic-id string` — Topic ID (pass null to clear)
+- `--segment-id string` — Segment ID (pass null to clear)
+- `--track-opens boolean` — Enable/disable open tracking
+- `--track-clicks boolean` — Enable/disable click tracking
 - `--send-at string` — New send time (ISO 8601)
 
 ```bash
@@ -95,6 +107,8 @@ kibamail broadcasts delete brd_abc --json
 
 Schedule an existing broadcast for sending.
 
+> **Note:** The broadcast must already have `sendAt` set (via `broadcasts create` or `broadcasts update`) before calling send.
+
 ```bash
 kibamail broadcasts send brd_abc --json
 ```
@@ -109,7 +123,7 @@ Get delivery and engagement statistics.
 kibamail broadcasts stats brd_abc --json
 ```
 
-Returns recipients (total, delivered, bounced, complained), engagement (opened, clicked, rates), and deliverability metrics.
+Returns `recipients.total`, `recipients.queued`, `recipients.sent`, `recipients.delivered`, `recipients.bounced`, `recipients.complained`, `recipients.failed`, `recipients.unsubscribed`, `engagement.opened`, `engagement.clicked`, `engagement.openRate`, `engagement.clickRate`, `engagement.clickToOpenRate`, `deliverability.deliveryRate`, `deliverability.bounceRate`, `deliverability.complaintRate`, and `detailsPruned` (boolean).
 
 ---
 
@@ -121,6 +135,8 @@ List per-recipient send results.
 - `--limit int` — Max results
 - `--after string` — Cursor
 - `--status string` — Filter: QUEUED, SENDING, SENT, DELIVERED, BOUNCED, COMPLAINED, FAILED
+
+Each send result includes per-recipient fields: `id`, `email`, `contactId`, `status`, `queuedAt`, `sentAt`, `deliveredAt`, `firstOpenedAt`, `firstClickedAt`, `bouncedAt`, `complainedAt`, `bounceClassification`, `lastResponseCode`, `lastResponseMessage`, `openCount`, `clickCount`, `uniqueLinksClicked`.
 
 ```bash
 kibamail broadcasts sends brd_abc --json

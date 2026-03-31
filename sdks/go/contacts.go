@@ -7,15 +7,18 @@ import (
 
 // CreateContactRequest is the request object for the Create call.
 type CreateContactRequest struct {
-	Email      string                 `json:"email"`
-	FirstName  string                 `json:"firstName,omitempty"`
-	LastName   string                 `json:"lastName,omitempty"`
-	Phone      string                 `json:"phone,omitempty"`
-	Country    string                 `json:"country,omitempty"`
-	City       string                 `json:"city,omitempty"`
-	Timezone   string                 `json:"timezone,omitempty"`
-	Properties map[string]interface{} `json:"properties,omitempty"`
-	Topics     []string               `json:"topics,omitempty"`
+	Email          string                 `json:"email"`
+	FirstName      string                 `json:"firstName,omitempty"`
+	LastName       string                 `json:"lastName,omitempty"`
+	Phone          string                 `json:"phone,omitempty"`
+	Country        string                 `json:"country,omitempty"`
+	City           string                 `json:"city,omitempty"`
+	Timezone       string                 `json:"timezone,omitempty"`
+	Status         string                 `json:"status,omitempty"`
+	SubscribedAt   string                 `json:"subscribedAt,omitempty"`
+	UnsubscribedAt string                 `json:"unsubscribedAt,omitempty"`
+	Properties     map[string]interface{} `json:"properties,omitempty"`
+	Topics         []string               `json:"topics,omitempty"`
 }
 
 // UpdateContactRequest is the request object for the Update call.

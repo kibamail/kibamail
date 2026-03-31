@@ -46,6 +46,14 @@ type ListTopicsResponse struct {
 	HasPrevious bool    `json:"hasPrevious"`
 }
 
+// ListTopicContactsResponse is the response from the ListContacts call.
+type ListTopicContactsResponse struct {
+	Object      string    `json:"object"`
+	Data        []Contact `json:"data"`
+	HasMore     bool      `json:"hasMore"`
+	HasPrevious bool      `json:"hasPrevious"`
+}
+
 // TopicsSvc provides an interface for managing topics.
 type TopicsSvc interface {
 	Create(params *CreateTopicRequest) (*TopicResponse, error)
@@ -58,6 +66,8 @@ type TopicsSvc interface {
 	UpdateWithContext(ctx context.Context, topicId string, params *UpdateTopicRequest) (*TopicResponse, error)
 	Delete(topicId string) error
 	DeleteWithContext(ctx context.Context, topicId string) error
+	ListContacts(topicId string, params *ListOptions) (*ListTopicContactsResponse, error)
+	ListContactsWithContext(ctx context.Context, topicId string, params *ListOptions) (*ListTopicContactsResponse, error)
 }
 
 // TopicsSvcImpl implements TopicsSvc.
@@ -177,4 +187,27 @@ func (s *TopicsSvcImpl) DeleteWithContext(ctx context.Context, topicId string) e
 	}
 
 	return nil
+}
+
+// ListContacts retrieves contacts that belong to a specific topic.
+func (s *TopicsSvcImpl) ListContacts(topicId string, params *ListOptions) (*ListTopicContactsResponse, error) {
+	return s.ListContactsWithContext(context.Background(), topicId, params)
+}
+
+// ListContactsWithContext retrieves contacts that belong to a specific topic.
+func (s *TopicsSvcImpl) ListContactsWithContext(ctx context.Context, topicId string, params *ListOptions) (*ListTopicContactsResponse, error) {
+	path := "v1/topics/" + topicId + "/contacts" + buildPaginationQuery(params)
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, ErrFailedToCreateTopicsListContactsRequest
+	}
+
+	listContactsResponse := new(ListTopicContactsResponse)
+	_, err = s.client.Perform(req, listContactsResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return listContactsResponse, nil
 }

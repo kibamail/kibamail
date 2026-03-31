@@ -52,6 +52,12 @@ export KIBAMAIL_API_KEY=<new-key>
 ### ACCESS_DENIED
 Access denied. Verify your API key has the required permissions.
 
+### AUTHENTICATION_REQUIRED
+Authentication is required. Provide a valid API key.
+```bash
+export KIBAMAIL_API_KEY=<key>
+```
+
 ---
 
 ## Contact Errors
@@ -143,6 +149,87 @@ Map all form fields to contact properties before publishing.
 ### FORM_SLUG_CONFLICT
 This URL slug is already taken. Choose a different slug.
 
+### FORM_VALIDATION_ERROR
+Form HTML/field mapping validation failed. Check that HTML has exactly one form element and all field names match the fieldMapping.
+
+---
+
+## Broadcast Errors
+
+### BROADCAST_NOT_FOUND (exit code 3)
+Broadcast doesn't exist or belongs to another workspace.
+```bash
+kibamail broadcasts list --json
+```
+
+### BROADCAST_NOT_EDITABLE
+Broadcast is not in an editable state. Only draft broadcasts can be modified.
+
+### BROADCAST_DETAILS_PRUNED
+Send-level details have been pruned for this broadcast. Summary stats may still be available.
+```bash
+kibamail broadcasts stats <broadcast-id> --json
+```
+
+### BROADCAST_INVALID_FROM_DOMAIN
+Sender domain is not verified. Verify the domain before sending.
+```bash
+kibamail domains list --json
+kibamail domains verify <domain-id> --json
+```
+
+---
+
+## Sending Domain Errors
+
+### SENDING_DOMAIN_NOT_FOUND (exit code 3)
+Sending domain not found.
+```bash
+kibamail domains list --json
+```
+
+### SENDING_DOMAIN_NOT_VERIFIED
+Sending domain DNS records have not been verified. Configure DNS and verify.
+```bash
+kibamail domains verify <domain-id> --json
+```
+
+### SENDING_DOMAIN_ALREADY_EXISTS (exit code 5)
+A domain with this name already exists.
+```bash
+# List existing domains to find the duplicate
+kibamail domains list --json
+```
+
+---
+
+## Template Errors
+
+### TEMPLATE_NOT_FOUND (exit code 3)
+Template not found.
+
+### TEMPLATE_NOT_EDITABLE
+Only draft templates can be edited. Create a new draft version to modify a published template.
+
+### TEMPLATE_NOT_PUBLISHED
+Template is not published. Publish it before using it.
+
+### TEMPLATE_ALREADY_PUBLISHED
+Template is already published.
+
+### TEMPLATE_HAS_DRAFT_VERSION
+A draft version already exists. Edit the existing draft instead.
+
+### TEMPLATE_NO_CONTENT
+Template has no content. Add content before publishing.
+
+---
+
+## Conversation Errors
+
+### CONVERSATION_NOT_FOUND (exit code 3)
+Conversation not found.
+
 ---
 
 ## Contact Property Errors
@@ -182,6 +269,21 @@ The JSON string is malformed. Validate your JSON before passing it.
 
 ### INVALID_FIELD_TYPE
 Use one of the allowed types (text, number, date for properties).
+
+### INVALID_PARAMETER
+A parameter value is invalid. Check the error response for details on which parameter and what values are allowed.
+
+### MISSING_PARAMETER
+A required parameter is missing. Check command help: `kibamail <resource> <verb> --help`
+
+### INVALID_ATTACHMENT_FORMAT
+Attachment format is not supported. Use a supported file type.
+
+### ATTACHMENT_TOO_LARGE
+Attachment exceeds the maximum allowed size limit.
+
+### SLUG_ALREADY_EXISTS
+The URL slug is already in use. Choose a different slug.
 
 ---
 

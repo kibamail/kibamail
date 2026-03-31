@@ -238,4 +238,35 @@ export class Forms {
       body: params,
     });
   }
+
+  /**
+   * Deploy a site bundle (HTML + assets) for a form.
+   *
+   * **Required Scope:** `write:forms`
+   *
+   * @param formId - The form ID
+   * @param files - File data to deploy (multipart/form-data)
+   *
+   * @example
+   * ```ts
+   * await kibamail.forms.deploy("form_abc123", {
+   *   files: ["<html>...</html>"]
+   * });
+   * ```
+   */
+  deploy(formId: string, params: paths["/v1/forms/{formId}/deploy"]["post"]["requestBody"]["content"]["multipart/form-data"]) {
+    return this.client.POST("/v1/forms/{formId}/deploy", {
+      params: { path: { formId } },
+      body: params,
+      bodySerializer(body) {
+        const formData = new FormData();
+        if (body.files) {
+          for (const file of body.files) {
+            formData.append("files", file);
+          }
+        }
+        return formData;
+      },
+    });
+  }
 }

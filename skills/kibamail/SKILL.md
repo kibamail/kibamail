@@ -24,7 +24,7 @@ Kibamail is an email platform for both **transactional email** (password resets,
 kibamail [resource] [verb] [flags]
 ```
 
-Resources: `emails`, `domains`, `broadcasts`, `contacts`, `topics`, `segments`, `forms`, `automations`, `api-keys`, `contact-properties`, `events`
+Resources: `emails`, `domains`, `broadcasts`, `contacts`, `topics`, `segments`, `forms`, `automations`, `api-keys`, `marketing-emails`, `contact-properties`, `events`, `inbox`
 
 ## Authentication
 
@@ -109,6 +109,7 @@ Always use `--json` when parsing output programmatically.
 | `topics create --name NAME` | Create a topic |
 | `topics update <id>` | Update a topic |
 | `topics delete <id>` | Delete a topic |
+| `topics contacts <id>` | List contacts subscribed to a topic |
 
 ### Segments
 | Command | Description |
@@ -128,6 +129,7 @@ Always use `--json` when parsing output programmatically.
 | `forms create --name NAME` | Create a form |
 | `forms update <id>` | Update a form |
 | `forms delete <id>` | Delete a form |
+| `forms submit <id> --data JSON` | Submit data to a published form |
 | `POST /v1/forms/{id}/deploy` | Deploy HTML site bundle (multipart upload) |
 | `POST /v1/forms/{id}/publish` | Publish a form (make it live) |
 | `POST /v1/forms/{id}/versions` | Create a new version |
@@ -139,12 +141,17 @@ Always use `--json` when parsing output programmatically.
 |---|---|
 | `automations list` | List automations (supports `--status`) |
 | `automations show <id>` | Show an automation |
+| `automations create --name NAME` | Create an automation |
+| `automations update <id>` | Update an automation |
+| `automations delete <id>` | Delete an automation |
+| `automations publish <id>` | Publish an automation |
+| `automations archive <id>` | Archive an automation |
 | `automations trigger <id> --contact-id ID` | Trigger an API-type automation |
 
 ### Events
 | Command | Description |
 |---|---|
-| `events create --name NAME --contact-id ID` | Fire a custom event |
+| `events create --event-name NAME --contact-id ID` | Fire a custom event |
 
 ### API Keys
 | Command | Description |
@@ -153,12 +160,29 @@ Always use `--json` when parsing output programmatically.
 | `api-keys create --name NAME` | Create an API key |
 | `api-keys delete <id>` | Delete an API key |
 
+### Marketing Emails
+| Command | Description |
+|---|---|
+| `marketing-emails list` | List marketing emails |
+| `marketing-emails show <id>` | Show a marketing email |
+| `marketing-emails create --subject SUBJECT` | Create a marketing email |
+| `marketing-emails update <id>` | Update a marketing email |
+| `marketing-emails delete <id>` | Delete a marketing email |
+
+### Inbox
+| Command | Description |
+|---|---|
+| `inbox conversations list` | List inbox conversations |
+| `inbox conversations show <id>` | Show a conversation |
+| `inbox conversations reply <id>` | Reply to a conversation |
+| `inbox stats` | Get inbox statistics |
+
 ### Contact Properties
 | Command | Description |
 |---|---|
 | `contact-properties list` | List custom properties |
 | `contact-properties show <id>` | Show a property |
-| `contact-properties create --name NAME --type TYPE` | Create a property (type: text, number, date) |
+| `contact-properties create --name NAME --type TYPE` | Create a property (type: STRING, NUMBER, DATE) |
 | `contact-properties update <id>` | Update a property |
 | `contact-properties delete <id>` | Delete a property |
 
@@ -177,7 +201,7 @@ Always use `--json` when parsing output programmatically.
 | `domains create --name DOMAIN` | Add a sending domain |
 | `domains list` | List domains |
 | `domains show <id>` | Get domain with DNS records |
-| `domains update <id>` | Update tracking settings (`--open-tracking`, `--click-tracking`) |
+| `domains update <id>` | Update settings (`--open-tracking`, `--click-tracking`, `--dmarc-enabled`, `--inbox-enabled`) |
 | `domains delete <id>` | Remove a domain |
 | `domains verify <id>` | Verify DNS configuration |
 

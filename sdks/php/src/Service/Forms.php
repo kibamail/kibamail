@@ -4,6 +4,7 @@ namespace Kibamail\Service;
 
 use Kibamail\Collection;
 use Kibamail\Form;
+use Kibamail\Resource;
 use Kibamail\ValueObjects\Transporter\Payload;
 
 class Forms extends Service
@@ -128,6 +129,22 @@ class Forms extends Service
     public function createVersion(string $id, array $parameters = []): Form
     {
         $payload = Payload::create('v1/forms/' . $id . '/versions', $parameters);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('forms', $result);
+    }
+
+    /**
+     * Deploy a site bundle (HTML + assets) for a form.
+     *
+     * @param string $id The form ID
+     * @param array{files: array<string>} $files File data to deploy (multipart/form-data)
+     *
+     * @return Resource The deploy response
+     */
+    public function deploy(string $id, array $files): Resource
+    {
+        $payload = Payload::multipart('v1/forms/' . $id . '/deploy', $files);
         $result = $this->transporter->request($payload);
 
         return $this->createResource('forms', $result);

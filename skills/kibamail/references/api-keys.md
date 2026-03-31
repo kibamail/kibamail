@@ -12,7 +12,7 @@ kibamail api-keys list --json
 
 **Flags:**
 - `--name string` — Key name **[REQUIRED]**
-- `--scopes strings` — Permission scopes (comma-separated). Defaults to full access when omitted.
+- `--scopes strings` — Permission scopes (comma-separated). **Required. At least one scope must be provided.**
 
 Available scopes:
 
@@ -30,6 +30,7 @@ Available scopes:
 | Sending Domains | `read:domains`, `write:domains`, `update:domains`, `delete:domains` |
 | Contact Properties | `read:contact-properties`, `write:contact-properties`, `update:contact-properties`, `delete:contact-properties` |
 | Automations | `read:automations`, `write:automations`, `delete:automations` |
+| Marketing Emails | `read:emails`, `write:emails` |
 | Inbox | `read:inbox`, `write:inbox` |
 
 ```bash

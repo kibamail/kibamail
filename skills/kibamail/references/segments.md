@@ -46,6 +46,7 @@ kibamail segments create --name "US Subscribers" --conditions '{"$and":[{"field"
 
 **Flags:**
 - `--name string` — New name
+- `--description string` — New description
 - `--conditions string` — New conditions as JSON
 
 ```bash

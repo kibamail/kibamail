@@ -23,6 +23,7 @@ class ServiceFactory
         'broadcasts' => Broadcasts::class,
         'automations' => Automations::class,
         'events' => Events::class,
+        'inbox' => Inbox::class,
         'marketingEmails' => MarketingEmails::class,
     ];
 

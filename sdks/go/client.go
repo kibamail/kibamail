@@ -54,6 +54,7 @@ type Client struct {
 	Automations       AutomationsSvc
 	Events            EventsSvc
 	MarketingEmails   MarketingEmailsSvc
+	Inbox             InboxSvc
 }
 
 // NewClient is the default client constructor
@@ -90,6 +91,7 @@ func NewCustomClient(httpClient *http.Client, apiKey string) *Client {
 	c.Automations = &AutomationsSvcImpl{client: c}
 	c.Events = &EventsSvcImpl{client: c}
 	c.MarketingEmails = &MarketingEmailsSvcImpl{client: c}
+	c.Inbox = &InboxSvcImpl{client: c}
 
 	return c
 }

@@ -198,8 +198,12 @@ kibamail api-keys delete <old-key-id> --json
 
 ## Check if authenticated
 
+There is no dedicated `auth status` endpoint. To verify authentication, make any authenticated request and check for success:
+
 ```bash
-kibamail auth status --json
-# Returns: {"authenticated":true,"source":"keyring","key_preview":"sk-****xxxx"}
-# Or: {"authenticated":false}
+# Verify authentication by listing domains (or any other resource)
+kibamail domains list --json
+# If the request succeeds, your API key is valid.
+# If it fails with INVALID_API_KEY or MISSING_API_KEY, re-set your key:
+export KIBAMAIL_API_KEY=<valid-key>
 ```

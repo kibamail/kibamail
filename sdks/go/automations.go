@@ -178,6 +178,10 @@ type AutomationsSvc interface {
 	TriggerWithContext(ctx context.Context, automationId string, params *TriggerAutomationRequest) (*Automation, error)
 	Simulate(automationId string, params *SimulateAutomationRequest) (*AutomationSimulationResponse, error)
 	SimulateWithContext(ctx context.Context, automationId string, params *SimulateAutomationRequest) (*AutomationSimulationResponse, error)
+	ListVersions(automationId string) (*ListAutomationsResponse, error)
+	ListVersionsWithContext(ctx context.Context, automationId string) (*ListAutomationsResponse, error)
+	CreateVersion(automationId string, params *UpdateAutomationRequest) (*Automation, error)
+	CreateVersionWithContext(ctx context.Context, automationId string, params *UpdateAutomationRequest) (*Automation, error)
 }
 
 // AutomationsSvcImpl implements AutomationsSvc.
@@ -448,4 +452,50 @@ func (s *AutomationsSvcImpl) SimulateWithContext(ctx context.Context, automation
 	}
 
 	return result, nil
+}
+
+// ListVersions retrieves all versions of an automation.
+func (s *AutomationsSvcImpl) ListVersions(automationId string) (*ListAutomationsResponse, error) {
+	return s.ListVersionsWithContext(context.Background(), automationId)
+}
+
+// ListVersionsWithContext retrieves all versions of an automation.
+func (s *AutomationsSvcImpl) ListVersionsWithContext(ctx context.Context, automationId string) (*ListAutomationsResponse, error) {
+	path := "v1/automations/" + automationId + "/versions"
+
+	req, err := s.client.NewRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, ErrFailedToCreateAutomationsListVersionsRequest
+	}
+
+	listResponse := new(ListAutomationsResponse)
+	_, err = s.client.Perform(req, listResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	return listResponse, nil
+}
+
+// CreateVersion creates a new version of an automation.
+func (s *AutomationsSvcImpl) CreateVersion(automationId string, params *UpdateAutomationRequest) (*Automation, error) {
+	return s.CreateVersionWithContext(context.Background(), automationId, params)
+}
+
+// CreateVersionWithContext creates a new version of an automation.
+func (s *AutomationsSvcImpl) CreateVersionWithContext(ctx context.Context, automationId string, params *UpdateAutomationRequest) (*Automation, error) {
+	path := "v1/automations/" + automationId + "/versions"
+
+	req, err := s.client.NewRequest(ctx, http.MethodPost, path, params)
+	if err != nil {
+		return nil, ErrFailedToCreateAutomationsCreateVersionRequest
+	}
+
+	automation := new(Automation)
+	_, err = s.client.Perform(req, automation)
+	if err != nil {
+		return nil, err
+	}
+
+	return automation, nil
 }

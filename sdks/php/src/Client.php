@@ -20,6 +20,7 @@ use Kibamail\Service\ServiceFactory;
  * @property Service\Broadcasts $broadcasts
  * @property Service\Automations $automations
  * @property Service\Events $events
+ * @property Service\Inbox $inbox
  * @property Service\MarketingEmails $marketingEmails
  */
 class Client implements ClientContract

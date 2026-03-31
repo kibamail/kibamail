@@ -11,11 +11,13 @@ Send a transactional email. Requires a verified sending domain for real recipien
 - `--to string` — Recipient email address **[REQUIRED]**
 - `--subject string` — Email subject
 - `--html string` — HTML body
-- `--text string` — Plain text body (auto-generated from HTML if omitted)
+- `--text string` — Plain text body
 - `--reply-to-email string` — Reply-to email
 - `--reply-to-name string` — Reply-to display name
 - `--template-id string` — Template slug (use instead of subject/html)
 - `--template-variables string` — Template variables as JSON
+- `--preview-text string` — Preview text shown in email clients (max 150 chars)
+- `--attachments string` — Attachments as JSON (max 25 files, 25MB total)
 - `--metadata string` — Custom tracking metadata as JSON
 
 **Examples:**
@@ -32,6 +34,18 @@ kibamail emails send --from noreply@yourdomain.com --to user@example.com --subje
 
 Either `--subject` + `--html` or `--template-id` is required. Template variables use `{{variableName}}` syntax.
 
+**Response:**
+
+Single recipient returns:
+```json
+{"object":"email","id":"eml_...","sandbox":true}
+```
+
+Multiple recipients returns:
+```json
+{"object":"email_list","emails":[{"id":"eml_...","recipient":"user@example.com","sandbox":true}]}
+```
+
 ---
 
 ## emails list
@@ -41,7 +55,7 @@ List sent transactional emails with filters.
 **Flags:**
 - `--limit int` — Max results (default 20)
 - `--after string` — Cursor for next page
-- `--status string` — Filter: QUEUED, SENT, DELIVERED, BOUNCED, COMPLAINED, FAILED
+- `--status string` — Filter: QUEUED, SENDING, DELIVERED, BOUNCED, COMPLAINED, FAILED
 - `--to string` — Filter by recipient (partial match)
 - `--subject string` — Filter by subject (partial match)
 - `--from-date string` — Start date (ISO 8601)
@@ -100,6 +114,7 @@ Send to `@kibamail.dev` addresses without a verified domain:
 | `failed@kibamail.dev` | Permanent failure |
 | `opened@kibamail.dev` | Delivered + opened |
 | `clicked@kibamail.dev` | Delivered + opened + clicked |
+| `delayed@kibamail.dev` | Simulates delayed delivery with transient failures before eventual delivery |
 
 Add `+label` for tracking: `delivered+campaign1@kibamail.dev`
 

@@ -7,7 +7,7 @@ Automations are workflows triggered by events (contact subscribed, form submitte
 **Flags:**
 - `--limit int` — Maximum number of results
 - `--after string` — Cursor for next page
-- `--status string` — Filter by status: `published`, `draft`, `archived`
+- `--status string` — Filter by status: `PUBLISHED`, `DRAFT`, `ARCHIVED` (default: `PUBLISHED`)
 
 ```bash
 kibamail automations list --json
@@ -40,8 +40,8 @@ Create a new automation (created as DRAFT).
 **Flags:**
 - `--name string` — Automation name **[REQUIRED]**
 - `--description string` — Description
-- `--trigger-type string` — Trigger type: CONTACT_SUBSCRIBED, FORM_SUBMITTED, API, EVENT, PROPERTY_UPDATED, SEGMENT_ENTRY, SEGMENT_EXIT, EMAIL_ENGAGEMENT
-- `--trigger-config string` — Trigger configuration as JSON
+- `--trigger-type string` — Trigger type: CONTACT_SUBSCRIBED, PROPERTY_UPDATED, FORM_SUBMITTED, API, EVENT, SEGMENT_ENTRY, SEGMENT_EXIT, EMAIL_ENGAGEMENT
+- `--trigger-config string` — Trigger configuration as JSON (see trigger config fields below)
 - `--nodes string` — Nodes array as JSON
 - `--edges string` — Edges array as JSON
 
@@ -56,13 +56,15 @@ kibamail automations create --name "Follow-up" --trigger-type EVENT --trigger-co
 
 ## automations update \<id\>
 
-Update an existing automation.
+Update an existing automation. Only DRAFT automations can have trigger, nodes, and edges updated. Name and description can be updated for any status.
 
 **Flags:**
 - `--name string` — Automation name
 - `--description string` — Description
-- `--nodes string` — Nodes array as JSON
-- `--edges string` — Edges array as JSON
+- `--trigger-type string` — Trigger type (DRAFT only)
+- `--trigger-config string` — Trigger configuration as JSON (DRAFT only)
+- `--nodes string` — Nodes array as JSON (DRAFT only)
+- `--edges string` — Edges array as JSON (DRAFT only)
 
 ```bash
 kibamail automations update auto123 --name "Updated Name" --json
@@ -73,6 +75,8 @@ kibamail automations update auto123 --nodes '[...]' --edges '[...]' --json
 
 ## automations delete \<id\>
 
+Soft-deletes an automation. Only DRAFT or ARCHIVED automations can be deleted.
+
 ```bash
 kibamail automations delete auto123 --json
 ```
@@ -81,11 +85,27 @@ kibamail automations delete auto123 --json
 
 ## automations publish \<id\>
 
-Publish a draft automation to make it active.
+Publish a draft automation to make it active. Runs full validation before publishing.
 
 ```bash
 kibamail automations publish auto123 --json
 ```
+
+**Publish validation checks:**
+- Must have at least 1 node with exactly 1 trigger node
+- All non-trigger nodes must be reachable (have incoming edges)
+- **Trigger config:** formId must exist (FORM_SUBMITTED), segmentId must exist (SEGMENT_ENTRY/EXIT), eventName required (EVENT), propertyName required (PROPERTY_UPDATED), emailEngagementType required (EMAIL_ENGAGEMENT)
+- **send-email:** templateId must reference an AUTOMATION-type marketing email with subject and htmlContent
+- **send-webhook:** url must be valid format
+- **update-contact:** fieldId must be a valid built-in or custom property
+- **add-to-topic / remove-from-topic:** all topicIds must exist in workspace
+- **if-else:** conditions must be valid (segment condition format)
+- **percentage-split:** exactly 2 splits, percentages must sum to 100%
+- **time-delay:** duration > 0, valid unit
+
+On failure, returns `AUTOMATION_VALIDATION_FAILED` with a detailed `errors` array showing `nodeId`, `field`, and `message` for each issue.
+
+If another version is currently published, it is automatically archived.
 
 ---
 
@@ -129,10 +149,10 @@ kibamail automations trigger auto123 --contact-id clx456 --metadata '{"source":"
 
 ## automations simulate \<id\>
 
-Simulate an automation for a contact (dry run, no side effects). Shows the path a contact would take through the workflow.
+Simulate an automation for a contact (dry run, no side effects). Shows the path a contact would take through the workflow. Supports two modes: real contact or virtual contact.
 
-**Flags:**
-- `--contact-id string` — Contact ID **[REQUIRED]**
+**Mode 1: Real contact**
+- `--contact-id string` — Contact ID
 - `--seed int` — Seed for deterministic percentage splits (optional)
 
 ```bash
@@ -140,7 +160,46 @@ kibamail automations simulate auto123 --contact-id clx456 --json
 kibamail automations simulate auto123 --contact-id clx456 --seed 42 --json
 ```
 
-Response includes `steps` array showing each node visited, the action taken, and which branch was followed.
+**Mode 2: Virtual contact (no real contact needed)**
+- `--contact string` — Contact data as JSON
+- `--seed int` — Seed for deterministic percentage splits (optional)
+
+```bash
+kibamail automations simulate auto123 --contact '{"email":"test@example.com","firstName":"Jane","status":"SUBSCRIBED","properties":{"plan":"pro"},"topics":["topic_123"]}' --json
+```
+
+Virtual contact fields: `email` (required), `firstName`, `lastName`, `phone`, `country`, `timezone`, `city`, `status` (SUBSCRIBED/UNSUBSCRIBED/BOUNCED/COMPLAINED, default: SUBSCRIBED), `properties` (custom properties object), `topics` (array of topic IDs).
+
+**Response includes:**
+- `status` — `"completed"` or `"error"`
+- `totalSteps` — Number of steps traversed
+- `steps` — Array of `{step, nodeId, nodeType, nodeName, action, detail, branch}` showing each node visited, the action taken, and which branch was followed
+
+---
+
+## Versioning
+
+To update a published automation without disrupting active runs, create a new version:
+
+```bash
+# List existing versions
+# API: GET /v1/automations/<automation-id>/versions
+
+# Create a new draft version (inherits nodes, edges, trigger from parent)
+# API: POST /v1/automations/<automation-id>/versions
+# Body is optional — accepts same fields as update to override inherited values
+
+# Edit the new version
+kibamail automations update <version-id> --nodes '[...]' --edges '[...]' --json
+
+# Publish (archives the previous published version)
+kibamail automations publish <version-id> --json
+```
+
+**Rules:**
+- Only one DRAFT version per automation at a time
+- Publishing a new version automatically archives the previous published version
+- Active runs on the old version continue to completion
 
 ---
 
@@ -161,14 +220,16 @@ Automations are directed graphs. You define **nodes** (steps) and **edges** (con
 | `event` | Custom event | `eventName` |
 | `segment-entry` | Enters segment | `segmentId` |
 | `segment-exit` | Exits segment | `segmentId` |
-| `email-engagement` | Email open/click/bounce/spam | `emailEngagementType` |
+| `email-engagement` | Email open/click/bounce/spam | `emailEngagementType`: `"open"`, `"click"`, `"bounce"`, or `"spam"` |
+
+Trigger nodes can also have optional `conditions` (same format as segment conditions) to filter which contacts enter the automation.
 
 **Actions** (do something):
 
 | Type ID | Action | Required data fields |
 |---|---|---|
-| `send-email` | Send an email | `subject` or `templateId` |
-| `send-webhook` | HTTP request | `url` |
+| `send-email` | Send an email | `templateId` (must be AUTOMATION-type marketing email with subject & htmlContent) |
+| `send-webhook` | HTTP request | `url` (required), `method` (GET/POST/PUT/PATCH/DELETE, optional), `headers` (object, optional), `body` (string, optional) |
 | `update-contact` | Update a field | `fieldId`, `fieldValue` |
 | `unsubscribe-contact` | Unsubscribe | none |
 | `add-to-topic` | Subscribe to topic | `topicIds` (array) |
@@ -179,7 +240,7 @@ Automations are directed graphs. You define **nodes** (steps) and **edges** (con
 | Type ID | Rule | Required data fields |
 |---|---|---|
 | `if-else` | Branch on condition | `conditions` (same format as segment conditions) |
-| `percentage-split` | A/B test | `splits` (array of `{id, name, percentage}`, must total 100%) |
+| `percentage-split` | A/B test | `splits` (array of exactly 2 `{id, name, percentage}` objects, must total 100%) |
 | `time-delay` | Wait | `duration` (number), `unit` ("seconds", "minutes", "hours", "days") |
 
 ### Edge Structure
@@ -220,7 +281,7 @@ Multiple branches can converge back to a single node by having multiple edges po
 The `--nodes` and `--edges` flags accept JSON arrays. For readability, store the JSON in a variable:
 
 ```bash
-NODES='[{"id":"trigger-1","type":"event","position":{"x":250,"y":0},"data":{"eventName":"purchase_completed"}},{"id":"email-thanks","type":"send-email","position":{"x":250,"y":150},"data":{"subject":"Thanks for your purchase!","templateId":"tpl_purchase_thanks"}},{"id":"delay-3d","type":"time-delay","position":{"x":250,"y":300},"data":{"duration":3,"unit":"days"}},{"id":"check-subscribed","type":"if-else","position":{"x":250,"y":450},"data":{"conditions":{"field":"status","operator":"eq","value":"SUBSCRIBED"}}},{"id":"email-review","type":"send-email","position":{"x":100,"y":600},"data":{"subject":"How was your book? Leave a review!","templateId":"tpl_review_request"}},{"id":"add-reviewers","type":"add-to-topic","position":{"x":100,"y":750},"data":{"topicIds":["REPLACE_WITH_TOPIC_ID"]}},{"id":"email-subscribe-offer","type":"send-email","position":{"x":400,"y":600},"data":{"subject":"Subscribe & get 10% off your next order","templateId":"tpl_subscribe_offer"}},{"id":"delay-7d","type":"time-delay","position":{"x":250,"y":900},"data":{"duration":7,"unit":"days"}},{"id":"ab-split","type":"percentage-split","position":{"x":250,"y":1050},"data":{"splits":[{"id":"branch-a","name":"New Releases","percentage":70},{"id":"branch-b","name":"Staff Picks","percentage":30}]}},{"id":"email-new-releases","type":"send-email","position":{"x":100,"y":1200},"data":{"subject":"New releases this week","templateId":"tpl_new_releases"}},{"id":"email-staff-picks","type":"send-email","position":{"x":400,"y":1200},"data":{"subject":"Our staff picks","templateId":"tpl_staff_picks"}}]'
+NODES='[{"id":"trigger-1","type":"event","position":{"x":250,"y":0},"data":{"eventName":"purchase_completed"}},{"id":"email-thanks","type":"send-email","position":{"x":250,"y":150},"data":{"templateId":"tpl_purchase_thanks"}},{"id":"delay-3d","type":"time-delay","position":{"x":250,"y":300},"data":{"duration":3,"unit":"days"}},{"id":"check-subscribed","type":"if-else","position":{"x":250,"y":450},"data":{"conditions":{"field":"status","operator":"eq","value":"SUBSCRIBED"}}},{"id":"email-review","type":"send-email","position":{"x":100,"y":600},"data":{"templateId":"tpl_review_request"}},{"id":"add-reviewers","type":"add-to-topic","position":{"x":100,"y":750},"data":{"topicIds":["REPLACE_WITH_TOPIC_ID"]}},{"id":"email-subscribe-offer","type":"send-email","position":{"x":400,"y":600},"data":{"templateId":"tpl_subscribe_offer"}},{"id":"delay-7d","type":"time-delay","position":{"x":250,"y":900},"data":{"duration":7,"unit":"days"}},{"id":"ab-split","type":"percentage-split","position":{"x":250,"y":1050},"data":{"splits":[{"id":"branch-a","name":"New Releases","percentage":70},{"id":"branch-b","name":"Staff Picks","percentage":30}]}},{"id":"email-new-releases","type":"send-email","position":{"x":100,"y":1200},"data":{"templateId":"tpl_new_releases"}},{"id":"email-staff-picks","type":"send-email","position":{"x":400,"y":1200},"data":{"templateId":"tpl_staff_picks"}}]'
 
 EDGES='[{"id":"e1","source":"trigger-1","target":"email-thanks"},{"id":"e2","source":"email-thanks","target":"delay-3d"},{"id":"e3","source":"delay-3d","target":"check-subscribed"},{"id":"e4","source":"check-subscribed","target":"email-review","sourceHandle":"true"},{"id":"e5","source":"check-subscribed","target":"email-subscribe-offer","sourceHandle":"false"},{"id":"e6","source":"email-review","target":"add-reviewers"},{"id":"e7","source":"add-reviewers","target":"delay-7d"},{"id":"e8","source":"email-subscribe-offer","target":"delay-7d"},{"id":"e9","source":"delay-7d","target":"ab-split"},{"id":"e10","source":"ab-split","target":"email-new-releases","sourceHandle":"branch-a"},{"id":"e11","source":"ab-split","target":"email-staff-picks","sourceHandle":"branch-b"}]'
 

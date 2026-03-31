@@ -29,12 +29,13 @@ kibamail topics show top123 --json
 **Flags:**
 - `--name string` — Topic name **[REQUIRED]**
 - `--description string` — Description
-- `--visibility string` — `public` or `private`
+- `--visibility string` — `PUBLIC` or `PRIVATE`
+- `--default-opt-in boolean` — Whether new contacts are automatically opted in (default: false)
 
 **Examples:**
 ```bash
 kibamail topics create --name "Newsletter" --json
-kibamail topics create --name "Product Updates" --description "Weekly product news" --visibility public --json
+kibamail topics create --name "Product Updates" --description "Weekly product news" --visibility PUBLIC --json
 ```
 
 **Common errors:**
@@ -47,6 +48,8 @@ kibamail topics create --name "Product Updates" --description "Weekly product ne
 **Flags:**
 - `--name string` — New name
 - `--description string` — New description
+- `--visibility string` — `PUBLIC` or `PRIVATE`
+- `--default-opt-in boolean` — Whether new contacts are automatically opted in
 
 ```bash
 kibamail topics update top123 --name "Weekly Newsletter" --json

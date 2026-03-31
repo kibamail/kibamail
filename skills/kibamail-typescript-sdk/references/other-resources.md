@@ -44,7 +44,7 @@ const { data } = await kibamail.segments.get("segment_id");
 // Update
 const { data } = await kibamail.segments.update("segment_id", {
   name: "Updated Segment",
-  conditions: { field: "country", operator: "eq", value: "US" },
+  conditions: { field: "country", operator: "equals", value: "US" },
 });
 
 // Delete

@@ -61,7 +61,7 @@ const { data } = await kibamail.broadcasts.send("broadcast_id");
 ## Get Broadcast Stats
 
 ```typescript
-const { data } = await kibamail.broadcasts.stats("broadcast_id");
+const { data } = await kibamail.broadcasts.stats.get("broadcast_id");
 console.log(data.recipients.delivered);
 console.log(data.engagement.openRate);
 console.log(data.deliverability.bounceRate);
@@ -70,7 +70,7 @@ console.log(data.deliverability.bounceRate);
 ## List Individual Sends
 
 ```typescript
-const { data } = await kibamail.broadcasts.sends("broadcast_id", { limit: 50 });
+const { data } = await kibamail.broadcasts.sends.list("broadcast_id", { limit: 50 });
 ```
 
 ## Delete a Broadcast

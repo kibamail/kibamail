@@ -180,4 +180,28 @@ class Automations extends Service
 
         return $this->createResource('automations', $result);
     }
+
+    /**
+     * List all versions of an automation.
+     *
+     * @param array{'limit'?: int, 'before'?: string, 'after'?: string} $options
+     */
+    public function listVersions(string $id, array $options = []): Collection
+    {
+        $payload = Payload::list('v1/automations/' . $id . '/versions', $options);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('automations', $result);
+    }
+
+    /**
+     * Create a new version of an automation.
+     */
+    public function createVersion(string $id, array $parameters = []): Automation
+    {
+        $payload = Payload::create('v1/automations/' . $id . '/versions', $parameters);
+        $result = $this->transporter->request($payload);
+
+        return $this->createResource('automations', $result);
+    }
 }
