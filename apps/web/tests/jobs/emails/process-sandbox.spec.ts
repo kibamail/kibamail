@@ -29,6 +29,8 @@ let testWorkspace: TestWorkspace;
 let apiKey: CreatedApiKey;
 let testCounter = 0;
 
+const TEST_HTML = "<p>Test content</p><p>{{business_address}}</p><a href=\"{{unsubscribe_url}}\">Unsub</a><a href=\"{{terms_url}}\">Terms</a><a href=\"{{privacy_url}}\">Privacy</a>";
+
 function getUniqueDomainName(): string {
   testCounter++;
   return `sandbox-test-${testCounter}-${Date.now()}.kibamail.xyz`;
@@ -174,7 +176,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "delivered@kibamail.dev",
           subject: "Test Sandbox with Partial Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -196,7 +198,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "user@example.com",
           subject: "Test Real Recipient with Partial Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -219,7 +221,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "user@example.com",
           subject: "Test Real Recipient with Unverified Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -242,7 +244,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "delivered@kibamail.dev",
           subject: "Test Sandbox with Unverified Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -263,7 +265,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: "hello@any-domain-that-does-not-exist.com",
           to: "delivered@kibamail.dev",
           subject: "Test Sandbox without Any Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -295,7 +297,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
             "user@example.com", // This real recipient triggers full verification
           ],
           subject: "Test Mixed Recipients with Partial Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -317,7 +319,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "user@example.com",
           subject: "Test Real Recipient with Full Domain",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -341,7 +343,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "delivered@kibamail.dev",
           subject: "Test Sandbox Detection",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -373,7 +375,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "user@example.com",
           subject: "Test Regular Email",
-          html: "<p>Test content</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -411,7 +413,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
             from: `info@${domainName}`,
             to: recipient,
             subject: "Test Case Insensitivity",
-            html: "<p>Test</p>",
+            html: TEST_HTML,
           },
           apiKey.key,
         );
@@ -449,7 +451,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
             from: `info@${domainName}`,
             to: recipient,
             subject: `Test ${expectedOutcome}`,
-            html: "<p>Test</p>",
+            html: TEST_HTML,
           },
           apiKey.key,
         );
@@ -477,7 +479,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "delivered+signup-flow@kibamail.dev",
           subject: "Test Label Parsing",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -502,7 +504,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "bounced+password-reset-flow-v2@kibamail.dev",
           subject: "Test Complex Label",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -525,7 +527,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "delivered@kibamail.dev",
           subject: "Test No Label",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -553,7 +555,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
             "bounced@kibamail.dev",
           ],
           subject: "Test Multiple Recipients",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -590,7 +592,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
             "real@example.com",
           ],
           subject: "Test Mixed Recipients",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
         },
         apiKey.key,
       );
@@ -622,7 +624,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `info@${domainName}`,
           to: "delivered@kibamail.dev",
           subject: "Test Data Integrity",
-          html: "<h1>Hello</h1><p>World</p>",
+          html: "<h1>Hello</h1><p>World</p>" + "{{business_address}}{{unsubscribe_url}}{{terms_url}}{{privacy_url}}",
           text: "Hello World",
           replyTo: { email: "support@example.com", name: "Support" },
           metadata: { orderId: "12345", campaign: "welcome" },
@@ -643,7 +645,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
       expect(jobData.recipient).toBe("delivered@kibamail.dev");
       expect(jobData.sandboxOutcome).toBe("delivered");
       expect(jobData.subject).toBe("Test Data Integrity");
-      expect(jobData.htmlBody).toBe("<h1>Hello</h1><p>World</p>");
+      expect(jobData.htmlBody).toContain("<h1>Hello</h1><p>World</p>");
       expect(jobData.textBody).toBe("Hello World");
       expect(jobData.previewText).toBe("This is preview text");
       expect(jobData.replyTo).toEqual({ email: "support@example.com", name: "Support" });
@@ -660,7 +662,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: `notifications@${domainName}`,
           to: "delivered@kibamail.dev",
           subject: "Test Default ReplyTo",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
           // No replyTo provided
         },
         apiKey.key,
@@ -686,7 +688,7 @@ describe("Group 1: API Endpoint - Job Dispatch", () => {
           from: "hello@any-domain.com",
           to: "delivered@kibamail.dev",
           subject: "Test Default ReplyTo No Domain",
-          html: "<p>Test</p>",
+          html: TEST_HTML,
           // No replyTo provided
         },
         apiKey.key,

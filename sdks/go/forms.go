@@ -7,10 +7,11 @@ import (
 
 // CreateFormRequest is the request object for the Create call.
 type CreateFormRequest struct {
-	Name         string                 `json:"name"`
-	Description  string                 `json:"description,omitempty"`
-	Type         string                 `json:"type,omitempty"`
-	FieldMapping map[string]interface{} `json:"fieldMapping"`
+	Name               string                 `json:"name"`
+	Description        string                 `json:"description,omitempty"`
+	Type               string                 `json:"type,omitempty"`
+	FieldMapping       map[string]interface{} `json:"fieldMapping"`
+	DoubleOptInEmailId *string                `json:"doubleOptInEmailId,omitempty"`
 }
 
 // UpdateFormRequest is the request object for the Update call.
@@ -29,23 +30,24 @@ type UpdateFormRequest struct {
 
 // Form provides the structure for a form object.
 type Form struct {
-	Object         string                 `json:"object"`
-	ID             string                 `json:"id"`
-	Name           string                 `json:"name"`
-	Description    string                 `json:"description"`
-	Status         string                 `json:"status"`
-	HTML           string                 `json:"html"`
-	DeployId       string                 `json:"deployId"`
-	DeployedFiles  []DeployedFile         `json:"deployedFiles"`
-	FieldMapping   map[string]interface{} `json:"fieldMapping"`
-	Settings       map[string]interface{} `json:"settings"`
-	SeoTitle       string                 `json:"seoTitle"`
-	SeoDescription string                 `json:"seoDescription"`
-	SeoImageUrl    string                 `json:"seoImageUrl"`
-	SeoFaviconUrl  string                 `json:"seoFaviconUrl"`
-	Slug           string                 `json:"slug"`
-	CreatedAt      string                 `json:"createdAt"`
-	UpdatedAt      string                 `json:"updatedAt"`
+	Object             string                 `json:"object"`
+	ID                 string                 `json:"id"`
+	Name               string                 `json:"name"`
+	Description        string                 `json:"description"`
+	Status             string                 `json:"status"`
+	HTML               string                 `json:"html"`
+	DeployId           string                 `json:"deployId"`
+	DeployedFiles      []DeployedFile         `json:"deployedFiles"`
+	FieldMapping       map[string]interface{} `json:"fieldMapping"`
+	Settings           map[string]interface{} `json:"settings"`
+	SeoTitle           string                 `json:"seoTitle"`
+	SeoDescription     string                 `json:"seoDescription"`
+	SeoImageUrl        string                 `json:"seoImageUrl"`
+	SeoFaviconUrl      string                 `json:"seoFaviconUrl"`
+	Slug               string                 `json:"slug"`
+	DoubleOptInEmailId *string                `json:"doubleOptInEmailId"`
+	CreatedAt          string                 `json:"createdAt"`
+	UpdatedAt          string                 `json:"updatedAt"`
 }
 
 // FormResponse is the response from the Create/Update/Publish call.

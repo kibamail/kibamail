@@ -42,6 +42,58 @@ interface FormContent {
 }
 
 /**
+ * Format a form for API response.
+ * Used by both list and detail endpoints to ensure consistent output.
+ */
+function formatForm(form: {
+  id: string;
+  name: string;
+  description: string | null;
+  type: string;
+  display: string;
+  status: string;
+  version: number;
+  fields: unknown;
+  fieldMapping: unknown;
+  settings: unknown;
+  doubleOptInEmailId: string | null;
+  seoTitle: string | null;
+  seoDescription: string | null;
+  seoImageUrl: string | null;
+  seoFaviconUrl: string | null;
+  slug: string | null;
+  publishedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  const content = form.fields as FormContent | null;
+
+  return {
+    id: form.id,
+    name: form.name,
+    description: form.description,
+    type: form.type,
+    display: form.display,
+    status: form.status,
+    version: form.version,
+    html: content?.html ?? null,
+    deployId: content?.deployId ?? null,
+    deployedFiles: content?.files ?? null,
+    fieldMapping: form.fieldMapping,
+    settings: form.settings,
+    doubleOptInEmailId: form.doubleOptInEmailId,
+    seoTitle: form.seoTitle,
+    seoDescription: form.seoDescription,
+    seoImageUrl: form.seoImageUrl,
+    seoFaviconUrl: form.seoFaviconUrl,
+    slug: form.slug,
+    publishedAt: form.publishedAt?.toISOString() || null,
+    createdAt: form.createdAt.toISOString(),
+    updatedAt: form.updatedAt.toISOString(),
+  };
+}
+
+/**
  * POST /api/v1/forms
  *
  * Create a new form. Content is uploaded separately via the deploy endpoint.
@@ -61,6 +113,7 @@ export async function createForm(workspaceId: string, request: NextRequest) {
       display: data.display,
       fieldMapping: data.fieldMapping as never,
       settings: (data.settings ?? {}) as never,
+      doubleOptInEmailId: data.doubleOptInEmailId ?? null,
       status: "DRAFT",
       version: 1,
     },
@@ -107,14 +160,7 @@ export async function listForms(workspaceId: string, request: NextRequest) {
     items.reverse();
   }
 
-  const formattedForms = items.map((form) => ({
-    id: form.id,
-    name: form.name,
-    description: form.description,
-    type: form.type,
-    display: form.display,
-    status: form.status,
-  }));
+  const formattedForms = items.map(formatForm);
 
   return responseOk(
     createCursorPaginatedResponse(formattedForms, hasMore, "form_list"),
@@ -135,33 +181,7 @@ export async function getForm(workspaceId: string, formId: string) {
     throw new NotFoundError("Form not found", ErrorCode.FORM_NOT_FOUND);
   }
 
-  const content = form.fields as FormContent | null;
-
-  return responseOk(
-    {
-      id: form.id,
-      name: form.name,
-      description: form.description,
-      type: form.type,
-      display: form.display,
-      status: form.status,
-      version: form.version,
-      html: content?.html ?? null,
-      deployId: content?.deployId ?? null,
-      deployedFiles: content?.files ?? null,
-      fieldMapping: form.fieldMapping,
-      settings: form.settings,
-      seoTitle: form.seoTitle,
-      seoDescription: form.seoDescription,
-      seoImageUrl: form.seoImageUrl,
-      seoFaviconUrl: form.seoFaviconUrl,
-      slug: form.slug,
-      publishedAt: form.publishedAt?.toISOString() || null,
-      createdAt: form.createdAt.toISOString(),
-      updatedAt: form.updatedAt.toISOString(),
-    },
-    "form",
-  );
+  return responseOk(formatForm(form), "form");
 }
 
 /**

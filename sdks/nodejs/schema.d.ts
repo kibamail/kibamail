@@ -4670,6 +4670,7 @@ export interface paths {
                             /** @default false */
                             preventDuplicateSubmissions?: boolean;
                         };
+                        doubleOptInEmailId?: string | null;
                     };
                 };
             };
@@ -14786,7 +14787,7 @@ export interface components {
         };
         SearchContactsRequest: {
             /** @description Filter conditions for contact search */
-            conditions: components["schemas"]["Condition"];
+            filters: components["schemas"]["Condition"];
         };
     };
     responses: never;

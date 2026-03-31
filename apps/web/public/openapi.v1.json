@@ -9152,6 +9152,16 @@
                         "type": "boolean"
                       }
                     }
+                  },
+                  "doubleOptInEmailId": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -30711,10 +30721,10 @@
       "SearchContactsRequest": {
         "type": "object",
         "required": [
-          "conditions"
+          "filters"
         ],
         "properties": {
-          "conditions": {
+          "filters": {
             "$ref": "#/components/schemas/Condition",
             "description": "Filter conditions for contact search"
           }

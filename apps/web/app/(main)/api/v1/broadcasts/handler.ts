@@ -226,6 +226,7 @@ function formatBroadcast(
     segmentId: broadcast.segmentId,
     sendAt: broadcast.sendAt?.toISOString() ?? null,
     createdAt: broadcast.createdAt.toISOString(),
+    updatedAt: broadcast.updatedAt.toISOString(),
   };
 }
 

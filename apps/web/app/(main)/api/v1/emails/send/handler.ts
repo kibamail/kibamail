@@ -286,6 +286,15 @@ export async function sendTransactionalEmail(
     html = data.html!;
     text = data.text;
     previewText = data.previewText;
+
+    // Validate compliance variables on raw HTML
+    const compliance = validateEmailCompliance(html);
+    if (!compliance.valid) {
+      throw new BadRequestError(
+        `Email HTML is missing required compliance variables: ${compliance.missing.join(", ")}`,
+        ErrorCode.VALIDATION_FAILED,
+      );
+    }
   }
 
   const recipients = Array.isArray(to) ? to : [to];

@@ -20,6 +20,78 @@ import { prisma } from "@/lib/db";
 import { downloadPrivateFile } from "@/lib/storage";
 
 /**
+ * Format a transactional email for API response.
+ * Shared between list and detail endpoints.
+ */
+function formatEmail(email: {
+  id: string;
+  sendingId: string;
+  fromEmail: string;
+  fromName: string | null;
+  replyToEmail: string | null;
+  replyToName: string | null;
+  toEmail: string;
+  subject: string;
+  previewText: string | null;
+  status: string;
+  lastResponseCode: number | null;
+  lastResponseMessage: string | null;
+  bounceClassification: string | null;
+  openTrackingEnabled: boolean;
+  clickTrackingEnabled: boolean;
+  metadata: unknown;
+  tags: unknown;
+  openCount: number;
+  clickCount: number;
+  uniqueLinksClicked: number;
+  totalEvents: number;
+  createdAt: Date;
+  sentAt: Date | null;
+  deliveredAt: Date | null;
+  firstOpenedAt: Date | null;
+  firstClickedAt: Date | null;
+  bouncedAt: Date | null;
+  complainedAt: Date | null;
+}) {
+  return {
+    id: email.id,
+    sendingId: email.sendingId,
+    from: {
+      email: email.fromEmail,
+      name: email.fromName,
+    },
+    replyTo: email.replyToEmail
+      ? {
+          email: email.replyToEmail,
+          name: email.replyToName,
+        }
+      : null,
+    to: email.toEmail,
+    subject: email.subject,
+    previewText: email.previewText,
+    status: email.status.toLowerCase(),
+    lastResponseCode: email.lastResponseCode,
+    lastResponseMessage: email.lastResponseMessage,
+    bounceClassification: email.bounceClassification,
+    openTrackingEnabled: email.openTrackingEnabled,
+    clickTrackingEnabled: email.clickTrackingEnabled,
+    metadata: email.metadata || null,
+    tags: (email.tags as string[]) || null,
+    openCount: email.openCount,
+    clickCount: email.clickCount,
+    uniqueLinksClicked: email.uniqueLinksClicked,
+    totalEvents: email.totalEvents,
+    createdAt: email.createdAt.toISOString(),
+    sentAt: email.sentAt?.toISOString() || null,
+    deliveredAt: email.deliveredAt?.toISOString() || null,
+    firstOpenedAt: email.firstOpenedAt?.toISOString() || null,
+    firstClickedAt: email.firstClickedAt?.toISOString() || null,
+    bouncedAt: email.bouncedAt?.toISOString() || null,
+    complainedAt: email.complainedAt?.toISOString() || null,
+  };
+}
+
+/**
  * Parse query parameters specific to transactional emails
  */
 function parseEmailQueryParams(request: NextRequest) {
@@ -92,17 +164,30 @@ export async function listTransactionalEmails(
       sendingId: true,
       fromEmail: true,
       fromName: true,
+      replyToEmail: true,
+      replyToName: true,
       toEmail: true,
       subject: true,
+      previewText: true,
       status: true,
+      lastResponseCode: true,
+      lastResponseMessage: true,
+      bounceClassification: true,
+      openTrackingEnabled: true,
+      clickTrackingEnabled: true,
+      metadata: true,
+      tags: true,
       openCount: true,
       clickCount: true,
+      uniqueLinksClicked: true,
+      totalEvents: true,
       createdAt: true,
       sentAt: true,
       deliveredAt: true,
       firstOpenedAt: true,
       firstClickedAt: true,
       bouncedAt: true,
+      complainedAt: true,
     },
   };
 
@@ -127,25 +212,7 @@ export async function listTransactionalEmails(
     items.reverse();
   }
 
-  const formattedEmails = items.map((email) => ({
-    id: email.id,
-    sendingId: email.sendingId,
-    from: {
-      email: email.fromEmail,
-      name: email.fromName,
-    },
-    to: email.toEmail,
-    subject: email.subject,
-    status: email.status.toLowerCase(),
-    openCount: email.openCount,
-    clickCount: email.clickCount,
-    createdAt: email.createdAt.toISOString(),
-    sentAt: email.sentAt?.toISOString() || null,
-    deliveredAt: email.deliveredAt?.toISOString() || null,
-    firstOpenedAt: email.firstOpenedAt?.toISOString() || null,
-    firstClickedAt: email.firstClickedAt?.toISOString() || null,
-    bouncedAt: email.bouncedAt?.toISOString() || null,
-  }));
+  const formattedEmails = items.map(formatEmail);
 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedEmails,
@@ -176,45 +243,7 @@ export async function getTransactionalEmail(
     throw new NotFoundError("Email not found", ErrorCode.RESOURCE_NOT_FOUND);
   }
 
-  return responseOk(
-    {
-      id: email.id,
-      sendingId: email.sendingId,
-      from: {
-        email: email.fromEmail,
-        name: email.fromName,
-      },
-      replyTo: email.replyToEmail
-        ? {
-            email: email.replyToEmail,
-            name: email.replyToName,
-          }
-        : null,
-      to: email.toEmail,
-      subject: email.subject,
-      previewText: email.previewText,
-      status: email.status.toLowerCase(),
-      lastResponseCode: email.lastResponseCode,
-      lastResponseMessage: email.lastResponseMessage,
-      bounceClassification: email.bounceClassification,
-      openTrackingEnabled: email.openTrackingEnabled,
-      clickTrackingEnabled: email.clickTrackingEnabled,
-      metadata: email.metadata || null,
-      tags: (email.tags as string[]) || null,
-      openCount: email.openCount,
-      clickCount: email.clickCount,
-      uniqueLinksClicked: email.uniqueLinksClicked,
-      totalEvents: email.totalEvents,
-      createdAt: email.createdAt.toISOString(),
-      sentAt: email.sentAt?.toISOString() || null,
-      deliveredAt: email.deliveredAt?.toISOString() || null,
-      firstOpenedAt: email.firstOpenedAt?.toISOString() || null,
-      firstClickedAt: email.firstClickedAt?.toISOString() || null,
-      bouncedAt: email.bouncedAt?.toISOString() || null,
-      complainedAt: email.complainedAt?.toISOString() || null,
-    },
-    "transactional_email"
-  );
+  return responseOk(formatEmail(email), "transactional_email");
 }
 
 /**

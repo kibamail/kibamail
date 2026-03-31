@@ -27,6 +27,28 @@ import type { ConditionInput } from "./schema";
 import { createSegmentSchema, updateSegmentSchema } from "./schema";
 
 /**
+ * Format a segment for API responses (used by both list and detail endpoints).
+ * Ensures consistent fields across all segment responses.
+ */
+function formatSegment(segment: {
+  id: string;
+  name: string;
+  description: string | null;
+  conditions: unknown;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: segment.id,
+    name: segment.name,
+    description: segment.description,
+    conditions: segment.conditions,
+    createdAt: segment.createdAt.toISOString(),
+    updatedAt: segment.updatedAt.toISOString(),
+  };
+}
+
+/**
  * POST /api/v1/segments
  *
  * Create a new segment for the workspace.
@@ -115,12 +137,7 @@ export async function listSegments(workspaceId: string, request: NextRequest) {
     items.reverse();
   }
 
-  const formattedSegments = items.map((segment) => ({
-    id: segment.id,
-    name: segment.name,
-    description: segment.description,
-    conditions: segment.conditions,
-  }));
+  const formattedSegments = items.map((segment) => formatSegment(segment));
 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedSegments,
@@ -149,15 +166,7 @@ export async function getSegment(workspaceId: string, segmentId: string) {
     throw new NotFoundError("Segment not found", ErrorCode.SEGMENT_NOT_FOUND);
   }
 
-  return responseOk(
-    {
-      id: segment.id,
-      name: segment.name,
-      description: segment.description,
-      conditions: segment.conditions,
-    },
-    "segment",
-  );
+  return responseOk(formatSegment(segment), "segment");
 }
 
 /**

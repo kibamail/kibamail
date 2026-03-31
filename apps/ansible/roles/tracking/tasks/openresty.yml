@@ -1,0 +1,146 @@
+# tracking Role - OpenResty Configuration
+#
+# Replaces Nginx with OpenResty for dynamic per-domain SSL certificate loading.
+# Uses Lua scripts to fetch certificates from the control plane API on TLS handshake.
+#
+---
+# =============================================================================
+# Remove Nginx (replaced by OpenResty)
+# =============================================================================
+- name: Stop Nginx if running
+  ansible.builtin.systemd:
+    name: nginx
+    state: stopped
+  failed_when: false
+
+- name: Disable Nginx
+  ansible.builtin.systemd:
+    name: nginx
+    enabled: no
+  failed_when: false
+
+- name: Remove Nginx package
+  ansible.builtin.apt:
+    name: nginx
+    state: absent
+
+# =============================================================================
+# Install OpenResty
+# =============================================================================
+- name: Install OpenResty prerequisites
+  ansible.builtin.apt:
+    name:
+      - wget
+      - gnupg
+      - ca-certificates
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Add OpenResty GPG key
+  ansible.builtin.apt_key:
+    url: https://openresty.org/package/pubkey.gpg
+    state: present
+
+- name: Add OpenResty APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://openresty.org/package/ubuntu {{ ansible_distribution_release }} main"
+    state: present
+    filename: openresty
+
+- name: Install OpenResty
+  ansible.builtin.apt:
+    name: openresty
+    state: present
+    update_cache: yes
+
+- name: Install lua-resty-http via opm
+  ansible.builtin.command: /usr/local/openresty/bin/opm get ledgetech/lua-resty-http
+  args:
+    creates: /usr/local/openresty/site/lualib/resty/http.lua
+
+# =============================================================================
+# Deploy Lua scripts
+# =============================================================================
+- name: Create Lua scripts directory
+  ansible.builtin.file:
+    path: "{{ openresty_lua_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy Lua config module
+  ansible.builtin.template:
+    src: openresty/lua/config.lua.j2
+    dest: "{{ openresty_lua_dir }}/config.lua"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload OpenResty
+
+- name: Deploy Lua init module
+  ansible.builtin.copy:
+    src: openresty/lua/init.lua
+    dest: "{{ openresty_lua_dir }}/init.lua"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload OpenResty
+
+- name: Deploy Lua SSL certificate module
+  ansible.builtin.copy:
+    src: openresty/lua/ssl_certificate.lua
+    dest: "{{ openresty_lua_dir }}/ssl_certificate.lua"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload OpenResty
+
+# =============================================================================
+# Deploy OpenResty configuration
+# =============================================================================
+- name: Create OpenResty log directory
+  ansible.builtin.file:
+    path: /var/log/openresty
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy OpenResty nginx.conf
+  ansible.builtin.template:
+    src: openresty/nginx.conf.j2
+    dest: /usr/local/openresty/nginx/conf/nginx.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload OpenResty
+
+- name: Validate OpenResty configuration
+  ansible.builtin.command: /usr/local/openresty/bin/openresty -t
+  changed_when: false
+
+- name: Ensure OpenResty is running
+  ansible.builtin.systemd:
+    name: openresty
+    state: started
+    enabled: yes
+
+# =============================================================================
+# Verification
+# =============================================================================
+- name: Display OpenResty setup complete
+  ansible.builtin.debug:
+    msg: |
+      OpenResty reverse proxy configured with dynamic SSL.
+
+      Fallback domain: https://{{ tracking_domain }}
+      Health check: https://{{ tracking_domain }}/health
+
+      Dynamic SSL: Customer tracking domains get certificates on-demand
+      from {{ internal_api_url | default('https://app.kibamail.com') }}
+
+      Test commands:
+        - curl https://{{ tracking_domain }}/health
+        - curl -vI https://<customer-domain> 2>&1 | grep "subject:"

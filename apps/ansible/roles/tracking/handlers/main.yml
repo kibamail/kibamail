@@ -1,13 +1,13 @@
 # tracking Role Handlers
 ---
-- name: Reload Nginx
+- name: Reload OpenResty
   ansible.builtin.systemd:
-    name: nginx
+    name: openresty
     state: reloaded
 
-- name: Restart Nginx
+- name: Restart OpenResty
   ansible.builtin.systemd:
-    name: nginx
+    name: openresty
     state: restarted
 
 - name: Restart PM2 tracking

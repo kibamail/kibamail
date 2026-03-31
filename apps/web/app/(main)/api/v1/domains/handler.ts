@@ -58,6 +58,7 @@ function formatSendingDomain(domain: {
   sslIssuanceStatus: string | null;
   sslIssuanceError: string | null;
   createdAt: Date;
+  updatedAt: Date;
 }) {
   const dnsRecords = getDnsRecords(
     domain.name,
@@ -82,6 +83,7 @@ function formatSendingDomain(domain: {
     clickTrackingEnabled: domain.clickTrackingEnabled,
     dnsRecords,
     createdAt: domain.createdAt.toISOString(),
+    updatedAt: domain.updatedAt.toISOString(),
     sslStatus: domain.sslIssuanceStatus as
       | "pending"
       | "in_progress"

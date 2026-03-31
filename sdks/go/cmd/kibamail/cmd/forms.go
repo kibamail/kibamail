@@ -87,6 +87,7 @@ func newFormsCreateCmd() *cobra.Command {
 				}
 				req.FieldMapping = fieldMapping
 			}
+			if v, _ := cmd.Flags().GetString("double-opt-in-email-id"); v != "" { req.DoubleOptInEmailId = &v }
 
 			result, err := Client.Forms.Create(req)
 			if err != nil { internal.HandleError(cmd, err); return nil }
@@ -99,6 +100,7 @@ func newFormsCreateCmd() *cobra.Command {
 	cmd.Flags().String("description", "", "Description")
 	cmd.Flags().String("type", "", "Form type: SIGN_UP or SURVEY")
 	cmd.Flags().String("field-mapping", "", `Field mapping as JSON, e.g. '{"email":{"contactPropertyId":"email","contactPropertyType":"standard","fieldType":"string"}}'`)
+	cmd.Flags().String("double-opt-in-email-id", "", "ID of the email to send for double opt-in confirmation")
 	_ = cmd.MarkFlagRequired("name")
 	return cmd
 }

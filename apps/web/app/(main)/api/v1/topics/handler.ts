@@ -19,6 +19,30 @@ import { prisma } from "@/lib/db";
 import { createTopicSchema, updateTopicSchema } from "./schema";
 
 /**
+ * Format a topic for API responses (used by both list and detail endpoints).
+ * Ensures consistent fields across all topic responses.
+ */
+function formatTopic(topic: {
+  id: string;
+  name: string;
+  description: string | null;
+  visibility: string;
+  defaultOptIn: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: topic.id,
+    name: topic.name,
+    description: topic.description,
+    visibility: topic.visibility,
+    defaultOptIn: topic.defaultOptIn,
+    createdAt: topic.createdAt.toISOString(),
+    updatedAt: topic.updatedAt.toISOString(),
+  };
+}
+
+/**
  * POST /api/v1/topics
  *
  * Create a new topic for the workspace.
@@ -81,13 +105,7 @@ export async function listTopics(workspaceId: string, request: NextRequest) {
     items.reverse();
   }
 
-  const formattedTopics = items.map((topic) => ({
-    id: topic.id,
-    name: topic.name,
-    description: topic.description,
-    visibility: topic.visibility,
-    defaultOptIn: topic.defaultOptIn,
-  }));
+  const formattedTopics = items.map((topic) => formatTopic(topic));
 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedTopics,
@@ -116,16 +134,7 @@ export async function getTopic(workspaceId: string, topicId: string) {
     throw new NotFoundError("Topic not found", ErrorCode.TOPIC_NOT_FOUND);
   }
 
-  return responseOk(
-    {
-      id: topic.id,
-      name: topic.name,
-      description: topic.description,
-      visibility: topic.visibility,
-      defaultOptIn: topic.defaultOptIn,
-    },
-    "topic",
-  );
+  return responseOk(formatTopic(topic), "topic");
 }
 
 /**

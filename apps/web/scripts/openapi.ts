@@ -700,9 +700,9 @@ For detailed guides and tutorials, visit our documentation.`,
       // Contact search schemas
       SearchContactsRequest: {
         type: "object",
-        required: ["conditions"],
+        required: ["filters"],
         properties: {
-          conditions: {
+          filters: {
             $ref: "#/components/schemas/Condition",
             description: "Filter conditions for contact search",
           },

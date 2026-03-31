@@ -1,0 +1,23 @@
+--[[
+Configuration module for OpenResty dynamic SSL
+Managed by Ansible - do not edit manually
+
+Values are injected at deploy time via Ansible template.
+]]--
+
+local _M = {}
+
+-- Internal API URL for fetching certificates
+_M.INTERNAL_API_URL = "{{ internal_api_url | default('https://app.kibamail.com') }}"
+
+-- Service key for authenticating with internal API
+_M.INTERNAL_SERVICE_KEY = "{{ internal_service_key }}"
+
+-- Cache settings
+-- 7 days cache is safe since certificate renewal happens 30 days before expiry
+_M.CACHE_TTL = 7 * 24 * 60 * 60  -- 7 days in seconds
+
+-- API timeout
+_M.API_TIMEOUT = 5000  -- 5 seconds
+
+return _M

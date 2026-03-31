@@ -33,6 +33,8 @@ import {
 } from "@/tests/utils";
 import { ErrorCode } from "@/lib/api/error-codes";
 
+const TEST_HTML = '<p>Test content</p><p>{{business_address}}</p><a href="{{unsubscribe_url}}">Unsub</a><a href="{{terms_url}}">Terms</a><a href="{{privacy_url}}">Privacy</a>';
+
 const MTA_TEST_CONFIG = {
   mailpitUrl: process.env.MAILPIT_URL ?? "http://localhost:8025",
   mtaUrl:
@@ -177,7 +179,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
     await createVerifiedDomain(testWorkspace.id, domainName);
 
     const testSubject = `Test Subject ${Date.now()}`;
-    const testHtml = "<p>Test HTML content</p>";
+    const testHtml = TEST_HTML;
     const testText = "Test text content";
     const testTo = "recipient@example.com";
     const testFrom = `info@${domainName}`;
@@ -228,7 +230,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
         from: `info@${domainName}`,
         to: recipients,
         subject: "Multi-recipient Test",
-        html: "<p>Test</p>",
+        html: TEST_HTML,
       },
       apiKey.key,
     );
@@ -268,7 +270,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
         from: newSenderEmail,
         to: "recipient@example.com",
         subject: "Test Sender Identity",
-        html: "<p>Test</p>",
+        html: TEST_HTML,
       },
       apiKey.key,
     );
@@ -302,7 +304,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Reply-To Test",
-        html: "<p>Test</p>",
+        html: TEST_HTML,
         replyTo: {
           email: "support@example.com",
           name: "Support Team",
@@ -340,7 +342,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Metadata Test",
-        html: "<p>Test</p>",
+        html: TEST_HTML,
         metadata,
       },
       apiKey.key,
@@ -380,7 +382,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Test",
-        html: "<p>Test</p>",
+        html: TEST_HTML,
       },
       apiKey.key,
     );
@@ -412,7 +414,7 @@ describe("POST /api/v1/emails/send - Job Queuing", () => {
       {
         from: `info@${domainName}`,
         to: "recipient@example.com",
-        html: "<p>Test</p>",
+        html: TEST_HTML,
       },
       apiKey.key,
     );

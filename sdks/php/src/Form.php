@@ -9,6 +9,7 @@ namespace Kibamail;
  * @property-read string $name The form name
  * @property-read string|null $description The form description
  * @property-read string $status The form status ('active' or 'inactive')
+ * @property-read string|null $doubleOptInEmailId The email ID used for double opt-in confirmation
  * @property-read string $createdAt When the form was created
  * @property-read string $updatedAt When the form was last updated
  */

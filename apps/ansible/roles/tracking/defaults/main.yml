@@ -23,3 +23,7 @@ cloudflare_api_token_env: "CLOUDFLARE_API_TOKEN"
 
 # Log level
 log_level: info
+
+# OpenResty settings
+openresty_lua_dir: /etc/openresty/lua
+openresty_fallback_cert_dir: /etc/ssl/fallback

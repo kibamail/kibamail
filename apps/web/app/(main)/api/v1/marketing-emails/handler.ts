@@ -31,6 +31,45 @@ import {
 } from "./schema";
 
 /**
+ * Format a marketing email for API response.
+ * Used by both list and detail endpoints to ensure consistent output.
+ */
+function formatMarketingEmail(email: {
+  id: string;
+  name: string;
+  subject: string | null;
+  previewText: string | null;
+  htmlContent: string | null;
+  senderIdentityId: string | null;
+  replyToIdentityId: string | null;
+  trackClicks: boolean;
+  trackOpens: boolean;
+  type: string;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  const variables = email.htmlContent
+    ? extractVariables(email.htmlContent)
+    : [];
+
+  return {
+    id: email.id,
+    name: email.name,
+    subject: email.subject,
+    previewText: email.previewText,
+    html: email.htmlContent,
+    variables,
+    senderIdentityId: email.senderIdentityId,
+    replyToIdentityId: email.replyToIdentityId,
+    trackClicks: email.trackClicks,
+    trackOpens: email.trackOpens,
+    type: email.type,
+    createdAt: email.createdAt.toISOString(),
+    updatedAt: email.updatedAt.toISOString(),
+  };
+}
+
+/**
  * POST /api/v1/marketing-emails
  *
  * Create a new marketing email.
@@ -125,17 +164,7 @@ export async function listMarketingEmails(
     items.reverse();
   }
 
-  const formattedEmails = items.map((email) => ({
-    id: email.id,
-    name: email.name,
-    subject: email.subject,
-    previewText: email.previewText,
-    type: email.type,
-    trackClicks: email.trackClicks,
-    trackOpens: email.trackOpens,
-    createdAt: email.createdAt.toISOString(),
-    updatedAt: email.updatedAt.toISOString(),
-  }));
+  const formattedEmails = items.map(formatMarketingEmail);
 
   return responseOk(
     createCursorPaginatedResponse(
@@ -166,28 +195,7 @@ export async function getMarketingEmail(
     );
   }
 
-  const variables = email.htmlContent
-    ? extractVariables(email.htmlContent)
-    : [];
-
-  return responseOk(
-    {
-      id: email.id,
-      name: email.name,
-      subject: email.subject,
-      previewText: email.previewText,
-      html: email.htmlContent,
-      variables,
-      senderIdentityId: email.senderIdentityId,
-      replyToIdentityId: email.replyToIdentityId,
-      trackClicks: email.trackClicks,
-      trackOpens: email.trackOpens,
-      type: email.type,
-      createdAt: email.createdAt.toISOString(),
-      updatedAt: email.updatedAt.toISOString(),
-    },
-    "marketing_email",
-  );
+  return responseOk(formatMarketingEmail(email), "marketing_email");
 }
 
 /**

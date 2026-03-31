@@ -57,3 +57,48 @@
     name: certbot.timer
     state: started
     enabled: yes
+
+# =============================================================================
+# Fallback certificate for OpenResty (copy of Let's Encrypt cert)
+# =============================================================================
+- name: Create fallback certificate directory
+  ansible.builtin.file:
+    path: "{{ openresty_fallback_cert_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+
+- name: Copy Let's Encrypt cert as fallback cert
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ tracking_domain }}/fullchain.pem"
+    dest: "{{ openresty_fallback_cert_dir }}/tls.crt"
+    owner: root
+    group: root
+    mode: "0644"
+    remote_src: yes
+  notify: Reload OpenResty
+
+- name: Copy Let's Encrypt key as fallback key
+  ansible.builtin.copy:
+    src: "/etc/letsencrypt/live/{{ tracking_domain }}/privkey.pem"
+    dest: "{{ openresty_fallback_cert_dir }}/tls.key"
+    owner: root
+    group: root
+    mode: "0600"
+    remote_src: yes
+  notify: Reload OpenResty
+
+- name: Create certbot renewal hook for OpenResty fallback cert
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      cp /etc/letsencrypt/live/{{ tracking_domain }}/fullchain.pem {{ openresty_fallback_cert_dir }}/tls.crt
+      cp /etc/letsencrypt/live/{{ tracking_domain }}/privkey.pem {{ openresty_fallback_cert_dir }}/tls.key
+      chmod 644 {{ openresty_fallback_cert_dir }}/tls.crt
+      chmod 600 {{ openresty_fallback_cert_dir }}/tls.key
+      systemctl reload openresty || true
+    dest: /etc/letsencrypt/renewal-hooks/deploy/openresty-fallback.sh
+    owner: root
+    group: root
+    mode: "0755"

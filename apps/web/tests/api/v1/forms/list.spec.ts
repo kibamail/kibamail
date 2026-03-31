@@ -206,23 +206,22 @@ describe("GET /api/v1/forms - List Forms", () => {
 
     const form = responseData.data[0];
 
-    // Should have these fields
+    // Should have all form fields (list returns full objects)
     expect(form.id).toBeDefined();
     expect(form.name).toBeDefined();
     expect(form.description).toBeDefined();
     expect(form.type).toBeDefined();
     expect(form.display).toBeDefined();
     expect(form.status).toBeDefined();
+    expect(form.version).toBeDefined();
+    expect(form.settings).toBeDefined();
+    expect(form.createdAt).toBeDefined();
+    expect(form.updatedAt).toBeDefined();
 
-    // Should NOT have these internal fields
+    // Should NOT have internal fields
     expect(form.parentId).toBeUndefined();
     expect(form.publishedVersionId).toBeUndefined();
-    expect(form.publishedAt).toBeUndefined();
-    expect(form.createdAt).toBeUndefined();
-    expect(form.updatedAt).toBeUndefined();
-    expect(form.version).toBeUndefined();
     expect(form.fields).toBeUndefined();
-    expect(form.settings).toBeUndefined();
   });
 
   test("should return type and display values correctly", async () => {

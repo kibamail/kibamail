@@ -45,6 +45,7 @@ export const createFormSchema = z.object({
   display: formDisplayEnum.optional().default("INLINE_EMBED"),
   fieldMapping: fieldMappingSchema,
   settings: formSettingsSchema.optional(),
+  doubleOptInEmailId: z.string().optional().nullable(),
 });
 
 /**

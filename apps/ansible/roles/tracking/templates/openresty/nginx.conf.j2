@@ -1,0 +1,127 @@
+# OpenResty configuration for Kibamail Tracking Service
+# Managed by Ansible - do not edit manually
+#
+# Dynamic SSL: Loads per-domain certificates from control plane API via Lua
+
+worker_processes auto;
+error_log /var/log/openresty/error.log info;
+pid /usr/local/openresty/nginx/logs/nginx.pid;
+
+events {
+    worker_connections 4096;
+    use epoll;
+    multi_accept on;
+}
+
+http {
+    # Shared memory for certificate cache (10MB = ~1000 certs)
+    lua_shared_dict ssl_certs 10m;
+
+    # Enable Lua code caching for performance
+    lua_code_cache on;
+
+    # Package path for Lua modules
+    lua_package_path "{{ openresty_lua_dir }}/?.lua;;";
+
+    # DNS resolver for lua-resty-http outbound requests
+    resolver 8.8.8.8 8.8.4.4 valid=30s ipv6=off;
+    resolver_timeout 5s;
+
+    # Initialize configuration and validate at startup
+    init_by_lua_file {{ openresty_lua_dir }}/init.lua;
+
+    # Logging
+    access_log /var/log/openresty/access.log;
+
+    # Timeouts
+    keepalive_timeout 65;
+    proxy_connect_timeout 10s;
+    proxy_send_timeout 60s;
+    proxy_read_timeout 60s;
+
+    # Upstream for tracking app
+    upstream tracking_app {
+        server 127.0.0.1:{{ tracking_port }};
+        keepalive 32;
+    }
+
+    # HTTPS server - catch-all with dynamic SSL
+    server {
+        listen 443 ssl;
+        server_name _;
+
+        # Fallback certificate (e.kbmta.net Let's Encrypt cert)
+        ssl_certificate {{ openresty_fallback_cert_dir }}/tls.crt;
+        ssl_certificate_key {{ openresty_fallback_cert_dir }}/tls.key;
+
+        # Dynamic certificate loading via Lua
+        ssl_certificate_by_lua_file {{ openresty_lua_dir }}/ssl_certificate.lua;
+
+        # Modern TLS settings
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305;
+        ssl_prefer_server_ciphers on;
+
+        # SSL session caching
+        ssl_session_cache shared:SSL:10m;
+        ssl_session_timeout 10m;
+        ssl_session_tickets off;
+
+        # Security headers
+        add_header X-Frame-Options "SAMEORIGIN" always;
+        add_header X-Content-Type-Options "nosniff" always;
+        add_header X-XSS-Protection "1; mode=block" always;
+
+        # Proxy all requests to the tracking app
+        location / {
+            proxy_pass http://tracking_app;
+            proxy_http_version 1.1;
+
+            # Headers
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto https;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Connection "";
+
+            # Buffering
+            proxy_buffering off;
+            proxy_request_buffering off;
+        }
+
+        # Health check endpoint
+        location /nginx-health {
+            access_log off;
+            return 200 'ok';
+            add_header Content-Type text/plain;
+        }
+    }
+
+    # HTTP server for ACME challenges and redirect
+    server {
+        listen 80;
+        server_name _;
+
+        # ACME challenge path - proxy to tracking app
+        location /.well-known/acme-challenge/ {
+            proxy_pass http://tracking_app;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        # Redirect all other HTTP traffic to HTTPS
+        location / {
+            return 301 https://$host$request_uri;
+        }
+
+        # Health check on HTTP as well
+        location /nginx-health {
+            access_log off;
+            return 200 'ok';
+            add_header Content-Type text/plain;
+        }
+    }
+}

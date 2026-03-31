@@ -1,7 +1,7 @@
 # tracking Role Tasks
 #
 # Deploys the Kibamail tracking service (email opens/clicks tracking).
-# Uses Node.js 22, pnpm, PM2 for process management, and Nginx with SSL.
+# Uses Node.js 22, pnpm, PM2 for process management, and OpenResty with dynamic SSL.
 #
 ---
 - name: Display tracking setup info
@@ -22,5 +22,5 @@
 - name: Setup SSL certificate
   ansible.builtin.include_tasks: ssl.yml
 
-- name: Configure Nginx
-  ansible.builtin.include_tasks: nginx.yml
+- name: Configure OpenResty
+  ansible.builtin.include_tasks: openresty.yml

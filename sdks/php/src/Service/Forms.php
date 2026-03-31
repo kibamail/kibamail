@@ -26,7 +26,8 @@ class Forms extends Service
      * @param array{
      *     name: string,
      *     description?: string|null,
-     *     fields?: array
+     *     fields?: array,
+     *     doubleOptInEmailId?: string|null
      * } $parameters Form creation parameters
      *
      * @return Form The created form
@@ -59,7 +60,8 @@ class Forms extends Service
      * @param array{
      *     name?: string,
      *     description?: string|null,
-     *     fields?: array
+     *     fields?: array,
+     *     doubleOptInEmailId?: string|null
      * } $parameters Form update parameters
      *
      * @return Form The updated form

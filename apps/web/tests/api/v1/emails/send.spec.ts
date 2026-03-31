@@ -19,6 +19,8 @@ import {
   type TestWorkspace,
 } from "@/tests/utils";
 
+const TEST_HTML = '<p>Test content</p><p>{{business_address}}</p><a href="{{unsubscribe_url}}">Unsub</a><a href="{{terms_url}}">Terms</a><a href="{{privacy_url}}">Privacy</a>';
+
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
 
@@ -69,7 +71,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
         text: "Test text content",
       },
       fullAccessApiKey.key,
@@ -94,7 +96,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -119,7 +121,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: recipients,
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -153,7 +155,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: "single-recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -178,7 +180,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: ["single-recipient@example.com"],
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -203,7 +205,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `new-sender@${domainName}`,
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -250,7 +252,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -270,7 +272,7 @@ describe("POST /api/v1/emails/send", () => {
         from: "info@nonexistent-domain.com",
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -290,7 +292,7 @@ describe("POST /api/v1/emails/send", () => {
         from: "invalid-email",
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -313,7 +315,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: "invalid-email",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -332,7 +334,7 @@ describe("POST /api/v1/emails/send", () => {
       {
         from: "info@example.com",
         to: "recipient@example.com",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -355,7 +357,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: [],
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       fullAccessApiKey.key,
     );
@@ -380,7 +382,7 @@ describe("POST /api/v1/emails/send", () => {
         from: `info@${domainName}`,
         to: "recipient@example.com",
         subject: "Test Subject",
-        html: "<p>Test HTML content</p>",
+        html: TEST_HTML,
       },
       readOnlyApiKey.key,
     );

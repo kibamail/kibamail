@@ -77,6 +77,49 @@ function mapPropertiesToSlots(
 }
 
 /**
+ * Format a contact for API responses (used by both list and detail endpoints).
+ * Ensures consistent fields across all contact responses.
+ */
+function formatContact(
+  contact: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    phone: string | null;
+    country: string | null;
+    timezone: string | null;
+    city: string | null;
+    status: string;
+    subscribedAt: Date | null;
+    unsubscribedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    topics: Array<{ topicId: string }>;
+    [key: string]: unknown;
+  },
+  contactProperties: Array<{ name: string; slot: string }>,
+) {
+  return {
+    id: contact.id,
+    email: contact.email,
+    firstName: contact.firstName,
+    lastName: contact.lastName,
+    phone: contact.phone,
+    country: contact.country,
+    timezone: contact.timezone,
+    city: contact.city,
+    status: contact.status,
+    subscribedAt: contact.subscribedAt,
+    unsubscribedAt: contact.unsubscribedAt,
+    createdAt: contact.createdAt.toISOString(),
+    updatedAt: contact.updatedAt.toISOString(),
+    properties: buildContactProperties(contact, contactProperties),
+    topics: contact.topics.map((t) => t.topicId),
+  };
+}
+
+/**
  * Options for creating a contact
  */
 export interface CreateContactOptions {
@@ -206,20 +249,19 @@ export async function listContacts(workspaceId: string, request: NextRequest) {
     items.reverse();
   }
 
-  const formattedContacts = items.map((contact) => ({
-    id: contact.id,
-    email: contact.email,
-    firstName: contact.firstName,
-    lastName: contact.lastName,
-    phone: contact.phone,
-    country: contact.country,
-    timezone: contact.timezone,
-    city: contact.city,
-    status: contact.status,
-    subscribedAt: contact.subscribedAt,
-    unsubscribedAt: contact.unsubscribedAt,
-    properties: buildContactProperties(contact, contactProperties),
-  }));
+  const contactsWithTopics = await Promise.all(
+    items.map(async (contact) => {
+      const topics = await prisma.contactTopic.findMany({
+        where: { contactId: contact.id, status: "SUBSCRIBED" },
+        select: { topicId: true },
+      });
+      return { ...contact, topics };
+    }),
+  );
+
+  const formattedContacts = contactsWithTopics.map((contact) =>
+    formatContact(contact, contactProperties),
+  );
 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedContacts,
@@ -290,20 +332,19 @@ export async function searchContacts(
     items.reverse();
   }
 
-  const formattedContacts = items.map((contact) => ({
-    id: contact.id,
-    email: contact.email,
-    firstName: contact.firstName,
-    lastName: contact.lastName,
-    phone: contact.phone,
-    country: contact.country,
-    timezone: contact.timezone,
-    city: contact.city,
-    status: contact.status,
-    subscribedAt: contact.subscribedAt,
-    unsubscribedAt: contact.unsubscribedAt,
-    properties: buildContactProperties(contact, contactProperties),
-  }));
+  const contactsWithTopics = await Promise.all(
+    items.map(async (contact) => {
+      const topics = await prisma.contactTopic.findMany({
+        where: { contactId: contact.id, status: "SUBSCRIBED" },
+        select: { topicId: true },
+      });
+      return { ...contact, topics };
+    }),
+  );
+
+  const formattedContacts = contactsWithTopics.map((contact) =>
+    formatContact(contact, contactProperties),
+  );
 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedContacts,
@@ -343,21 +384,7 @@ export async function getContact(workspaceId: string, contactId: string) {
   }
 
   return responseOk(
-    {
-      id: contact.id,
-      email: contact.email,
-      firstName: contact.firstName,
-      lastName: contact.lastName,
-      phone: contact.phone,
-      country: contact.country,
-      timezone: contact.timezone,
-      city: contact.city,
-      status: contact.status,
-      subscribedAt: contact.subscribedAt,
-      unsubscribedAt: contact.unsubscribedAt,
-      properties: buildContactProperties(contact, contactProperties),
-      topics: contact.topics.map((t) => t.topicId),
-    },
+    formatContact(contact, contactProperties),
     "contact",
   );
 }

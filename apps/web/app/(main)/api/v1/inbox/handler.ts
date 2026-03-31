@@ -20,6 +20,120 @@ import { queue } from "@/lib/queue";
 import { sendReplySchema, updateConversationSchema } from "./schema";
 
 /**
+ * Format a conversation for API response.
+ * Shared between list and detail endpoints.
+ */
+function formatConversation(c: {
+  id: string;
+  subject: string;
+  status: string;
+  originType: string;
+  originId: string | null;
+  originEmailSendId: string | null;
+  messageCount: number;
+  unreadCount: number;
+  lastMessageAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  contact: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  } | null;
+  senderIdentity: {
+    id: string;
+    email: string;
+    name: string | null;
+  } | null;
+  sendingDomain: {
+    id: string;
+    name: string;
+  };
+  messages: Array<{
+    id: string;
+    direction: string;
+    emailSendId: string | null;
+    fromEmail: string;
+    fromName: string | null;
+    toEmail: string;
+    toName: string | null;
+    subject: string | null;
+    textBody: string | null;
+    htmlBody: string | null;
+    status: string;
+    receivedAt: Date | null;
+    sentAt: Date | null;
+    readAt: Date | null;
+    createdAt: Date;
+    attachments: Array<{
+      id: string;
+      filename: string;
+      contentType: string;
+      size: number;
+      isInline: boolean;
+    }>;
+  }>;
+}) {
+  return {
+    id: c.id,
+    subject: c.subject,
+    status: c.status,
+    originType: c.originType,
+    originId: c.originId,
+    originEmailSendId: c.originEmailSendId,
+    messageCount: c.messageCount,
+    unreadCount: c.unreadCount,
+    lastMessageAt: c.lastMessageAt.toISOString(),
+    createdAt: c.createdAt.toISOString(),
+    updatedAt: c.updatedAt.toISOString(),
+    contact: c.contact
+      ? {
+          id: c.contact.id,
+          email: c.contact.email,
+          firstName: c.contact.firstName,
+          lastName: c.contact.lastName,
+        }
+      : null,
+    senderIdentity: c.senderIdentity
+      ? {
+          id: c.senderIdentity.id,
+          email: c.senderIdentity.email,
+          name: c.senderIdentity.name,
+        }
+      : null,
+    sendingDomain: {
+      id: c.sendingDomain.id,
+      name: c.sendingDomain.name,
+    },
+    messages: c.messages.map((m) => ({
+      id: m.id,
+      direction: m.direction,
+      emailSendId: m.emailSendId,
+      fromEmail: m.fromEmail,
+      fromName: m.fromName,
+      toEmail: m.toEmail,
+      toName: m.toName,
+      subject: m.subject,
+      textBody: m.textBody,
+      htmlBody: m.htmlBody,
+      status: m.status,
+      receivedAt: m.receivedAt?.toISOString() || null,
+      sentAt: m.sentAt?.toISOString() || null,
+      readAt: m.readAt?.toISOString() || null,
+      createdAt: m.createdAt.toISOString(),
+      attachments: m.attachments.map((a) => ({
+        id: a.id,
+        filename: a.filename,
+        contentType: a.contentType,
+        size: a.size,
+        isInline: a.isInline,
+      })),
+    })),
+  };
+}
+
+/**
  * List conversations with pagination
  */
 export async function listConversations(
@@ -63,14 +177,17 @@ export async function listConversations(
         },
       },
       messages: {
-        orderBy: { createdAt: "desc" },
-        take: 1,
-        select: {
-          id: true,
-          direction: true,
-          subject: true,
-          textBody: true,
-          createdAt: true,
+        orderBy: { createdAt: "asc" },
+        include: {
+          attachments: {
+            select: {
+              id: true,
+              filename: true,
+              contentType: true,
+              size: true,
+              isInline: true,
+            },
+          },
         },
       },
     },
@@ -79,45 +196,7 @@ export async function listConversations(
   const hasMore = conversations.length > limit;
   const items = hasMore ? conversations.slice(0, -1) : conversations;
 
-  const data = items.map((c) => ({
-    id: c.id,
-    subject: c.subject,
-    status: c.status,
-    originType: c.originType,
-    originId: c.originId,
-    messageCount: c.messageCount,
-    unreadCount: c.unreadCount,
-    lastMessageAt: c.lastMessageAt.toISOString(),
-    createdAt: c.createdAt.toISOString(),
-    contact: c.contact
-      ? {
-          id: c.contact.id,
-          email: c.contact.email,
-          firstName: c.contact.firstName,
-          lastName: c.contact.lastName,
-        }
-      : null,
-    senderIdentity: c.senderIdentity
-      ? {
-          id: c.senderIdentity.id,
-          email: c.senderIdentity.email,
-          name: c.senderIdentity.name,
-        }
-      : null,
-    sendingDomain: {
-      id: c.sendingDomain.id,
-      name: c.sendingDomain.name,
-    },
-    lastMessage: c.messages[0]
-      ? {
-          id: c.messages[0].id,
-          direction: c.messages[0].direction,
-          subject: c.messages[0].subject,
-          preview: c.messages[0].textBody?.slice(0, 200) || "",
-          createdAt: c.messages[0].createdAt.toISOString(),
-        }
-      : null,
-  }));
+  const data = items.map(formatConversation);
 
   return responseOk(
     createCursorPaginatedResponse(data, hasMore, "conversation_list"),
@@ -182,61 +261,7 @@ export async function getConversation(
     );
   }
 
-  return responseOk({
-    id: conversation.id,
-    subject: conversation.subject,
-    status: conversation.status,
-    originType: conversation.originType,
-    originId: conversation.originId,
-    originEmailSendId: conversation.originEmailSendId,
-    messageCount: conversation.messageCount,
-    unreadCount: conversation.unreadCount,
-    lastMessageAt: conversation.lastMessageAt.toISOString(),
-    createdAt: conversation.createdAt.toISOString(),
-    contact: conversation.contact
-      ? {
-          id: conversation.contact.id,
-          email: conversation.contact.email,
-          firstName: conversation.contact.firstName,
-          lastName: conversation.contact.lastName,
-        }
-      : null,
-    senderIdentity: conversation.senderIdentity
-      ? {
-          id: conversation.senderIdentity.id,
-          email: conversation.senderIdentity.email,
-          name: conversation.senderIdentity.name,
-        }
-      : null,
-    sendingDomain: {
-      id: conversation.sendingDomain.id,
-      name: conversation.sendingDomain.name,
-    },
-    messages: conversation.messages.map((m) => ({
-      id: m.id,
-      direction: m.direction,
-      emailSendId: m.emailSendId,
-      fromEmail: m.fromEmail,
-      fromName: m.fromName,
-      toEmail: m.toEmail,
-      toName: m.toName,
-      subject: m.subject,
-      textBody: m.textBody,
-      htmlBody: m.htmlBody,
-      status: m.status,
-      receivedAt: m.receivedAt?.toISOString() || null,
-      sentAt: m.sentAt?.toISOString() || null,
-      readAt: m.readAt?.toISOString() || null,
-      createdAt: m.createdAt.toISOString(),
-      attachments: m.attachments.map((a) => ({
-        id: a.id,
-        filename: a.filename,
-        contentType: a.contentType,
-        size: a.size,
-        isInline: a.isInline,
-      })),
-    })),
-  });
+  return responseOk(formatConversation(conversation));
 }
 
 /**

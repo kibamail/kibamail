@@ -65,6 +65,29 @@ async function findAvailableSlot(
 }
 
 /**
+ * Format a contact property for API responses (used by both list and detail endpoints).
+ * Ensures consistent fields across all contact property responses.
+ * Slot field is intentionally not exposed.
+ */
+function formatContactProperty(property: {
+  id: string;
+  name: string;
+  type: string;
+  defaultValue: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
+  return {
+    id: property.id,
+    name: property.name,
+    type: property.type,
+    defaultValue: property.defaultValue,
+    createdAt: property.createdAt.toISOString(),
+    updatedAt: property.updatedAt.toISOString(),
+  };
+}
+
+/**
  * POST /api/v1/contact-properties
  *
  * Create a new contact property for the workspace.
@@ -145,12 +168,9 @@ export async function listContactProperties(
     items.reverse();
   }
 
-  const formattedProperties = items.map((property) => ({
-    id: property.id,
-    name: property.name,
-    type: property.type,
-    defaultValue: property.defaultValue,
-  }));
+  const formattedProperties = items.map((property) =>
+    formatContactProperty(property),
+  );
 
   const paginatedResponse = createCursorPaginatedResponse(
     formattedProperties,
@@ -186,12 +206,7 @@ export async function getContactProperty(
   }
 
   return responseOk(
-    {
-      id: contactProperty.id,
-      name: contactProperty.name,
-      type: contactProperty.type,
-      defaultValue: contactProperty.defaultValue,
-    },
+    formatContactProperty(contactProperty),
     "contact_property",
   );
 }
