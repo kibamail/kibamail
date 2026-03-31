@@ -3383,6 +3383,69 @@ Find contacts missing a property:
         },
       },
     },
+    "/v1/forms/{formId}/submissions": {
+      post: {
+        summary: "Submit Form Data",
+        description: `Submit data to a published form via the API. Works for both hosted and API-only forms.
+
+**Required Scope:** \`write:forms\``,
+        tags: ["Forms"],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          {
+            name: "formId",
+            in: "path",
+            description: "Form ID to submit data to",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                additionalProperties: true,
+                description:
+                  "Key-value pairs where keys match the form's fieldMapping keys",
+              },
+            },
+          },
+        },
+        responses: {
+          "201": {
+            description: "Form submission created successfully",
+            content: {
+              "application/json": {
+                schema: z.object({
+                  object: z.literal("form_submission"),
+                  id: z.string().describe("Submission ID"),
+                }),
+              },
+            },
+          },
+          "400": {
+            description: "Bad Request - Form is not published or data is invalid",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "401": {
+            description: "Unauthorized - Invalid or missing API key",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+          "404": {
+            description: "Not Found - Form does not exist",
+            content: {
+              "application/json": { schema: errorResponseSchema },
+            },
+          },
+        },
+      },
+    },
     "/v1/emails/send": {
       post: {
         summary: "Send Transactional Email",
