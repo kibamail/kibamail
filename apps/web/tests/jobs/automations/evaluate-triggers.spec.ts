@@ -5,7 +5,7 @@ import { POST as CREATE_POST } from "@/app/(main)/api/v1/automations/route";
 import { PUT } from "@/app/(main)/api/v1/automations/[automationId]/route";
 import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
 import { evaluateTriggers } from "@/jobs/automations/evaluate-triggers";
-import type { Email } from "@prisma/client";
+import type { Email, Form } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
 import type { AutomationEvent } from "@/lib/automations/events";
@@ -32,6 +32,8 @@ vi.mock("@/webhooks", async (importOriginal) => {
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
 let testEmail: Email;
+let testForm: Form;
+let testFormAbc: Form;
 
 async function createAndPublishAutomation(
   triggerType: string,
@@ -101,6 +103,12 @@ beforeAll(async () => {
       type: "AUTOMATION",
     },
   });
+  testForm = await prisma.form.create({
+    data: { workspaceId: testWorkspace.id, name: "Test Form" },
+  });
+  testFormAbc = await prisma.form.create({
+    data: { workspaceId: testWorkspace.id, name: "Test Form ABC" },
+  });
 });
 
 afterAll(async () => {
@@ -150,8 +158,8 @@ describe("evaluateTriggers job", () => {
       const automationId = await createAndPublishAutomation(
         "FORM_SUBMITTED",
         "form-filled",
-        { formId: "form_specific" },
-        { formId: "form_specific" },
+        { formId: testForm.id },
+        { formId: testForm.id },
       );
 
       await createTestContacts(testWorkspace.id, [{ email: "form-match@example.com", status: "SUBSCRIBED" }]);
@@ -160,7 +168,7 @@ describe("evaluateTriggers job", () => {
       const contactId = contact?.id as string;
       const event: AutomationEvent = {
         type: "form.submitted",
-        payload: { contactId, formId: "form_specific", submissionId: "sub_1" },
+        payload: { contactId, formId: testForm.id, submissionId: "sub_1" },
       };
 
       await evaluateTriggers({ workspaceId: testWorkspace.id, event: event as never }, "test-job-2");
@@ -173,8 +181,8 @@ describe("evaluateTriggers job", () => {
       const automationId = await createAndPublishAutomation(
         "FORM_SUBMITTED",
         "form-filled",
-        { formId: "form_abc" },
-        { formId: "form_abc" },
+        { formId: testFormAbc.id },
+        { formId: testFormAbc.id },
       );
 
       await createTestContacts(testWorkspace.id, [{ email: "form-nomatch@example.com", status: "SUBSCRIBED" }]);
