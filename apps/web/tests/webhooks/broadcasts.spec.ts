@@ -56,6 +56,7 @@ import { POST as SendBroadcast } from "@/app/(main)/api/v1/broadcasts/[broadcast
 import { prisma } from "@/lib/db";
 import {
   cleanupWorkspace,
+  COMPLIANCE_FOOTER,
   createFullAccessApiKey,
   createTestWorkspace,
   post,
@@ -170,7 +171,7 @@ describe("Broadcast Webhooks - broadcast.scheduled", () => {
     const emailContent = await prisma.emailContent.create({
       data: {
         subject: "Test Subject",
-        contentHtml: '<p>Hello <a href="{{unsubscribe_url}}">Unsubscribe</a></p>',
+        contentHtml: `<p>Hello</p><footer>${COMPLIANCE_FOOTER}</footer>`,
         contentText: "Hello {{unsubscribe_url}}",
       },
     });
