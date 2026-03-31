@@ -252,6 +252,8 @@ Maximum custom properties reached for this workspace.
 ### VALIDATION_FAILED
 Check the `validation_errors` array in the error response. Each entry has `field`, `code`, and `message`.
 
+**Missing compliance variables:** If the error mentions `business_address`, `unsubscribe_url`, `terms_url`, or `privacy_url`, add the missing `{{variable}}` placeholders to your email HTML. All marketing emails, broadcast HTML, automation send-email templates, and double opt-in emails must include `{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, and `{{privacy_url}}`. Raw HTML transactional sends are exempt.
+
 ### INVALID_EMAIL_FORMAT
 Use standard email format: `user@example.com`
 

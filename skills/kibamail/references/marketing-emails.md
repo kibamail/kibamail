@@ -4,12 +4,25 @@ Marketing emails are reusable HTML email templates used in automation workflows 
 
 **HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and render them to HTML before passing to the API. Never write raw HTML strings for email content.
 
+## Required Compliance Variables
+
+Every marketing email HTML **must** include these 4 template variables. Create/update will return `VALIDATION_FAILED` (400) if any are missing.
+
+| Variable | Description |
+|---|---|
+| `{{business_address}}` | Formatted business postal address (from workspace settings or Kibamail default) |
+| `{{unsubscribe_url}}` | One-click unsubscribe link |
+| `{{terms_url}}` | Terms of service link (defaults to `https://kibamail.com/legal/terms-of-service`) |
+| `{{privacy_url}}` | Privacy policy link (defaults to `https://kibamail.com/legal/privacy-policy`) |
+
+These are resolved automatically at send time from workspace settings. Include them in your HTML footer.
+
 ## Create a Marketing Email
 
 ```bash
 kibamail marketing-emails create --name "Welcome Email" \
   --subject "Welcome, {{firstName}}!" \
-  --html '<html><body><h1>Welcome</h1><p>Thanks for subscribing.</p></body></html>' \
+  --html '<html><body><h1>Welcome</h1><p>Thanks for subscribing.</p><footer><p>{{business_address}}</p><p><a href="{{unsubscribe_url}}">Unsubscribe</a> | <a href="{{terms_url}}">Terms</a> | <a href="{{privacy_url}}">Privacy</a></p></footer></body></html>' \
   --type AUTOMATION --json
 ```
 
@@ -140,5 +153,5 @@ Also supports dot notation: `{{contact.email}}`, `{{contact.first_name}}`, `{{co
 | Code | Meaning |
 |---|---|
 | `RESOURCE_NOT_FOUND` | Marketing email not found in this workspace |
-| `VALIDATION_FAILED` | Invalid HTML structure |
+| `VALIDATION_FAILED` | Invalid HTML structure, or missing required compliance variables (`{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, `{{privacy_url}}`) |
 | `RESOURCE_CONFLICT` | Cannot delete — email is used by a form |

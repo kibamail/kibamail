@@ -2,13 +2,21 @@
 
 **HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and use `render()` from `@react-email/render` to produce the HTML string before passing to the SDK. Never write raw HTML strings for email content.
 
+**Required Compliance Variables:** All marketing email HTML MUST include these 4 template variables. Create and update calls will be rejected if any are missing:
+- `{{business_address}}` — Formatted business postal address
+- `{{unsubscribe_url}}` — One-click unsubscribe link
+- `{{terms_url}}` — Terms of service link
+- `{{privacy_url}}` — Privacy policy link
+
+Values are resolved from workspace settings at send time, defaulting to Kibamail's own address and legal page URLs.
+
 ## Create
 
 ```typescript
 const { data, error } = await kibamail.marketingEmails.create({
   name: "Welcome Email",
   subject: "Welcome, {{firstName}}!",
-  html: "<html><body><h1>Welcome</h1></body></html>",
+  html: "<html><body><h1>Welcome</h1><p><a href=\"{{unsubscribe_url}}\">Unsubscribe</a> | <a href=\"{{terms_url}}\">Terms</a> | <a href=\"{{privacy_url}}\">Privacy</a></p><p>{{business_address}}</p></body></html>",
   type: "AUTOMATION",
 });
 // data: { object: "marketing_email", id: "..." }

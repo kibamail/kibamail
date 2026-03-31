@@ -95,7 +95,7 @@ kibamail automations publish auto123 --json
 - Must have at least 1 node with exactly 1 trigger node
 - All non-trigger nodes must be reachable (have incoming edges)
 - **Trigger config:** formId must exist (FORM_SUBMITTED), segmentId must exist (SEGMENT_ENTRY/EXIT), eventName required (EVENT), propertyName required (PROPERTY_UPDATED), emailEngagementType required (EMAIL_ENGAGEMENT)
-- **send-email:** templateId must reference an AUTOMATION-type marketing email with subject and htmlContent
+- **send-email:** templateId must reference an AUTOMATION-type marketing email with subject and htmlContent. The template HTML must include compliance variables (`{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, `{{privacy_url}}`)
 - **send-webhook:** url must be valid format
 - **update-contact:** fieldId must be a valid built-in or custom property
 - **add-to-topic / remove-from-topic:** all topicIds must exist in workspace

@@ -95,6 +95,8 @@ const { data, error } = await kibamail.forms.submit("form_id", {
 // data: { object: "form_submission", id: "..." }
 ```
 
+**Compliance note:** If the form uses double opt-in, the confirmation email (a marketing email linked to the form) must include the required compliance variables (`{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, `{{privacy_url}}`). Publishing the form will fail if these are missing from the linked email.
+
 ## Delete a Form
 
 ```typescript

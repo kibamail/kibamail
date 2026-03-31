@@ -4,6 +4,10 @@ Broadcasts send email campaigns to contacts, segments, or topics. They support s
 
 **HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and render them to HTML before passing to the API. Never write raw HTML strings for email content.
 
+## Required Compliance Variables
+
+All broadcast HTML **must** include these 4 template variables: `{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, `{{privacy_url}}`. Broadcast readiness checks will fail and block send scheduling if any are missing. See the marketing emails reference for details on each variable.
+
 ## broadcasts create
 
 **Flags:**

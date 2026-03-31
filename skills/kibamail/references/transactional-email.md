@@ -36,6 +36,8 @@ kibamail emails send --from noreply@yourdomain.com --to user@example.com --subje
 
 Either `--subject` + `--html` or `--template-id` is required. Template variables use `{{variableName}}` syntax.
 
+**Compliance note:** Template-based sends (`--template-id`) require the template HTML to include compliance variables (`{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, `{{privacy_url}}`). Raw HTML sends (`--subject` + `--html`) are **exempt** from compliance validation (CAN-SPAM exempt).
+
 **Response:**
 
 Single recipient returns:

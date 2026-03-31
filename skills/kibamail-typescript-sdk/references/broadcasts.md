@@ -2,6 +2,8 @@
 
 **HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and use `render()` from `@react-email/render` to produce the HTML string before passing to the SDK. Never write raw HTML strings for email content.
 
+**Required Compliance Variables:** Broadcast HTML must include `{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, and `{{privacy_url}}`. The broadcast readiness check will fail if any are missing. Values are resolved from workspace settings at send time.
+
 ## Create a Broadcast
 
 ```typescript

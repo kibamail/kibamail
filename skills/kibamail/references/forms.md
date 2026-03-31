@@ -108,7 +108,7 @@ kibamail forms update <form-id> \
   --double-opt-in-email-id <email-id> --json
 ```
 
-3. Publish the form. Publishing validates that the linked email exists, has a subject, and has content.
+3. Publish the form. Publishing validates that the linked email exists, has a subject, has content, and includes compliance variables (`{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, `{{privacy_url}}`). Returns `FORM_VALIDATION_ERROR` (400) if the linked email is missing any of them.
 
 ### Flow
 

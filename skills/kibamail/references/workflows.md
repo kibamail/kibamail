@@ -35,7 +35,7 @@ kibamail emails list --to user@example.com --json
 kibamail segments create --name "Active US" --conditions '{"$and":[{"field":"status","operator":"eq","value":"SUBSCRIBED"},{"field":"country","operator":"eq","value":"US"}]}' --json
 
 # 2. Create and send the broadcast
-kibamail broadcasts create-and-send --name "March Newsletter" --subject "Monthly Update" --html "<h1>Hello!</h1>" --segment <segment-id> --send-at 2026-03-28T10:00:00Z --json
+kibamail broadcasts create-and-send --name "March Newsletter" --subject "Monthly Update" --html "<h1>Hello!</h1><footer><p>{{business_address}}</p><p><a href='{{unsubscribe_url}}'>Unsubscribe</a> | <a href='{{terms_url}}'>Terms</a> | <a href='{{privacy_url}}'>Privacy</a></p></footer>" --segment <segment-id> --send-at 2026-03-28T10:00:00Z --json
 
 # 3. Check campaign stats
 kibamail broadcasts stats <broadcast-id> --json

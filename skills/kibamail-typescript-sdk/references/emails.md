@@ -2,6 +2,8 @@
 
 **HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and use `render()` from `@react-email/render` to produce the HTML string before passing to the SDK. Never write raw HTML strings for email content.
 
+**Compliance Variables (template sends only):** When sending via a marketing email template, the template HTML must include `{{business_address}}`, `{{unsubscribe_url}}`, `{{terms_url}}`, and `{{privacy_url}}`. Raw HTML sends (using the `html` field directly) are exempt from this requirement.
+
 ## Send an Email
 
 ```typescript
