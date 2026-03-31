@@ -1,8 +1,10 @@
+import type { Email, Form, Segment, Topic } from "@prisma/client";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { POST as PUBLISH_POST } from "@/app/(main)/api/v1/automations/[automationId]/publish/route";
 import { PUT } from "@/app/(main)/api/v1/automations/[automationId]/route";
 import { POST as CREATE_POST } from "@/app/(main)/api/v1/automations/route";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { prisma } from "@/lib/db";
 import {
   type CreatedApiKey,
   cleanupWorkspace,
@@ -15,6 +17,10 @@ import {
 
 let testWorkspace: TestWorkspace;
 let fullAccessApiKey: CreatedApiKey;
+let testEmail: Email;
+let testForm: Form;
+let testSegment: Segment;
+let testTopics: Topic[];
 
 async function createAutomation(
   apiKey: CreatedApiKey,
@@ -70,6 +76,42 @@ async function publishAutomation(apiKey: CreatedApiKey, automationId: string) {
 beforeAll(async () => {
   testWorkspace = createTestWorkspace();
   fullAccessApiKey = await createFullAccessApiKey(testWorkspace.id);
+
+  testEmail = await prisma.email.create({
+    data: {
+      workspaceId: testWorkspace.id,
+      name: "Test Automation Email",
+      subject: "Welcome to our list",
+      htmlContent: "<html><body><h1>Welcome</h1></body></html>",
+      textContent: "Welcome",
+      type: "AUTOMATION",
+    },
+  });
+
+  testForm = await prisma.form.create({
+    data: {
+      workspaceId: testWorkspace.id,
+      name: "Test Form",
+    },
+  });
+
+  testSegment = await prisma.segment.create({
+    data: {
+      workspaceId: testWorkspace.id,
+      name: "Test Segment",
+      type: "DYNAMIC",
+      conditions: {},
+    },
+  });
+
+  testTopics = await Promise.all([
+    prisma.topic.create({
+      data: { workspaceId: testWorkspace.id, name: "Newsletter" },
+    }),
+    prisma.topic.create({
+      data: { workspaceId: testWorkspace.id, name: "Product Updates" },
+    }),
+  ]);
 });
 
 afterAll(async () => {
@@ -768,7 +810,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Trigger Conditions V
 });
 
 describe("POST /api/v1/automations/[automationId]/publish - Action Node Validation", () => {
-  test("should reject send-email without templateId or subject", async () => {
+  test("should reject send-email without templateId", async () => {
     const automation = await createAutomation(
       fullAccessApiKey,
       "Send Email Test",
@@ -787,7 +829,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
           id: "email-1",
           type: "send-email",
           position: { x: 0, y: 100 },
-          data: {}, // Missing templateId and subject
+          data: {}, // Missing templateId
         },
       ],
       [{ id: "e1", source: "trigger-1", target: "email-1" }],
@@ -804,12 +846,12 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
       expect.objectContaining({
         nodeId: "email-1",
         field: "templateId",
-        message: expect.stringContaining("template or subject"),
+        message: expect.stringContaining("Email template is required"),
       }),
     );
   });
 
-  test("should publish send-email with subject only", async () => {
+  test("should reject send-email with subject only (no templateId)", async () => {
     const automation = await createAutomation(
       fullAccessApiKey,
       "Send Email Subject",
@@ -839,11 +881,17 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
       automation.id,
     );
 
-    expect(response.status).toBe(200);
-    expect(data.status).toBe("PUBLISHED");
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "email-1",
+        field: "templateId",
+        message: expect.stringContaining("Email template is required"),
+      }),
+    );
   });
 
-  test("should publish send-email with templateId only", async () => {
+  test("should publish send-email with valid AUTOMATION email", async () => {
     const automation = await createAutomation(
       fullAccessApiKey,
       "Send Email Template",
@@ -862,7 +910,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
           id: "email-1",
           type: "send-email",
           position: { x: 0, y: 100 },
-          data: { templateId: "template-123" },
+          data: { templateId: testEmail.id },
         },
       ],
       [{ id: "e1", source: "trigger-1", target: "email-1" }],
@@ -877,10 +925,10 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
     expect(data.status).toBe("PUBLISHED");
   });
 
-  test("should reject send-email with invalid fromEmail", async () => {
+  test("should reject send-email with non-existent templateId", async () => {
     const automation = await createAutomation(
       fullAccessApiKey,
-      "Invalid From Email",
+      "Send Email Fake Template",
     );
     await updateAutomation(
       fullAccessApiKey,
@@ -896,7 +944,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
           id: "email-1",
           type: "send-email",
           position: { x: 0, y: 100 },
-          data: { subject: "Test", fromEmail: "not-an-email" },
+          data: { templateId: "non-existent-id" },
         },
       ],
       [{ id: "e1", source: "trigger-1", target: "email-1" }],
@@ -911,10 +959,211 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
     expect(data.error.details.errors).toContainEqual(
       expect.objectContaining({
         nodeId: "email-1",
-        field: "fromEmail",
-        message: expect.stringContaining("Invalid"),
+        field: "templateId",
+        message: expect.stringContaining("does not exist"),
       }),
     );
+  });
+
+  test("should reject send-email with TRANSACTIONAL email type", async () => {
+    const transactionalEmail = await prisma.email.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        name: "Transactional Email",
+        subject: "Reset Password",
+        htmlContent: "<html><body>Reset</body></html>",
+        type: "TRANSACTIONAL",
+      },
+    });
+
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Send Email Wrong Type",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "email-1",
+          type: "send-email",
+          position: { x: 0, y: 100 },
+          data: { templateId: transactionalEmail.id },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "email-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "email-1",
+        field: "templateId",
+        message: expect.stringContaining("must be AUTOMATION"),
+      }),
+    );
+  });
+
+  test("should reject send-email with email missing subject", async () => {
+    const noSubjectEmail = await prisma.email.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        name: "No Subject Email",
+        htmlContent: "<html><body>Content</body></html>",
+        type: "AUTOMATION",
+      },
+    });
+
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Send Email No Subject",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "email-1",
+          type: "send-email",
+          position: { x: 0, y: 100 },
+          data: { templateId: noSubjectEmail.id },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "email-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "email-1",
+        field: "templateId",
+        message: expect.stringContaining("missing a subject"),
+      }),
+    );
+  });
+
+  test("should reject send-email with email missing HTML content", async () => {
+    const noContentEmail = await prisma.email.create({
+      data: {
+        workspaceId: testWorkspace.id,
+        name: "No Content Email",
+        subject: "Has subject but no body",
+        type: "AUTOMATION",
+      },
+    });
+
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Send Email No Content",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "email-1",
+          type: "send-email",
+          position: { x: 0, y: 100 },
+          data: { templateId: noContentEmail.id },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "email-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "email-1",
+        field: "templateId",
+        message: expect.stringContaining("no HTML content"),
+      }),
+    );
+  });
+
+  test("should reject send-email with email from different workspace", async () => {
+    const otherWorkspace = createTestWorkspace();
+    const otherEmail = await prisma.email.create({
+      data: {
+        workspaceId: otherWorkspace.id,
+        name: "Other Workspace Email",
+        subject: "Test",
+        htmlContent: "<html><body>Test</body></html>",
+        type: "AUTOMATION",
+      },
+    });
+
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Send Email Wrong Workspace",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "email-1",
+          type: "send-email",
+          position: { x: 0, y: 100 },
+          data: { templateId: otherEmail.id },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "email-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "email-1",
+        field: "templateId",
+        message: expect.stringContaining("does not exist"),
+      }),
+    );
+
+    await prisma.email.delete({ where: { id: otherEmail.id } });
   });
 
   test("should reject send-webhook without url", async () => {
@@ -1764,6 +2013,254 @@ describe("POST /api/v1/automations/[automationId]/publish - Multiple Errors", ()
   });
 });
 
+describe("POST /api/v1/automations/[automationId]/publish - Entity Existence Validation", () => {
+  test("should reject form-filled trigger with non-existent formId", async () => {
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Form Not Found",
+    );
+    await updateAutomation(fullAccessApiKey, automation.id, [
+      {
+        id: "trigger-1",
+        type: "form-filled",
+        position: { x: 0, y: 0 },
+        data: { formId: "non-existent-form-id" },
+      },
+    ]);
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "trigger-1",
+        field: "formId",
+        message: expect.stringContaining("does not exist"),
+      }),
+    );
+  });
+
+  test("should publish form-filled trigger with valid formId", async () => {
+    const automation = await createAutomation(fullAccessApiKey, "Form Valid");
+    await updateAutomation(fullAccessApiKey, automation.id, [
+      {
+        id: "trigger-1",
+        type: "form-filled",
+        position: { x: 0, y: 0 },
+        data: { formId: testForm.id },
+      },
+    ]);
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(200);
+    expect(data.status).toBe("PUBLISHED");
+  });
+
+  test("should reject segment-entry trigger with non-existent segmentId", async () => {
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Segment Not Found",
+    );
+    await updateAutomation(fullAccessApiKey, automation.id, [
+      {
+        id: "trigger-1",
+        type: "segment-entry",
+        position: { x: 0, y: 0 },
+        data: { segmentId: "non-existent-segment-id" },
+      },
+    ]);
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "trigger-1",
+        field: "segmentId",
+        message: expect.stringContaining("does not exist"),
+      }),
+    );
+  });
+
+  test("should publish segment-entry trigger with valid segmentId", async () => {
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Segment Valid",
+    );
+    await updateAutomation(fullAccessApiKey, automation.id, [
+      {
+        id: "trigger-1",
+        type: "segment-entry",
+        position: { x: 0, y: 0 },
+        data: { segmentId: testSegment.id },
+      },
+    ]);
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(200);
+    expect(data.status).toBe("PUBLISHED");
+  });
+
+  test("should reject add-to-topic with non-existent topicIds", async () => {
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Topic Not Found",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "topic-1",
+          type: "add-to-topic",
+          position: { x: 0, y: 100 },
+          data: { topicIds: ["non-existent-topic-id"] },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "topic-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "topic-1",
+        field: "topicIds",
+        message: expect.stringContaining("does not exist"),
+      }),
+    );
+  });
+
+  test("should publish add-to-topic with valid topicIds", async () => {
+    const automation = await createAutomation(fullAccessApiKey, "Topic Valid");
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "topic-1",
+          type: "add-to-topic",
+          position: { x: 0, y: 100 },
+          data: { topicIds: [testTopics[0].id] },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "topic-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(200);
+    expect(data.status).toBe("PUBLISHED");
+  });
+
+  test("should reject update-contact with non-existent custom fieldId", async () => {
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Field Not Found",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "update-1",
+          type: "update-contact",
+          position: { x: 0, y: 100 },
+          data: { fieldId: "nonExistentCustomProp", fieldValue: "test" },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "update-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(400);
+    expect(data.error.details.errors).toContainEqual(
+      expect.objectContaining({
+        nodeId: "update-1",
+        field: "fieldId",
+        message: expect.stringContaining("does not exist"),
+      }),
+    );
+  });
+
+  test("should publish update-contact with built-in fieldId", async () => {
+    const automation = await createAutomation(
+      fullAccessApiKey,
+      "Built-in Field",
+    );
+    await updateAutomation(
+      fullAccessApiKey,
+      automation.id,
+      [
+        {
+          id: "trigger-1",
+          type: "contact-subscribed",
+          position: { x: 0, y: 0 },
+          data: {},
+        },
+        {
+          id: "update-1",
+          type: "update-contact",
+          position: { x: 0, y: 100 },
+          data: { fieldId: "firstName", fieldValue: "Updated" },
+        },
+      ],
+      [{ id: "e1", source: "trigger-1", target: "update-1" }],
+    );
+
+    const { response, data } = await publishAutomation(
+      fullAccessApiKey,
+      automation.id,
+    );
+
+    expect(response.status).toBe(200);
+    expect(data.status).toBe("PUBLISHED");
+  });
+});
+
 describe("POST /api/v1/automations/[automationId]/publish - Complex Flows", () => {
   test("should publish a complete valid automation flow", async () => {
     const automation = await createAutomation(
@@ -1790,7 +2287,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Complex Flows", () =
           id: "email-1",
           type: "send-email",
           position: { x: 0, y: 200 },
-          data: { subject: "Welcome!", templateId: "welcome-template" },
+          data: { templateId: testEmail.id },
         },
         {
           id: "split-1",

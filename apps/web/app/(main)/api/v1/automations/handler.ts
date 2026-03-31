@@ -347,7 +347,11 @@ export async function publishAutomation(
 
   const nodes = automation.nodes as unknown[];
   const edges = automation.edges as unknown[];
-  const validation = validateAutomationForPublish(nodes, edges);
+  const validation = await validateAutomationForPublish(
+    nodes,
+    edges,
+    workspaceId,
+  );
 
   if (!validation.valid) {
     throw new BadRequestError(

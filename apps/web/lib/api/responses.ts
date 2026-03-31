@@ -78,7 +78,10 @@ export type ApiObjectType =
   | "template_group_list"
   | "broadcast_send"
   | "broadcast_send_list"
-  | "broadcast_stats";
+  | "broadcast_stats"
+  | "marketing_email"
+  | "marketing_email_list"
+  | "marketing_email_stats";
 
 /**
  * Standard API response structure (for external API v1)

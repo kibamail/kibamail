@@ -88,11 +88,7 @@ export const AUTOMATION_ACTIONS = {
     icon: "mail",
     category: "communication",
     config: {
-      templateId: { type: "string", optional: true },
-      subject: { type: "string", optional: true },
-      fromName: { type: "string", optional: true },
-      fromEmail: { type: "email", optional: true },
-      replyTo: { type: "email", optional: true },
+      templateId: { type: "string", required: true },
     },
   },
   SEND_WEBHOOK: {

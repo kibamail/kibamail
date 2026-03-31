@@ -1,4 +1,5 @@
 import { conditionSchema } from "@/app/(main)/api/v1/segments/schema";
+import { prisma } from "@/lib/db";
 import {
   AUTOMATION_ACTIONS,
   AUTOMATION_RULES,
@@ -35,6 +36,143 @@ interface FlowEdge {
   targetHandle?: string | null;
 }
 
+interface ResolvedEntities {
+  emails: Map<
+    string,
+    {
+      id: string;
+      type: string;
+      subject: string | null;
+      htmlContent: string | null;
+    }
+  >;
+  forms: Map<string, { id: string }>;
+  segments: Map<string, { id: string }>;
+  topics: Map<string, { id: string }>;
+  contactProperties: Map<string, { name: string }>;
+}
+
+const BUILT_IN_FIELDS = new Set([
+  "email",
+  "firstName",
+  "lastName",
+  "phone",
+  "country",
+  "timezone",
+  "city",
+]);
+
+async function resolveReferencedEntities(
+  nodes: FlowNode[],
+  workspaceId: string,
+): Promise<ResolvedEntities> {
+  const emailIds = new Set<string>();
+  const formIds = new Set<string>();
+  const segmentIds = new Set<string>();
+  const topicIds = new Set<string>();
+  const fieldIds = new Set<string>();
+
+  for (const node of nodes) {
+    const data = node.data;
+
+    switch (node.type) {
+      case AUTOMATION_ACTIONS.SEND_EMAIL.id:
+        if (data.templateId && typeof data.templateId === "string") {
+          emailIds.add(data.templateId);
+        }
+        break;
+
+      case AUTOMATION_TRIGGERS.FORM_SUBMITTED.id:
+        if (data.formId && typeof data.formId === "string") {
+          formIds.add(data.formId);
+        }
+        break;
+
+      case AUTOMATION_TRIGGERS.SEGMENT_ENTRY.id:
+      case AUTOMATION_TRIGGERS.SEGMENT_EXIT.id:
+        if (data.segmentId && typeof data.segmentId === "string") {
+          segmentIds.add(data.segmentId);
+        }
+        break;
+
+      case AUTOMATION_ACTIONS.ADD_TO_TOPIC.id:
+      case AUTOMATION_ACTIONS.REMOVE_FROM_TOPIC.id:
+        if (data.topicIds && Array.isArray(data.topicIds)) {
+          for (const id of data.topicIds) {
+            if (typeof id === "string") {
+              topicIds.add(id);
+            }
+          }
+        }
+        break;
+
+      case AUTOMATION_ACTIONS.UPDATE_CONTACT.id:
+        if (
+          data.fieldId &&
+          typeof data.fieldId === "string" &&
+          !BUILT_IN_FIELDS.has(data.fieldId)
+        ) {
+          fieldIds.add(data.fieldId);
+        }
+        break;
+    }
+  }
+
+  const [emailRows, formRows, segmentRows, topicRows, propertyRows] =
+    await Promise.all([
+      emailIds.size > 0
+        ? prisma.email.findMany({
+            where: { id: { in: [...emailIds] }, workspaceId },
+            select: { id: true, type: true, subject: true, htmlContent: true },
+          })
+        : [],
+      formIds.size > 0
+        ? prisma.form.findMany({
+            where: { id: { in: [...formIds] }, workspaceId },
+            select: { id: true },
+          })
+        : [],
+      segmentIds.size > 0
+        ? prisma.segment.findMany({
+            where: { id: { in: [...segmentIds] }, workspaceId },
+            select: { id: true },
+          })
+        : [],
+      topicIds.size > 0
+        ? prisma.topic.findMany({
+            where: { id: { in: [...topicIds] }, workspaceId },
+            select: { id: true },
+          })
+        : [],
+      fieldIds.size > 0
+        ? prisma.contactProperty.findMany({
+            where: { name: { in: [...fieldIds] }, workspaceId },
+            select: { name: true },
+          })
+        : [],
+    ]);
+
+  return {
+    emails: new Map(
+      emailRows.map((e) => [
+        e.id,
+        {
+          id: e.id,
+          type: e.type,
+          subject: e.subject,
+          htmlContent: e.htmlContent,
+        },
+      ]),
+    ),
+    forms: new Map(formRows.map((f) => [f.id, { id: f.id }])),
+    segments: new Map(segmentRows.map((s) => [s.id, { id: s.id }])),
+    topics: new Map(topicRows.map((t) => [t.id, { id: t.id }])),
+    contactProperties: new Map(
+      propertyRows.map((p) => [p.name, { name: p.name }]),
+    ),
+  };
+}
+
 function validateTriggerConditions(node: FlowNode): ValidationError[] {
   const errors: ValidationError[] = [];
   const data = node.data;
@@ -53,10 +191,12 @@ function validateTriggerConditions(node: FlowNode): ValidationError[] {
   return errors;
 }
 
-function validateTriggerNode(node: FlowNode): ValidationError[] {
+function validateTriggerNode(
+  node: FlowNode,
+  resolved: ResolvedEntities,
+): ValidationError[] {
   const errors: ValidationError[] = [];
   const data = node.data;
-  const _triggerType = data.triggerType as string | undefined;
 
   switch (node.type) {
     case AUTOMATION_TRIGGERS.PROPERTY_UPDATED.id:
@@ -75,6 +215,13 @@ function validateTriggerNode(node: FlowNode): ValidationError[] {
           nodeId: node.id,
           field: "formId",
           message: "Form selection is required for form submitted trigger",
+        });
+      } else if (!resolved.forms.has(data.formId as string)) {
+        errors.push({
+          nodeId: node.id,
+          field: "formId",
+          message:
+            "Selected form does not exist or does not belong to this workspace",
         });
       }
       break;
@@ -96,6 +243,13 @@ function validateTriggerNode(node: FlowNode): ValidationError[] {
           nodeId: node.id,
           field: "segmentId",
           message: "Segment selection is required",
+        });
+      } else if (!resolved.segments.has(data.segmentId as string)) {
+        errors.push({
+          nodeId: node.id,
+          field: "segmentId",
+          message:
+            "Selected segment does not exist or does not belong to this workspace",
         });
       }
       break;
@@ -133,40 +287,63 @@ function validateTriggerNode(node: FlowNode): ValidationError[] {
   return errors;
 }
 
-function validateActionNode(node: FlowNode): ValidationError[] {
+function validateActionNode(
+  node: FlowNode,
+  resolved: ResolvedEntities,
+): ValidationError[] {
   const errors: ValidationError[] = [];
   const data = node.data;
 
   switch (node.type) {
-    case AUTOMATION_ACTIONS.SEND_EMAIL.id:
-      if (!data.templateId && !data.subject) {
+    case AUTOMATION_ACTIONS.SEND_EMAIL.id: {
+      if (!data.templateId || typeof data.templateId !== "string") {
         errors.push({
           nodeId: node.id,
           field: "templateId",
-          message: "Email template or subject line is required",
+          message:
+            "Email template is required. Select a marketing email to send.",
+        });
+        break;
+      }
+
+      const email = resolved.emails.get(data.templateId as string);
+      if (!email) {
+        errors.push({
+          nodeId: node.id,
+          field: "templateId",
+          message:
+            "Selected email template does not exist or does not belong to this workspace",
+        });
+        break;
+      }
+
+      if (email.type !== "AUTOMATION") {
+        errors.push({
+          nodeId: node.id,
+          field: "templateId",
+          message: `Email type must be AUTOMATION, but is ${email.type}. Change the email type or select a different email.`,
         });
       }
-      if (data.fromEmail && typeof data.fromEmail === "string") {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(data.fromEmail)) {
-          errors.push({
-            nodeId: node.id,
-            field: "fromEmail",
-            message: "Invalid from email address format",
-          });
-        }
+
+      if (!email.subject) {
+        errors.push({
+          nodeId: node.id,
+          field: "templateId",
+          message:
+            "Selected email is missing a subject line. Edit the email to add a subject.",
+        });
       }
-      if (data.replyTo && typeof data.replyTo === "string") {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(data.replyTo)) {
-          errors.push({
-            nodeId: node.id,
-            field: "replyTo",
-            message: "Invalid reply-to email address format",
-          });
-        }
+
+      if (!email.htmlContent) {
+        errors.push({
+          nodeId: node.id,
+          field: "templateId",
+          message:
+            "Selected email has no HTML content. Edit the email to add content before publishing.",
+        });
       }
       break;
+    }
 
     case AUTOMATION_ACTIONS.SEND_WEBHOOK.id:
       if (!data.url || typeof data.url !== "string") {
@@ -205,6 +382,16 @@ function validateActionNode(node: FlowNode): ValidationError[] {
           field: "fieldId",
           message: "Field selection is required",
         });
+      } else if (
+        !BUILT_IN_FIELDS.has(data.fieldId as string) &&
+        !resolved.contactProperties.has(data.fieldId as string)
+      ) {
+        errors.push({
+          nodeId: node.id,
+          field: "fieldId",
+          message:
+            "Selected contact property does not exist or does not belong to this workspace",
+        });
       }
       if (!data.fieldValue || typeof data.fieldValue !== "string") {
         errors.push({
@@ -227,6 +414,16 @@ function validateActionNode(node: FlowNode): ValidationError[] {
           field: "topicIds",
           message: "At least one topic selection is required",
         });
+      } else {
+        for (const topicId of data.topicIds as string[]) {
+          if (!resolved.topics.has(topicId)) {
+            errors.push({
+              nodeId: node.id,
+              field: "topicIds",
+              message: `Topic "${topicId}" does not exist or does not belong to this workspace`,
+            });
+          }
+        }
       }
       break;
 
@@ -432,10 +629,11 @@ function validateFlowStructure(
   return errors;
 }
 
-export function validateAutomationForPublish(
+export async function validateAutomationForPublish(
   nodes: unknown[],
   edges: unknown[],
-): ValidationResult {
+  workspaceId: string,
+): Promise<ValidationResult> {
   const errors: ValidationError[] = [];
 
   const flowNodes = nodes as FlowNode[];
@@ -445,13 +643,15 @@ export function validateAutomationForPublish(
 
   errors.push(...validateFlowStructure(flowNodes, flowEdges));
 
+  const resolved = await resolveReferencedEntities(flowNodes, workspaceId);
+
   for (const node of flowNodes) {
     if (isTriggerNode(node.type)) {
-      errors.push(...validateTriggerNode(node));
+      errors.push(...validateTriggerNode(node, resolved));
     } else if (
       Object.values(AUTOMATION_ACTIONS).some((a) => a.id === node.type)
     ) {
-      errors.push(...validateActionNode(node));
+      errors.push(...validateActionNode(node, resolved));
     } else if (
       Object.values(AUTOMATION_RULES).some((r) => r.id === node.type)
     ) {

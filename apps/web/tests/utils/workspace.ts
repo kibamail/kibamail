@@ -46,6 +46,10 @@ export async function cleanupWorkspace(workspaceId: string): Promise<void> {
     where: { workspaceId },
   });
 
+  await prisma.email.deleteMany({
+    where: { workspaceId },
+  });
+
   await prisma.form.deleteMany({
     where: { workspaceId, parentId: { not: null } },
   });

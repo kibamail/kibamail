@@ -3,11 +3,11 @@
 import { Badge } from "@kibamail/owly";
 import { Button } from "@kibamail/owly/button";
 import * as SelectField from "@kibamail/owly/select-field";
-import * as TextField from "@kibamail/owly/text-field";
 import { Text } from "@kibamail/owly/text";
+import * as TextField from "@kibamail/owly/text-field";
+import { useToast } from "@kibamail/owly/toast";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import cn from "classnames";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Calendar,
   CheckCircle,
@@ -22,13 +22,13 @@ import {
   Text as TextIcon,
   Trash,
 } from "iconoir-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useId, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@kibamail/owly/toast";
 import { CreateContactPropertyModal } from "@/app/(main)/(dashboard)/w/(with-sidebar)/(audience)/contacts/_components/create-contact-property-modal";
 import {
-  SectionHeader,
   SectionDivider,
+  SectionHeader,
   SectionSaveButton,
 } from "@/components/email-editor/details-sections/shared";
 import { useToggleState } from "@/hooks/utils/useToggleState";
@@ -185,10 +185,20 @@ function DoubleOptInEmailSection({
           className="flex items-center justify-between border border-kb-border-tertiary p-3 rounded-lg transition-colors hover:border-kb-border-secondary"
         >
           <div className="flex flex-col gap-1.5">
-            <Text className="text-kb-content-primary font-medium">{doubleOptInEmail.name}</Text>
-            <Badge size="sm" variant="tertiary" className="rounded-full! w-fit px-2!">Confirmation email</Badge>
+            <Text className="text-kb-content-primary font-medium">
+              {doubleOptInEmail.name}
+            </Text>
+            <Badge
+              size="sm"
+              variant="neutral"
+              className="rounded-full! w-fit px-2!"
+            >
+              Confirmation email
+            </Badge>
           </div>
-          <Badge size="sm" variant="info" className="rounded-full!">Email</Badge>
+          <Badge size="sm" variant="info" className="rounded-full!">
+            Email
+          </Badge>
         </Link>
       ) : (
         <Button
@@ -244,8 +254,8 @@ export function DetailsTab({
       ?.type ?? "message";
   const [successType, setSuccessType] = useState(successActionType);
   const [successMessage, setSuccessMessage] = useState(
-    (initialSettings as { successAction?: { message?: string } })
-      ?.successAction?.message ?? "",
+    (initialSettings as { successAction?: { message?: string } })?.successAction
+      ?.message ?? "",
   );
   const [redirectUrl, setRedirectUrl] = useState(
     (initialSettings as { successAction?: { url?: string } })?.successAction
@@ -288,7 +298,12 @@ export function DetailsTab({
   function addMapping() {
     setMappings((prev) => [
       ...prev,
-      { fieldName: "", propertyId: "", propertyType: "standard", fieldType: "string" },
+      {
+        fieldName: "",
+        propertyId: "",
+        propertyType: "standard",
+        fieldType: "string",
+      },
     ]);
   }
 
@@ -317,7 +332,10 @@ export function DetailsTab({
     }
   }
 
-  function isPropertyDuplicate(propertyId: string, currentIndex: number): boolean {
+  function isPropertyDuplicate(
+    propertyId: string,
+    currentIndex: number,
+  ): boolean {
     if (!propertyId) return false;
     return mappings.some(
       (m, i) => i !== currentIndex && m.propertyId === propertyId,
@@ -346,7 +364,14 @@ export function DetailsTab({
         seoFaviconUrl: seoFaviconUrl || null,
         slug: slug || null,
         settings,
-        fieldMapping: mappingsToRecord(mappings) as Record<string, { contactPropertyId: string; contactPropertyType: "standard" | "custom"; fieldType: "string" | "number" }>,
+        fieldMapping: mappingsToRecord(mappings) as Record<
+          string,
+          {
+            contactPropertyId: string;
+            contactPropertyType: "standard" | "custom";
+            fieldType: "string" | "number";
+          }
+        >,
       });
     },
     onSuccess: () => {
@@ -372,7 +397,9 @@ export function DetailsTab({
                 disabled={readonly}
               >
                 <TextField.Label>Page title</TextField.Label>
-                <TextField.Hint>{seoTitle.length}/200 characters</TextField.Hint>
+                <TextField.Hint>
+                  {seoTitle.length}/200 characters
+                </TextField.Hint>
               </TextField.Root>
             </div>
 
@@ -445,8 +472,12 @@ export function DetailsTab({
               <SelectField.Label>On success</SelectField.Label>
               <SelectField.Trigger placeholder="Select action" />
               <SelectField.Content>
-                <SelectField.Item value="message">Show message</SelectField.Item>
-                <SelectField.Item value="redirect">Redirect to URL</SelectField.Item>
+                <SelectField.Item value="message">
+                  Show message
+                </SelectField.Item>
+                <SelectField.Item value="redirect">
+                  Redirect to URL
+                </SelectField.Item>
               </SelectField.Content>
             </SelectField.Root>
 
@@ -492,7 +523,8 @@ export function DetailsTab({
             {mappings.map((mapping, index) => {
               const isEmail = isEmailRow(mapping);
               const hasProperty = !!mapping.propertyId;
-              const isDuplicate = !isEmail && isPropertyDuplicate(mapping.propertyId, index);
+              const isDuplicate =
+                !isEmail && isPropertyDuplicate(mapping.propertyId, index);
 
               const availableProperties = isEmail
                 ? allProperties.filter((p) => p.id === "email")
@@ -511,7 +543,9 @@ export function DetailsTab({
                           <input
                             value={mapping.fieldName}
                             onChange={(e) =>
-                              updateMapping(index, { fieldName: e.target.value })
+                              updateMapping(index, {
+                                fieldName: e.target.value,
+                              })
                             }
                             placeholder="field_name"
                             className="w-full bg-transparent text-sm text-kb-content-primary outline-none font-mono placeholder:text-kb-content-tertiary"
@@ -542,7 +576,8 @@ export function DetailsTab({
                       <CheckCircle
                         className={cn("w-4 h-4", {
                           "text-kb-content-disabled": !hasProperty,
-                          "text-kb-content-positive": hasProperty && !isDuplicate,
+                          "text-kb-content-positive":
+                            hasProperty && !isDuplicate,
                           "text-kb-content-error": isDuplicate,
                         })}
                       />
@@ -559,7 +594,10 @@ export function DetailsTab({
                       {availableProperties.map((property) => {
                         const Icon = property.icon;
                         return (
-                          <SelectField.Item key={property.id} value={property.id}>
+                          <SelectField.Item
+                            key={property.id}
+                            value={property.id}
+                          >
                             <Icon className="w-5 h-5" />
                             {property.name}
                           </SelectField.Item>
@@ -598,11 +636,7 @@ export function DetailsTab({
           </div>
 
           {!readonly && (
-            <Button
-              variant="tertiary"
-              className="mt-4"
-              onClick={addMapping}
-            >
+            <Button variant="tertiary" className="mt-4" onClick={addMapping}>
               <Plus className="w-4 h-4" />
               Add field
             </Button>
@@ -610,7 +644,11 @@ export function DetailsTab({
         </section>
 
         <SectionDivider />
-        <DoubleOptInEmailSection formId={formId} formName={formName} doubleOptInEmail={doubleOptInEmail} />
+        <DoubleOptInEmailSection
+          formId={formId}
+          formName={formName}
+          doubleOptInEmail={doubleOptInEmail}
+        />
 
         {!readonly && (
           <SectionSaveButton

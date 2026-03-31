@@ -1,7 +1,7 @@
 "use client";
 
-import * as Alert from "@kibamail/owly/alert";
 import { Badge, Heading, Text } from "@kibamail/owly";
+import * as Alert from "@kibamail/owly/alert";
 import { Button } from "@kibamail/owly/button";
 import { Checkbox } from "@kibamail/owly/checkbox";
 import * as TextField from "@kibamail/owly/text-field";
@@ -17,11 +17,9 @@ import {
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useId, useMemo, useState } from "react";
-
-import { internalApi } from "@/lib/api/client";
 import {
-  SectionHeader,
   SectionDivider,
+  SectionHeader,
   SectionSaveButton,
 } from "@/components/email-editor/details-sections/shared";
 import { ReplyToSelect } from "@/components/reply-to-select";
@@ -30,6 +28,7 @@ import type {
   TransformedSenderIdentity,
 } from "@/components/sender-select";
 import { SenderSelect } from "@/components/sender-select";
+import { internalApi } from "@/lib/api/client";
 
 type EditorTab = "preview" | "analytics" | "details";
 
@@ -150,7 +149,11 @@ export function MarketingEmailEditorClient({
               : "invisible pointer-events-none"
           }`}
         >
-          <AnalyticsTab emailId={emailId} usedByForms={usedByForms} isActive={activeTab === "analytics"} />
+          <AnalyticsTab
+            emailId={emailId}
+            usedByForms={usedByForms}
+            isActive={activeTab === "analytics"}
+          />
         </div>
         <div
           className={`absolute inset-0 ${
@@ -212,9 +215,7 @@ function PreviewTab({
     return (
       <div className="h-full flex items-center justify-center text-kb-content-secondary">
         <div className="flex flex-col items-center gap-3">
-          <span className="text-kb-content-danger">
-            Failed to load preview
-          </span>
+          <span className="text-kb-content-danger">Failed to load preview</span>
           <button
             type="button"
             onClick={() => refetch()}
@@ -301,7 +302,8 @@ function AnalyticsTab({
   const openRate = stats.openRate ?? 0;
   const clickRate = stats.clickRate ?? 0;
   const bounceRate = totalDelivered > 0 ? totalBounced / totalDelivered : 0;
-  const complaintRate = totalDelivered > 0 ? totalComplained / totalDelivered : 0;
+  const complaintRate =
+    totalDelivered > 0 ? totalComplained / totalDelivered : 0;
 
   return (
     <div className="h-full w-full bg-kb-bg-primary flex flex-col overflow-auto">
@@ -313,12 +315,16 @@ function AnalyticsTab({
             <div className="mt-2 flex items-center justify-between">
               <Heading>{formatNumber(totalDelivered)}</Heading>
               <Badge variant="info" className="rounded-full!">
-                {totalSent > 0 ? formatPercent(totalDelivered / totalSent) : "0.0%"}
+                {totalSent > 0
+                  ? formatPercent(totalDelivered / totalSent)
+                  : "0.0%"}
               </Badge>
             </div>
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2">
-                <Text variant="tertiary" className="shrink-0">Bounced</Text>
+                <Text variant="tertiary" className="shrink-0">
+                  Bounced
+                </Text>
                 <div className="w-full grow h-px bg-kb-border-tertiary" />
                 <Text variant="tertiary">{formatNumber(totalBounced)}</Text>
               </div>
@@ -336,7 +342,9 @@ function AnalyticsTab({
             </div>
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2">
-                <Text variant="tertiary" className="shrink-0">Click rate</Text>
+                <Text variant="tertiary" className="shrink-0">
+                  Click rate
+                </Text>
                 <div className="w-full grow h-px bg-kb-border-tertiary" />
                 <Text variant="tertiary">{formatPercent(clickRate)}</Text>
               </div>
@@ -354,7 +362,9 @@ function AnalyticsTab({
             </div>
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2">
-                <Text variant="tertiary" className="shrink-0">Complained</Text>
+                <Text variant="tertiary" className="shrink-0">
+                  Complained
+                </Text>
                 <div className="w-full grow h-px bg-kb-border-tertiary" />
                 <Text variant="tertiary">{formatPercent(complaintRate)}</Text>
               </div>
@@ -397,15 +407,20 @@ function DetailsTab({
   const [previewText, setPreviewText] = useState(initialPreviewText);
   const [trackClicks, setTrackClicks] = useState(initialTrackClicks);
   const [trackOpens, setTrackOpens] = useState(initialTrackOpens);
-  const [senderIdentityId, setSenderIdentityId] = useState(initialSenderIdentityId);
-  const [replyToIdentityId, setReplyToIdentityId] = useState(initialReplyToIdentityId);
+  const [senderIdentityId, setSenderIdentityId] = useState(
+    initialSenderIdentityId,
+  );
+  const [replyToIdentityId, setReplyToIdentityId] = useState(
+    initialReplyToIdentityId,
+  );
 
   // Sender select state
   const [senderLocalPart, setSenderLocalPart] = useState("");
   const [senderDomainId, setSenderDomainId] = useState(domains[0]?.id ?? "");
   const [isAddingNewSender, setIsAddingNewSender] = useState(false);
   const [allDomains, setAllDomains] = useState(domains);
-  const [allSenderIdentities, setAllSenderIdentities] = useState(senderIdentities);
+  const [allSenderIdentities, setAllSenderIdentities] =
+    useState(senderIdentities);
 
   const subjectFieldId = useId();
   const previewTextFieldId = useId();
@@ -418,7 +433,9 @@ function DetailsTab({
 
   const replyToIdentities = useMemo(() => {
     if (!selectedSender) return [];
-    return allSenderIdentities.filter((s) => s.domainId === selectedSender.domainId);
+    return allSenderIdentities.filter(
+      (s) => s.domainId === selectedSender.domainId,
+    );
   }, [allSenderIdentities, selectedSender]);
 
   const onDomainCreated = useCallback((domain: CreatedDomain) => {
@@ -471,7 +488,8 @@ function DetailsTab({
               >
                 <TextField.Label>Preview text</TextField.Label>
                 <TextField.Hint>
-                  This text appears after the subject line in most email clients.
+                  This text appears after the subject line in most email
+                  clients.
                 </TextField.Hint>
               </TextField.Root>
             </div>
@@ -523,7 +541,9 @@ function DetailsTab({
               className="flex items-start justify-between gap-3 border border-kb-border-tertiary p-3 rounded-lg transition-colors cursor-pointer hover:border-kb-border-secondary"
             >
               <div className="flex flex-col gap-1">
-                <Text className="text-kb-content-primary font-medium">Click tracking</Text>
+                <Text className="text-kb-content-primary font-medium">
+                  Click tracking
+                </Text>
                 <Text size="sm" className="text-kb-content-tertiary">
                   Track when recipients click links in your email
                 </Text>
@@ -541,7 +561,9 @@ function DetailsTab({
               className="flex items-start justify-between gap-3 border border-kb-border-tertiary p-3 rounded-lg transition-colors cursor-pointer hover:border-kb-border-secondary"
             >
               <div className="flex flex-col gap-1">
-                <Text className="text-kb-content-primary font-medium">Open tracking</Text>
+                <Text className="text-kb-content-primary font-medium">
+                  Open tracking
+                </Text>
                 <Text size="sm" className="text-kb-content-tertiary">
                   Track when recipients open your email
                 </Text>
@@ -559,7 +581,8 @@ function DetailsTab({
                 <WarningTriangle />
               </Alert.Icon>
               <Alert.Title>
-                Open tracking uses a tracking pixel which may affect deliverability with some email providers.
+                Open tracking uses a tracking pixel which may affect
+                deliverability with some email providers.
               </Alert.Title>
             </Alert.Root>
           </div>
@@ -582,10 +605,20 @@ function DetailsTab({
                     className="flex items-center justify-between border border-kb-border-tertiary p-3 rounded-lg transition-colors hover:border-kb-border-secondary"
                   >
                     <div className="flex flex-col gap-1.5">
-                      <Text className="text-kb-content-primary font-medium">{form.name}</Text>
-                      <Badge size="sm" variant="tertiary" className="rounded-full! w-fit px-2!">Double opt-in form</Badge>
+                      <Text className="text-kb-content-primary font-medium">
+                        {form.name}
+                      </Text>
+                      <Badge
+                        size="sm"
+                        variant="neutral"
+                        className="rounded-full! w-fit px-2!"
+                      >
+                        Double opt-in form
+                      </Badge>
                     </div>
-                    <Badge size="sm" variant="info" className="rounded-full!">Form</Badge>
+                    <Badge size="sm" variant="info" className="rounded-full!">
+                      Form
+                    </Badge>
                   </Link>
                 ))}
               </div>
