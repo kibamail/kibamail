@@ -2,6 +2,8 @@
 
 Broadcasts send email campaigns to contacts, segments, or topics. They support scheduling, per-recipient variables, and delivery/engagement tracking.
 
+**HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and render them to HTML before passing to the API. Never write raw HTML strings for email content.
+
 ## broadcasts create
 
 **Flags:**

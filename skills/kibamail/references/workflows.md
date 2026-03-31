@@ -2,6 +2,8 @@
 
 Multi-step task recipes for common Kibamail operations.
 
+**HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and render them to HTML before passing to the CLI/API. Never write raw HTML strings for email content.
+
 ---
 
 ## Set up transactional email from scratch

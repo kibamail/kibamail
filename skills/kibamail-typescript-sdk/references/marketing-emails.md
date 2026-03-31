@@ -1,5 +1,7 @@
 # Marketing Emails — TypeScript SDK
 
+**HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and use `render()` from `@react-email/render` to produce the HTML string before passing to the SDK. Never write raw HTML strings for email content.
+
 ## Create
 
 ```typescript

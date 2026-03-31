@@ -2,6 +2,8 @@
 
 Send individual emails (password resets, receipts, notifications) and track delivery.
 
+**HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and render them to HTML before passing to the API. Never write raw HTML strings for email content.
+
 ## emails send
 
 Send a transactional email. Requires a verified sending domain for real recipients.

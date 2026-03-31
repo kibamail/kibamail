@@ -2,6 +2,8 @@
 
 Marketing emails are reusable HTML email templates used in automation workflows and double opt-in confirmation flows. They support template variables for personalization.
 
+**HTML Content Requirement:** All email HTML content MUST be generated using [React Email](https://react.email). Write React Email components and render them to HTML before passing to the API. Never write raw HTML strings for email content.
+
 ## Create a Marketing Email
 
 ```bash
