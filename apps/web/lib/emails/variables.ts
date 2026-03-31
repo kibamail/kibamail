@@ -28,6 +28,35 @@ export const STANDARD_VARIABLES: Record<string, string> = {
   confirmation_url: "Double opt-in confirmation link",
   unsubscribe_url: "One-click unsubscribe link",
   preferences_url: "Email preferences page link",
+  business_address: "Formatted business postal address",
+  terms_url: "Terms of service link",
+  privacy_url: "Privacy policy link",
+};
+
+/**
+ * Sample variable values for email previews.
+ * Shared across all preview endpoints to avoid duplication.
+ */
+export const SAMPLE_VARIABLES: Record<string, string> = {
+  email: "preview@example.com",
+  firstName: "John",
+  first_name: "John",
+  lastName: "Doe",
+  last_name: "Doe",
+  "contact.email": "preview@example.com",
+  "contact.first_name": "John",
+  "contact.last_name": "Doe",
+  phone: "+1 555 0100",
+  country: "United States",
+  timezone: "America/New_York",
+  city: "New York",
+  confirmation_url: "#confirm-subscription",
+  unsubscribe_url: "#unsubscribe",
+  preferences_url: "#preferences",
+  business_address:
+    "Kibamail Messaging Systems Ltd\n63 N. Burritt Ave, Room 100 East PMB1247\nBuffalo, WY 82834\nUnited States",
+  terms_url: "https://kibamail.com/legal/terms-of-service",
+  privacy_url: "https://kibamail.com/legal/privacy-policy",
 };
 
 /**

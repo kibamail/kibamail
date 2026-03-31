@@ -20,6 +20,7 @@ import {
 } from "@/lib/broadcasts/readiness";
 import { prisma } from "@/lib/db";
 import {
+  COMPLIANCE_FOOTER,
   type CreatedApiKey,
   cleanupWorkspace,
   createFullAccessApiKey,
@@ -442,7 +443,7 @@ describe("BroadcastReadinessChecker", () => {
         from: "news@ready-test.example.com",
         emailContent: {
           subject: "Test Subject",
-          html: '<p>Hello!</p><a href="{{unsubscribe_url}}">Unsubscribe</a>',
+          html: `<p>Hello!</p><footer>${COMPLIANCE_FOOTER}</footer>`,
         },
       });
 
@@ -489,7 +490,7 @@ describe("BroadcastReadinessChecker", () => {
         from: "newsletter@label-test.example.com",
         emailContent: {
           subject: "Test Subject",
-          html: '<a href="{{unsubscribe_url}}">Unsubscribe</a>',
+          html: `<footer>${COMPLIANCE_FOOTER}</footer>`,
         },
       });
 
@@ -570,7 +571,7 @@ describe("BroadcastReadinessChecker", () => {
         from: "news@errors-test.example.com",
         emailContent: {
           subject: "Test Subject",
-          html: '<a href="{{unsubscribe_url}}">Unsubscribe</a>',
+          html: `<footer>${COMPLIANCE_FOOTER}</footer>`,
         },
       });
 

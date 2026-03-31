@@ -22,8 +22,9 @@ import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import { htmlToPlainText } from "@/lib/email/html-to-text";
+import { validateEmailCompliance } from "@/lib/emails/compliance-validation";
 import { validateEmailHtml } from "@/lib/emails/html-validation";
-import { extractVariables } from "@/lib/emails/variables";
+import { SAMPLE_VARIABLES, extractVariables } from "@/lib/emails/variables";
 import {
   createMarketingEmailSchema,
   updateMarketingEmailSchema,
@@ -48,6 +49,13 @@ export async function createMarketingEmail(
     if (!validation.valid) {
       throw new BadRequestError(
         validation.errors.map((e) => e.message).join("; "),
+        ErrorCode.VALIDATION_FAILED,
+      );
+    }
+    const compliance = validateEmailCompliance(data.html);
+    if (!compliance.valid) {
+      throw new BadRequestError(
+        `Email is missing required compliance variables: ${compliance.missing.join(", ")}`,
         ErrorCode.VALIDATION_FAILED,
       );
     }
@@ -225,6 +233,16 @@ export async function updateMarketingEmail(
     }
   }
 
+  if (typeof data.html === "string") {
+    const compliance = validateEmailCompliance(data.html);
+    if (!compliance.valid) {
+      throw new BadRequestError(
+        `Email is missing required compliance variables: ${compliance.missing.join(", ")}`,
+        ErrorCode.VALIDATION_FAILED,
+      );
+    }
+  }
+
   const updatedEmail = await prisma.email.update({
     where: { id: emailId },
     data: {
@@ -312,27 +330,9 @@ export async function previewMarketingEmail(
   }
 
   // Substitute sample values for preview
-  const sampleVariables: Record<string, string> = {
-    email: "preview@example.com",
-    firstName: "John",
-    first_name: "John",
-    lastName: "Doe",
-    last_name: "Doe",
-    "contact.email": "preview@example.com",
-    "contact.first_name": "John",
-    "contact.last_name": "Doe",
-    phone: "+1 555 0100",
-    country: "United States",
-    timezone: "America/New_York",
-    city: "New York",
-    confirmation_url: "#confirm-subscription",
-    unsubscribe_url: "#unsubscribe",
-    preferences_url: "#preferences",
-  };
-
   const html = email.htmlContent.replace(
     /\{\{(\w+(?:\.\w+)*)\}\}/g,
-    (match, varName) => sampleVariables[varName] ?? match,
+    (match, varName) => SAMPLE_VARIABLES[varName] ?? match,
   );
 
   return responseOk({ html, hasContent: true });

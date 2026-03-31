@@ -10,6 +10,7 @@ import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
 import type { AutomationEvent } from "@/lib/automations/events";
 import {
+  COMPLIANT_HTML,
   type CreatedApiKey,
   cleanupWorkspace,
   createFullAccessApiKey,
@@ -99,7 +100,7 @@ beforeAll(async () => {
       workspaceId: testWorkspace.id,
       name: "Test Automation Email",
       subject: "Test Email",
-      htmlContent: "<p>Test</p>",
+      htmlContent: COMPLIANT_HTML,
       type: "AUTOMATION",
     },
   });

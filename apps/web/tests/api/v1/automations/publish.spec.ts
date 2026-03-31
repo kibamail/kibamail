@@ -6,6 +6,8 @@ import { POST as CREATE_POST } from "@/app/(main)/api/v1/automations/route";
 import { ErrorCode } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
+  COMPLIANCE_FOOTER,
+  COMPLIANT_HTML,
   type CreatedApiKey,
   cleanupWorkspace,
   createFullAccessApiKey,
@@ -82,7 +84,7 @@ beforeAll(async () => {
       workspaceId: testWorkspace.id,
       name: "Test Automation Email",
       subject: "Welcome to our list",
-      htmlContent: "<html><body><h1>Welcome</h1></body></html>",
+      htmlContent: COMPLIANT_HTML,
       textContent: "Welcome",
       type: "AUTOMATION",
     },
@@ -971,7 +973,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
         workspaceId: testWorkspace.id,
         name: "Transactional Email",
         subject: "Reset Password",
-        htmlContent: "<html><body>Reset</body></html>",
+        htmlContent: COMPLIANT_HTML,
         type: "TRANSACTIONAL",
       },
     });
@@ -1020,7 +1022,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
       data: {
         workspaceId: testWorkspace.id,
         name: "No Subject Email",
-        htmlContent: "<html><body>Content</body></html>",
+        htmlContent: COMPLIANT_HTML,
         type: "AUTOMATION",
       },
     });
@@ -1120,7 +1122,7 @@ describe("POST /api/v1/automations/[automationId]/publish - Action Node Validati
         workspaceId: otherWorkspace.id,
         name: "Other Workspace Email",
         subject: "Test",
-        htmlContent: "<html><body>Test</body></html>",
+        htmlContent: COMPLIANT_HTML,
         type: "AUTOMATION",
       },
     });

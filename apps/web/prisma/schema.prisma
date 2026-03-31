@@ -2033,3 +2033,34 @@ enum EmailTemplateStatus {
   ARCHIVED   // Archived version (replaced by newer published version)
 }
 
+/// Workspace-level compliance settings: business address and legal URLs
+model WorkspaceSettings {
+  /// Unique identifier
+  id            String   @id @default(cuid())
+  /// Workspace ID for tenant segregation
+  workspaceId   String   @unique
+  /// Business or organization name
+  companyName   String
+  /// Street address or P.O. Box
+  streetAddress String
+  /// City
+  city          String
+  /// State, province, or region
+  state         String?
+  /// Postal or zip code
+  zipCode       String?
+  /// Country
+  country       String
+  /// Terms of service URL (defaults to Kibamail's when null)
+  termsUrl      String?
+  /// Privacy policy URL (defaults to Kibamail's when null)
+  privacyUrl    String?
+  /// When settings were created
+  createdAt     DateTime @default(now())
+  /// When settings were last updated
+  updatedAt     DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@map("workspace_settings")
+}
+

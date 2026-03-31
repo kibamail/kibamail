@@ -16,6 +16,7 @@ import { POST as CreateDomain } from "@/app/(main)/api/v1/domains/route";
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
+  COMPLIANCE_FOOTER,
   type CreatedApiKey,
   cleanupWorkspace,
   createFullAccessApiKey,
@@ -135,7 +136,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
       from: "news@send-test.example.com",
       emailContent: {
         subject: "Important Newsletter",
-        html: '<p>Hello!</p><a href="{{unsubscribe_url}}">Unsubscribe</a>',
+        html: `<p>Hello!</p><footer>${COMPLIANCE_FOOTER}</footer>`,
       },
     });
 
@@ -514,7 +515,7 @@ describe("POST /api/v1/broadcasts/[broadcastId]/send", () => {
       from: "news@sendat-verify.example.com",
       emailContent: {
         subject: "Verify sendAt",
-        html: '<a href="{{unsubscribe_url}}">Unsubscribe</a>',
+        html: `<footer>${COMPLIANCE_FOOTER}</footer>`,
       },
     });
 

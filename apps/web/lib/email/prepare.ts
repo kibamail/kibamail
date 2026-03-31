@@ -16,6 +16,7 @@ import {
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import type { EmailMessage } from "@/lib/mta";
+import { resolveWorkspaceSettings, buildComplianceVariables } from "@/lib/workspace/settings";
 import { generateMessageIdForDomain } from "./message-id";
 import { htmlToPlainText } from "./html-to-text";
 import { applyTracking } from "./tracking";
@@ -169,6 +170,7 @@ function buildVariables(
   contact: EmailContact,
   broadcast: EmailBroadcast,
   customProperties?: Record<string, ContactPropertyValue>,
+  complianceVars?: Record<string, string>,
 ): Record<string, string> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
@@ -184,6 +186,11 @@ function buildVariables(
     preferences_url: `https://${trackingDomain}/p/${contact.id}`,
     view_in_browser_url: `https://${trackingDomain}/v/${broadcast.id}/${contact.id}`,
   };
+
+  // Merge compliance variables (before custom properties and transient so they can be overridden)
+  if (complianceVars) {
+    Object.assign(variables, complianceVars);
+  }
 
   // Add custom properties from contact record (lower priority)
   if (customProperties) {
@@ -253,12 +260,13 @@ function substituteVariables(
 async function prepareEmail(
   contact: EmailContact,
   broadcast: EmailBroadcast,
+  complianceVars?: Record<string, string>,
 ): Promise<PreparedEmail> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
 
   const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);
-  const variables = buildVariables(contact, broadcast, contact.properties);
+  const variables = buildVariables(contact, broadcast, contact.properties, complianceVars);
 
   // Tracking settings
   const trackOpens = broadcast.trackOpens ?? true;
@@ -373,10 +381,13 @@ export async function prepareEmailBatch(
   contacts: EmailContact[],
   broadcast: EmailBroadcast,
 ): Promise<PreparedEmail[]> {
+  const settings = await resolveWorkspaceSettings(broadcast.workspaceId);
+  const complianceVars = buildComplianceVariables(settings);
+
   const preparedEmails: PreparedEmail[] = [];
 
   for (const contact of contacts) {
-    const prepared = await prepareEmail(contact, broadcast);
+    const prepared = await prepareEmail(contact, broadcast, complianceVars);
     preparedEmails.push(prepared);
   }
 
@@ -502,6 +513,7 @@ function buildVariablesForEmailOnly(
   broadcast: EmailBroadcast,
   emailSendId: string,
   customVariables?: Record<string, string | number>,
+  complianceVars?: Record<string, string>,
 ): Record<string, string> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
@@ -518,6 +530,11 @@ function buildVariablesForEmailOnly(
     preferences_url: "", // No preferences page for email-only (no contact)
     view_in_browser_url: `https://${trackingDomain}/vs/${emailSendId}`,
   };
+
+  // Merge compliance variables (before custom variables so they can be overridden)
+  if (complianceVars) {
+    Object.assign(variables, complianceVars);
+  }
 
   // Override with custom variables from API request
   if (customVariables) {
@@ -540,6 +557,7 @@ function buildVariablesForEmailOnly(
 async function prepareEmailOnly(
   recipient: EmailOnlyContact,
   broadcast: EmailBroadcast,
+  complianceVars?: Record<string, string>,
 ): Promise<PreparedEmailOnly> {
   const domain = broadcast.sendingDomain.name;
   const trackingDomain = `${broadcast.sendingDomain.trackingSubDomain}.${domain}`;
@@ -551,6 +569,7 @@ async function prepareEmailOnly(
     broadcast,
     emailSendId,
     recipient.variables,
+    complianceVars,
   );
 
   // Tracking settings
@@ -640,10 +659,13 @@ export async function prepareEmailOnlyBatch(
   recipients: EmailOnlyContact[],
   broadcast: EmailBroadcast,
 ): Promise<PreparedEmailOnly[]> {
+  const settings = await resolveWorkspaceSettings(broadcast.workspaceId);
+  const complianceVars = buildComplianceVariables(settings);
+
   const preparedEmails: PreparedEmailOnly[] = [];
 
   for (const recipient of recipients) {
-    const prepared = await prepareEmailOnly(recipient, broadcast);
+    const prepared = await prepareEmailOnly(recipient, broadcast, complianceVars);
     preparedEmails.push(prepared);
   }
 

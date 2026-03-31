@@ -9,6 +9,7 @@ import type {
 import dayjs from "dayjs";
 import advancedFormat from "dayjs/plugin/advancedFormat";
 import { prisma } from "@/lib/db";
+import { validateEmailCompliance } from "@/lib/emails/compliance-validation";
 import {
   type ExtractedLink,
   type LinksValidationResult,
@@ -180,6 +181,7 @@ class BroadcastReadinessChecker {
     checklist.push(this.checkFromEmail());
     checklist.push(this.checkSubject());
     checklist.push(this.checkUnsubscribeLink());
+    checklist.push(this.checkComplianceVariables());
     checklist.push(this.checkLinks());
 
     if (!options?.skipSendTime) {
@@ -279,6 +281,34 @@ class BroadcastReadinessChecker {
       completed: hasUnsubscribeUrl,
       reason: !hasUnsubscribeUrl
         ? "No unsubscribe link found in email content"
+        : undefined,
+    };
+  }
+
+  private checkComplianceVariables(): ReadinessCheckItem {
+    const contentHtml = this.broadcast.emailContent?.contentHtml || "";
+    if (!contentHtml) {
+      return {
+        id: "compliance_variables",
+        label: "Compliance variables",
+        description:
+          "Required compliance variables must be present in your email",
+        completed: true,
+      };
+    }
+
+    const complianceCheck = validateEmailCompliance(contentHtml);
+
+    return {
+      id: "compliance_variables",
+      label: complianceCheck.valid
+        ? "Compliance variables present"
+        : "Missing compliance variables",
+      description:
+        "Required compliance variables must be present in your email",
+      completed: complianceCheck.valid,
+      reason: !complianceCheck.valid
+        ? `Missing required compliance variables: ${complianceCheck.missing.join(", ")}`
         : undefined,
     };
   }

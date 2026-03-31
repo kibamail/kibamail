@@ -15,6 +15,7 @@ import { queue } from "@/lib/queue";
 import type { AutomationEvent } from "@/lib/automations/events";
 import type { FlowNode, FlowEdge } from "@/lib/automations/graph";
 import {
+  COMPLIANT_HTML,
   cleanupWorkspace,
   createTestWorkspace,
   createTestContacts,
@@ -186,7 +187,7 @@ describe("Simulation: Welcome Email Series", () => {
         workspaceId: workspace.id,
         name: "Welcome Email",
         subject: "Welcome to Kibamail!",
-        htmlContent: "<p>Welcome!</p>",
+        htmlContent: COMPLIANT_HTML,
         type: "AUTOMATION",
       },
     });

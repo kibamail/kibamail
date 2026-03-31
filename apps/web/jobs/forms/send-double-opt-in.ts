@@ -22,6 +22,7 @@ import { generateMessageIdForDomain } from "@/lib/email/message-id";
 import { type EmailMessage, getMtaOptions, injectEmail } from "@/lib/mta";
 import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
+import { resolveWorkspaceSettings, buildComplianceVariables } from "@/lib/workspace/settings";
 import { ConversationOriginType, MessageDirection } from "@prisma/client";
 
 const logger = queueLogger.child({ job: "send-double-opt-in" });
@@ -219,6 +220,11 @@ export const sendDoubleOptIn: JobProcessor<
 
   // Build variables for personalization
   const variables = buildVariables(contact, confirmationUrl, unsubscribeUrl, preferencesUrl);
+
+  // Merge compliance variables (business address, terms/privacy URLs)
+  const settings = await resolveWorkspaceSettings(workspaceId);
+  const complianceVars = buildComplianceVariables(settings);
+  Object.assign(variables, complianceVars);
 
   // Generate message ID
   const { id: emailSendId, messageId } = generateMessageIdForDomain(domain);

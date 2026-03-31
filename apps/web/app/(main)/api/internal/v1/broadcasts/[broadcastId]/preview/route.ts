@@ -19,6 +19,7 @@ import {
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
+import { SAMPLE_VARIABLES } from "@/lib/emails/variables";
 
 interface RouteParams {
   params: Promise<{ broadcastId: string }>;
@@ -84,15 +85,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         html = await renderBroadcastToHtml(
           contentJson as unknown as BroadcastDocument,
           {
-            // Provide sample variables for preview
-            variables: {
-              "contact.email": "preview@example.com",
-              "contact.first_name": "John",
-              "contact.last_name": "Doe",
-              unsubscribe_url: "#unsubscribe",
-              preferences_url: "#preferences",
-              view_in_browser_url: "#view-in-browser",
-            },
+            variables: SAMPLE_VARIABLES,
           },
           storedStyles
         );

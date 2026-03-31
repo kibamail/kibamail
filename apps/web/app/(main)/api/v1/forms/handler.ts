@@ -21,6 +21,7 @@ import {
 import { responseCreated, responseOk } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
+import { validateEmailCompliance } from "@/lib/emails/compliance-validation";
 import {
   type FormFieldMapping,
   generateFieldMappingFromApiMapping,
@@ -471,6 +472,16 @@ export async function publishForm(workspaceId: string, formId: string) {
         "The double opt-in email has no content. Add HTML content to the email before publishing.",
         ErrorCode.FORM_VALIDATION_ERROR,
       );
+    }
+
+    if (email.htmlContent) {
+      const compliance = validateEmailCompliance(email.htmlContent);
+      if (!compliance.valid) {
+        throw new BadRequestError(
+          `Double opt-in email is missing required compliance variables: ${compliance.missing.join(", ")}`,
+          ErrorCode.FORM_VALIDATION_ERROR,
+        );
+      }
     }
   }
 

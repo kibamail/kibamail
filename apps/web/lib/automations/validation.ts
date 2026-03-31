@@ -1,5 +1,6 @@
 import { conditionSchema } from "@/app/(main)/api/v1/segments/schema";
 import { prisma } from "@/lib/db";
+import { validateEmailCompliance } from "@/lib/emails/compliance-validation";
 import {
   AUTOMATION_ACTIONS,
   AUTOMATION_RULES,
@@ -341,6 +342,17 @@ function validateActionNode(
           message:
             "Selected email has no HTML content. Edit the email to add content before publishing.",
         });
+      }
+
+      if (email.htmlContent) {
+        const compliance = validateEmailCompliance(email.htmlContent);
+        if (!compliance.valid) {
+          errors.push({
+            nodeId: node.id,
+            field: "templateId",
+            message: `Email template is missing required compliance variables: ${compliance.missing.join(", ")}`,
+          });
+        }
       }
       break;
     }

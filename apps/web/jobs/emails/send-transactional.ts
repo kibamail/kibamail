@@ -20,6 +20,7 @@ import type { JobProcessor } from "@/lib/queue";
 import { queueLogger } from "@/lib/queue";
 import { prisma } from "@/lib/db";
 import { uploadPrivateFile } from "@/lib/storage";
+import { resolveWorkspaceSettings, buildComplianceVariables } from "@/lib/workspace/settings";
 
 const logger = queueLogger.child({ job: "send-transactional" });
 
@@ -110,7 +111,18 @@ export const sendTransactional: JobProcessor<
     throw new Error(`Sending domain ${sendingDomainId} not found`);
   }
 
-  const finalTextBody = textBody || htmlToPlainText(htmlBody);
+  // Substitute compliance variables in HTML body and subject
+  const wsSettings = await resolveWorkspaceSettings(workspaceId);
+  const complianceVars = buildComplianceVariables(wsSettings);
+
+  let finalHtmlBody = htmlBody;
+  let finalSubject = subject;
+  for (const [key, value] of Object.entries(complianceVars)) {
+    finalHtmlBody = finalHtmlBody.replaceAll(`{{${key}}}`, value);
+    finalSubject = finalSubject.replaceAll(`{{${key}}}`, value);
+  }
+
+  const finalTextBody = textBody || htmlToPlainText(finalHtmlBody);
   // Use emailSendId from API instead of generating a new ID
   // This ensures the ID returned to the user matches what's in the database and MTA headers
   const messageId = `<${emailSendId}@${sendingDomain.name}>`;
@@ -132,7 +144,7 @@ export const sendTransactional: JobProcessor<
     return;
   }
 
-  let htmlContent = htmlBody;
+  let htmlContent = finalHtmlBody;
 
   if (sendingDomain.openTrackingEnabled || sendingDomain.clickTrackingEnabled) {
     const trackingResult = applyTracking(
@@ -180,7 +192,7 @@ export const sendTransactional: JobProcessor<
       email: replyToAddress.email,
       name: replyToAddress.name ?? "",
     },
-    subject,
+    subject: finalSubject,
     preview_text: previewText || "",
     html_body: htmlContent,
     text_body: finalTextBody,
@@ -254,7 +266,7 @@ export const sendTransactional: JobProcessor<
       sendingDomainId: sendingDomain.id,
       senderIdentityId: senderIdentity.id,
       toEmail: recipient,
-      subject,
+      subject: finalSubject,
       previewText: previewText || undefined,
       htmlContentS3Key: htmlS3Key,
       textContentS3Key: textS3Key,

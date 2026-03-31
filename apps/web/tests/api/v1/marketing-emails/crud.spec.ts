@@ -19,6 +19,8 @@ import {
 import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
+  COMPLIANCE_FOOTER,
+  COMPLIANT_HTML,
   type CreatedApiKey,
   cleanupWorkspace,
   createFullAccessApiKey,
@@ -50,7 +52,7 @@ describe("POST /api/v1/marketing-emails - Create", () => {
       {
         name: "Confirm Subscription",
         subject: "Please confirm {{firstName}}",
-        html: "<html><body><a href=\"{{confirmation_url}}\">Confirm</a></body></html>",
+        html: `<html><body><a href="{{confirmation_url}}">Confirm</a><footer>${COMPLIANCE_FOOTER}</footer></body></html>`,
       },
       fullAccessApiKey.key,
     );
@@ -161,7 +163,7 @@ describe("GET /api/v1/marketing-emails/[emailId] - Get", () => {
         name: "Get Test",
         subject: "Hello {{firstName}}",
         htmlContent:
-          '<html><body>Hi {{firstName}}, <a href="{{confirmation_url}}">confirm</a></body></html>',
+          `<html><body>Hi {{firstName}}, <a href="{{confirmation_url}}">confirm</a><footer>${COMPLIANCE_FOOTER}</footer></body></html>`,
         type: "AUTOMATION",
       },
     });
@@ -206,7 +208,7 @@ describe("PUT /api/v1/marketing-emails/[emailId] - Update", () => {
       `/marketing-emails/${email.id}`,
       {
         name: "Updated",
-        html: "<html><body>New content</body></html>",
+        html: `<html><body>New content<footer>${COMPLIANCE_FOOTER}</footer></body></html>`,
       },
       fullAccessApiKey.key,
     );

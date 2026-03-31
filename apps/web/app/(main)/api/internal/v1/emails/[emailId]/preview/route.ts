@@ -19,6 +19,7 @@ import {
   renderBroadcastToHtml,
 } from "@/lib/broadcast-renderer";
 import { prisma } from "@/lib/db";
+import { SAMPLE_VARIABLES } from "@/lib/emails/variables";
 
 interface RouteParams {
   params: Promise<{ emailId: string }>;
@@ -58,30 +59,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
           );
         }
 
-        // Sample variables for preview
-        const sampleVariables: Record<string, string> = {
-          email: "preview@example.com",
-          "contact.email": "preview@example.com",
-          firstName: "John",
-          first_name: "John",
-          "contact.first_name": "John",
-          lastName: "Doe",
-          last_name: "Doe",
-          "contact.last_name": "Doe",
-          phone: "+1 555 0100",
-          country: "United States",
-          timezone: "America/New_York",
-          city: "New York",
-          confirmation_url: "#confirm-subscription",
-          unsubscribe_url: "#unsubscribe",
-          preferences_url: "#preferences",
-        };
-
         // Raw HTML path — substitute variables directly
         if (email.htmlContent) {
           const html = email.htmlContent.replace(
             /\{\{(\w+(?:\.\w+)*)\}\}/g,
-            (match, varName) => sampleVariables[varName] ?? match,
+            (match, varName) => SAMPLE_VARIABLES[varName] ?? match,
           );
 
           return NextResponse.json(
@@ -106,7 +88,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         const html = await renderBroadcastToHtml(
           contentJson as unknown as BroadcastDocument,
-          { variables: sampleVariables },
+          { variables: SAMPLE_VARIABLES },
           storedStyles,
         );
 

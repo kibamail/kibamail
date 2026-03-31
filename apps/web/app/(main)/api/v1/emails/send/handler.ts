@@ -10,10 +10,12 @@ import { createId } from "@paralleldrive/cuid2";
 import type { NextRequest } from "next/server";
 import { BadRequestError, NotFoundError } from "@/lib/api/errors";
 import { ErrorCode } from "@/lib/api/error-codes";
+import { validateEmailCompliance } from "@/lib/emails/compliance-validation";
 import { responseCreated } from "@/lib/api/responses";
 import { validateRequestBody } from "@/lib/api/validation";
 import { prisma } from "@/lib/db";
 import { queue } from "@/lib/queue";
+import { resolveWorkspaceSettings, buildComplianceVariables } from "@/lib/workspace/settings";
 import type { VariableDefinition } from "@/app/(main)/api/internal/v1/email-templates/schema";
 import {
   sendTransactionalEmailSchema,
@@ -193,29 +195,45 @@ async function resolveTemplateContent(
     );
   }
 
-  // 3. Validate variable types
+  // 3. Validate compliance variables on template HTML
+  if (publishedVersion.emailContent.contentHtml) {
+    const compliance = validateEmailCompliance(publishedVersion.emailContent.contentHtml);
+    if (!compliance.valid) {
+      throw new BadRequestError(
+        `Email template is missing required compliance variables: ${compliance.missing.join(", ")}`,
+        ErrorCode.VALIDATION_FAILED,
+      );
+    }
+  }
+
+  // 4. Validate variable types
   const definitions =
     (publishedVersion.emailContent.variables as VariableDefinition[]) || [];
   validateVariableTypes(definitions, userVariables);
 
-  // 4. Substitute variables in all content fields
+  // 5. Merge compliance variables as defaults (user variables take priority)
+  const settings = await resolveWorkspaceSettings(workspaceId);
+  const complianceVars = buildComplianceVariables(settings);
+  const allVariables: Record<string, string | number> = { ...complianceVars, ...userVariables };
+
+  // 6. Substitute variables in all content fields
   return {
     subject: substituteVariables(
       publishedVersion.emailContent.subject,
-      userVariables
+      allVariables
     ),
     previewText: substituteVariables(
       publishedVersion.emailContent.previewText,
-      userVariables
+      allVariables
     ),
     html:
       substituteVariables(
         publishedVersion.emailContent.contentHtml,
-        userVariables
+        allVariables
       ) || "",
     text: substituteVariables(
       publishedVersion.emailContent.contentText,
-      userVariables
+      allVariables
     ),
     trackClicks: publishedVersion.trackClicks,
     trackOpens: publishedVersion.trackOpens,

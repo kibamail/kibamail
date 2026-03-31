@@ -12,6 +12,7 @@ import { ErrorCode, ErrorType } from "@/lib/api/error-codes";
 import { prisma } from "@/lib/db";
 import {
   apiRequest,
+  COMPLIANT_HTML,
   type CreatedApiKey,
   cleanupWorkspace,
   createFullAccessApiKey,
@@ -57,7 +58,7 @@ beforeAll(async () => {
       workspaceId: testWorkspace.id,
       name: "Test Automation Email",
       subject: "Welcome",
-      htmlContent: "<p>Welcome</p>",
+      htmlContent: COMPLIANT_HTML,
       type: "AUTOMATION",
     },
   });
