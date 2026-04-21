@@ -51,3 +51,4 @@ bun.lockb
 next-env.d.ts
 
 prisma/generated/
+.mcp.json
