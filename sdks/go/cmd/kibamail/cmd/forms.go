@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/kibamail/cli/internal"
-	kibamail "github.com/kibamail/kibamail/packages/go-sdk"
+	kibamail "github.com/kibamail/kibamail/sdks/go"
 	"github.com/spf13/cobra"
 )
 

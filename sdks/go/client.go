@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	version     = "0.0.1-alpha.0"
+	version     = "0.1.0"
 	userAgent   = "kibamail-go/" + version
 	contentType = "application/json"
 )

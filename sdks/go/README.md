@@ -1,281 +1,122 @@
 # Kibamail Go SDK
 
-Official Go SDK for the Kibamail API.
+Official Go SDK for the [Kibamail](https://kibamail.com) API — transactional email, marketing campaigns, contacts, forms, automations.
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/kibamail/kibamail/packages/go-sdk.svg)](https://pkg.go.dev/github.com/kibamail/kibamail/packages/go-sdk)
-[![Go Report Card](https://goreportcard.com/badge/github.com/kibamail/kibamail/packages/go-sdk)](https://goreportcard.com/report/github.com/kibamail/kibamail/packages/go-sdk)
+[![Go Reference](https://pkg.go.dev/badge/github.com/kibamail/kibamail/sdks/go.svg)](https://pkg.go.dev/github.com/kibamail/kibamail/sdks/go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kibamail/kibamail/sdks/go)](https://goreportcard.com/report/github.com/kibamail/kibamail/sdks/go)
 
-## Installation
+**Version:** `v0.1.0` · **Go:** `1.23+` · **Status:** stable
+
+---
+
+## Install
 
 ```bash
-go get github.com/kibamail/kibamail/packages/go-sdk
+go get github.com/kibamail/kibamail/sdks/go@v0.1.0
 ```
 
-## Quick Start
+## 30-second example
 
 ```go
 package main
 
 import (
-    "fmt"
     "log"
-
-    kibamail "github.com/kibamail/kibamail/packages/go-sdk"
+    kibamail "github.com/kibamail/kibamail/sdks/go"
 )
 
 func main() {
-    // Initialize the client with your API key
     client := kibamail.NewClient("kb_your_api_key")
 
-    // Create a contact
-    contact, err := client.Contacts.Create(&kibamail.CreateContactRequest{
-        Email:     "user@example.com",
-        FirstName: "John",
-        LastName:  "Doe",
+    res, err := client.Emails.Send(&kibamail.SendEmailRequest{
+        From:    "Acme <hello@acme.com>",
+        To:      "user@example.com",
+        Subject: "Welcome",
+        Html:    "<h1>Hello</h1>",
+        Text:    "Hello",
     })
     if err != nil {
         log.Fatal(err)
     }
-
-    fmt.Printf("Contact created: %s\n", contact.ID)
-
-    // List contacts
-    contacts, err := client.Contacts.List(nil)
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Printf("Found %d contacts\n", len(contacts.Data))
+    log.Println("email id:", res.ID)
 }
 ```
 
-## Resources
+## Documentation
 
-The SDK provides access to the following resources:
+Deep-dives for each resource, with production patterns, live in [`docs/`](./docs):
 
-### Contacts
+| Guide | Use when you need to |
+|---|---|
+| [Quickstart](./docs/quickstart.md) | Get an authenticated client running |
+| [Emails](./docs/emails.md) | Send transactional mail, templates, attachments, batch, introspect events |
+| [Contacts](./docs/contacts.md) | Create/update/search subscribers, manage properties and topics |
+| [Forms](./docs/forms.md) | Build opt-in forms with double-opt-in flows |
+| [Broadcasts](./docs/broadcasts.md) | Schedule one-off campaigns to segments |
+| [Marketing Emails](./docs/marketing-emails.md) | Manage reusable templates for campaigns and automations |
+| [Automations](./docs/automations.md) | Build trigger-based drip flows |
+| [Errors](./docs/errors.md) | Handle `*APIError`, validation, and rate limits correctly |
+| [Performance](./docs/performance.md) | Reuse clients, tune HTTP, paginate, respect rate limits |
 
-Manage contact records and subscriptions.
+## Services on the client
+
+Every resource is exposed as a typed service on `*kibamail.Client`:
 
 ```go
-// Create a contact
-contact, err := client.Contacts.Create(&kibamail.CreateContactRequest{
-    Email:     "user@example.com",
-    FirstName: "John",
-    LastName:  "Doe",
-    Properties: map[string]interface{}{
-        "Company": "Acme Inc",
-        "Plan":    "Enterprise",
-    },
-    Topics: []string{"topic_newsletter"},
-})
-
-// List contacts
-contacts, err := client.Contacts.List(&kibamail.ListOptions{
-    Limit: &limit,
-})
-
-// Get a contact
-contact, err := client.Contacts.Get("contact_123")
-
-// Update a contact
-updated, err := client.Contacts.Update("contact_123", &kibamail.UpdateContactRequest{
-    FirstName: "Jane",
-})
-
-// Delete a contact
-err := client.Contacts.Delete("contact_123")
-
-// Search contacts
-results, err := client.Contacts.Search(&kibamail.SearchContactRequest{
-    Conditions: map[string]interface{}{
-        "$and": []map[string]interface{}{
-            {"field": "status", "operator": "eq", "value": "SUBSCRIBED"},
-        },
-    },
-})
+client.Emails              // transactional sending + introspection
+client.Contacts            // subscribers
+client.ContactProperties   // custom field definitions
+client.Topics              // interest lists
+client.Segments            // dynamic contact segments
+client.Forms               // hosted / embedded opt-in forms
+client.Broadcasts          // one-off marketing sends
+client.MarketingEmails     // reusable campaign templates
+client.Automations         // trigger-driven workflows
+client.Domains             // sending-domain config + DNS verification
+client.Inbox               // inbound mail parsing
+client.Events              // webhook event streams
+client.ApiKeys             // API key management (for admin tokens)
 ```
 
-### Topics
-
-Organize email communications by topic.
+Every method exists in two forms — the default passes `context.Background()`, the `*WithContext` variant takes an explicit `context.Context`. Always use `WithContext` in request-scoped code:
 
 ```go
-// Create a topic
-topic, err := client.Topics.Create(&kibamail.CreateTopicRequest{
-    Name:         "Product Updates",
-    Description:  "Latest features and improvements",
-    Visibility:   "PUBLIC",
-    DefaultOptIn: true,
-})
-
-// List topics
-topics, err := client.Topics.List(nil)
-
-// Get a topic
-topic, err := client.Topics.Get("topic_123")
-
-// Update a topic
-updated, err := client.Topics.Update("topic_123", &kibamail.UpdateTopicRequest{
-    Name: "Weekly Newsletter",
-})
-
-// Delete a topic
-err := client.Topics.Delete("topic_123")
-```
-
-### Segments
-
-Create dynamic contact groups with filtering.
-
-```go
-// Create a segment
-segment, err := client.Segments.Create(&kibamail.CreateSegmentRequest{
-    Name:        "Enterprise Customers",
-    Description: "All contacts on Enterprise plan",
-    Conditions: map[string]interface{}{
-        "$and": []map[string]interface{}{
-            {"field": "Plan", "operator": "eq", "value": "Enterprise"},
-            {"field": "status", "operator": "eq", "value": "SUBSCRIBED"},
-        },
-    },
-})
-
-// List segment contacts
-contacts, err := client.Segments.ListContacts("segment_123", nil)
-```
-
-### Forms
-
-Build and manage signup/contact forms.
-
-```go
-// Create a form
-form, err := client.Forms.Create(&kibamail.CreateFormRequest{
-    Name:        "Newsletter Signup",
-    Description: "Subscribe to our weekly newsletter",
-})
-
-// List forms
-forms, err := client.Forms.List(nil)
-```
-
-### API Keys
-
-Manage API keys for workspace access.
-
-```go
-// Create an API key
-apiKey, err := client.ApiKeys.Create(&kibamail.CreateApiKeyRequest{
-    Name:   "Production Server",
-    Scopes: []string{"read:contacts", "write:contacts"},
-})
-
-// List API keys
-apiKeys, err := client.ApiKeys.List(nil)
-
-// Delete an API key
-err := client.ApiKeys.Delete("key_123")
-```
-
-### Contact Properties
-
-Define custom contact properties.
-
-```go
-// Create a contact property
-property, err := client.ContactProperties.Create(&kibamail.CreateContactPropertyRequest{
-    Name: "Company",
-    Type: "TEXT",
-})
-
-// List contact properties
-properties, err := client.ContactProperties.List(nil)
-```
-
-## Context Support
-
-All methods have a `WithContext` variant for context support:
-
-```go
-ctx := context.Background()
-
-contact, err := client.Contacts.CreateWithContext(ctx, &kibamail.CreateContactRequest{
-    Email: "user@example.com",
-})
-```
-
-## Error Handling
-
-The SDK provides structured error handling:
-
-```go
-contact, err := client.Contacts.Get("invalid_id")
-if err != nil {
-    // Handle error
-    if errors.Is(err, kibamail.ErrRateLimit) {
-        // Handle rate limit specifically
-    }
-    log.Fatal(err)
-}
+email, err := client.Emails.GetWithContext(ctx, emailID)
 ```
 
 ## Configuration
 
-You can customize the SDK behavior:
+| Knob | How |
+|---|---|
+| API key | `kibamail.NewClient("kb_...")` |
+| Custom `http.Client` (timeouts, retries, proxies) | `kibamail.NewCustomClient(httpClient, "kb_...")` |
+| Custom base URL (staging, self-host) | Env `KIBAMAIL_BASE_URL=https://api.staging.kibamail.com` or mutate `client.BaseURL` after construction |
+
+## Errors
+
+All SDK methods return a typed error. API-level failures unwrap to `*kibamail.APIError` (with `Code`, `Message`, `Hint`, `RequestID`, `ValidationErrors`). Rate limits unwrap to `*kibamail.RateLimitError` (and satisfy `errors.Is(err, kibamail.ErrRateLimit)`).
 
 ```go
-import "net/http"
-
-// Custom HTTP client
-httpClient := &http.Client{
-    Timeout: 30 * time.Second,
+if _, err := client.Contacts.Create(req); err != nil {
+    var apiErr *kibamail.APIError
+    if errors.As(err, &apiErr) && apiErr.Code == "validation_failed" {
+        for _, v := range apiErr.ValidationErrors {
+            log.Printf("%s: %s", v.Field, v.Message)
+        }
+    }
 }
-client := kibamail.NewCustomClient(httpClient, "your-api-key")
-
-// Custom base URL (for testing)
-baseURL, _ := url.Parse("http://localhost:4010")
-client.BaseURL = baseURL
 ```
 
-## Development
+Full matrix in [`docs/errors.md`](./docs/errors.md).
 
-### Running Tests
-
-The SDK uses a shared Prism mock server (managed at monorepo root) for integration tests:
+## Contributing
 
 ```bash
-# Run tests (automatically starts test infrastructure if needed)
-make test
-
-# Or using go test directly (ensure infrastructure is running first)
-go test -v ./...
-
-# Manually manage test infrastructure
-make mock-start  # Start test infrastructure
-make mock-stop   # Stop test infrastructure
-make mock-logs   # View infrastructure logs
-```
-
-**From Monorepo Root:**
-
-```bash
-# Start test infrastructure for all SDKs
-make test-sdk-infra-start
-
-# Run tests for all SDKs
-make test-all-sdks
-
-# Stop test infrastructure
-make test-sdk-infra-stop
-```
-
-### Building
-
-```bash
-go build -v ./...
+make tidy fmt build test   # full local check
+make mock-start            # spin up SDK test infra
+make test-coverage         # HTML coverage report
 ```
 
 ## License
 
-MIT
+MIT © Kibamail
