@@ -26,6 +26,7 @@ interface TemplateWithVersions {
   isLiveVersion: boolean;
   emailContent: {
     contentJson: Record<string, unknown> | null;
+    contentHtml: string | null;
     styles: Record<string, unknown> | null;
     subject: string | null;
     previewText: string | null;
@@ -93,6 +94,7 @@ async function getTemplateWithVersions(
             string,
             unknown
           > | null,
+          contentHtml: template.emailContent.contentHtml,
           styles: template.emailContent.styles as Record<
             string,
             unknown
@@ -170,6 +172,7 @@ export default async function TemplateEditorPage({
       isLiveVersion={template.isLiveVersion}
       initialContent={template.emailContent?.contentJson ?? undefined}
       initialStyles={template.emailContent?.styles ?? undefined}
+      initialContentHtml={template.emailContent?.contentHtml ?? undefined}
       initialSubject={template.emailContent?.subject ?? ""}
       initialPreviewText={template.emailContent?.previewText ?? ""}
       initialVariables={template.emailContent?.variables ?? undefined}

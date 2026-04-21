@@ -214,6 +214,13 @@ export interface EmailEditorProps<T extends EmailEditorMode> {
   // Initial data
   initialContent?: Record<string, unknown>;
   initialStyles?: Record<string, unknown>;
+  /**
+   * Raw HTML content of the template (set only for HTML-only templates
+   * uploaded via /api/v1/transactional-email-templates). When present and
+   * `initialContent` is null, the Content tab renders a read-only iframe
+   * preview of this HTML instead of the TipTap editor.
+   */
+  initialContentHtml?: string | null;
   initialDetails: EditorDetails<T>;
 
   // Sender configuration

@@ -28,6 +28,7 @@ interface TemplateEditorAdapterProps {
   isLiveVersion: boolean;
   initialContent?: Record<string, unknown>;
   initialStyles?: Record<string, unknown>;
+  initialContentHtml?: string | null;
   initialSubject?: string;
   initialPreviewText?: string;
   initialVariables?: VariableDefinition[];
@@ -50,6 +51,7 @@ export function TemplateEditorAdapter({
   isLiveVersion,
   initialContent,
   initialStyles,
+  initialContentHtml,
   initialSubject,
   initialPreviewText,
   initialVariables,
@@ -158,6 +160,7 @@ export function TemplateEditorAdapter({
       isReadonly={isReadonly}
       initialContent={initialContent}
       initialStyles={initialStyles}
+      initialContentHtml={initialContentHtml}
       initialDetails={initialDetails}
       senderIdentities={senderIdentities}
       domains={domains}

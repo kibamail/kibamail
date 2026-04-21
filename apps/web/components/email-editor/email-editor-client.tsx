@@ -42,6 +42,7 @@ export function EmailEditorClient<T extends EmailEditorMode>({
   sourceType,
   initialContent,
   initialStyles,
+  initialContentHtml,
   initialDetails,
   senderIdentities,
   domains,
@@ -326,22 +327,31 @@ export function EmailEditorClient<T extends EmailEditorMode>({
               : "invisible pointer-events-none"
           }`}
         >
-          <ContentEditor
-            ref={editorRef}
-            entityId={entityId}
-            stylesOpen={stylesOpen}
-            onStylesOpenChange={setStylesOpen}
-            initialContent={initialContent}
-            initialStyles={initialStyles}
-            readonly={isReadonly}
-            onUpload={mutations.onUploadFile}
-            mode={mode}
-            customVariables={customVariables}
-            allowCustomVariables={allowCustomVariables}
-            onVariableCreate={onVariableCreate}
-            onVariableUpdate={onVariableUpdate}
-            onVariableDelete={onVariableDelete}
-          />
+          {initialContentHtml && !initialContent ? (
+            <iframe
+              title="Template HTML content"
+              srcDoc={initialContentHtml}
+              sandbox="allow-same-origin"
+              className="w-full h-full bg-white"
+            />
+          ) : (
+            <ContentEditor
+              ref={editorRef}
+              entityId={entityId}
+              stylesOpen={stylesOpen}
+              onStylesOpenChange={setStylesOpen}
+              initialContent={initialContent}
+              initialStyles={initialStyles}
+              readonly={isReadonly}
+              onUpload={mutations.onUploadFile}
+              mode={mode}
+              customVariables={customVariables}
+              allowCustomVariables={allowCustomVariables}
+              onVariableCreate={onVariableCreate}
+              onVariableUpdate={onVariableUpdate}
+              onVariableDelete={onVariableDelete}
+            />
+          )}
         </div>
 
         {/* Details Tab */}
