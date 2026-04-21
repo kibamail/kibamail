@@ -249,6 +249,21 @@ export const API_SCOPES: ApiScopeDefinition[] = [
   },
 
   // ============================================================================
+  // TRANSACTIONAL EMAIL TEMPLATES
+  // ============================================================================
+  {
+    name: "read:templates",
+    description: "View transactional email templates and their content",
+    category: "Transactional Email Templates",
+  },
+  {
+    name: "manage:templates",
+    description:
+      "Create, update, publish, and delete transactional email templates",
+    category: "Transactional Email Templates",
+  },
+
+  // ============================================================================
   // SENDING DOMAINS
   // ============================================================================
   {
@@ -399,6 +414,7 @@ export const API_KEY_PRESETS: ApiKeyPreset[] = [
         scope.name.startsWith("write:") ||
         scope.name.startsWith("update:") ||
         scope.name.startsWith("delete:") ||
+        scope.name.startsWith("manage:") ||
         scope.name === "smtp:send"
     ).map((scope) => scope.name),
   },
