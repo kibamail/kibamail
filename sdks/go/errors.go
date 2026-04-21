@@ -211,6 +211,19 @@ var (
 	ErrFailedToCreateInboxStatsRequest              = errors.New("[ERROR]: Failed to create Inbox.Stats request")
 )
 
+// TransactionalEmailTemplatesSvc errors
+var (
+	ErrFailedToCreateTransactionalEmailTemplatesCreateRequest        = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.Create request")
+	ErrFailedToCreateTransactionalEmailTemplatesListRequest          = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.List request")
+	ErrFailedToCreateTransactionalEmailTemplatesGetRequest           = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.Get request")
+	ErrFailedToCreateTransactionalEmailTemplatesUpdateRequest        = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.Update request")
+	ErrFailedToCreateTransactionalEmailTemplatesDeleteRequest        = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.Delete request")
+	ErrFailedToCreateTransactionalEmailTemplatesPublishRequest       = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.Publish request")
+	ErrFailedToCreateTransactionalEmailTemplatesPreviewRequest       = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.Preview request")
+	ErrFailedToCreateTransactionalEmailTemplatesCreateVersionRequest = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.CreateVersion request")
+	ErrFailedToCreateTransactionalEmailTemplatesListVersionsRequest  = errors.New("[ERROR]: Failed to create TransactionalEmailTemplates.ListVersions request")
+)
+
 // handleError tries to handle errors based on HTTP status codes.
 // It preserves the full structured error response from the API.
 func handleError(resp *http.Response) error {
