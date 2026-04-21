@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	kibamail "github.com/kibamail/kibamail/packages/go-sdk"
+	kibamail "github.com/kibamail/kibamail/sdks/go"
 	"github.com/spf13/cobra"
 )
 

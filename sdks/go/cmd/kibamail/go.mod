@@ -2,10 +2,10 @@ module github.com/kibamail/cli
 
 go 1.25.1
 
-replace github.com/kibamail/kibamail/packages/go-sdk => ../../
+replace github.com/kibamail/kibamail/sdks/go => ../../
 
 require (
-	github.com/kibamail/kibamail/packages/go-sdk v0.0.0-00010101000000-000000000000
+	github.com/kibamail/kibamail/sdks/go v0.0.0-00010101000000-000000000000
 	github.com/mattn/go-isatty v0.0.20
 	github.com/spf13/cobra v1.10.2
 	github.com/zalando/go-keyring v0.2.8
