@@ -24,7 +24,7 @@ Kibamail is an email platform for both **transactional email** (password resets,
 kibamail [resource] [verb] [flags]
 ```
 
-Resources: `emails`, `domains`, `broadcasts`, `contacts`, `topics`, `segments`, `forms`, `automations`, `api-keys`, `marketing-emails`, `contact-properties`, `events`, `inbox`
+Resources: `emails`, `domains`, `broadcasts`, `contacts`, `topics`, `segments`, `forms`, `automations`, `api-keys`, `marketing-emails`, `transactional-email-templates`, `contact-properties`, `events`, `inbox`
 
 ## Authentication
 
@@ -195,6 +195,19 @@ Always use `--json` when parsing output programmatically.
 | `emails events <id>` | Get email event timeline |
 | `emails content <id>` | Get email HTML/text content |
 
+### Transactional Email Templates
+| Command | Description |
+|---|---|
+| `transactional-email-templates create --slug SLUG --html-file F --publish` | Create and publish a reusable transactional template |
+| `transactional-email-templates list` | List templates |
+| `transactional-email-templates show <id>` | Show a template |
+| `transactional-email-templates update <id> --html-file F` | Update a DRAFT |
+| `transactional-email-templates publish <id>` | Publish a DRAFT |
+| `transactional-email-templates preview <id>` | Server-side rendered preview |
+| `transactional-email-templates create-version <id>` | Fork a new DRAFT from a published template |
+
+**Mandatory workflow:** templates MUST be authored as React Email components in a `/tmp` build project, rendered to HTML, and uploaded via `--html-file`. Never hand-write HTML. See `references/transactional-email-templates.md` for the full procedure.
+
 ### Sending Domains
 | Command | Description |
 |---|---|
@@ -258,6 +271,7 @@ Read these on demand when you need detailed information:
 | `references/forms.md` | Signup and survey forms |
 | `references/automations.md` | Automation workflows — includes trigger details |
 | `references/marketing-emails.md` | Marketing email templates — CRUD, preview, stats, template variables |
+| `references/transactional-email-templates.md` | **Read before creating any transactional template.** Mandatory React Email + temp-folder build + `--html-file` upload workflow |
 | `references/api-keys.md` | API key management |
 | `references/contact-properties.md` | Custom contact properties |
 | `references/events.md` | Custom events for automation triggers |
