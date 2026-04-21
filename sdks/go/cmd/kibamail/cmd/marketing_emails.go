@@ -1,10 +1,31 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/kibamail/cli/internal"
 	kibamail "github.com/kibamail/kibamail/sdks/go"
 	"github.com/spf13/cobra"
 )
+
+// resolveHtmlFlags returns the HTML body, preferring --html-file when
+// set. Returns an error if both --html and --html-file are provided.
+func resolveHtmlFlags(cmd *cobra.Command) (string, error) {
+	inline, _ := cmd.Flags().GetString("html")
+	path, _ := cmd.Flags().GetString("html-file")
+	if inline != "" && path != "" {
+		return "", fmt.Errorf("--html and --html-file are mutually exclusive")
+	}
+	if path != "" {
+		b, err := os.ReadFile(path)
+		if err != nil {
+			return "", fmt.Errorf("read --html-file %q: %w", path, err)
+		}
+		return string(b), nil
+	}
+	return inline, nil
+}
 
 func newMarketingEmailsCmd() *cobra.Command {
 	cmd := &cobra.Command{
@@ -40,7 +61,10 @@ func newMarketingEmailsCreateCmd() *cobra.Command {
 			if v, _ := cmd.Flags().GetString("preview-text"); v != "" {
 				req.PreviewText = v
 			}
-			if v, _ := cmd.Flags().GetString("html"); v != "" {
+			if v, err := resolveHtmlFlags(cmd); err != nil {
+				internal.HandleError(cmd, err)
+				return nil
+			} else if v != "" {
 				req.Html = v
 			}
 			if v, _ := cmd.Flags().GetString("sender-identity-id"); v != "" {
@@ -75,7 +99,8 @@ func newMarketingEmailsCreateCmd() *cobra.Command {
 	cmd.Flags().String("name", "", "Marketing email name [required]")
 	cmd.Flags().String("subject", "", "Email subject")
 	cmd.Flags().String("preview-text", "", "Preview text")
-	cmd.Flags().String("html", "", "HTML body")
+	cmd.Flags().String("html", "", "HTML body (inline)")
+	cmd.Flags().String("html-file", "", "Path to a file containing the HTML body (UTF-8)")
 	cmd.Flags().String("sender-identity-id", "", "Sender identity ID")
 	cmd.Flags().String("reply-to-identity-id", "", "Reply-to identity ID")
 	cmd.Flags().String("type", "", "Email type")
@@ -154,7 +179,10 @@ func newMarketingEmailsUpdateCmd() *cobra.Command {
 			if v, _ := cmd.Flags().GetString("preview-text"); v != "" {
 				req.PreviewText = v
 			}
-			if v, _ := cmd.Flags().GetString("html"); v != "" {
+			if v, err := resolveHtmlFlags(cmd); err != nil {
+				internal.HandleError(cmd, err)
+				return nil
+			} else if v != "" {
 				req.Html = v
 			}
 			if v, _ := cmd.Flags().GetString("sender-identity-id"); v != "" {
@@ -189,7 +217,8 @@ func newMarketingEmailsUpdateCmd() *cobra.Command {
 	cmd.Flags().String("name", "", "Marketing email name")
 	cmd.Flags().String("subject", "", "Email subject")
 	cmd.Flags().String("preview-text", "", "Preview text")
-	cmd.Flags().String("html", "", "HTML body")
+	cmd.Flags().String("html", "", "HTML body (inline)")
+	cmd.Flags().String("html-file", "", "Path to a file containing the HTML body (UTF-8)")
 	cmd.Flags().String("sender-identity-id", "", "Sender identity ID")
 	cmd.Flags().String("reply-to-identity-id", "", "Reply-to identity ID")
 	cmd.Flags().String("type", "", "Email type")

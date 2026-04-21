@@ -91,7 +91,7 @@ export async function createMarketingEmail(
         ErrorCode.VALIDATION_FAILED,
       );
     }
-    const compliance = validateEmailCompliance(data.html);
+    const compliance = validateEmailCompliance(data.html, { type: "MARKETING" });
     if (!compliance.valid) {
       throw new BadRequestError(
         `Email is missing required compliance variables: ${compliance.missing.join(", ")}`,
@@ -242,7 +242,7 @@ export async function updateMarketingEmail(
   }
 
   if (typeof data.html === "string") {
-    const compliance = validateEmailCompliance(data.html);
+    const compliance = validateEmailCompliance(data.html, { type: "MARKETING" });
     if (!compliance.valid) {
       throw new BadRequestError(
         `Email is missing required compliance variables: ${compliance.missing.join(", ")}`,

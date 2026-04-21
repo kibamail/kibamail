@@ -197,7 +197,7 @@ async function resolveTemplateContent(
 
   // 3. Validate compliance variables on template HTML
   if (publishedVersion.emailContent.contentHtml) {
-    const compliance = validateEmailCompliance(publishedVersion.emailContent.contentHtml);
+    const compliance = validateEmailCompliance(publishedVersion.emailContent.contentHtml, { type: "TRANSACTIONAL" });
     if (!compliance.valid) {
       throw new BadRequestError(
         `Email template is missing required compliance variables: ${compliance.missing.join(", ")}`,
@@ -288,7 +288,7 @@ export async function sendTransactionalEmail(
     previewText = data.previewText;
 
     // Validate compliance variables on raw HTML
-    const compliance = validateEmailCompliance(html);
+    const compliance = validateEmailCompliance(html, { type: "TRANSACTIONAL" });
     if (!compliance.valid) {
       throw new BadRequestError(
         `Email HTML is missing required compliance variables: ${compliance.missing.join(", ")}`,

@@ -664,19 +664,30 @@ export async function publishEmailTemplate(
     );
   }
 
-  // Validate template has content JSON for rendering
-  if (!template.emailContent?.contentJson) {
+  // Validate template has renderable content: either visual JSON (dashboard
+  // editor) or raw HTML uploaded via the external transactional-email-templates
+  // API.
+  const hasContentJson = Boolean(template.emailContent?.contentJson);
+  const hasContentHtml = Boolean(template.emailContent?.contentHtml);
+  if (!hasContentJson && !hasContentHtml) {
     throw new BadRequestError(
       "Cannot publish a template without content. Add content before publishing.",
       ErrorCode.TEMPLATE_NO_CONTENT,
     );
   }
 
-  // Render HTML from contentJson (with empty variables to preserve placeholders)
-  const contentJson = template.emailContent
-    .contentJson as unknown as BroadcastDocument;
-  const styles = (template.emailContent.styles as BroadcastStyles) || {};
-  const contentHtml = await renderBroadcastToHtml(contentJson, {}, styles);
+  let contentHtml: string;
+  if (hasContentJson) {
+    // Render HTML from contentJson (with empty variables to preserve placeholders)
+    const contentJson = template.emailContent
+      .contentJson as unknown as BroadcastDocument;
+    const styles = (template.emailContent.styles as BroadcastStyles) || {};
+    contentHtml = await renderBroadcastToHtml(contentJson, {}, styles);
+  } else {
+    // HTML-only path: trust the already-stored HTML (external API sets this
+    // directly on create/update and has already run HTML + compliance checks).
+    contentHtml = template.emailContent!.contentHtml!;
+  }
 
   // Generate plain text from HTML
   const contentText = htmlToPlainText(contentHtml);

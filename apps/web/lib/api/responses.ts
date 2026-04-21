@@ -81,7 +81,10 @@ export type ApiObjectType =
   | "broadcast_stats"
   | "marketing_email"
   | "marketing_email_list"
-  | "marketing_email_stats";
+  | "marketing_email_stats"
+  | "transactional_email_template"
+  | "transactional_email_template_list"
+  | "transactional_email_template_preview";
 
 /**
  * Standard API response structure (for external API v1)
